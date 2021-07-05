@@ -1,0 +1,23 @@
+		<tr>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%s</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="true">%.3f</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="true">%s</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="true">-</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="true">-</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="true">-</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="true">-</p>
+			</td>
+		</tr>

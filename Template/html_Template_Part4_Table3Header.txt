@@ -1,0 +1,31 @@
+<table class="tabela_corpo" id="tabela%d">
+	<caption>
+	<p class="Tabela_Texto_8"><strong>Tabela %d. Informa&ccedil;&otilde;es acerca da(s) emiss&atilde;o(&otilde;es) identificada(s).</strong></p>
+	</caption>
+	<thead>
+		<tr>
+			<th scope="col" style="width: 30px;">
+			<p class="Tabela_Texto_8" contenteditable="false">ID</p>
+			</th>
+			<th scope="col" style="width: 70px;">
+			<p class="Tabela_Texto_8" contenteditable="false">Frequ&ecirc;ncia central do canal (MHz)</p>
+			</th>
+			<th scope="col">
+			<p class="Tabela_Texto_8" contenteditable="false">Identifica&ccedil;&atilde;o do prov&aacute;vel emissor</p>
+			<p class="Tabela_Texto_8" contenteditable="false">(%s)</p>
+			</th>
+			<th scope="col" style="width: 70px;">
+			<p class="Tabela_Texto_8" contenteditable="false">Fundamental (dB&micro;V/m)</p>
+			</th>
+			<th scope="col" style="width: 70px;">
+			<p class="Tabela_Texto_8" contenteditable="false">2&ordm; Harm&ocirc;nico Fundamental (dB&micro;V/m)</p>
+			</th>
+			<th scope="col" style="width: 70px;">
+			<p class="Tabela_Texto_8" contenteditable="false">3&ordm; Harm&ocirc;nico Fundamental (dB&micro;V/m)</p>
+			</th>
+			<th scope="col" style="width: 130px;">
+			<p class="Tabela_Texto_8" contenteditable="false">Observa&ccedil;&otilde;es</p>
+			</th>
+		</tr>
+	</thead>
+	<tbody>

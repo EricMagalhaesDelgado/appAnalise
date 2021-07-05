@@ -1,0 +1,10 @@
+<p class="Item_Nivel2" contenteditable="false">O Plano de Monitora&ccedil;&atilde;o de Radiodifus&atilde;o (PRD-M) foi iniciado no ano de 2020 e formalizado por meio do Processo n&ordm; 53500.053041/2019-42, incorporando faixas destinadas aos servi&ccedil;os de radiodifus&atilde;o. Neste ano de 2021 o PRD-M foi formalizado por meio do Processo n&ordm; 53500.063628/2020-01. Dentre as faixas monitoradas, destacam-se:</p>
+
+<ul style="margin-left: 80px;">
+	<li class="Item_Inciso_Romano">
+	<p class="Texto_Justificado" contenteditable="false">Faixas 54-88 MHz, 176-214 MHz e 470-698 MHz, destinadas aos servi&ccedil;os televisivos.</p>
+	</li>
+	<li>
+	<p class="Texto_Justificado" contenteditable="false">Faixa 76-108 MHz, destinada ao servi&ccedil;o de Radiodifus&atilde;o Sonora em Frequ&ecirc;ncia Modulada (incluso Radiodifus&atilde;o Comunit&aacute;ria).</p>
+	</li>
+</ul>

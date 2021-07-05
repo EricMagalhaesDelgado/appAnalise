@@ -1,0 +1,19 @@
+<p class="Item_Nivel2" contenteditable="false">O Plano de Monitora&ccedil;&atilde;o do Espectro utilizado por Aplica&ccedil;&otilde;es Cr&iacute;ticas (PMEC) foi iniciado no ano de 2018, objetivando controlar, de forma preventiva, o espectro de radiofrequ&ecirc;ncias, especialmente &agrave;queles canais e faixas destinados a servi&ccedil;os cr&iacute;ticos que envolvem risco &agrave; vida. Nos anos de 2018, 2019 e 2020 o PMEC foi formalizado por meio dos Processos n&ordm;s 53500.005474/2018-19, 53512.001090/2018-80 e 53500.053031/2019-15, respectivamente. Neste ano de 2021 o PMEC foi formalizado por meio do Processo n&ordm; 53500.063631/2020-17. Dentre os canais e faixas monitorados, destacam-se:</p>
+
+<ul style="margin-left: 80px;">
+	<li class="Item_Inciso_Romano">
+	<p class="Texto_Justificado" contenteditable="false">Canal centralizado em 75 MHz, destinado aos radiofar&oacute;is marcadores aeron&aacute;uticos.</p>
+	</li>
+	<li>
+	<p class="Texto_Justificado" contenteditable="false">Faixa 108-118 MHz, destinada &agrave; radionavega&ccedil;&atilde;o aeron&aacute;utica (incluso ILS, VOR).</p>
+	</li>
+	<li>
+	<p class="Texto_Justificado" contenteditable="false">Faixa 118-137 MHz, destinada &agrave; radiocomunica&ccedil;&atilde;o aeron&aacute;utica (incluso canal de emerg&ecirc;ncia centralizado em 121.5 MHz).</p>
+	</li>
+	<li>
+	<p class="Texto_Justificado" contenteditable="false">Canais internacionais de socorro e seguran&ccedil;a destinados ao servi&ccedil;o m&oacute;vel mar&iacute;timo centralizados em 156.525 e 156.800 MHz.</p>
+	</li>
+	<li>
+	<p class="Texto_Justificado" contenteditable="false">Canal centralizado em 406 MHz, destinado &agrave;s balisas de emerg&ecirc;ncia do sistema COSPAS/SARSAT.</p>
+	</li>
+</ul>

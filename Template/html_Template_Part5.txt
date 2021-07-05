@@ -1,0 +1,12 @@
+<p class="Item_Nivel1">AN&Aacute;LISE</p>
+
+<p class="Item_Nivel2">Em rela&ccedil;&atilde;o aos resultados apresentados no Item 4,&nbsp;cabe esclarecer os seguintes pontos:</p>
+<ul style="margin-left: 80px;">
+	<li class="Item_Nivel2">
+		<p class="Texto_Justificado">A emiss&atilde;o centralizada em ...</p>
+	</li>
+</ul>
+
+<p class="Item_Nivel1" contenteditable="false">CONCLUS&Atilde;O</p>
+
+<p class="Item_Nivel2" contenteditable="false">Ante o exposto, conclui-se este relat&oacute;rio de atividades.</p>

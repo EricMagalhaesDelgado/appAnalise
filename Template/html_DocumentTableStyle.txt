@@ -1,0 +1,34 @@
+<style type="text/css">
+	table.tabela_corpo {
+		font-family: Calibri;
+		border-collapse: collapse;
+		width: 98%;
+		margin-left: auto;
+		margin-right: 3pt;
+		vertical-align: top;
+	}
+	table.tabela_corpo th {
+		border: 1px solid #ddd;
+		border-bottom: 1px solid #ddd;
+       		background-color: #e6e6e6;
+        	text-align: left;
+		vertical-align: top;
+		font-weight: bold;
+		padding: 2px;
+		padding-bottom: 2px;
+	}
+	table.tabela_corpo td {
+		border: 1px solid #ddd;
+        	border-bottom: 1px solid #ddd;
+		text-align: left;
+		vertical-align: top;
+		padding: 2px;
+		padding-bottom: 2px;
+	}
+	table.tabela_corpo tr:nth-child(even) {
+		background-color: #f8f8f8;
+	}
+	table.tabela_corpo tr:hover {
+		background-color: #ddd;
+	}
+</style>

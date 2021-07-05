@@ -1,0 +1,26 @@
+		<tr>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%d</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%s</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%s</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%s</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%s MHz</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%s MHz</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%s kHz</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%s</p>
+			</td>
+		</tr>
