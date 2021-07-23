@@ -20,7 +20,7 @@
 			<p class="Tabela_Texto_8" contenteditable="false"><strong>Proemin&ecirc;ncia m&iacute;nima</strong></p>
 			</th>
 			<th scope="col">
-			<p class="Tabela_Texto_8" contenteditable="false"><strong>M&iacute;nima ocupa&ccedil;&atilde;o m&aacute;xima</strong></p>
+			<p class="Tabela_Texto_8" contenteditable="false"><strong>M&iacute;nima ocupa&ccedil;&atilde;o</strong></p>
 			</th>
 		</tr>
 	</thead>
@@ -62,7 +62,7 @@
 			<p class="Tabela_Texto_8" contenteditable="false">%d dB</p>
 			</td>
 			<td>
-			<p class="Tabela_Texto_8" contenteditable="false">%d%%</p>
+			<p class="Tabela_Texto_8" contenteditable="false">%d%% (m&eacute;dia) e %d%% (m&aacute;xima)</p>
 			</td>
 		</tr>
 	</tbody>

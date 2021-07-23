@@ -1,1 +1,1 @@
-<p class="Texto_Justificado" contenteditable="false">A ocupa&ccedil;&atilde;o, aferida na pr&oacute;pria coleta, considerou o n&iacute;vel %.0f %s como <i>threshold</i>. Estimou-se o tempo de integra&ccedil;&atilde;o em cerca de %d segundos.</p>
+<p class="Texto_Justificado" contenteditable="false">A ocupa&ccedil;&atilde;o, aferida na p&oacute;s-processamento, considerou o n&iacute;vel %.0f %s como <i>threshold</i>. O tempo de integra&ccedil;&atilde;o foi igual a %d segundos.</p>
