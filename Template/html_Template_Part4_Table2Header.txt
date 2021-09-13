@@ -14,10 +14,13 @@
 			<p class="Tabela_Texto_8" contenteditable="false">Frequ&ecirc;ncia central do canal (MHz)</p>
 			</th>
 			<th scope="col" style="width: 60px;">
-			<p class="Tabela_Texto_8" contenteditable="false">N&iacute;vel M&iacute;nimo (%s)</p>
+			<p class="Tabela_Texto_8" contenteditable="false">N&iacute;vel m&iacute;nimo (%s)</p>
 			</th>
 			<th scope="col" style="width: 60px;">
-			<p class="Tabela_Texto_8" contenteditable="false">N&iacute;vel M&aacute;ximo (%s)</p>
+			<p class="Tabela_Texto_8" contenteditable="false">N&iacute;vel m&eacute;dio (%s)</p>
+			</th>
+			<th scope="col" style="width: 60px;">
+			<p class="Tabela_Texto_8" contenteditable="false">N&iacute;vel m&aacute;ximo (%s)</p>
 			</th>
 			<th scope="col" style="width: 60px;">
 			<p class="Tabela_Texto_8" contenteditable="false">Ocupa&ccedil;&atilde;o m&eacute;dia</p>
