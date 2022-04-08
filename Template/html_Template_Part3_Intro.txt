@@ -1,6 +1,6 @@
 <p class="Item_Nivel1" contenteditable="false">METODOLOGIA</p>
 
-<p class="Item_Nivel2" contenteditable="false">A captura de dados de monitora&ccedil;&atilde;o &eacute; realizada, principalmente, por meio de&nbsp;receptores fabricados pela CRFS, o RFeye Node 20-6, e de receptores fabricados pela Rhode Schwarz, o EB500. Os dados s&atilde;o armazenados em arquivos de diversos formatos, dentre eles o CRFS BIN e o RF LOOK BIN, e posteriormente transferidos para reposit&oacute;rio central de dados de monitora&ccedil;&atilde;o da Ag&ecirc;ncia.</p>
+<p class="Item_Nivel2" contenteditable="false">A captura de dados de monitora&ccedil;&atilde;o &eacute; realizada, principalmente, por meio de&nbsp;receptores fabricados pela CRFS, o RFeye Node 20-6, e de receptores fabricados pela Rhode Schwarz, o EB500. Os dados s&atilde;o armazenados em arquivos de diversos formatos - CRFS BIN, Argus CSV, appColeta BIN, dentre outros - e posteriormente transferidos para reposit&oacute;rio central de dados de monitora&ccedil;&atilde;o da Ag&ecirc;ncia.</p>
 
 <p class="Item_Nivel2" contenteditable="false">Na tabela apresentada a seguir constam informa&ccedil;&otilde;es da monitora&ccedil;&atilde;o.</p>
 

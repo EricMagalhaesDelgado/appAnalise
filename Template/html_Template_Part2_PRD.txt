@@ -1,4 +1,4 @@
-<p class="Item_Nivel2" contenteditable="false">O Plano de Monitora&ccedil;&atilde;o de Radiodifus&atilde;o (PRD-M) foi iniciado no ano de 2020 e formalizado por meio do Processo n&ordm; 53500.053041/2019-42, incorporando faixas destinadas aos servi&ccedil;os de radiodifus&atilde;o. Neste ano de 2021 o PRD-M foi formalizado por meio do Processo n&ordm; 53500.063628/2020-01. Dentre as faixas monitoradas, destacam-se:</p>
+<p class="Item_Nivel2" contenteditable="false">O Plano de Monitora&ccedil;&atilde;o de Radiodifus&atilde;o (PMRD) foi iniciado no ano de 2020 englobando faixas destinadas aos servi&ccedil;os de radiodifus&atilde;o. Neste ano de 2022 o PMRD foi formalizado por meio do Processo n&ordm; 53500.086332/2021-31. Dentre as faixas monitoradas, destacam-se:</p>
 
 <ul style="margin-left: 80px;">
 	<li class="Item_Inciso_Romano">

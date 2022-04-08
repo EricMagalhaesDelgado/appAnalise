@@ -1,9 +1,12 @@
 		<tr>
 			<td>
-			<p class="Tabela_Texto_8" contenteditable="false">%s</p>
+			<p class="Tabela_Texto_8" contenteditable="false">%.0f</p>
 			</td>
 			<td>
-			<p class="Tabela_Texto_8" contenteditable="false">%s</p>
+			<p class="Tabela_Texto_8" contenteditable="false">%.3f</p>
+			</td>
+			<td>
+			<p class="Tabela_Texto_8" contenteditable="false">%.3f</p>
 			</td>
 			<td>
 			<p class="Tabela_Texto_8" contenteditable="false">%.3f</p>

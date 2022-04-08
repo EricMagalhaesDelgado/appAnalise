@@ -13,6 +13,9 @@
 			<th scope="col" style="width: 70px;">
 			<p class="Tabela_Texto_8" contenteditable="false">Frequ&ecirc;ncia central do canal (MHz)</p>
 			</th>
+			<th scope="col" style="width: 70px;">
+			<p class="Tabela_Texto_8" contenteditable="false">Largura de banda (kHz)</p>
+			</th>
 			<th scope="col" style="width: 60px;">
 			<p class="Tabela_Texto_8" contenteditable="false">N&iacute;vel m&iacute;nimo (%s)</p>
 			</th>
