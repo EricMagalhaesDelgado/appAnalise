@@ -1,1 +1,0 @@
-<p class="Texto_Justificado" contenteditable="false">A ocupa&ccedil;&atilde;o, aferida no p&oacute;s-processamento, considerou o n&iacute;vel %.0f %s como <i>threshold</i>. O tempo de integra&ccedil;&atilde;o foi igual a %d segundos.</p>

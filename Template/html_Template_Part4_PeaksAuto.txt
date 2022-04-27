@@ -1,1 +1,0 @@
-<p class="Texto_Justificado" contenteditable="false">A seguir s&atilde;o apresentados os valores dos par&acirc;metros relacionados aos crit&eacute;rios para identifica&ccedil;&atilde;o de emiss&otilde;es na faixa de interesse%s</p>

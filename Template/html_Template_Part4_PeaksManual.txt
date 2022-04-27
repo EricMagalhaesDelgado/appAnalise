@@ -1,1 +1,0 @@
-<p class="Texto_Justificado" contenteditable="false">A identifica&ccedil;&atilde;o da(s) emiss&atilde;o(&otilde;es), caso existente(s), foi realizada por crit&eacute;rio manual atrav&eacute;s da funcionalidade "Playback" do appAn&aacute;lise.</p>

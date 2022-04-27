@@ -1,9 +1,0 @@
-<p class="Item_Nivel2" contenteditable="false"><strong>Faixa %d: %.3f a %.3f MHz</strong></p>
-
-<p class="Texto_Justificado" contenteditable="false">A an&aacute;lise da monitora&ccedil;&atilde;o nessa faixa contemplou %d amostras capturadas pelo <strong>%s</strong> para cada um dos %d pontos por tra&ccedil;o, sendo apresentada, a seguir, uma representa&ccedil;&atilde;o gr&aacute;fica dessa monitora&ccedil;&atilde;o, com destaque para a(s) emiss&atilde;o(&otilde;es) eventualmente identificada(s) e a varia&ccedil;&atilde;o do n&iacute;vel captado pelo receptor no dom&iacute;nio do tempo.</p>
-
-<figure><img src="data:image/jpeg;base64,%s" style="width:98%%; height:auto;">
-<figcaption>
-<p class="Tabela_Texto_8"><strong>Figura %d. Representa&ccedil;&atilde;o gr&aacute;fica da monitora&ccedil;&atilde;o sob an&aacute;lise.</strong></p>
-</figcaption>
-</figure>
