@@ -1,18 +1,20 @@
-<font style="font-size:12;">O modo "<b>EXPORTAR FLUXO(S) DE DADOS</b>" possibilita salvar a informação de fluxos de dados em três formatos de arquivos - MAT v. 7.3, CRFS Bin v.5 e SM1809.
+<font style="font-size:12;">O modo "MISCELÂNEAS", na sua funcionalidade "<b>EXPORTAR FLUXO(S) DE DADOS</b>", possibilita salvar informação de um ou mais fluxos de dados em três formatos de arquivos - MAT v. 7.3, CRFS Bin v.5 e SM1809.
 
-<b>• MAT v. 7.3 (HDF5)</b>
-Dentre os três formatos de arquivos aqui indicados, o MAT v. 7.3 apresenta a melhor performance na leitura dos dados no appAnálise. 
+<b>• MAT v. 7.3</b>
+Trata-se de formato de arquivo proprietário da Mathworks, a desenvolvedora do Matlab, apresentando a melhor performance na leitura dos dados no appAnálise. 
 
-No modo "EXPORTAR FLUXO(S) DE DADOS" é escrito arquivo binário da v. 7.3 de formato proprietário do Matlab, contendo apenas as informações contidas nas variáveis "metaData" e "specData". <b style="color: #a2142f;">No modo "RELATÓRIO", por outro lado, é possível salvar - além das supracitadas variáveis - as informações obtidas na análise dos dados que são armazenadas nas variáveis "peaksTable" e "exceptionList".</b> 
+São escritas em arquivo as informações contidas nas variáveis "metaData" e "specData". No modo "RELATÓRIO", por outro lado, é possível registrar, também, as informações resultado de análise dos dados, as quais são armazenadas nas variáveis "peaksTable" e "exceptionList". 
 
 <b>• CRFS Bin v.5</b>
-Trata-se de formato de arquivo lido em aplicações desenvolvidas pela CRFS Bin - o <i>Data Tools</i>, por exemplo. 
+Trata-se de formato de arquivo proprietário da CRFS, possibilitando a leitura em aplicações desenvolvidas pela própria CRFS - o <i>Data Tools</i>, por exemplo. 
 
-É escrito,  a partir da variável "specData", arquivo binário da v.5 de formato proprietário da CRFS, formando os blocos dos tipos 21 (Informações gerais), 40 (GPS), 67 (Espectro) e 69 (Ocupação). <b style="color: #a2142f;"> Um arquivo nesse formato aceita dados gerados apenas por um único sensor RFeye.</b> 
+São escritas em arquivo informações contidas na variável "specData", criando os blocos dos tipos 21 (Informações gerais), 40 (GPS), 67 (Espectro) e 69 (Ocupação). Um arquivo nesse formato aceita dados gerados apenas por um único sensor RFeye.
 
 <b>• SM1809 (UIT)</b>
-Trata-se de formato de arquivo que possibilidade diretamente a leitura humana, podendo ser aberto em editores de texto, como o <i>Notepad</i> do Windows.
+Trata-se de formato de arquivo definido na Recomendação ITU-R SM.1809, o qual, por ser textual, possibilita diretamente a leitura humana, podendo ser aberto em editores de texto, como o <i>Notepad</i> do Windows.
 
-O seu formato foi definido na Recomendação ITU-R SM.1809, sendo inclusos no seu cabeçalho todos os campos obrigatórios (FileType, LocationName, Latitude, Longitude, FreqStart, FreqStop, AntennaType, FilterBandwidth, LevelUnits, Date, DataPoints, ScanTime e Detector) e um dos opcionais citados na recomendação (MultiScan). Foram inseridos outros campos opcionais (Node, ThreadID, TraceMode, Samples, TaskName, Description e ObservationTime) que possibilitam a reconstrução da variável "specData". Quando se tratar de um arquivo que registra uma monitoração multifaixa, alguns dos parâmetros do seu cabeçalho apresentam valores específicos para cada faixa (FreqStart, FreqStop, FilterBandwidth, LevelUnits, DataPoints, ScanTime, Detector, TraceMode, ThreadID e Description). 
+O appAnálise inclui no cabeçalho do arquivo todos os campos obrigatórios (FileType, LocationName, Latitude, Longitude, FreqStart, FreqStop, AntennaType, FilterBandwidth, LevelUnits, Date, DataPoints, ScanTime e Detector) e um dos opcionais (MultiScan). Para possibilitar a reconstrução da variável "specData", o appAnálise inclui outros campos opcionais (Node, ThreadID, TraceMode, Samples, TaskName, Description e ObservationTime). 
 
-<b style="color: #a2142f;">Um arquivo nesse formato aceita dados gerados apenas por um único sensor, além de não aceitar fluxos de ocupação. Por fim, o número de amostras constantes em arquivo que registra uma monitoração multifaixa será definido pelo menor número de amostras dos fluxos selecionados, sendo a referência temporal dada pelo primeiro dos fluxos.</b></font>
+Quando se tratar de um arquivo que registra uma monitoração multifaixa, alguns dos parâmetros do seu cabeçalho apresentam valores específicos para cada faixa (FreqStart, FreqStop, FilterBandwidth, LevelUnits, DataPoints, ScanTime, Detector, TraceMode, ThreadID e Description). 
+
+Um arquivo nesse formato aceita dados gerados apenas por um único sensor, além de não aceitar fluxos de ocupação. Por fim, o número de amostras constantes em arquivo que registra uma monitoração multifaixa será definido pelo menor número de amostras dos fluxos selecionados, sendo a referência temporal dada pelo primeiro dos fluxos.</font>
