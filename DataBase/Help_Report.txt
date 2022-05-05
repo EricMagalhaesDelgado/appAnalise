@@ -1,0 +1,23 @@
+<font style="font-size:12;">O modo "<b>RELATÓRIO</b>" possibilita a análise dos dados gerados na monitoração, gerando informações que possibilitem o relato da inspeção no Fiscaliza e o <i>upload</i> do relatório para o SEI.
+
+<b>• Projeto</b>
+Informações gerais acerca do projeto appAnálise.
+
+<b>• Fluxo(s) de dados a processar</b>
+Fluxo(s) de dados que serão analisados, sendo apresentado apenas fluxos de espectro. Eventuais fluxos de ocupação serão analisados automaticamente, caso relacionados aos fluxos de espectro. 
+
+Os fluxo(s) de dados precisam, necessariamente, de informações válidas das coordenadas geográficas do local da monitoração.
+
+Por fim, faz-se necessária ao menos duas amostras de cada fluxo de dados, de forma que possa ser possível geração do <i>waterfall</i>.
+
+<b>• Período de observação a processar</b>
+Trata-se de campo que possibilita filtrar temporalmente o(s) fluxo(s) de dados a processar, o que ocasiona, apenas para fins de análise, no recálculo das estatísticas do(s) fluxo(s).
+
+<b>• Ocupação</b>
+Trata-se de campo que possibilita escolha do método de aferição da ocupação.
+
+<b>• Detecção de emissões</b>
+Trata-se de campo que possibilita escolha do algoritmo de detecção de emissões. O resultado desse algoritmo é comparado com as emissões identificadas no modo "PLAYBACK", subsidiando a criação da variável "peaksTable".
+
+<b>• Classificação de emissões</b>
+Trata-se de campo que possibilita escolha do algoritmo de classificação de emissões, subsidiando a criação da variável "peaksTable".</font>

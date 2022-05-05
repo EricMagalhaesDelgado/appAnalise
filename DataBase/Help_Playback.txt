@@ -1,0 +1,15 @@
+<font style="font-size:12;">O modo "<b>PLAYBACK</b>" possibilita a análise dos dados gerados na monitoração, auxiliando na geração de informações que possibilitem o relato da inspeção no Fiscaliza e o <i>upload</i> do relatório para o SEI.
+
+<b>• Limites</b>
+Limites do eixo principal, o qual também pode ser controlado usando interatividades do próprio <i>mouse</i> - <i>"zoom de região"</i> e "<i>zoom do scroll</i>".
+
+<b>• Detecção de emissões</b>
+Trata-se de seção que possibilita inclusão de emissões manualmente - por meio de ROI (iniciais de "<i>Region Of Interest</i>") ou <i>Data Tip</i> - ou automaticamente, usando o algoritmo <i>findpeaks</i>, disponibilizado no <i>Signal Processing Toolbox</i> do próprio Matlab.
+
+Após incluído uma emissão, a sua frequência central e largura podem ser editadas manualmente ou através de operação da ROI.
+
+<b>• Ocupação</b>
+Trata-se de seção que possibilita a aferição <i>online</i> da ocupação.
+
+<b>• <i>Waterfall</i></b>
+Trata-se de seção que possibilita visualização do <i>Waterfall</i> da monitoração. É aplicado um fator de decimação - apresentado no topo direito do eixo -, o qual pode ser editado, alterando a sua resolução.</font>
