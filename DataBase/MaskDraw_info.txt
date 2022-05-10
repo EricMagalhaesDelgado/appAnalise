@@ -1,4 +1,0 @@
-<font style="font-size:12;">O modo "MISCELÂNEAS", na sua funcionalidade "<b>MÁSCARA ESPECTRAL</b>", possibilita a geração de arquivo de máscara espectral compatível com o Logger.
-
-O arquivo que registra as faixas sob análise pode ser editado diretamente "<b>.\appAnalise\DataBase\maskBands.csv</b>".
-</font>

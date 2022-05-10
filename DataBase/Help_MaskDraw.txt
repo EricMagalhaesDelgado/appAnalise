@@ -1,1 +1,0 @@
-<font style="font-size:12;">O modo "MISCELÂNEAS", na sua funcionalidade "<b>MÁSCARA ESPECTRAL</b>", possibilita a geração de arquivo de máscara espectral compatível com o Logger.

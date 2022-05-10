@@ -1,1 +1,0 @@
-<font style="font-size:12;">O modo "MISCELÂNEAS", na sua funcionalidade "<b>DRIVE-TEST</b>", possibilita análise de dados gerados em monitorações móveis registradas no appColeta.

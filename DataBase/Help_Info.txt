@@ -1,1 +1,0 @@
-<font style="font-size:12;">Aplicação de pós-processamento de dados gerados em monitorações desenvolvida no âmbito dos projetos 3A e RFlook - Processos nºs 53554.000939/2020-26 e 53500.063493/2020-76 - e evoluída no âmbito do Sentinela - Processo nº 53500.004826/2022-97.</font>
