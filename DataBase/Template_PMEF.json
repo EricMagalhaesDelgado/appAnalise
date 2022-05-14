@@ -51,22 +51,32 @@
             },
             {
               "Editable": "false",
-              "String": "Faixa 850 MHz: 824-849 e 869-894 MHz",
+              "String": "Faixa 850 MHz: 824-849, 869-894 e 898.5-901 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 900 MHz: 898.5-901, 907.5-915, 943.5-946 e 952.5-960 MHz",
+              "String": "Faixa 900 MHz: 907.5-915, 943.5-946 e 952.5-960 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 1.8 GHz: 1710-1785, 1805-1850 e 1850-1880 MHz.",
+              "String": "Faixa 1.7 GHz: 1710-1785 MHz.",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 2.1 GHz: 1885-1900, 1920-1980 e 2110-2170 MHz",
+              "String": "Faixa 1.8 GHz: 1805-1850, 1850-1880 e 1885-1900 MHz.",
+              "Settings": []
+            },
+            {
+              "Editable": "false",
+              "String": "Faixa 1.9 GHz: 1920-1980 MHz",
+              "Settings": []
+            },
+            {
+              "Editable": "false",
+              "String": "Faixa 2.1 GHz: 2110-2170 MHz",
               "Settings": []
             },
             {
@@ -117,7 +127,7 @@
           "Data": [
             {
               "Editable": "false",
-              "String": "Etapa \"<i>Drive-test</i>\" - A captura de dados de monitoração e a demodulação/decodificação é realizada por analisadores de rede sem fio. Os dados são armazenados em arquivos no formato RSCMD, sendo pós-processados no ROMES.",
+              "String": "Etapa \"<i>Drive-test</i>\" - A captura de dados de monitoração e a demodulação/decodificação é realizada por analisadores de rede sem fio. Os dados são armazenados em arquivos no formato RSCMD, sendo pós-processados no ROMES e no NQDi.",
               "Settings": []
             },
             {
@@ -131,13 +141,14 @@
           "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "Na tabela apresentada a seguir constam informações acerca do <i>Drive-test</i>, com a ressalva que em cada ponto foram monitoradas todas as faixas de frequências listadas no Item 2.1.",
+            "String": "Na tabela apresentada a seguir constam informações acerca do <i>Drive-test</i>, com a ressalva de que em cada ponto foram monitoradas todas as faixas de frequências listadas no Item 2.1.",
             "Settings": []
           }
         },
         {
           "Type": "Table",
           "Data": {
+            "Origin": "External",
             "Source": "pmef_Table1.xlsx",
             "Columns": [1, 2, 3, 4, 5, 6, 7, 8],
             "Filter": [],
@@ -158,14 +169,14 @@
                 "Width": "80px"
               },
               {
-                "Editable": "false",
+                "Editable": "true",
                 "String": "Início da monitoração",
                 "Precision": "%s",
                 "Multiplier": -1,
                 "Width": "60px"
               },
               {
-                "Editable": "false",
+                "Editable": "true",
                 "String": "Término da monitoração",
                 "Precision": "%s",
                 "Multiplier": -1,
@@ -186,28 +197,23 @@
                 "Width": "80px"
               },
               {
-                "Editable": "false",
+                "Editable": "true",
                 "String": "Tecnologia",
                 "Precision": "%s",
                 "Multiplier": -1,
                 "Width": "80px"
               },
               {
-                "Editable": "false",
+                "Editable": "true",
                 "String": "Outros parâmetros",
                 "Precision": "%s",
                 "Multiplier": -1,
                 "Width": "auto"
               }
-            ]
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "&nbsp;",
-            "Settings": []
+            ],
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
           }
         },
         {
@@ -221,6 +227,7 @@
         {
           "Type": "Table",
           "Data": {
+            "Origin": "Internal",
             "Source": "specData",
             "Columns": [
               "ID",
@@ -291,7 +298,10 @@
                 "Multiplier": -1,
                 "Width": "auto"
               }
-            ]
+            ],
+            "LineBreak": 0,
+            "Intro": "",
+            "Error": ""
           }
         }
       ]
@@ -332,46 +342,102 @@
           "Type": "Paragraph",
           "Data": {
             "Editable": "false",
-            "String": "A coleta de dados que possibilita a realização da análise espectrl foi conduzida pelo sensor %s. A análise dessa monitoração - que contempla %s varreduras - engloba a aferição da ocupação dos <i>bins</i>, a detecção e classificação de emissões e a geração de uma representação gráfica.",
-            "Settings": [
-              {
-                "Source": "Node",
-                "Precision": "%s",
-                "Multiplier": -1
-              },
-              {
-                "Source": "Samples",
-                "Precision": "%.0f",
-                "Multiplier": 1
-              }
-            ]
-          }
-        },
-        {
-          "Type": "Image",
-          "Data": {
-            "Source": "pmef_Image1.png",
-            "Layout": 1,
-            "Caption": "Representação gráfica da monitoração sob análise.",
-            "Settings": {
-              "Width": "80%",
-              "Height": "80%"
-            }
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "&nbsp;",
+            "String": "A coleta de dados que possibilita a realização do <i>Drive-test</i> foi conduzida por sensor fabricado pela Rohde & Schwarz, modelo TSMW. Os dados são pós-processados no ROMES e no NQDi, quando então são identificados, para cada emissão, os códigos MCC e MNC, os quais identificam o país e a operadora responsável pela estação geradora da emissão.",
             "Settings": []
           }
         },
         {
+          "Type": "Image",
+          "Data": {
+            "Origin": "External",
+            "Source": "",
+            "Layout": 1,
+            "Caption": "Imagem extraída do ROMES.",
+            "Settings": {
+              "Width": "80%",
+              "Height": "80%"
+            },
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
+          }
+        },
+        {
+          "Type": "Table",
+          "Data": {
+            "Origin": "External",
+            "Source": "pmef_Table1.xlsx",
+            "Columns": [1, 2, 3, 4, 5, 6, 7, 8],
+            "Filter": [],
+            "Caption": "Informações da monitoração realizada no <i>Drive-test</i>.",
+            "Settings": [
+              {
+                "Editable": "false",
+                "String": "Ponto",
+                "Precision": "%.0f",
+                "Multiplier": 1,
+                "Width": "30px"
+              },
+              {
+                "Editable": "false",
+                "String": "Sensor",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "80px"
+              },
+              {
+                "Editable": "true",
+                "String": "Início da monitoração",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "60px"
+              },
+              {
+                "Editable": "true",
+                "String": "Término da monitoração",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "60px"
+              },
+              {
+                "Editable": "false",
+                "String": "Frequência inicial",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "80px"
+              },
+              {
+                "Editable": "false",
+                "String": "Frequência final",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "80px"
+              },
+              {
+                "Editable": "true",
+                "String": "Tecnologia",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "80px"
+              },
+              {
+                "Editable": "true",
+                "String": "Outros parâmetros",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "auto"
+              }
+            ],
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
+          }
+        },
+        {
           "Type": "Paragraph",
           "Data": {
             "Editable": "false",
-            "String": "A coleta de dados que possibilita a realização da análise espectrl foi conduzida pelo sensor %s. A análise dessa monitoração - que contempla %s varreduras - engloba a aferição da ocupação dos <i>bins</i>, a detecção e classificação de emissões e a geração de uma representação gráfica.",
+            "String": "A coleta de dados que possibilita a realização da análise espectral foi conduzida pelo sensor %s. A análise dessa monitoração - que contempla %s varreduras - engloba a aferição da ocupação dos <i>bins</i>, a detecção e classificação de emissões e a geração de uma representação gráfica.",
             "Settings": [
               {
                 "Source": "Node",
@@ -389,26 +455,23 @@
         {
           "Type": "Image",
           "Data": {
+            "Origin": "Internal",
             "Source": "specImage",
             "Layout": 1,
             "Caption": "Representação gráfica da monitoração sob análise.",
             "Settings": {
               "Width": "90%",
               "Height": "auto"
-            }
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "&nbsp;",
-            "Settings": []
+            },
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
           }
         },
         {
           "Type": "Table",
           "Data": {
+            "Origin": "Internal",
             "Source": "Algorithms",
             "Columns": [
               "Algorithm",
@@ -431,28 +494,16 @@
                 "Multiplier": -1,
                 "Width": "auto"
               }
-            ]
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "&nbsp;",
-            "Settings": []
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "Caso detectada ao menos uma emissão, apresenta-se tabela com informações adicionais de cada uma das emissões, inclusive às providas pelo algoritmo de classificação de emissões.",
-            "Settings": []
+            ],
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
           }
         },
         {
           "Type": "Table",
           "Data": {
+            "Origin": "Internal",
             "Source": "Peaks",
             "Columns": [
               "ID",
@@ -547,7 +598,10 @@
                 "Multiplier": -1,
                 "Width": "60px"
               }
-            ]
+            ],
+            "LineBreak": 0,
+            "Intro": "A seguir são apresentadas informações acerca da(s) emissão(ões) detectada(s).",
+            "Error": "Não foi detectado sequer um pico que atendesse às condições estabelecidas no supracitado processo de detecção de emissões."
           }
         }
       ]

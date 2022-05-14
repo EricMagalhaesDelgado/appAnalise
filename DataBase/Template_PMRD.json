@@ -37,7 +37,7 @@
           "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "O Plano de Monitoração do Espectro utilizado por Aplicações Críticas (PMEC), criado no ano de 2018, tem como objetivo controlar, de forma preventiva, o uso de canais e faixas de frequência relacionados a serviços críticos que envolvem risco à vida, com destaque para os indicados a seguir.",
+            "String": "O Plano de Monitoração de Radiodifusão (PMRD), criado no ano de 2020, tem como objetivo controlar, de forma preventiva, o uso de faixas de frequência relacionados aos serviços de radiodifusão, com destaque para as indicadas a seguir.",
             "Settings": []
           }
         },
@@ -46,22 +46,12 @@
           "Data": [
             {
               "Editable": "false",
-              "String": "Faixa 108-118 MHz, destinada à radionavegação aeronáutica (incluso ILS Localizer e VOR).",
+              "String": "Faixas 54-88 MHz, 176-214 MHz e 470-698 MHz, destinadas aos serviços televisivos.",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 118-137 MHz, destinada à radiocomunicação aeronáutica (incluso canal de emergência centralizado em 121.5 MHz).",
-              "Settings": []
-            },
-            {
-              "Editable": "false",
-              "String": "Canais internacionais de socorro e segurança destinados ao serviço móvel marítimo centralizados em 156.525 e 156.800 MHz.",
-              "Settings": []
-            },
-            {
-              "Editable": "false",
-              "String": "Canal centralizado em 406 MHz, destinado às balisas de emergência do sistema COSPAS/SARSAT.",
+              "String": "Faixa 76-108 MHz, destinada ao serviço de Radiodifusão Sonora em Frequência Modulada (incluso Radiodifusão Comunitária).",
               "Settings": []
             }
           ]
@@ -70,7 +60,7 @@
           "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "Neste ano de 2022 o PMEC foi formalizado por meio do <b>Processo nº 53500.086336/2021-10</b>.",
+            "String": "Neste ano de 2022 o PMRD foi formalizado por meio do <b>Processo nº 53500.086332/2021-31</b>.",
             "Settings": []
           }
         }
@@ -103,6 +93,7 @@
         {
           "Type": "Table",
           "Data": {
+            "Origin": "Internal",
             "Source": "specData",
             "Columns": [
               "ID",
@@ -173,7 +164,10 @@
                 "Multiplier": -1,
                 "Width": "auto"
               }
-            ]
+            ],
+            "LineBreak": 0,
+            "Intro": "",
+            "Error": ""
           }
         }
       ]
@@ -228,30 +222,27 @@
               }
             ]
           }
-        },
+        },        
         {
           "Type": "Image",
           "Data": {
+            "Origin": "Internal",
             "Source": "specImage",
             "Layout": 1,
             "Caption": "Representação gráfica da monitoração sob análise.",
             "Settings": {
               "Width": "90%",
               "Height": "auto"
-            }
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "&nbsp;",
-            "Settings": []
+            },
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
           }
         },
         {
           "Type": "Table",
           "Data": {
+            "Origin": "Internal",
             "Source": "Algorithms",
             "Columns": [
               "Algorithm",
@@ -274,28 +265,16 @@
                 "Multiplier": -1,
                 "Width": "auto"
               }
-            ]
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "&nbsp;",
-            "Settings": []
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "Caso detectada ao menos uma emissão, apresenta-se tabela com informações adicionais de cada uma das emissões, inclusive às providas pelo algoritmo de classificação de emissões.",
-            "Settings": []
+            ],
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
           }
         },
         {
           "Type": "Table",
           "Data": {
+            "Origin": "Internal",
             "Source": "Peaks",
             "Columns": [
               "ID",
@@ -390,7 +369,85 @@
                 "Multiplier": -1,
                 "Width": "60px"
               }
-            ]
+            ],
+            "LineBreak": 1,
+            "Intro": "A seguir são apresentadas informações acerca da(s) emissão(ões) detectada(s).",
+            "Error": "Não foi detectado sequer um pico que atendesse às condições estabelecidas no supracitado processo de detecção de emissões."
+          }
+        },
+        {
+          "Type": "Table",
+          "Data": {
+            "Origin": "Internal",
+            "Source": "Peaks",
+            "Columns": [
+              "ID",
+              "Truncated",
+              "Description",
+              "EmptyColumn",
+              "EmptyColumn",
+              "EmptyColumn",
+              "EmptyColumn"
+            ],
+            "Filter": {
+              "Column": "Regulatory",
+              "Value": "Licenciada"
+            },
+            "Caption": "Informações acerca da(s) emissão(ões) detectada(s) cujo(s) provável(is) emissor(es) é(são) licenciado(s).",
+            "Settings": [
+              {
+                "Editable": "false",
+                "String": "#",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "30px"
+              },
+              {
+                "Editable": "false",
+                "String": "Frequência central do canal (MHz)",
+                "Precision": "%.3f",
+                "Multiplier": 1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "false",
+                "String": "Identificação do provável emissor",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "auto"
+              },
+              {
+                "Editable": "true",
+                "String": "Fundamental (dBµV/m)",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "true",
+                "String": "2º Harmônico Fundamental (dBµV/m)",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "true",
+                "String": "3º Harmônico Fundamental (dBµV/m)",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "true",
+                "String": "Observações",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "290px"
+              }
+            ],
+            "LineBreak": 0,
+            "Intro": "A seguir são apresentadas informações de eventuais harmônicos da fundamental e espúrios relacionados à(s) emissão(ões) detectada(s) cujo(s) provável(eis) emissor(es) é(são) licenciado(s).",
+            "Error": "Não foi detectado sequer uma emissão cujo provável emissor é licenciado."
           }
         }
       ]
@@ -407,108 +464,96 @@
           "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "Os resultados apresentados no Item 4 podem ser sumarizados em relação ao quantitativo de emissões que foram detectadas e aparentemente são licenciadas, não licenciadas e não licenciáveis, além do quantitativo de emissões possivelmente irregulares.",
+            "String": "Os resultados apresentados no Item 4 podem ser sumarizados em relação ao quantitativo de emissões que foram detectadas e aparentemente são licenciadas, não licenciadas e não licenciáveis, além do quantitativo de emissões por classe da estação, no caso das licenciadas.",
             "Settings": []
           }
         },
         {
           "Type": "Table",
           "Data": {
+            "Origin": "Internal",
             "Source": "Summary",
             "Columns": [
               "Banda",
               "N1_Licenciada",
               "N1_NaoLicenciada",
               "N1_NaoLicenciavel",
-              "N3_Licenciada",
-              "N3_NaoLicenciada",
-              "N3_NaoLicenciavel",
-              "N4_Baixo",
-              "N4_Medio",
-              "N4_Alto"
+              "N5_Radcom",
+              "N5_ClasseC",
+              "N5_ClasseB",
+              "N5_ClasseA",
+              "N5_ClasseE"
             ],
             "Filter": [],
-            "Caption": "Sumário da monitoração sob análise em relação ao licenciamento e à possível irregularidade da emissão.",
+            "Caption": "Sumário da monitoração sob análise em relação ao licenciamento e à classe de operação (este último aplicável apenas para as estações licenciadas).",
             "Settings": [
               {
                 "Editable": "false",
                 "String": "Faixa de frequência",
                 "Precision": "%s",
                 "Multiplier": -1,
-                "Width": "auto"
+                "Width": "140px"
               },
               {
                 "Editable": "false",
                 "String": "Licenciadas",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
                 "String": "Não licenciadas",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
                 "String": "Não licenciáveis",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
-                "String": "Licenciada com indício de irregularidade",
+                "String": "RADCOM",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "90px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
-                "String": "Não licenciada com indício de irregularidade",
+                "String": "Classe C",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "90px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
-                "String": "Não licenciável com indício de irregularidade",
+                "String": "Classe B",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "90px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
-                "String": "Potencialidade lesiva baixa",
+                "String": "Classe A",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
-                "String": "Potencialidade lesiva média",
+                "String": "Classe Especial",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
-              },
-              {
-                "Editable": "false",
-                "String": "Potencialidade lesiva alta",
-                "Precision": "%.0f",
-                "Multiplier": 1,
-                "Width": "70px"
+                "Width": "auto"
               }
-            ]
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "&nbsp;",
-            "Settings": []
+            ],
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
           }
         },
         {
@@ -522,6 +567,7 @@
         {
           "Type": "Table",
           "Data": {
+            "Origin": "Internal",
             "Source": "Summary",
             "Columns": [
               "Banda",
@@ -541,66 +587,141 @@
                 "String": "Faixa de frequência",
                 "Precision": "%s",
                 "Multiplier": -1,
-                "Width": "auto"
+                "Width": "140px"
               },
               {
                 "Editable": "false",
                 "String": "Fundamental",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
                 "String": "Harmônico fundamental",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
                 "String": "Produto de intermodulação",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
                 "String": "Espúria",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "68px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
                 "String": "Não Identificada",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
                 "String": "Não Manifestada",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "75px"
               },
               {
                 "Editable": "false",
                 "String": "Pendente de Identificaçao",
                 "Precision": "%.0f",
                 "Multiplier": 1,
-                "Width": "70px"
+                "Width": "auto"
               }
-            ]
+            ],
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
           }
         },
         {
-          "Type": "Paragraph",
+          "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "&nbsp;",
+            "String": "Em relação ao quantitativo de emissões possivelmente irregulares,",
             "Settings": []
+          }
+        },
+        {
+          "Type": "Table",
+          "Data": {
+            "Origin": "Internal",
+            "Source": "Summary",
+            "Columns": [
+              "Banda",
+              "N3_Licenciada",
+              "N3_NaoLicenciada",
+              "N3_NaoLicenciavel",
+              "N4_Baixo",
+              "N4_Medio",
+              "N4_Alto"
+            ],
+            "Filter": [],
+            "Caption": "Sumário da monitoração sob análise em relação à possível irregularidade de emissão.",
+            "Settings": [
+              {
+                "Editable": "false",
+                "String": "Faixa de frequência",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "140px"
+              },
+              {
+                "Editable": "false",
+                "String": "Licenciada com indício de irregularidade",
+                "Precision": "%.0f",
+                "Multiplier": 1,
+                "Width": "75px"
+              },
+              {
+                "Editable": "false",
+                "String": "Não licenciada com indício de irregularidade",
+                "Precision": "%.0f",
+                "Multiplier": 1,
+                "Width": "75px"
+              },
+              {
+                "Editable": "false",
+                "String": "Não licenciável com indício de irregularidade",
+                "Precision": "%.0f",
+                "Multiplier": 1,
+                "Width": "75px"
+              },
+              {
+                "Editable": "false",
+                "String": "Potencialidade lesiva baixa",
+                "Precision": "%.0f",
+                "Multiplier": 1,
+                "Width": "75px"
+              },
+              {
+                "Editable": "false",
+                "String": "Potencialidade lesiva média",
+                "Precision": "%.0f",
+                "Multiplier": 1,
+                "Width": "75px"
+              },
+              {
+                "Editable": "false",
+                "String": "Potencialidade lesiva alta",
+                "Precision": "%.0f",
+                "Multiplier": 1,
+                "Width": "auto"
+              }
+            ],
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
           }
         },
         {

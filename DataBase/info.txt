@@ -145,6 +145,11 @@ Um arquivo nesse formato aceita dados gerados apenas por um único sensor, além
 </winSignalAnalysis>
 
 
+<winAddFiles>
+<font style="font-size:12;">A funcionaliade "<b>ARQUIVOS EXTERNOS</b>" possibilita a inclusão de imagens e tabelas externas ao appAnálise em relatório."</font>
+</winAddFiles>
+
+
 <winMaskDraw>
 <font style="font-size:12;">A funcionalidade "MÁSCARA ESPECTRAL" possibilita a geração de arquivo de máscara espectral compatível com o Logger.\r\n\r\nO arquivo que registra as faixas sob análise pode ser editado diretamente "<b>.\\appAnalise\\DataBase\\maskBands.csv</b>".</font>
 </winMaskDraw>
