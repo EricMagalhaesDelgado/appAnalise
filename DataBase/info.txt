@@ -146,7 +146,7 @@ Um arquivo nesse formato aceita dados gerados apenas por um único sensor, além
 
 
 <winAddFiles>
-<font style="font-size:12;">A funcionaliade "<b>ARQUIVOS EXTERNOS</b>" possibilita a inclusão de imagens e tabelas externas ao appAnálise em relatório."</font>
+<font style="font-size:12;">A funcionaliade "<b>ARQUIVOS EXTERNOS</b>" possibilita a inclusão em relatório de imagens e tabelas externas ao appAnálise.</font>
 </winAddFiles>
 
 
@@ -156,5 +156,5 @@ Um arquivo nesse formato aceita dados gerados apenas por um único sensor, além
 
 
 <winDriveTest>
-<font style="font-size:12;">A funcionaliade "<b>DRIVE-TEST</b>" possibilita a análise dos dados gerados em monitorações móveis..."</font>
+<font style="font-size:12;">A funcionaliade "<b>DRIVE-TEST</b>" possibilita a análise dos dados gerados em monitorações móveis...</font>
 </winDriveTest>
