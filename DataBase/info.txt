@@ -116,7 +116,7 @@ Um arquivo nesse formato aceita dados gerados apenas por um único sensor, além
 
 
 <winTemplate>
-<font style="font-size:12;">O modo "<b>MODELO DE RELATÓRIO</b>" possibilita a edição ou criação de modelos de relatórios para geração no modo "RELATÓRIO".</font>
+<font style="font-size:12;">O modo "<b>MODELO DE RELATÓRIO</b>" possibilita a visualização de detalhes dos modelos de relatórios para geração no modo "RELATÓRIO".</font>
 </winTemplate>
 
 
