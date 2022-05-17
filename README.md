@@ -1,4 +1,4 @@
-![](img%5CREADME0.png)
+![](img/5CREADME0.png)
 
 __appAnálise__ v\. 1\.20
 
@@ -6,7 +6,7 @@ Guia de instalação
 
 <span style="color:#FF0000"> _MUITO IMPORTANTE_ </span>
 
-![](img%5CREADME1.png)
+![](img/README1.png)
 
 _PASSO 1_  __:__
 
@@ -14,7 +14,7 @@ O appAnálise é um  _software_  desktop que deve ser instalado e executado em c
 
 No MENU INICIAR deve ser executado o comando  _winver_ \, o que abrirá uma janela semelhante à apresentada ao lado\.
 
-![](img%5CREADME2.png)
+![](img/README2.png)
 
 Se aparecer qualquer versão diferente de  <span style="color:#FF0000"> _21H1_ </span>  ou  <span style="color:#FF0000"> _21H2_ </span> \, o Windows 10 precisará ser atualizado\, o que dependerá de senha de administrador\.
 
@@ -24,7 +24,7 @@ As versões antigas do MATLAB Runtime devem ser desinstaladas\.
 
 Deve ser executada a aplicação disponível no Painel de Controles do Windows que possibilita a desinstalação de  _softwares_ \.
 
-![](img%5CREADME3.png)
+![](img/README3.png)
 
 Devem ser desinstaladas todas as versões anteriores à MATLAB Runtime 9\.11\.
 
@@ -33,7 +33,7 @@ Devem ser desinstaladas todas as versões anteriores à MATLAB Runtime 9\.11\.
   * [https://github\.com/EricMagalhaesDelgado/appAnalise/releases](https://github.com/EricMagalhaesDelgado/appAnalise/releases)
 * Caso não exista instalado o MATLAB Runtime 9\.11 no computador\, o próprio executável do appAnálise o instalará \(no caso da versão  _standalone_ \)\.
 
-![](img%5CREADME4.png)
+![](img/README4.png)
 
 A versão instalável – no formato \.MLAPPINSTALL – é destinada a quem possui o MATLAB\.
 
@@ -41,31 +41,31 @@ A versão executável – no formato \.EXE – é destinada a quem não possui o
 
 <span style="color:#FF0000"> _MUITO IMPORTANTE_ </span>
 
-![](img%5CREADME5.png)
+![](img/README5.png)
 
 _PASSO 4_  __:__
 
 O cuidado com o PATH da instalação\.
 
-![](img%5CREADME6.png)
+![](img/README6.png)
 
-![](img%5CREADME7.png)
+![](img/README7.png)
 
-![](img%5CREADME8.png)
+![](img/README8.png)
 
 O login do administrador local dos computadores da Agência é “administrador”\. Ao instalar o appAnálise usando esse  _login_ \, o instalador sugerirá como PATH
 
 “C:\\Users\\ <span style="color:#FF0000"> _administrador_ </span> \\Romaing\\Anatel\\appAnalise”\.Deve ser alterado o nome administrador para o nome do usuário\, de forma que o appAnálise seja instalado numa pasta em que o usuário tenha perfil de escrita\.
 
-![](img%5CREADME9.png)
+![](img/README9.png)
 
-![](img%5CREADME10.png)
+![](img/README10.png)
 
-![](img%5CREADME11.png)
+![](img/README11.png)
 
-![](img%5CREADME12.png)
+![](img/README12.png)
 
-![](img%5CREADME13.png)
+![](img/README13.png)
 
 O MATLAB Runtime é instalado \(ou atualizado\) automaticamente\.
 
@@ -73,7 +73,7 @@ Uma conexão de banda larga possibilita uma instalação do MATLAB Runtime entre
 
 <span style="color:#FF0000"> _MUITO IMPORTANTE_ </span>
 
-![](img%5CREADME14.png)
+![](img/README14.png)
 
 * _PASSO 5_  __:__
 * Instalação do Python e criação de ambiente virtual\. Recomenda\-se o ANACONDA\.
@@ -85,9 +85,9 @@ Uma conexão de banda larga possibilita uma instalação do MATLAB Runtime entre
 * Caso o ANACONDA tenha sido instalado na sua pasta padrão\, o ambiente virtual será criado na seguinte pasta:
   * “C:\\Users\\USUARIO\\anaconda3\\envs\\fiscaliza”
 
-![](img%5CREADME15.png)
+![](img/README15.png)
 
-![](img%5CREADME16.png)
+![](img/README16.png)
 
 >> conda create –n fiscaliza python=3\.9
 
@@ -97,17 +97,17 @@ Uma conexão de banda larga possibilita uma instalação do MATLAB Runtime entre
 
 <span style="color:#FF0000"> _MUITO IMPORTANTE_ </span>
 
-![](img%5CREADME17.png)
+![](img/README17.png)
 
 _PASSO 6_  __:__
 
 Abre o appAnálise e mapeia o ambiente virtual criado no Python\.
 
-![](img%5CREADME18.png)
+![](img/README18.png)
 
 Clica na “engrenagem” do appAnálise\, depois no ícone do Python e\, por fim\, aponte para o python\.exe existente no ambiente virtual fiscaliza\.
 
-![](img%5CREADME19.png)
+![](img/README19.png)
 
-![](img%5CREADME20.png)
+![](img/README20.png)
 
