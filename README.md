@@ -89,11 +89,13 @@ Uma conexão de banda larga possibilita uma instalação do MATLAB Runtime entre
 
 ![](img/README16.png)
 
->> conda create –n fiscaliza python=3\.9
+```python
+ conda create –n fiscaliza python=3\.9
 
->> conda activate fiscaliza
+ conda activate fiscaliza
 
->> pip install fiscaliza \-U
+ pip install fiscaliza \-U
+```
 
 <span style="color:#FF0000"> _MUITO IMPORTANTE_ </span>
 
