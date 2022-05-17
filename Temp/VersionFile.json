@@ -1,7 +1,7 @@
 {
     "appAnalise": {
-        "Version": "1.13",
-        "ReleaseDate": "28/11/2021"
+        "Version": "1.20",
+        "ReleaseDate": "16/05/2022"
     },
     "appColeta": {
         "Version": "1.0",
@@ -18,8 +18,8 @@
         "AISG": "13/05/2022 08:26:34"
     },
     "fiscaliza": {
-        "Version": "0.2.13",
-        "ReleaseDate": "27/04/2022"
+        "Version": "0.2.16",
+        "ReleaseDate": "16/05/2022"
     },
     "rfpye": {
         "Version": "0.2.3",
