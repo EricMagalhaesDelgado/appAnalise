@@ -156,6 +156,25 @@ Um arquivo nesse formato aceita dados gerados apenas por um único sensor, além
 O arquivo que registra as faixas sob análise - <b>maskBands.csv</b> - fica hospedado na subpasta "Settings" e pode ser editado em qualquer editor de texto (bloco de notas, por exemplo).</font>
 </winMaskDraw>
 
+<winAnatelDB>
+<font style="font-size:12;">A funcionalidade "<b>ANATELDB</b>" possibilita a realização de consultas à base de dados <i>offline</i> que suporta o appAnálise, a qual consolida informações extraídas do MOSAICO, STEL, SRD, AISWEB, ICAO etc.
+
+No processo de tratamento dos dados, homogeneizando-os, adotam-se as seguintes premissas:
+• Registro cujo campo "Serviço" é igual a "-1" corresponde a estação não licenciada.
+
+• Registro cujo campo "Estação" é igual a "-1" corresponde a estação não licenciada ou licenciada, mas cujo número não foi identificado no MOSAICO, STEL ou SRD.
+
+• Registro cujo campo "Classe de designação" é igual a "NI" corresponde a estação não licenciada ou licenciada, mas cuja designação de emissão não foi identificada no MOSAICO, STEL ou SRD.
+
+• Registro cujo campo "Largura de banda (kHz)" é igual a "-1" corresponde a estação não licenciada ou licenciada, mas cuja designação de emissão não foi identificada no MOSAICO, STEL ou SRD. Exceção às estações de serviços de radiodifusão, para as quais foram considerados os valores 10 (AM), 256 (FM), 5700 (TVD) e 6000 (TV).
+
+• O campo "Descrição", de forma geral, contém diversas informações da estação, dentre elas a base de dados - [MOS], [STEL], [SRD], [AISW], [ICAO] etc -, o nome da entidade, o número da estação e a localidade.
+
+• Os registros extraídos de bases de dados que não são de responsabilidade da Anatel (AISWEB, ICAO etc) são comparados com os extraídos do MOSAICO, STEL e SRD. Dois ou mais registros são mesclados quando apresentem no campo "Frequência (MHz)" valores idênticos e a distância entre as estações relacionadas a esses registros não é superior a 10 quilômetros. O campo "Descrição" desse registro mesclado concatena as informações das diversas bases de dados. Por exemplo, o registro com o campo "Descrição" igual a "[STEL] L, FA, Comando Da Aeronautica (01020423498, 1002493363), São Paulo/SP | [AISW] SBMT-COM, TORRE MARTE, CAMPO DE MARTE | [ICAO] TWR 25/40, CAMPO DE MARTE" corresponde a uma concatenação de informações extraídas do STEL, AISWEB e ICAO.
+
+Inicialmente todo registro possui o campo "Distância" igual a "-1". Entretanto, caso essa funcionalidade tenha sido aberta após a leitura de arquivos com informações de monitorações do espectro de radiofrequências georeferenciadas, esse campo será calculado, mas apenas após aplicação de algum filtro que reduza a base de dados a no máximo 10 mil registros.</font>
+</winAnatelDB>
+
 
 <winDriveTest>
 <font style="font-size:12;">A funcionaliade "<b>DRIVE-TEST</b>" possibilita a análise dos dados gerados em monitorações móveis...</font>
