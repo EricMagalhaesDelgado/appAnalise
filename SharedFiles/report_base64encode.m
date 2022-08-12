@@ -1,4 +1,4 @@
-function res = Misc_base64encode(str)
+function res = report_base64encode(str)
 % base64encode Perform Base 64 encoding of a string or vector of bytes
 %   RES = base64encode(V) encodes a string, character vector, or numeric vector using
 %   Base 64 encoding as documented in RFC 4648, <a href="http://tools.ietf.org/html/rfc4648#section-4">section 4</a> and returns the encoded 
