@@ -141,7 +141,7 @@ Um arquivo nesse formato aceita dados gerados apenas por um único sensor, além
 
 
 <winSignalAnalysis>
-<font style="font-size:12;">A funcionalidade "<b>ANÁLISE DE EMISSÕES</b>" possibilita a análise dos dados gerados na monitoração, gerando informações que possibilitem o relato da inspeção no Fiscaliza e o <i>upload</i> do relatório para o SEI...</font>
+<font style="font-size:12;">A funcionalidade "<b>ANÁLISE DE EMISSÕES</b>" possibilita a análise dos dados gerados na monitoração, gerando informações que possibilitem o relato da inspeção no Fiscaliza e o <i>upload</i> do relatório para o SEI.</font>
 </winSignalAnalysis>
 
 
