@@ -1,0 +1,73 @@
+v. 1.24 (12/08/2022) - R2022b
+- Correção de bug que se manifestava no processo de inclusão de emissões por ROI, ao fechar a tela do plot. (UO02.1)
+- Criação de módulo de consulta ao anateldb.
+- Possibilidade de editar a classificação de uma emissão não só a partir do nº da estação do provável emissor, mas também do ID do registro no anateldb.
+
+v. 1.23 (13/06/2022)
+- Correção de bug que impedia correta geração do arquivo JSON, quando editado o provável emissor de alguma emissão (GR01)
+
+v. 1.22 (18/05/2022)
+- Correção de bug que impedia a geração de relatório quando não fosse identificada ao menos uma emissão. (GR02)
+- Correção de bug que impedia ajuste de um dos parâmetros do algoritmo de classificação de emissões. (GR08)
+
+v. 1.21 (17/05/2022)
+- Correção de bug que impedia a atualização do anateldb. (GR10)
+
+v. 1.20 (17/05/2022) - R2022a
+- Evolução de leitor de arquivos no formato CRFS Bin.
+- Evolução do modo "PLAYBACK", migrando o toolbar do plot para a figura do próprio plot.
+- Modularização dos processos de aferição da ocupação por bin, detecção e classificação de emissões.
+- Evolução do processo de detecção de emissões, caracterizando uma emissão por frequência central e largura ocupada.
+- Revisão e evolução dos módulos "Análise de emissões", "Fiscaliza", "Configurações" e "Geração de máscara".
+- Criação do módulo "Geração de relatório", o qual cria arquivo no formato HTML a partir de JSON.
+
+v. 1.13 (28/12/2021)
+- Edição da inicialização do app, tornando-a semelhante à do appColeta.
+- Correção de bug na inserção de emissões a partir de datatips.
+- Correção de bug na definição do PATH que se manifestava em uma situação específica quando da sua execução a partir de um atalho (BUG relatado pela UO02.1).
+
+v. 1.12 (16/12/2021)
+- Inclusão de parâmetro que possibilita o controle da resolução da imagem incluída no relatório (alterado o valor padrão da resolução de 200 para 120dpi).
+
+v. 1.11 (07/12/2021)
+- Correção de bug que se manifestava quando lido arquivo vazio gerado pelo appColeta;
+- Inclusão de condição que impede criação de waterfall quando fluxo possui apenas apenas três traços.
+
+v. 1.10 (28/11/2021) - R2021b
+- Remodelagem do modo Playback, proporcionando maior interação com o plot (zoom de região, datatip como emissão etc).
+- Correção no processo de leitura de arquivo no formato .MAT (BUG relatado pela GR01).
+- Ajuste à nova versão do Matlab (R2021b Update 1).
+
+v. 1.07 (01/10/2021)
+- Ajuste no leitor do CRFS Bin, descartando blocos com EOF ou CheckSum inválidos.
+
+v. 1.06
+- Correção de bugs que se manifestavam quando era excluído fluxo no modo "Relatório" e quando era selecionado parâmetro a ignorar na junção de fluxos de dados no modo "Arquivo(s)".
+
+v. 1.05 (23/09/2021)
+- Correção de bug.
+
+v. 1.04 (20/09/2021)
+- Evolução do modo de geração de máscara para carga no Logger, corrigindo BUG relatado pela GR05.
+- Evolução do modo "Arquivo(s)", possibilitando a definição dos parâmetros que são ignorados no processo de junção de fluxos de dados registrados em arquivos diferentes.
+- Evolução do modo "Edição de fluxo(s) de dados", possibilitando edição mais completa das informações de GPS.
+- Evolução do modo "Edição de fluxo(s) de dados", possibilitando conversão da unidade de medida (potência/tensão) para unidade de campo elétrico.
+- Evolução da integração appAnálise/Fiscaliza, possibilitando carga na inspeção de arquivo no formato JSON ("espelho" das tabelas do relatório).
+
+v. 1.03 (02/09/2021)
+- Edição do leitor da base de dados da Agência, buscando (e excluindo) eventuais registros sem descrição antes da geração da sua versão no formato MAT. (BUG relatado pela GR05)
+- Correção de bug que em condições específicas impedia edição da Lista de Exceções. (BUG relatado pela UO02.1)
+- Correção de bug que em condições específicas impedia a instalação do módulo "fiscaliza". (BUG percebido pela GR08)
+
+v. 1.02 (11/08/2021)
+- Corrigido bug que impedia que fosse finalizada análise de fluxo, no modo Relatório, quando identificados picos na mesma frequência (inseridos no playback ou obtidos nos critérios 1 e 2, por exemplo).
+- Corrigido bug que impedia ajuste frequência de marcador, no modo Playback, quando esse coincidisse com a frequência de outro marcador.
+- Evolução do leitor Argus CSV, de forma que seja lida informação do ThreadID do fluxo, a exemplo do que ocorre no CRFS Bin. Para tanto, essa informação deve ser inserida no campo "Name", do "Range Definition", do arquivo de configuração Argus. Além disso, a partir de agora a informação do StepWidth indicada nos metadados é desconsiderada por não ser confiável.
+
+v. 1.01 (07/08/2021)
+- Definido como renderizador padrão de imagem o modo "basic" da GPU. É possível alterar essa propriedade no modo de configurações do appAnálise, trocando para o modo "full" ou a renderização por "software".
+- Retirado da análise de fluxos compatíveis a informação descritiva da antena (por exemplo, fluxos gerados no appColeta de faixas idênticas, mas com antenas diferentes - uma "Telecospic" e outra "Unlisted" - serão agrupados).
+- Ajustado tamanho da caixa de texto de um label.
+
+v. 1.00 (23/07/2021) - R2021a
+- Disponibilização da versão inicial do appAnálise.

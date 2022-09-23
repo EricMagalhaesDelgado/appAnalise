@@ -63,7 +63,7 @@ Arquivos nos formatos CRFS Bin, appColeta BIN e Argus CSV podem conter informaç
 A média da Latitude e Longitude, então, possibilita a identificação da localidade - consulta <i>online</i> à API disponibilizada pele Portal https://www.bigdatacloud.com/ ou <i>offline</i> à base disponibilizada pelo IBGE. Essas informações são apresentadas em tabela, sendo possível a edição dos valores constantes na coluna "Status".
 
 a) Status = -1: origem da informação é manual.
-b) Status = 0: origem da informação é automática, porém inválida, sendo desconsiderada do cômputo da média da Latitude e Longitude.
+b) Status = 0: origem da informação é manual ou automática, porém inválida, sendo desconsiderada do cômputo da média da Latitude e Longitude.
 c) Status = 1: origem da informação é automática e válida.
 
 A edição dessa informação pode ser manual, inserindo diretamente os valores da Latitude e Longitude ou, opcionalmente, indicando a localidade no formato Município/UF (por exemplo: Salvador/BA).

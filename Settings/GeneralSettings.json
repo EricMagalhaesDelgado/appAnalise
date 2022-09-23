@@ -1,0 +1,51 @@
+{
+  "userpath": "",
+  "layout": {
+    "theme": "dark",
+    "lightColor": [
+      0.9,
+      0.9,
+      0.9
+    ],
+    "darkColor": [
+      0.38,
+      0.6,
+      0.73
+    ],
+    "position": "Center"
+  },
+  "Merge": {
+    "OptionalFieldsToRemove": [],
+    "ThreadIDStatus": "keep",
+    "DataTypeStatus": "keep",
+    "AntennaNameStatus": "keep",
+    "DistanceValue": 100
+  },
+  "Image": {
+    "Visibility": "on",
+    "Format": "jpeg",
+    "Resolution": 120
+  },
+  "Colors": [
+    [
+      0.07,
+      0.07,
+      0.75
+    ],
+    [
+      0.39,
+      0.83,
+      0.07
+    ],
+    [
+      1,
+      0.07,
+      0.65
+    ],
+    [
+      0.93,
+      0.69,
+      0.13
+    ]
+  ]
+}
