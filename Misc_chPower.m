@@ -1,4 +1,4 @@
-function [chPower, chBinBounds] = Misc_chPower(rawData, chLimits)
+function chPower = Misc_chPower(rawData, chLimits)
 
     Start  = rawData.MetaData.FreqStart;
     Stop   = rawData.MetaData.FreqStop;
@@ -43,9 +43,5 @@ function [chPower, chBinBounds] = Misc_chPower(rawData, chLimits)
     yData_ch = yData(idx1:idx2,:);
 
     chPower = pow2db((trapz(xData_ch, db2pow(yData_ch)/RBW, 1)))';
-
-    level_min   = (min(yData_ch))';
-    level_max   = (max(yData_ch))';
-    chBinBounds = [level_min, level_max];
 
 end
