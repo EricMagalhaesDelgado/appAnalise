@@ -42,6 +42,10 @@ function chPower = Misc_chPower(rawData, chLimits)
     xData_ch = xData(idx1:idx2);
     yData_ch = yData(idx1:idx2,:);
 
-    chPower = pow2db((trapz(xData_ch, db2pow(yData_ch)/RBW, 1)))';
+    if idx1 ~= idx2
+        chPower = pow2db((trapz(xData_ch, db2pow(yData_ch)/RBW, 1)))';
+    else
+        chPower = yData_ch';
+    end
 
 end
