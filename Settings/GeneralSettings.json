@@ -1,6 +1,6 @@
 {
-  "openGL": "Hardware Full",
-  "userpath": "",
+  "openGL": "Hardware Basic",
+  "userpath": "C:\\P&D",
   "layout": {
     "theme": "cyan",
     "lightColor": [
@@ -13,14 +13,14 @@
       0.6,
       0.73
     ],
-    "position": "Center"
+    "position": "SideBySide"
   },
   "Merge": {
     "OptionalFieldsToRemove": [],
     "ThreadIDStatus": "keep",
     "DataTypeStatus": "keep",
     "AntennaNameStatus": "keep",
-    "DistanceValue": 0
+    "DistanceValue": null
   },
   "Image": {
     "Visibility": "on",
