@@ -1,0 +1,8 @@
+<LogEntry>
+<BeginTime>18/11/2022 12:31:08</BeginTime>
+<EndTime>18/11/2022 12:31:17</EndTime>
+</LogEntry>
+<LogEntry>
+<BeginTime>18/11/2022 12:31:37</BeginTime>
+<EndTime>18/11/2022 12:32:44</EndTime>
+</LogEntry>
