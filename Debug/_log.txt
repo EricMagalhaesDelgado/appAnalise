@@ -6,3 +6,654 @@
 <BeginTime>18/11/2022 12:31:37</BeginTime>
 <EndTime>18/11/2022 12:32:44</EndTime>
 </LogEntry>
+<LogEntry>
+<BeginTime>22/11/2022 14:27:39</BeginTime>
+clc
+{"identifier":"MATLAB:cd:NonExistentFolder","message":"Unable to change current folder to '' (Name is nonexistent or not a folder).","cause":[],"stack":[{"file":"D:\\MATLAB\\appAnalise\\FileReader_CellPlanDBM.m","name":"FileReader_CellPlanDBM","line":25},{"file":"D:\\MATLAB\\appAnalise\\winMain.mlapp","name":"winMain.File_GeneralReader","line":813},{"file":"D:\\MATLAB\\appAnalise\\winMain.mlapp","name":"winMain.File_Button_GetFilesPushed","line":4049},{"file":"C:\\Program Files\\MATLAB\\R2021b\\toolbox\\matlab\\appdesigner\\appdesigner\\runtime\\+matlab\\+apps\\AppBase.m","name":"@(source,event)tryCallback(appdesigner.internal.service.AppManagementService.instance(),app,callback,requiresEventData,event)","line":37}],"Correction":[]}
+clc
+<EndTime>22/11/2022 15:26:28</EndTime>
+</LogEntry>
+<LogEntry>
+<BeginTime>22/11/2022 15:26:33</BeginTime>
+<EndTime>22/11/2022 21:09:59</EndTime>
+</LogEntry>
+<LogEntry>
+<BeginTime>22/11/2022 21:54:17</BeginTime>
+clc
+help geolimits
+ <strong>geolimits</strong> Set or query geographic limits
+ 
+    <strong>geolimits</strong>(latlim,lonlim) adjusts the geographic limits of the current
+    geographic axes or chart to include latitudes ranging from latlim(1) to
+    latlim(2) and longitudes ranging from lonlim(1) to lonlim(2).
+ 
+    [latitudeLimits,longitudeLimits] = <strong>geolimits</strong> returns the current
+    geographic limits.
+ 
+    <strong>geolimits</strong>('auto') lets the axes or chart choose its geographic limits
+    based on its data locations.
+ 
+    <strong>geolimits</strong>('manual') requests that the chart preserve its current limits
+    as closely as possible when it is resized or when its data locations
+    change.
+ 
+    ___ = <strong>geolimits</strong>(___) returns the new geographic limits.
+ 
+    ___ = <strong>geolimits</strong>(gx,___) operates on the geographic axes or geographic
+    chart specified by gx.
+ 
+    Example
+    -------
+    tsunamis = readtable('tsunamis.xlsx');
+    lat = tsunamis.Latitude;
+    lon = tsunamis.Longitude;
+    sizedata = tsunamis.MaxHeight;
+    figure
+    geobubble(lat,lon,sizedata,'SizeLegendTitle','Maximum Height')
+    [latlim, lonlim] = geolimits
+    geolimits([50 65],[-175 -130])
+    title 'Tsunamis in Alaska'
+    [latlim, lonlim] = geolimits
+ 
+    Remark
+    ------
+    Typically, the limits set by <strong>geolimits</strong> are greater in extent than the
+    input limit values, in one dimension or the other, in order to maintain
+    a correct north-south/east-west aspect on the map.
+ 
+    See also <a href="matlab:help geoaxes -displayBanner">geoaxes</a>, <a href="matlab:help geobasemap -displayBanner">geobasemap</a>, <a href="matlab:help geobubble -displayBanner">geobubble</a>
+
+    <a href="matlab:doc geolimits">Documentation for geolimits</a>
+
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',318,1)">318 </a>            hold(app.UIAxes1, "on")            
+MATLAB has lost its connection to the license server.
+MATLAB will make 9 more reconnection attempt(s) and then exit. Any unsaved changes will be lost.
+
+
+dbquit
+clc
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',322,1)">322 </a>            p2 = histogram(app.UIAxes2, app.UITable.Data.Frequency);
+geolimits(app.UIAxes1)
+
+ans =
+
+  -85.0511   85.0511
+
+[a,b]=geolimits(app.UIAxes1)
+
+a =
+
+  -85.0511   85.0511
+
+
+b =
+
+ -508.0059  498.1070
+
+help geolimits
+ <strong>geolimits</strong> Set or query geographic limits
+ 
+    <strong>geolimits</strong>(latlim,lonlim) adjusts the geographic limits of the current
+    geographic axes or chart to include latitudes ranging from latlim(1) to
+    latlim(2) and longitudes ranging from lonlim(1) to lonlim(2).
+ 
+    [latitudeLimits,longitudeLimits] = <strong>geolimits</strong> returns the current
+    geographic limits.
+ 
+    <strong>geolimits</strong>('auto') lets the axes or chart choose its geographic limits
+    based on its data locations.
+ 
+    <strong>geolimits</strong>('manual') requests that the chart preserve its current limits
+    as closely as possible when it is resized or when its data locations
+    change.
+ 
+    ___ = <strong>geolimits</strong>(___) returns the new geographic limits.
+ 
+    ___ = <strong>geolimits</strong>(gx,___) operates on the geographic axes or geographic
+    chart specified by gx.
+ 
+    Example
+    -------
+    tsunamis = readtable('tsunamis.xlsx');
+    lat = tsunamis.Latitude;
+    lon = tsunamis.Longitude;
+    sizedata = tsunamis.MaxHeight;
+    figure
+    geobubble(lat,lon,sizedata,'SizeLegendTitle','Maximum Height')
+    [latlim, lonlim] = geolimits
+    geolimits([50 65],[-175 -130])
+    title 'Tsunamis in Alaska'
+    [latlim, lonlim] = geolimits
+ 
+    Remark
+    ------
+    Typically, the limits set by <strong>geolimits</strong> are greater in extent than the
+    input limit values, in one dimension or the other, in order to maintain
+    a correct north-south/east-west aspect on the map.
+ 
+    See also <a href="matlab:help geoaxes -displayBanner">geoaxes</a>, <a href="matlab:help geobasemap -displayBanner">geobasemap</a>, <a href="matlab:help geobubble -displayBanner">geobubble</a>
+
+    <a href="matlab:doc geolimits">Documentation for geolimits</a>
+
+geolimits(app.UIAxes1, [-90,90], [-90.90])
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('geolimits', 'C:\Program Files\MATLAB\R2021b\toolbox\matlab\graphics\maps\geolimits.m', 66)" style="font-weight:bold">geolimits</a> (<a href="matlab: opentoline('C:\Program Files\MATLAB\R2021b\toolbox\matlab\graphics\maps\geolimits.m',66,0)">line 66</a>)
+Expected LONLIM to be of size 1x2, but it is of size 1x1.
+} 
+geolimits(app.UIAxes1, [-90,90], [-90,90])
+geolimits([-90,90], [-90,90])
+geolimits([-90,90], [-45,45])
+geolimits(app.UIAxes1, [-90,90], [-45,45])
+[a,b]=geolimits(app.UIAxes1)
+
+a =
+
+  -36.3247    8.1098
+
+
+b =
+
+ -120.4164   12.3906
+
+geolimits(app.UIAxes1, [-40,10], [-75,30])
+geolimits(app.UIAxes1, [-40,10], [-75,-30])
+[a,b]=geolimits(app.UIAxes1)
+
+a =
+
+  -40.0000   10.0000
+
+
+b =
+
+ -128.1807   23.1807
+
+app.mainGrid.RowHeight
+
+ans =
+
+  1×3 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {'1x'}    {[150]}    {[150]}
+
+app.mainGrid.RowHeight(2)={0};
+geolimits(app.UIAxes1, [-40,10], [-75,-30])
+dbquit
+{Unrecognized method, property, or field 'imgShowHide' for class 'winAnatelDB2'.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/PanelVisibility_ImageClicked', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 639)" style="font-weight:bold">winAnatelDB2/PanelVisibility_ImageClicked</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',639,0)">line 639</a>)
+                app.imgShowHide.ImageSource = 'LT_HideRight.png';
+} 
+Error while evaluating Image PrivateImageClickedFcn.
+
+<LogEntry>
+<BeginTime>23/11/2022 09:22:08</BeginTime>
+specData(1).Description = 'PMEC 2022 (Faixa 1 de 10)';
+specData(1).TaskName = 'Script único v.2';
+clc
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\FileReader_CellPlanDBM.m',108,1)">108 </a>            if isempty(filenameToken)
+dbcont
+dbcont
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\FileReader_CellPlanDBM.m',108,1)">108 </a>            if isempty(filenameToken)
+dbcont
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/PanelTab_SelectionChanged', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 468)" style="font-weight:bold">winAnatelDB2/PanelTab_SelectionChanged</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',468,0)">line 468</a>)
+Unrecognized method, property, or field 'mainPanel_Grid' for class 'winAnatelDB2'.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/startupFcn', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 429)" style="font-weight:bold">winAnatelDB2/startupFcn</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',429,0)">line 429</a>)
+            PanelTab_SelectionChanged(app, struct('Source', app.Tab1_Image))
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 1330)" style="font-weight:bold">winAnatelDB2</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',1330,0)">line 1330</a>)
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winMain/menu_Button7to9Pushed', 'D:\MATLAB\appAnalise\winMain.mlapp', 3881)" style="font-weight:bold">winMain/menu_Button7to9Pushed</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winMain.mlapp',3881,0)">line 3881</a>)
+                    case app.menu_Button9; app.auxWin8 = winAnatelDB2(app);
+} 
+Error while evaluating Button PrivateButtonPushedFcn.
+
+opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',468,0)
+clc
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',468,1)">468 </a>                case app.Tab1_Image; app.mainPanel_Grid.RowHeight([2,4,6]) = {'1x',0,0};
+event.Source
+
+ans = 
+
+  <a href="matlab:helpPopup matlab.ui.control.Image" style="font-weight:bold">Image</a> with properties:
+
+        ImageSource: 'LT_settings.png'
+        ScaleMethod: 'fit'
+    ImageClickedFcn: [function_handle]
+           Position: [3 3 18 18]
+
+  Show <a href="matlab:if exist('ans', 'var'), matlab.graphics.internal.getForDisplay('ans', ans, 'matlab.ui.control.Image'), else, matlab.graphics.internal.getForDisplay('ans'), end">all properties</a>
+
+dbstep
+dbquit
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/PanelTab_SelectionChanged', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 468)" style="font-weight:bold">winAnatelDB2/PanelTab_SelectionChanged</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',468,0)">line 468</a>)
+Unrecognized method, property, or field 'mainPanel_Grid' for class 'winAnatelDB2'.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/startupFcn', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 429)" style="font-weight:bold">winAnatelDB2/startupFcn</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',429,0)">line 429</a>)
+            PanelTab_SelectionChanged(app, struct('Source', app.Tab1_Image))
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 1330)" style="font-weight:bold">winAnatelDB2</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',1330,0)">line 1330</a>)
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winMain/menu_Button7to9Pushed', 'D:\MATLAB\appAnalise\winMain.mlapp', 3881)" style="font-weight:bold">winMain/menu_Button7to9Pushed</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winMain.mlapp',3881,0)">line 3881</a>)
+                    case app.menu_Button9; app.auxWin8 = winAnatelDB2(app);
+} 
+Error while evaluating Button PrivateButtonPushedFcn.
+
+clc
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',315,1)">315 </a>            geolimits(app.UIAxes1, [-40,10], [-75,-30])
+p1
+
+p1 = 
+
+  <a href="matlab:helpPopup matlab.graphics.chart.primitive.Scatter" style="font-weight:bold">Scatter</a> with properties:
+
+       LatitudeData: [-22.6628 -26.2925 -23.7100 -23.4417 -22.9267 -22.7742 -18.4100 -19.9289 -19.5958 -22.6303 -19.9289 -19.5958 … ]
+      LongitudeData: [-43.4764 -48.8872 -46.2733 -46.5908 -43.2650 -47.0044 -49.1000 -43.8653 -43.1989 -45.0458 -43.8653 -43.1989 … ]
+              ZData: [1×0 double]
+           SizeData: 36
+              CData: [0 0.4470 0.7410]
+             Marker: 'o'
+    MarkerEdgeColor: 'flat'
+    MarkerFaceColor: 'none'
+          LineWidth: 0.5000
+
+  Show <a href="matlab:if exist('p1', 'var'), matlab.graphics.internal.getForDisplay('p1', p1, 'matlab.graphics.chart.primitive.Scatter'), else, matlab.graphics.internal.getForDisplay('p1'), end">all properties</a>
+
+p1.Color
+{Unrecognized method, property, or field 'Color' for class 'matlab.graphics.chart.primitive.Scatter'.
+} 
+if exist('p1', 'var'), matlab.graphics.internal.getForDisplay('p1', p1, 'matlab.graphics.chart.primitive.Scatter'), else, matlab.graphics.internal.getForDisplay('p1'), end
+               AlphaData: [1×0 double]
+        AlphaDataMapping: 'scaled'
+           AlphaDataMode: 'auto'
+           AlphaVariable: ''
+              Annotation: [1×1 matlab.graphics.eventdata.Annotation]
+            BeingDeleted: off
+              BusyAction: 'queue'
+           ButtonDownFcn: ''
+                   CData: [0 0.4470 0.7410]
+               CDataMode: 'auto'
+             CDataSource: ''
+                Children: [0×0 GraphicsPlaceholder]
+                Clipping: on
+           ColorVariable: ''
+             ContextMenu: [0×0 GraphicsPlaceholder]
+               CreateFcn: ''
+         DataTipTemplate: [1×1 matlab.graphics.datatip.DataTipTemplate]
+               DeleteFcn: ''
+             DisplayName: ''
+        HandleVisibility: 'on'
+                 HitTest: on
+           Interruptible: on
+            LatitudeData: [-22.6628 -26.2925 -23.7100 -23.4417 -22.9267 -22.7742 -18.4100 -19.9289 -19.5958 -22.6303 -19.9289 -19.5958 … ]
+        LatitudeDataMode: 'manual'
+      LatitudeDataSource: ''
+          LatitudeJitter: 'none'
+     LatitudeJitterWidth: 0.9000
+        LatitudeVariable: ''
+               LineWidth: 0.5000
+           LongitudeData: [-43.4764 -48.8872 -46.2733 -46.5908 -43.2650 -47.0044 -49.1000 -43.8653 -43.1989 -45.0458 -43.8653 -43.1989 … ]
+       LongitudeDataMode: 'manual'
+     LongitudeDataSource: ''
+         LongitudeJitter: 'none'
+    LongitudeJitterWidth: 0.9000
+       LongitudeVariable: ''
+                  Marker: 'o'
+         MarkerEdgeAlpha: 1
+         MarkerEdgeColor: 'flat'
+         MarkerFaceAlpha: 1
+         MarkerFaceColor: 'none'
+                  Parent: [1×1 GeographicAxes]
+           PickableParts: 'visible'
+                Selected: off
+      SelectionHighlight: on
+             SeriesIndex: 1
+                SizeData: 36
+            SizeDataMode: 'auto'
+          SizeDataSource: ''
+            SizeVariable: ''
+             SourceTable: [0×0 table]
+                     Tag: ''
+                    Type: 'scatter'
+                UserData: []
+                 Visible: on
+                   XData: [1×0 double]
+               XDataMode: 'manual'
+             XDataSource: ''
+                 XJitter: 'none'
+            XJitterWidth: 0.9000
+               XVariable: ''
+                   YData: [1×0 double]
+               YDataMode: 'manual'
+             YDataSource: ''
+                 YJitter: 'none'
+            YJitterWidth: 0.9000
+               YVariable: ''
+                   ZData: [1×0 double]
+               ZDataMode: 'auto'
+             ZDataSource: ''
+                 ZJitter: 'none'
+            ZJitterWidth: 0.9000
+               ZVariable: ''
+
+p1.MarkerEdgeColor
+
+ans =
+
+    'flat'
+
+dbquit
+clc
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/Fcn2_AnatelDB_info', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 310)" style="font-weight:bold">winAnatelDB2/Fcn2_AnatelDB_info</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',310,0)">line 310</a>)
+Unrecognized property 'Value' for class 'matlab.ui.control.Label'.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/startupFcn', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 457)" style="font-weight:bold">winAnatelDB2/startupFcn</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',457,0)">line 457</a>)
+            Fcn2_AnatelDB_info(app)
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 1370)" style="font-weight:bold">winAnatelDB2</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',1370,0)">line 1370</a>)
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winMain/menu_Button7to9Pushed', 'D:\MATLAB\appAnalise\winMain.mlapp', 3881)" style="font-weight:bold">winMain/menu_Button7to9Pushed</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winMain.mlapp',3881,0)">line 3881</a>)
+                    case app.menu_Button9; app.auxWin8 = winAnatelDB2(app);
+} 
+Error while evaluating Button PrivateButtonPushedFcn.
+
+opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',310,0)
+clc
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/PanelTab_SelectionChanged', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 474)" style="font-weight:bold">winAnatelDB2/PanelTab_SelectionChanged</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',474,0)">line 474</a>)
+Unable to perform assignment because the left and right sides have a different number of elements.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/startupFcn', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 435)" style="font-weight:bold">winAnatelDB2/startupFcn</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',435,0)">line 435</a>)
+            PanelTab_SelectionChanged(app, struct('Source', app.Tab1_Image))
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 1351)" style="font-weight:bold">winAnatelDB2</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',1351,0)">line 1351</a>)
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winMain/menu_Button7to9Pushed', 'D:\MATLAB\appAnalise\winMain.mlapp', 3881)" style="font-weight:bold">winMain/menu_Button7to9Pushed</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winMain.mlapp',3881,0)">line 3881</a>)
+                    case app.menu_Button9; app.auxWin8 = winAnatelDB2(app);
+} 
+Error while evaluating Button PrivateButtonPushedFcn.
+
+clc
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/UITableSelectionChanged', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 708)" style="font-weight:bold">winAnatelDB2/UITableSelectionChanged</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',708,0)">line 708</a>)
+Unrecognized method, property, or field 'Button_2' for class 'winAnatelDB2'.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/Fcn2_AnatelDB', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 289)" style="font-weight:bold">winAnatelDB2/Fcn2_AnatelDB</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',289,0)">line 289</a>)
+            UITableSelectionChanged(app)
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/startupFcn', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 455)" style="font-weight:bold">winAnatelDB2/startupFcn</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',455,0)">line 455</a>)
+            Fcn2_AnatelDB(app)
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 1360)" style="font-weight:bold">winAnatelDB2</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',1360,0)">line 1360</a>)
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winMain/menu_Button7to9Pushed', 'D:\MATLAB\appAnalise\winMain.mlapp', 3881)" style="font-weight:bold">winMain/menu_Button7to9Pushed</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winMain.mlapp',3881,0)">line 3881</a>)
+                    case app.menu_Button9; app.auxWin8 = winAnatelDB2(app);
+} 
+Error while evaluating Button PrivateButtonPushedFcn.
+
+opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',708,0)
+clc
+{Conversion to cell from double is not possible.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/PanelVisibility_ImageClicked', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 491)" style="font-weight:bold">winAnatelDB2/PanelVisibility_ImageClicked</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',491,0)">line 491</a>)
+                app.UITable.ColumnWidth(5)  = 280;
+} 
+Error while evaluating Image PrivateImageClickedFcn.
+
+{Conversion to cell from double is not possible.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/PanelVisibility_ImageClicked', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 487)" style="font-weight:bold">winAnatelDB2/PanelVisibility_ImageClicked</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',487,0)">line 487</a>)
+                app.UITable.ColumnWidth(5)  = 480;
+} 
+Error while evaluating Image PrivateImageClickedFcn.
+
+{Conversion to cell from double is not possible.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('winAnatelDB2/PanelVisibility_ImageClicked', 'D:\MATLAB\appAnalise\winAnatelDB2.mlapp', 491)" style="font-weight:bold">winAnatelDB2/PanelVisibility_ImageClicked</a> (<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',491,0)">line 491</a>)
+                app.UITable.ColumnWidth(5)  = 280;
+} 
+Error while evaluating Image PrivateImageClickedFcn.
+
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',484,1)">484 </a>            if app.mainGrid.ColumnWidth{1} == 300
+dbstep
+dbstep
+dbstep
+app.UITable.ColumnWidth(5)
+
+ans =
+
+  1×1 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {[280]}
+
+app.UITable.ColumnWidth{5}
+
+ans =
+
+   280
+
+app.UITable.ColumnWidth{5} = 480;
+app.UITable.ColumnWidth{5} = 580;
+dbquit
+clc
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',328,1)">328 </a>                app.UIAxes1
+app.UIAxes1
+
+ans = 
+
+  <a href="matlab:helpPopup matlab.graphics.axis.GeographicAxes" style="font-weight:bold">GeographicAxes</a> with properties:
+
+     Basemap: 'darkwater'
+    Position: [335.7300 162.7100 899.1750 469.3817]
+       Units: 'pixels'
+
+  Show <a href="matlab:if exist('ans', 'var'), matlab.graphics.internal.getForDisplay('ans', ans, 'matlab.graphics.axis.GeographicAxes'), else, matlab.graphics.internal.getForDisplay('ans'), end">all properties</a>
+
+if exist('ans', 'var'), matlab.graphics.internal.getForDisplay('ans', ans, 'matlab.graphics.axis.GeographicAxes'), else, matlab.graphics.internal.getForDisplay('ans'), end
+                        ALim: [0 1]
+                    ALimMode: 'auto'
+                  AlphaScale: 'linear'
+                    Alphamap: [0 0.0159 0.0317 0.0476 0.0635 0.0794 0.0952 0.1111 0.1270 0.1429 0.1587 0.1746 0.1905 0.2063 0.2222 … ]
+                   AxisColor: [0.1500 0.1500 0.1500]
+                     Basemap: 'darkwater'
+                BeingDeleted: off
+                         Box: on
+                  BusyAction: 'queue'
+               ButtonDownFcn: ''
+                        CLim: [0 1]
+                    CLimMode: 'auto'
+                    Children: [1×1 Scatter]
+                    Clipping: on
+                       Color: [1 1 1]
+                  ColorOrder: [7×3 double]
+             ColorOrderIndex: 2
+                  ColorScale: 'linear'
+                    Colormap: [256×3 double]
+                 ContextMenu: [0×0 GraphicsPlaceholder]
+                   CreateFcn: ''
+                CurrentPoint: [2×3 double]
+                   DeleteFcn: ''
+                   FontAngle: 'normal'
+                    FontName: 'Helvetica'
+                    FontSize: 6
+                FontSizeMode: 'manual'
+                   FontUnits: 'points'
+                  FontWeight: 'normal'
+                        Grid: on
+                   GridAlpha: 0.1500
+               GridAlphaMode: 'auto'
+                   GridColor: [0.1500 0.1500 0.1500]
+               GridColorMode: 'auto'
+               GridLineStyle: '-'
+            HandleVisibility: 'on'
+                     HitTest: on
+               InnerPosition: [335.7300 162.7100 899.1750 469.3817]
+                Interactions: [1×1 matlab.graphics.interaction.interface.DefaultGeographicAxesInteractionSet]
+               Interruptible: on
+     LabelFontSizeMultiplier: 1.1000
+                LatitudeAxis: [1×1 GeographicRuler]
+               LatitudeLabel: [1×1 Text]
+              LatitudeLimits: [-40.0000 10.0000]
+                      Layout: [1×1 matlab.ui.layout.GridLayoutOptions]
+                      Legend: [0×0 GraphicsPlaceholder]
+              LineStyleOrder: '-'
+         LineStyleOrderIndex: 1
+                   LineWidth: 0.5000
+               LongitudeAxis: [1×1 GeographicRuler]
+              LongitudeLabel: [1×1 Text]
+             LongitudeLimits: [-103.9955 -1.0045]
+                   MapCenter: [-16.5932 -52.5000]
+               MapCenterMode: 'auto'
+              MinorGridAlpha: 0.2500
+          MinorGridAlphaMode: 'auto'
+              MinorGridColor: [0.1000 0.1000 0.1000]
+          MinorGridColorMode: 'auto'
+                    NextPlot: 'add'
+             NextSeriesIndex: 2
+               OuterPosition: [316 151 919 510]
+                      Parent: [1×1 GridLayout]
+               PickableParts: 'visible'
+                    Position: [335.7300 162.7100 899.1750 469.3817]
+          PositionConstraint: 'outerposition'
+                    Scalebar: [1×1 GeographicScalebar]
+                    Selected: off
+          SelectionHighlight: on
+                  SortMethod: 'childorder'
+                    Subtitle: [1×1 Text]
+          SubtitleFontWeight: 'normal'
+                         Tag: ''
+                     TickDir: 'in'
+                 TickDirMode: 'auto'
+             TickLabelFormat: 'dms'
+                  TickLength: [0.0100 0.0250]
+                  TightInset: [19.6000 11.6000 0 28.8333]
+                       Title: [1×1 Text]
+     TitleFontSizeMultiplier: 1.1000
+             TitleFontWeight: 'bold'
+    TitleHorizontalAlignment: 'right'
+                     Toolbar: [1×1 AxesToolbar]
+                        Type: 'geoaxes'
+                       Units: 'pixels'
+                    UserData: []
+                     Visible: on
+                   ZoomLevel: 3.6179
+               ZoomLevelMode: 'auto'
+
+dbquit
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',659,1)">659 </a>            InitialValue = app.Location.Value;
+MATLAB has lost its connection to the license server.
+MATLAB will make 9 more reconnection attempt(s) and then exit. Any unsaved changes will be lost.
+
+
+geolimits(app.UIAxes1)
+
+ans =
+
+  -34.1711    4.6589
+
+geolimits([-34, 4])
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('geolimits', 'C:\Program Files\MATLAB\R2021b\toolbox\matlab\graphics\maps\geolimits.m', 66)" style="font-weight:bold">geolimits</a> (<a href="matlab: opentoline('C:\Program Files\MATLAB\R2021b\toolbox\matlab\graphics\maps\geolimits.m',66,0)">line 66</a>)
+Expected gx to be one of these types:
+
+matlab.graphics.axis.GeographicAxes, matlab.graphics.chart.GeographicBubbleChart
+
+Instead its type was double.
+} 
+geolimits(app.UIAxes1, [-34, 4])
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('geolimits', 'C:\Program Files\MATLAB\R2021b\toolbox\matlab\graphics\maps\geolimits.m', 66)" style="font-weight:bold">geolimits</a> (<a href="matlab: opentoline('C:\Program Files\MATLAB\R2021b\toolbox\matlab\graphics\maps\geolimits.m',66,0)">line 66</a>)
+Expected geolimits to match one of these values:
+
+'auto', 'manual'
+
+The input did not match any of the valid values.
+
+Caused by:
+    Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('validatestring>checkString', 'C:\Program Files\MATLAB\R2021b\toolbox\matlab\lang\validatestring.m', 89)" style="font-weight:bold">validatestring>checkString</a> (<a href="matlab: opentoline('C:\Program Files\MATLAB\R2021b\toolbox\matlab\lang\validatestring.m',89,0)">line 89</a>)
+    Expected input to be one of these types:
+
+    char, string
+
+    Instead its type was double.
+} 
+[x,y]=geolimits(app.UIAxes1)
+
+x =
+
+  -34.1711    4.6589
+
+
+y =
+
+  -93.7690  -15.1083
+
+geolimits(app.UIAxes1, [-34, 4], [-93,-15])
+dbquit
+clc
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\winSignalAnalysis.mlapp',636,1)">636 </a>            info = fileread(fullfile(app.RootFolder, 'Settings', 'info.txt'));
+MATLAB has lost its connection to the license server.
+MATLAB will make 8 more reconnection attempt(s) and then exit. Any unsaved changes will be lost.
+
+
+app.Grid2.ColumnWidth
+
+ans =
+
+  1×14 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {[65]}    {[25]}    {[60]}    {[65]}    {[25]}    {[90]}    {[90]}    {[60]}    {[60]}    {[60]}    {[70]}    {[70]}    {[386]}    {'1x'}
+
+app.Grid2.ColumnWidth{2} = 20;
+app.Grid2.ColumnWidth{2} = 22;
+app.Grid2.ColumnWidth{2} = 24;
+app.UITable.ColumnWidth
+
+ans =
+
+  1×12 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {[90]}    {[60]}    {[90]}    {[90]}    {[90]}    {[60]}    {[60]}    {[60]}    {[70]}    {[70]}    {[386]}    {'1x'}
+
+app.Grid2.ColumnWidth{2} = 24;
+app.Grid2.ColumnWidth{2} = 23;
+dbquit
+<a href="matlab: opentoline('D:\MATLAB\appAnalise\winAnatelDB2.mlapp',500,1)">500 </a>            if app.mainGrid.ColumnWidth{1} == 300
+MATLAB has lost its connection to the license server.
+MATLAB will make 7 more reconnection attempt(s) and then exit. Any unsaved changes will be lost.
+
+
+app.Grid2.ColumnWidth{end}
+{Unrecognized method, property, or field 'Grid2' for class 'winAnatelDB2'.
+} 
+app.Grid2.ColumnWidth
+{Unrecognized method, property, or field 'Grid2' for class 'winAnatelDB2'.
+} 
+app.table_Grid
+
+ans = 
+
+  <a href="matlab:helpPopup matlab.ui.container.GridLayout" style="font-weight:bold">GridLayout</a> with properties:
+
+      RowHeight: {[27]  '1x'  [20]}
+    ColumnWidth: {[50]  [60]  [18]  [62]  [60]  [288]  [60]  [60]  [75]  [75]  '1x'  [10]  [30]}
+
+  Show <a href="matlab:if exist('ans', 'var'), matlab.graphics.internal.getForDisplay('ans', ans, 'matlab.ui.container.GridLayout'), else, matlab.graphics.internal.getForDisplay('ans'), end">all properties</a>
+
+app.table_Grid.ColumnWidth{end}
+
+ans =
+
+    30
+
+app.table_Grid.ColumnWidth{end}=20;
+app.table_Grid.ColumnWidth{end}=25;
+app.table_Grid.ColumnWidth{end}=22;
+app.table_Grid.ColumnWidth{end}=23;
+dbquit
+clc
+MATLAB has lost its connection to the license server.
+MATLAB will make 6 more reconnection attempt(s) and then exit. Any unsaved changes will be lost.
+
+
