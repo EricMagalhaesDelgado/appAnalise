@@ -1,15 +1,13 @@
 function Misc_PlotClone(oldFigure, RootFolder)
 
     newFigure = figure('Name', sprintf('appAnalise: Plot referência (%s)', datestr(now, 'dd/mm/yyyy HH:MM:SS')), 'NumberTitle', 'off', ...
-                       'Color', [0.94,0.94,0.94], 'GraphicsSmoothing', 'on', ...
+                       'Color', [.98,.98,.98], 'GraphicsSmoothing', 'on', ...
                        'Position', oldFigure.Position, 'WindowState', oldFigure.WindowState);
     delete(findall(newFigure, '-not', 'Type', 'Figure'));
 
-    warning('off')
     jFrame = get(newFigure, 'javaframe');
-    jIcon  = javax.swing.ImageIcon(fullfile(RootFolder, 'Icons', 'LR_icon.png'));
-    jFrame.setFigureIcon(jIcon);
-    warning('on')
+    jFrame.setFigureIcon(javax.swing.ImageIcon(fullfile(RootFolder, 'Icons', 'LR_icon.png')));
+    jFrame.showTopSeparator(false);
 
 
     % COPY
