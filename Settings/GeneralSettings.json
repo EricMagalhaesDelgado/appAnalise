@@ -20,7 +20,7 @@
     "ThreadIDStatus": "keep",
     "DataTypeStatus": "keep",
     "AntennaNameStatus": "keep",
-    "DistanceValue": null
+    "DistanceValue": 100
   },
   "Image": {
     "Visibility": "on",
@@ -29,14 +29,14 @@
   },
   "Colors": [
     [
-      0.38,
-      0.6,
-      0.73
+      1,
+      0.07,
+      0.65
     ],
     [
-      0.39,
-      0.83,
-      0.07
+      0.47,
+      0.67,
+      0.19
     ],
     [
       1,
@@ -44,9 +44,9 @@
       0.65
     ],
     [
-      0.93,
-      0.69,
-      0.13
+      1,
+      1,
+      0.07
     ]
   ],
   "Waterfall": "winter"

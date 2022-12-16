@@ -20,9 +20,11 @@ function specData = FileReader_CellPlanDBM(filename, ReadType, metaData, RootFol
     [~, tempFile] = fileparts(filename);
     tempFile = fullfile(RootFolder, 'Temp', sprintf('~%s.bin', tempFile));
 
+    if isdeployed; RootFolder = fullfile(ctfroot, 'appAnalise');
+    end
     cd(fullfile(RootFolder, 'FileReader_CellPlanDBM'))
     system(sprintf('CellPlan_dBmReader.exe "%s" "%s"', filename, tempFile));
-    cd(RootFolder)
+    cd(RootFolder)    
     drawnow
 
     fileID2 = fopen(tempFile);

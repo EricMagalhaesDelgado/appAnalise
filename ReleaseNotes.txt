@@ -1,3 +1,11 @@
+v. 1.32 (23/12/2022) - R2022c
+- Evolução do módulo PLAYBACK, implementando o plot de persistência;
+
+v. 1.31 (30/11/2022) - R2022c
+- Implantação de leitor de arquivos binários gerados pelo software da CellPlan;
+- Implantação de módulo DRIVE-TEST, o qual possibilita tratamento de coletas móveis conduzidas pelo appColeta;
+- Evoluções dos módulos TEMPLATE e ANATELDB.
+
 v. 1.24 (12/08/2022) - R2022b
 - Correção de bug que se manifestava no processo de inclusão de emissões por ROI, ao fechar a tela do plot. (UO02.1)
 - Criação de módulo de consulta ao anateldb.

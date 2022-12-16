@@ -2,7 +2,7 @@ function Misc_PlotClone(oldFigure, RootFolder)
 
     newFigure = figure('Name', sprintf('appAnalise: Plot referência (%s)', datestr(now, 'dd/mm/yyyy HH:MM:SS')), 'NumberTitle', 'off', ...
                        'Color', [.98,.98,.98], 'GraphicsSmoothing', 'on', ...
-                       'Position', oldFigure.Position, 'WindowState', oldFigure.WindowState);
+                       'Position', oldFigure.Position, 'WindowState', oldFigure.WindowState, 'Visible', 0);
     delete(findall(newFigure, '-not', 'Type', 'Figure'));
 
     jFrame = get(newFigure, 'javaframe');
@@ -58,10 +58,25 @@ function Misc_PlotClone(oldFigure, RootFolder)
                         Misc_DataTipSettings(h3(ii).Children(jj), UnitLevel)
                     catch
                     end
+
                 case {'images.roi.line', 'images.roi.rectangle'}
                     h3(ii).Children(jj).InteractionsAllowed = 'none';
+
+                case 'image'
+                    hImg = h3(ii).Children(jj);
+
+                    dt = datatip(hImg);
+                    hImg.DataTipTemplate.DataTipRows(1).Label  = '';
+                    hImg.DataTipTemplate.DataTipRows(2).Label  = '';
+                    hImg.DataTipTemplate.DataTipRows(2).Format = '%.3f%%';
+                    hImg.DataTipTemplate.DataTipRows(3) = [];
+                    delete(dt)
+
+                    set(hImg.DataTipTemplate, FontName='Calibri', FontSize=10)
             end
         end
     end
+
+    newFigure.Visible = 1;
 
 end
