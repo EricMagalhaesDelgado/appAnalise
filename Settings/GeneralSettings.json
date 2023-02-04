@@ -20,7 +20,7 @@
     "ThreadIDStatus": "keep",
     "DataTypeStatus": "keep",
     "AntennaNameStatus": "keep",
-    "DistanceValue": 100
+    "DistanceValue": null
   },
   "Image": {
     "Visibility": "on",
