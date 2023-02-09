@@ -46,57 +46,57 @@
           "Data": [
             {
               "Editable": "false",
-              "String": "Faixa 400 MHz: 451-458 e 461-468 MHz",
+              "String": "Faixa 400 MHz: 451.000 a 458.000 e 461.000 a 468.000 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 700 MHz: 703-748 e 758-803 MHz",
+              "String": "Faixa 700 MHz: 703.000 a 748.000 e 758.000 a 803.000 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 800 MHz: 824-849, 869-894 e 898.5-901 MHz",
+              "String": "Faixa 800 MHz: 824.000 a 849.000, 869.000 a 894.000 e 898.500 a 901.000 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 900 MHz: 907.5-915, 943.5-946 e 952.5-960 MHz",
+              "String": "Faixa 900 MHz: 907.500 a 915.000, 943.500 a 946.000 e 952.500 a 960.000 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 1.7 GHz: 1710-1785 MHz.",
+              "String": "Faixa 1.7 GHz: 1710.000 a 1785.000 MHz.",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 1.8 GHz: 1805-1850, 1850-1880 e 1885-1900 MHz.",
+              "String": "Faixa 1.8 GHz: 1805.000 a 1850.000, 1850.000 a 1880.000 e 1885.000 a 1900.000 MHz.",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 1.9 GHz: 1920-1980 MHz",
+              "String": "Faixa 1.9 GHz: 1920.000 a 1980.000 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 2.1 GHz: 2110-2170 MHz",
+              "String": "Faixa 2.1 GHz: 2110.000 a 2170.000 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 2.3 GHz: 2300-2390 MHz",
+              "String": "Faixa 2.3 GHz: 2300.000 a 2390.000 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 2.5 GHz: 2500-2690 MHz",
+              "String": "Faixa 2.5 GHz: 2500.000 a 2690.000 MHz",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 3.5 GHz: 3300-3800 MHz",
+              "String": "Faixa 3.5 GHz: 3300.000 a 3800.000 MHz",
               "Settings": []
             }
           ]

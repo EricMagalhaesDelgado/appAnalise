@@ -37,7 +37,7 @@
           "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "O Plano de Monitoração de Radiodifusão (PMRD), criado no ano de 2020, tem como objetivo controlar, de forma preventiva, o uso de faixas de frequência relacionados aos serviços de radiodifusão, com destaque para as indicadas a seguir.",
+            "String": "O Plano de Monitoração de Radiodifusão (PMRD), criado no ano de 2020, tem como objetivo controlar, de forma preventiva, o uso de faixas de frequência relacionados aos serviços de radiodifusão, com destaque para as indicadas a seguir. Dentre as atividades relacionadas a esse controle, a estimativa da área de atendimento e a avaliação de parâmetros técnicos de estações de radiodifusão, além da identificação e mitigação de espúrios gerados por essas estações.",
             "Settings": []
           }
         },
@@ -46,12 +46,12 @@
           "Data": [
             {
               "Editable": "false",
-              "String": "Faixas 54-88 MHz, 176-214 MHz e 470-698 MHz, destinadas aos serviços televisivos.",
+              "String": "Faixas 54.000 a 88.000 MHz, 176.000 a 214.000 MHz e 470.000 a 698.000 MHz, destinadas aos serviços televisivos.",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 76-108 MHz, destinada ao serviço de Radiodifusão Sonora em Frequência Modulada (incluso Radiodifusão Comunitária).",
+              "String": "Faixa 76.000 a 108.000 MHz, destinada ao serviço de Radiodifusão Sonora em Frequência Modulada (incluso Radiodifusão Comunitária).",
               "Settings": []
             }
           ]
@@ -630,7 +630,12 @@
           "Data": [
             {
               "Editable": "true",
-              "String": "...",
+              "String": "... <span style=\"color:#0000ff;\">[Não foi caracterizada ocorrência de emissão espúria oriunda das estações de radiodifusão.]</span>",
+              "Settings": []
+            },
+            {
+              "Editable": "true",
+              "String": "... <span style=\"color:#0000ff;\">[A frequência em ZZZ MHz com BBB KHz de largura, identificada como batimento entre as portadoras XX MHz e YY MHz, do serviço de radiodifusão em frequência modulada, possui alto potencial lesivo aos seviços de radionavegação e comunicação aeronáutica, em especial por ser adjacente ao canal WW MHz, usado na comunicação entre pilotos e torre de controle do aeroporto de AAA.]</span>",
               "Settings": []
             },
             {

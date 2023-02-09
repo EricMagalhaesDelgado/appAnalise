@@ -46,12 +46,12 @@
           "Data": [
             {
               "Editable": "false",
-              "String": "Faixa 108-118 MHz, destinada à radionavegação aeronáutica (incluso ILS Localizer e VOR).",
+              "String": "Faixa 108.000 a 118.000 MHz, destinada à radionavegação aeronáutica (incluso ILS Localizer e VOR).",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 118-137 MHz, destinada à radiocomunicação aeronáutica (incluso canal de emergência centralizado em 121.5 MHz).",
+              "String": "Faixa 118.000 a 137.000 MHz, destinada à radiocomunicação aeronáutica (incluso canal de emergência centralizado em 121.500 MHz).",
               "Settings": []
             },
             {
@@ -66,7 +66,7 @@
             },
             {
               "Editable": "false",
-              "String": "Canal centralizado em 406 MHz, destinado às balizas de emergência do sistema COSPAS/SARSAT.",
+              "String": "Canal centralizado em 406.000 MHz, destinado às balizas de emergência do sistema COSPAS/SARSAT.",
               "Settings": []
             }
           ]

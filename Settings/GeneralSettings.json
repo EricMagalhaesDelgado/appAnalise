@@ -13,14 +13,14 @@
       0.6,
       0.73
     ],
-    "position": "SideBySide"
+    "position": "Center"
   },
   "Merge": {
     "OptionalFieldsToRemove": [],
     "ThreadIDStatus": "keep",
     "DataTypeStatus": "keep",
     "AntennaNameStatus": "keep",
-    "DistanceValue": null
+    "DistanceValue": 100
   },
   "Image": {
     "Visibility": "on",

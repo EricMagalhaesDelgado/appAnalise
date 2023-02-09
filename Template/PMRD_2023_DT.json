@@ -37,7 +37,7 @@
           "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "O Plano de Monitoração do Espectro utilizado por Aplicações Críticas (PMEC), criado no ano de 2018, tem como objetivo controlar, de forma preventiva, o uso de canais e faixas de frequência relacionados a serviços críticos, com destaque para os indicados a seguir.",
+            "String": "O Plano de Monitoração de Radiodifusão (PMRD), criado no ano de 2020, tem como objetivo controlar, de forma preventiva, o uso de faixas de frequência relacionados aos serviços de radiodifusão, com destaque para as indicadas a seguir. Dentre as atividades relacionadas a esse controle, a estimativa da área de atendimento e a avaliação de parâmetros técnicos de estações de radiodifusão, além da identificação e mitigação de espúrios gerados por essas estações.",
             "Settings": []
           }
         },
@@ -46,12 +46,12 @@
           "Data": [
             {
               "Editable": "false",
-              "String": "Faixa 108.000 a 118.000 MHz, destinada à radionavegação aeronáutica (incluso ILS Localizer e VOR).",
+              "String": "Faixas 54.000 a 88.000 MHz, 176.000 a 214.000 MHz e 470.000 a 698.000 MHz, destinadas aos serviços televisivos.",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Faixa 118.000 a 137.000 MHz, destinada à radiocomunicação aeronáutica (incluso canal de emergência centralizado em 121.500 MHz).",
+              "String": "Faixa 76.000 a 108.000 MHz, destinada ao serviço de Radiodifusão Sonora em Frequência Modulada (incluso Radiodifusão Comunitária).",
               "Settings": []
             }
           ]
@@ -60,7 +60,7 @@
           "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "Neste ano de 2023, o PMEC foi formalizado por meio dos <b>Processos nºs 53500.316500/2022-18</b>, o qual contempla o Plano de Ação de Fiscalização (SEI nº 9509939), e <b>53554.003310/2022-08</b>, o qual contempla o Plano de Trabalho (SEI nº 9617591).",
+            "String": "Neste ano de 2023, o PMRD foi formalizado por meio dos <b>Processos nºs 53500.316500/2022-18</b>, o qual contempla o Plano de Ação de Fiscalização (SEI nº 9509939), e <b>53504.014656/2022-19</b>, o qual contempla o Plano de Trabalho (SEI nº 9576586).",
             "Settings": []
           }
         }
@@ -95,7 +95,7 @@
           "Data": [
             {
               "Editable": "false",
-              "String": "Monitoração restrita às faixas 54.000 a 108.000 MHz e 108.000 a 137.000 MHz, possibilitando análise da correlação existente entre emissões detectadas nas faixas.",
+              "String": "Monitoração restrita às faixas 54.000 a 108.000 MHz, 108.000 a 137.000 MHz, 176.000 a 214.000 MHz e 470.000 a 698.000 MHz, possibilitando análise da correlação existente entre emissões detectadas nas faixas.",
               "Settings": []
             },
             {
@@ -105,7 +105,7 @@
             },
             {
               "Editable": "false",
-              "String": "Rota criada pela própria Unidade Regional da Agência, podendo estar sobre o contorno de 15 quilômetros do entorno do aeroporto prioritário, ou no interior da coroa circular formada entre os contornos de 5 e 15 quilômetros, ou no entorno da rota de aproximação do aeroporto que as aeronaves percorrem no procedimento de pouso.",
+              "String": "Rota primária criada pela própria Unidade Regional da Agência, passando pela maioria das vias locais públicas da sede da localidade onde está(ão) instalada(s) a(s) estação(ões) sob análise. E rota secundária, também criada pela própria Unidade Regional da Agência, aferindo os níveis recepcionados da(s) emissão(ões) sob análise nos principais contornos e radiais, considerando as informações do(s) projeto(s) da(s) estação(ões) carregadas no MOSAICO.",
               "Settings": []
             }
           ]
@@ -264,7 +264,7 @@
           "Data": {
             "Origin": "Internal",
             "Source": "specImage",
-            "Layout": 1,
+            "Layout": 2,
             "Caption": "Representação gráfica da monitoração sob análise.",
             "Settings": {
               "Width": "90%",
@@ -794,7 +794,22 @@
           "Data": [
             {
               "Editable": "true",
-              "String": "...",
+              "String": "... <span style=\"color:#0000ff;\">[A Imagem X evidencia que a Estação nº XXX, instalada em município limítrofe ao da outorga, <b>não atende</b> aos requisitos mínimos de cobertura urbana na região central do município aferido. Os valores numéricos dos níveis aferidos em cada posição geográfica do trajeto pode ser encontrado no arquivo <b>Tabela externa de dados ou medidas (LINKNUMEROSEI!)</b>.]</span>",
+              "Settings": []
+            },
+            {
+              "Editable": "true",
+              "String": "... <span style=\"color:#0000ff;\">[A Imagem X evidencia que a Estação nº XXX, instalada em município limítrofe ao da outorga, <b>não atende</b> aos requisitos mínimos de cobertura urbana na região central do município aferido. Os valores numéricos dos níveis aferidos em cada posição geográfica do trajeto pode ser encontrado no arquivo <b>Tabela externa de dados ou medidas (LINKNUMEROSEI!)</b>.]</span>",
+              "Settings": []
+            },
+            {
+              "Editable": "true",
+              "String": "... <span style=\"color:#0000ff;\">[As Imagens X e Y evidenciam que o sinal espúrio captado em HHHH MHz é emitido pela Estação nº XXX, já que os níveis deste e da portadora principal da emissão gerada pela supracitada Estação se comportam de modo similar ao longo da rota. Os valores numéricos dos níveis aferidos em cada posição geográfica do trajeto pode ser encontrado no arquivo <b>Tabela externa de dados ou medidas (LINKNUMEROSEI!)</b>.]</span>",
+              "Settings": []
+            },
+            {
+              "Editable": "true",
+              "String": "... <span style=\"color:#0000ff;\">[A Imagem X evidencia que a estação clandestina captada em HHHH MHz possui uma área de cobertura de aproximadamente AAAA quilômetros quadrados, alcançando uma população de aproximadamente BBBB habitantes. A evidência material que comprova tal abrangência são os valores numéricos dos níveis aferidos em cada posição geográfica e podem ser encontrados no arquivo <b>Tabela externa de dados ou medidas (LINKNUMEROSEI!)</b>.]</span>",
               "Settings": []
             },
             {
