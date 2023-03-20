@@ -1,0 +1,9 @@
+{
+  "name": "appAnalise",
+  "release": "R2022c",
+  "releasedate": "30/11/2022",
+  "version": "1.31",
+  "executable": "appAnalise.exe",
+  "size": 29943769,
+  "hash": "594fd9f0a3e3b3fc7f6c86703edb60a428c812ff17c87485a329237fb4f39a64"
+}
