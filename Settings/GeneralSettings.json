@@ -17,10 +17,8 @@
     "position": "Center"
   },
   "Merge": {
-    "OptionalFieldsToRemove": [
-      "ThreadID"
-    ],
-    "ThreadIDStatus": "remove",
+    "OptionalFieldsToRemove": [],
+    "ThreadIDStatus": "keep",
     "DataTypeStatus": "keep",
     "AntennaNameStatus": "keep",
     "DistanceValue": 100
