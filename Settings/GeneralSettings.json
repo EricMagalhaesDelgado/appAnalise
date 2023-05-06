@@ -1,6 +1,7 @@
 {
   "openGL": "Hardware Full",
   "userpath": "",
+  "pythonPath": "",
   "layout": {
     "theme": "cyan",
     "lightColor": [
@@ -16,8 +17,10 @@
     "position": "Center"
   },
   "Merge": {
-    "OptionalFieldsToRemove": [],
-    "ThreadIDStatus": "keep",
+    "OptionalFieldsToRemove": [
+      "ThreadID"
+    ],
+    "ThreadIDStatus": "remove",
     "DataTypeStatus": "keep",
     "AntennaNameStatus": "keep",
     "DistanceValue": 100

@@ -1,0 +1,43 @@
+<LogEntry>
+<BeginTime>06/05/2023 00:50:13</BeginTime>
+<a href="matlab: opentoline('C:\P&D\appAnalise\winMain.mlapp',1198,1)">1198 </a>                    idx1 = find([auxSpecData.ThreadID] == auxSpecInfo(jj).ThreadID);
+dbcont
+dbcont
+dbcont
+<a href="matlab: opentoline('C:\P&D\appAnalise\winMain.mlapp',1198,1)">1198 </a>                    idx1 = find([auxSpecData.ThreadID] == auxSpecInfo(jj).ThreadID);
+find([auxSpecData.ThreadID] == auxSpecInfo(jj).ThreadID)
+{Unrecognized field name "ThreadID".
+} 
+auxSpecData
+
+auxSpecData = 
+
+  1×4 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    Node
+    MetaData
+    FileFormat
+    TaskName
+    Description
+
+app.specData
+
+ans = 
+
+  1×4 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    Node
+    ThreadID
+    MetaData
+    ObservationTime
+    Samples
+    Data
+    statsData
+    FileFormat
+    TaskName
+    Description
+    RelatedFiles
+    RelatedGPS
+    gps
+    Blocks
+
