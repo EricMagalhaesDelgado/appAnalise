@@ -1,2 +1,0 @@
-<LogEntry>
-<BeginTime>06/05/2023 13:29:18</BeginTime>
