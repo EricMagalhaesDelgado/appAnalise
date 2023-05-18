@@ -1,4 +1,28 @@
-function res = report_base64encode(str)
+function [imgExt, imgString] = ReportGenerator_img2base64(imgFullPath)
+
+    fileID = fopen(imgFullPath, 'r');
+    while fileID == -1
+        pause(1)
+        fileID = fopen(imgFullPath, 'r');
+    end
+    
+    [~,~,imgExt] = fileparts(imgFullPath);
+    switch lower(imgExt)
+        case '.png';            imgExt = 'png';
+        case {'.jpg', '.jpeg'}; imgExt = 'jpeg';
+        case '.gif';            imgExt = 'gif';
+        case '.svg';            imgExt = 'svg+xml';
+        otherwise;              error('Image file format must be "JPEG", "PNG", "GIF", or "SVG".')
+    end
+    
+    imgArray  = fread(fileID, Inf, 'uint8');
+    imgString = base64encode(imgArray);
+    fclose(fileID);
+
+end
+
+
+function res = base64encode(str)
 % base64encode Perform Base 64 encoding of a string or vector of bytes
 %   RES = base64encode(V) encodes a string, character vector, or numeric vector using
 %   Base 64 encoding as documented in RFC 4648, <a href="http://tools.ietf.org/html/rfc4648#section-4">section 4</a> and returns the encoded 

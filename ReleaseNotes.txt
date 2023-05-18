@@ -1,5 +1,19 @@
-v. 1.32 (23/12/2022) - R2022c
-- Evolução do módulo PLAYBACK, implementando o plot de persistência;
+v. 1.34 (18/05/2023)
+- EVOLUÇÕES
+(a) Possibilidade de mesclar monitorações contínuas, mas registradas em fluxos diferentes.
+(b) Tela de confirmação de fechamento do app, caso aberto projeto não salvo.
+(c) Registro do path do Python, possibilitando o mapeamento automático.
+(d) Disponibilização para testes das funcionalidades básicas do futuro módulo de consulta ao anateldb.
+- BUGS
+(a) Corrigidos BUGS no módulo de consulta ao anateldb, os quais impediam a exportação da base (filtrada ou não) em planilha excel, e a análise de dados relacionados a sensores que estejam instalados em locais com coordenadas positivas.
+(b) Corrigidos BUGs no app principal, os quais impediam o posicionamento da janela no centro do maior monitor, e a leitura de arquivos ignorando a informação de "ThreadID".
+
+v. 1.33 (09/02/2023)
+- Ajustes pontuais no módulo TEMPLATE, disponibilizando os novos modelos de relatórios dos planos de monitoração (PMEC, PMEF e PMRD);
+- Ajustes pontuais no módulo ANATELDB, disponibilizando nova extração feita em 02/02/2023.
+
+v. 1.32 (23/12/2022)
+- Evolução do módulo PLAYBACK, implementando o plot de persistência.
 
 v. 1.31 (30/11/2022) - R2022c
 - Implantação de leitor de arquivos binários gerados pelo software da CellPlan;
