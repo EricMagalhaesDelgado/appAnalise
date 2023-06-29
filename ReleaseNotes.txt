@@ -1,3 +1,11 @@
+v. 1.35 (28/06/2023)
+- EVOLUÇÕES
+(a) Possibilidade de editar manualmente a informação da localidade, não alterando as coordenadas geográficas do local da monitoração.
+(b) Possibilidade de alterar o passo de truncamento de frequência para fins de comparação com o anateldb (o valor padrão é 25 kHz).
+(c) Possibilidade de gerar arquivo no formato JSON com informações das emissões, no módulo "Análise de Sinais".
+- BUGS
+(a) Corrigidos BUGS no futuro módulo de consulta ao anateldb (em homologação desde a v. 1.34) relacionados à nova classe de tabela (ccTools.Table).
+
 v. 1.34 (18/05/2023)
 - EVOLUÇÕES
 (a) Possibilidade de mesclar monitorações contínuas, mas registradas em fluxos diferentes.

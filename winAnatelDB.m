@@ -88,7 +88,6 @@ classdef winAnatelDB < matlab.apps.AppBase
             enableDefaultInteractivity(app.UIAxes1)
             enableDefaultInteractivity(app.UIAxes2)
             enableDefaultInteractivity(app.UIAxes3)
-
             drawnow
         end
 
@@ -139,10 +138,12 @@ classdef winAnatelDB < matlab.apps.AppBase
             end
 
             app.ccTable.Data = tempTable;
+            drawnow
 
             plot_General(app)
             plot_SelectedRow(app)
             plot_Nodes(app)
+            drawnow
         end
         
         
@@ -407,6 +408,7 @@ classdef winAnatelDB < matlab.apps.AppBase
         function ccTableSelectionChanged(app, event)
 
             plot_SelectedRow(app)
+            drawnow
             
         end
 
@@ -416,6 +418,7 @@ classdef winAnatelDB < matlab.apps.AppBase
             plot_General(app)
             plot_SelectedRow(app)
             plot_Nodes(app)
+            drawnow
 
         end
 
@@ -434,60 +437,45 @@ classdef winAnatelDB < matlab.apps.AppBase
                                             "Interpreter", "html", "Indeterminate", "on", "Cancelable", "on", "CancelText", "Cancelar", "Title", "appAnalise");
 
             userPath = app.CallingApp.menu_userPath.Value;
-            tag1 = '';
-            if height(app.ccTable.Data) ~= height(app.ccTable.FilteredIndex)
-                tag1 = ' (F)';
-            end
-            
-            kk = 0;
-            while true
-                try
-                    if d.CancelRequested
-                        break
-                    end
-
-                    if kk == 0; tag2 = '';
-                    else;       tag2 = sprintf(' (%d)', kk);
-                    end
-                    basename = sprintf('anateldb %s%s%s.xlsx', replace(extractBefore(AnatelDB_info.ReleaseDate, ' '), '/', '_'), tag1, tag2);
-
-                    if ~isempty(tag1)
-                        if ~isempty(app.Location.Value)
-                            locName = app.Location.Value;
-                        else
-                            locName = '(none)';
-                        end
-
-                        metaFile = sprintf(['Filename: "%s"\n\n',                   ...
-                                            'ColumnName: {%s}\n'                    ...
-                                            'ColumnPrecision: {%s}\n'               ...
-                                            'RawDataSize: %d rows x %d columns\n\n' ...
-                                            'ReferenceLocation: %s\n'               ...
-                                            'FilterSentence: %s\n'                  ...
-                                            'FilteredDataSize: %d rows'], basename,                                   ...
-                                                                          strjoin(app.ccTable.ColumnName, ', '),      ...
-                                                                          strjoin(app.ccTable.ColumnPrecision, ', '), ...
-                                                                          height(app.ccTable.Data),                   ...
-                                                                          width(app.ccTable.Data),                    ...
-                                                                          locName,                                    ...
-                                                                          app.ccTable.Filters.Text,                   ...
-                                                                          height(app.ccTable.FilteredIndex));
-                    end
-
-                    writetable(app.ccTable.Data(app.ccTable.FilteredIndex,:), fullfile(userPath, basename), 'WriteMode', 'overwritesheet')
-                    writecell({metaFile}, fullfile(userPath, replace(basename, '.xlsx', '.cfg')), "FileType", "text", "QuoteStrings", false, "WriteMode", "overwrite")
-                    pause(10)
-
-                    msg = sprintf('Foram salvos os seguintes arquivos na pasta de trabalho:\n- %s\n- %s', basename, replace(basename, '.xlsx', '.cfg'));
-                    MessageBox(app, 'info', msg)
-                    break
-                catch
-                    kk = kk+1;
+            basename = sprintf('anateldb_%s.xlsx', datestr(now, 'yyyymmdd_THHMMSS'));
+            try
+                if ~isempty(app.Location.Value)
+                    locName = app.Location.Value;
+                else
+                    locName = '(none)';
                 end
+
+                metaFile = sprintf(['Filename: "%s"\n\n',                   ...
+                                    'AnatelDB: %s\n'                        ...
+                                    'ColumnRawNames: {%s}\n'                ...
+                                    'ColumnName: {%s}\n'                    ...
+                                    'ColumnPrecision: {%s}\n'               ...
+                                    'RawDataSize: %d rows x %d columns\n\n' ...
+                                    'ReferenceLocation: %s\n'               ...
+                                    'FilterSentence: %s\n'                  ...
+                                    'FilteredDataSize: %d rows'], basename,                                   ...
+                                                                  jsonencode(AnatelDB_info),                  ...
+                                                                  strjoin(app.ccTable.Data.Properties.VariableNames, ', '), ...
+                                                                  strjoin(app.ccTable.ColumnName, ', '),      ...
+                                                                  strjoin(app.ccTable.ColumnPrecision, ', '), ...
+                                                                  height(app.ccTable.Data),                   ...
+                                                                  width(app.ccTable.Data),                    ...
+                                                                  locName,                                    ...
+                                                                  struct(app.ccTable).Filters.Text,           ...
+                                                                  height(app.ccTable.FilteredIndex));
+
+                writetable(app.ccTable.Data(app.ccTable.FilteredIndex,:), fullfile(userPath, basename), 'WriteMode', 'overwritesheet')
+                writecell({metaFile}, fullfile(userPath, replace(basename, '.xlsx', '.cfg')), "FileType", "text", "QuoteStrings", false, "WriteMode", "overwrite")
+                pause(.100)
+    
+                msg = sprintf('Foram salvos os seguintes arquivos na pasta de trabalho:\n- %s\n- %s', basename, replace(basename, '.xlsx', '.cfg'));
+                MessageBox(app, 'info', msg)
+
+            catch ME
+                fprintf('%s\n', jsonencode(ME))
+                MessageBox(app, 'error', getReport(ME))
             end
-
             delete(d)
-
         end
 
         % Value changed function: Pan, Zoom
@@ -703,7 +691,6 @@ classdef winAnatelDB < matlab.apps.AppBase
             app.ccTable.ColumnWidth = {'40px', '70px', '70px', '70px', 'auto', '70px', '70px', '70px', '70px', '70px'};
             app.ccTable.ColumnAlign = {'center', 'right', 'right', 'right', 'left', 'center', 'right', 'center', 'right', 'right'};
             app.ccTable.ColumnPrecision = {'%s', '%.3f', '%.6f', '%.6f', '%s', '%d', '%d', '%s', '%.3f', '%.1f'};
-            app.ccTable.ColumnMultiplier = [1 1 1 1 1 1 1 1 1 1];
             app.ccTable.hFontSize = 10;
             app.ccTable.bHoverColor = '#e2f0d9';
             app.ccTable.bSelectedColor = '#e2f0d9';
