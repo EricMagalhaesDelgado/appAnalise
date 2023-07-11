@@ -12,6 +12,9 @@ classdef (Abstract) Constants
         yMaxLimRange  = 100                                                 % Maximum y-Axis limit range
         
         channelStep   = 0.025                                               % MHz (Channel Step)
+
+        specDataTypes = [1, 2, 4, 7, 60, 61, 63, 64, 67, 68, 167, 168, 1000, 1809];
+        occDataTypes  = [8, 62, 65, 69];
     end
 
     methods (Static = true)
