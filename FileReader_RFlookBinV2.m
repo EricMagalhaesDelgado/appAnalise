@@ -122,6 +122,9 @@ function specData = Fcn_MetaDataReader(rawData, filename)
                                'idxTable',      table(startIndex', stopIndex', 'VariableNames', {'startByte', 'stopByte'}), ...
                                'attData',       struct('Mode', attMode_ID, 'Array', []));
 
+    % O gpsMode_ID por ser 0 (manual), 1 (Built-in) ou 2 (External).
+    % (a) Se gpsMode_ID = 0     >> gpsData.Status = -1
+    % (b) Se gpsMode_ID = 1 | 2 >> gpsData.Status = 0 (invalid) | 1 (valid)
     if gpsMode_ID
         for ii = 1:specData.Samples
             blockArray = rawData(startIndex(ii):stopIndex(ii));
@@ -135,19 +138,27 @@ function specData = Fcn_MetaDataReader(rawData, filename)
             end
         end
 
+        if ~isempty(gpsData.Matrix)
+            gpsData.Status    = 1;
+            gpsData.Count     = height(gpsData.Matrix);
+            gpsData.Latitude  = mean(gpsData.Matrix(:,1));
+            gpsData.Longitude = mean(gpsData.Matrix(:,2));
+        else
+            gpsData.Status    = 0;
+        end
+
     else
         BeginTime = observationTime(rawData(startIndex(1):stopIndex(1)));
         EndTime   = observationTime(rawData(startIndex(end):stopIndex(end)));
 
-        gpsData.Matrix(end+1,:) = [MetaStruct.Latitude, MetaStruct.Longitude];
+        if isfield(MetaStruct, 'Latitude') && isfield(MetaStruct, 'Longitude')
+            gpsData.Status = -1;
+            gpsData.Count  = 1;
+            gpsData.Matrix(end+1,:) = [MetaStruct.Latitude, MetaStruct.Longitude];
+        end
     end
 
     if ~isempty(gpsData.Matrix)
-        gpsData.Status    = 1;
-        gpsData.Count     = height(gpsData.Matrix);
-        gpsData.Latitude  = mean(gpsData.Matrix(:,1));
-        gpsData.Longitude = mean(gpsData.Matrix(:,2));          
-        
         gpsData.Location  = geo_FindCity(gpsData);
     end
 
@@ -240,26 +251,25 @@ function [startIndex, stopIndex] = fixIndexArrays(startIndex, stopIndex)
         NN = numel(startIndex);
         MM = numel(stopIndex);
 
-        if startIndex(ii) > stopIndex(ii)
-            stopIndex(ii) = [];
-            continue
-        else
-            if (NN > ii) && (startIndex(ii+1) < stopIndex(ii))
-                startIndex(ii) = [];
-                continue
-            end
-        end
-
-        ii = ii+1;
         if ii > NN
             break
         end
+
+        if startIndex(ii) > stopIndex(ii)
+            stopIndex(ii) = [];
+            continue
+        elseif (NN > ii) && (startIndex(ii+1) < stopIndex(ii))
+            startIndex(ii) = [];
+            continue
+        end
+
+        ii = ii+1;
     end
 
     if NN < MM
         startIndex(MM+1:end) = [];
     elseif NN > MM
-        stopIndex(NN+1:end) = [];
+        stopIndex(NN+1:end)  = [];
     end
 end
 
