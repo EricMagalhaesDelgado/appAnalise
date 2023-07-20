@@ -1,5 +1,5 @@
 function [SpecInfo, metaData, specData] = RFLookBin(filename, ReadType)
-%% FILEREADER_RFLOOKBIN Leitor de arquivo no formato RFlookBin.
+% FILEREADER_RFLOOKBIN Leitor de arquivo no formato RFlookBin.
     
     arguments
         filename char
@@ -45,7 +45,7 @@ function [SpecInfo, metaData, specData] = RFLookBin(filename, ReadType)
     SpecInfo.MetaData.metaString = {Unit, Resolution, TraceMode, Detector, antennaName};
     
     SpecInfo.Samples     = double(metaData.Data.WritedSamples);
-    SpecInfo.FileFormat  = char(metaData.Data.FileName);
+    SpecInfo.FileFormat  = 'RFlookBin';
     SpecInfo.TaskName    = TaskName;
     SpecInfo.Description = Description;
     StartTime = datetime(specData{1}.Data(1).localTimeStamp,   'Format', 'dd/MM/yyyy HH:mm:ss') + years(2000);
@@ -129,20 +129,22 @@ function [SpecInfo, metaData, specData] = RFLookBin(filename, ReadType)
                     SpecInfo.Data{2}(:,ii) = specData{2}.Data.Array(:,ii);
                 end
             end
-    end
-    
+    end    
 end
-%% Funções auxiliares.
-function [TaskName, ThreadID, Description, Node, Antenna] = Fcn_TextBlockRead(metaStr)
-    
-    metaStruct = jsondecode(native2unicode(metaStr));
+
+
+%-------------------------------------------------------------------------%
+function [TaskName, ThreadID, Description, Node, Antenna] = Fcn_TextBlockRead(metaStr)    
+    metaStruct  = jsondecode(native2unicode(metaStr));
     TaskName    = metaStruct.TaskName;
     ThreadID    = metaStruct.ThreadID;
     Description = metaStruct.Description;
     Node        = metaStruct.Node;
-    Antenna     = metaStruct.Antenna;
-    
+    Antenna     = metaStruct.Antenna;    
 end
+
+
+%-------------------------------------------------------------------------%
 function str = Fcn_UnitMap(ID)
     str = '';
     switch ID
@@ -150,19 +152,22 @@ function str = Fcn_UnitMap(ID)
         case 2; str = 'dBµV';
     end
 end
-function str = Fcn_TraceModeMap(ID)
-        
+
+
+%-------------------------------------------------------------------------%
+function str = Fcn_TraceModeMap(ID)        
     str = '';
     switch ID
         case 1; str = 'ClearWrite';
         case 2; str = 'Average';
         case 3; str = 'MaxHold';
         case 4; str = 'MinHold';
-    end
-    
+    end    
 end
-function str = Fcn_DetectorMap(ID)
-        
+
+
+%-------------------------------------------------------------------------%
+function str = Fcn_DetectorMap(ID)        
     str = '';
     switch ID
         case 1; str = 'Sample';
@@ -171,7 +176,11 @@ function str = Fcn_DetectorMap(ID)
         case 4; str = 'Negative Peak';
     end
 end
-%% Mapeamento do arquivo na memória.
+
+
+%-------------------------------------------------------------------------%
+% Mapeamento do arquivo na memória
+%-------------------------------------------------------------------------%
 function [metaData, specData] = Fcn_RFLookReader(filename)
     arguments
         filename char

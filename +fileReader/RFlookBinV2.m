@@ -76,7 +76,7 @@ function specData = Fcn_MetaDataReader(rawData, filename)
 
     specData(1).Node             = MetaStruct.Receiver;
     specData.ThreadID            = MetaStruct.ID;
-    specData.FileFormat          = 'RFlookBin v.2/1';
+    specData.FileFormat          = 'RFlookBin';
     specData.TaskName            = MetaStruct.Task;
     specData.Description         = MetaStruct.Description;
     
