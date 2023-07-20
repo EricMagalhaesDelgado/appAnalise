@@ -101,7 +101,7 @@ classdef specData
                 case 'LevelUnit'
                     switch Value
                         case 'dBm';                ID = 1;
-                        case {'dBµV', 'dBμV'};     ID = 2;
+                        case {'dBµV', 'dBμV', 'dBÂµV', 'dBÂμV'};     ID = 2;
                         case {'dBµV/m', 'dBμV/m'}; ID = 3;
                     end
             end        

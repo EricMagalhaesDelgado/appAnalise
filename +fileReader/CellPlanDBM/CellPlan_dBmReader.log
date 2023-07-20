@@ -1,0 +1,19 @@
+﻿  CellPlan_dBmReader.cpp
+  WARNING: detected 'min' and/or 'max' macros and undefined them;
+  WARNING: you may wish to define NOMINMAX before including any windows header
+D:\VISUAL STUDIO\CellPlan_dBmReader\IQ_dBm_FileReader.h(73,20): warning C4200: nonstandard extension used: zero-sized array in struct/union
+D:\VISUAL STUDIO\CellPlan_dBmReader\IQ_dBm_FileReader.h(73,20): message : This member will be ignored by a defaulted constructor or copy/move assignment operator
+D:\VISUAL STUDIO\CellPlan_dBmReader\IQ_dBm_FileReader.h(74,2): warning C4091: 'typedef ': ignored on left of 'CapturedRawBuffer' when no variable is declared
+D:\VISUAL STUDIO\CellPlan_dBmReader\CellPlan_dBmReader.cpp(79,59): warning C4244: 'argument': conversion from 'arma::uword' to 'int', possible loss of data
+D:\VISUAL STUDIO\CellPlan_dBmReader\CellPlan_dBmReader.cpp(100,49): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+D:\VISUAL STUDIO\CellPlan_dBmReader\CellPlan_dBmReader.cpp(128,17): warning C4244: 'initializing': conversion from 'WORD' to 'UINT8', possible loss of data
+D:\VISUAL STUDIO\CellPlan_dBmReader\CellPlan_dBmReader.cpp(129,17): warning C4244: 'initializing': conversion from 'WORD' to 'UINT8', possible loss of data
+D:\VISUAL STUDIO\CellPlan_dBmReader\CellPlan_dBmReader.cpp(130,17): warning C4244: 'initializing': conversion from 'WORD' to 'UINT8', possible loss of data
+D:\VISUAL STUDIO\CellPlan_dBmReader\CellPlan_dBmReader.cpp(131,17): warning C4244: 'initializing': conversion from 'WORD' to 'UINT8', possible loss of data
+D:\VISUAL STUDIO\CellPlan_dBmReader\CellPlan_dBmReader.cpp(132,17): warning C4244: 'initializing': conversion from 'WORD' to 'UINT8', possible loss of data
+  Generating code
+  8 of 1036 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    8 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  CellPlan_dBmReader.vcxproj -> D:\VISUAL STUDIO\CellPlan_dBmReader\x64\Release\CellPlan_dBmReader.exe
