@@ -266,19 +266,6 @@ classdef winAnatelDB < matlab.apps.AppBase
                     pHandle.DataTipTemplate.DataTipRows(2).Label = 'Registros:';
             end
         end
-
-
-        function MessageBox(app, type, msg)
-
-            msg = sprintf('<font style="font-size:12;">%s</font>', msg);
-            switch type
-                case 'error';   uialert(app.UIFigure, msg, 'appAnalise', 'Interpreter', 'html');
-                case 'warning'; uialert(app.UIFigure, msg, 'appAnalise', 'Interpreter', 'html', 'Icon', 'warning');
-                case 'info';    uialert(app.UIFigure, msg, 'appAnalise', 'Interpreter', 'html', 'Icon', 'LT_info.png')
-            end
-
-        end
-
     end
     
 
@@ -288,16 +275,11 @@ classdef winAnatelDB < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp)
             
-            mainMonitor = get(0, 'MonitorPositions');
-            [~, ind]    = max(mainMonitor(:,3));
-            mainMonitor = mainMonitor(ind,:);
-            
-            app.UIFigure.Position(1:2) = [mainMonitor(1)+round((mainMonitor(3)-app.UIFigure.Position(3))/2), ...
-                                          mainMonitor(2)+round((mainMonitor(4)-app.UIFigure.Position(4)-30)/2)];
             app.Grid1.RowHeight(3) = {0};
             
             app.CallingApp = mainapp;
             app.RootFolder = app.CallingApp.RootFolder;
+            winPosition(app)
             
             startup_AxesCreation(app)
             startup_NodeList(app)

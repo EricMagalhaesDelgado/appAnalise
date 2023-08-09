@@ -1,10 +1,10 @@
 <winMain_General>
-<font style="font-size:12;">Aplicação de pós-processamento de dados gerados em monitorações desenvolvida no âmbito dos projetos 3A e RFlook - Processos nºs 53554.000939/2020-26 e 53500.063493/2020-76 - e evoluída no âmbito do Sentinela - Processo nº 53500.004826/2022-97.</font>
+<font style="font-size:12;">O appAnalise é uma ferramenta de pós-processamento de dados gerados em monitorações do espectro de radiofrequência, o qual foi desenvolvido e é mantido pelo Escritório de Inovação da Superintendência de Fiscalização da Anatel.</font>
 </winMain_General>
 
 
 <winMain_File>
-<font style="font-size:12;">O modo "<b>ARQUIVO(S)</b>" possibilita a organização na variável "specData" de informações extraídas de arquivos gerados em monitorações do espectro de radiofrequência nos formatos binários (gerados pelo Logger e appColeta), CSV (gerado pelo Argus), SM1809 (gerado pelo appAnálise) e MAT (gerado pelo appColeta e appAnálise).</font>
+<font style="font-size:12;">O modo "<b>ARQUIVO(S)</b>" possibilita a organização na variável "specData" de informações extraídas de arquivos gerados em monitorações do espectro de radiofrequência nos formatos binários (gerados pelo Logger e appColeta), CSV (gerado pelo Argus), BIN (gerado pela CellPlan), SM1809 (gerado pelo appAnálise) e MAT (gerado pelo appColeta e appAnálise).</font>
 </winMain_File>
 
 

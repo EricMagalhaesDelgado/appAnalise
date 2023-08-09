@@ -1,6 +1,9 @@
 classdef (Abstract) Constants
 
     properties (Constant)
+        %-----------------------------------------------------------------%
+        appName       = 'appAnalise'
+
         windowSize    = [1016, 696]
         windowMinSize = [ 440, 696]
 
@@ -17,7 +20,9 @@ classdef (Abstract) Constants
         occDataTypes  = [8, 62, 65, 69];
     end
 
+    
     methods (Static = true)
+        %-----------------------------------------------------------------%
         function [upYLim, strUnit] = yAxisUpLimit(Unit)
             switch lower(Unit)
                 case 'dbm';                    upYLim = -20; strUnit = 'dBm';
@@ -26,5 +31,4 @@ classdef (Abstract) Constants
             end
         end
     end
-
 end

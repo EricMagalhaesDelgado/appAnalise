@@ -1,53 +1,44 @@
 classdef specData
 
-    % No desenvolvimento do appAnaliseV2 (com versões webapp e desktop),
-    % ajustar nomenclatura de alguns campos, dentre eles:
-    % (a) "Node" → "Receiver"
-    % (b) "ThreadID" → "ID"
-    % (c) Eliminar subcampos "ThreadID" e "SampleTime" do campo "MetaData".
-    %     Criar um método que retorne o "tempo de revisita médio" a partir
-    %     do vetor de timestamp.
-    % (d) Padronizar nomenclatura do TraceMode (atualmente à relacionada ao
-    %     CRFS Bin difere da relacionada aos outros arquivos).
-    % (e) Coisas que não são comuns a todos os leitores devem ser
-    %     encapsuladas em "UserData". Por exemplo, "Blocks" é comum apenas 
-    %     ao leitor do CRFS Bin, devendo ser encapsulada em "Blocks".
-    % (f) Método que retorne o "ObservationTime", eliminando o campo.
-    %     Eliminar o campo "Samples" também.
-    % (g) "TaskName" → "taskName"... e "relatedFiles", "relatedGPS",
-    %     "fileFormat" e por aí vai...
-    % (h) Criar campo "TraceIntegration".
-    % (i) Campo pra receber outras informações, como a máscara espectral - 
-    %     pode ser o próprio "UserData".
-
     properties
-        Node
-        ThreadID
-        MetaData = struct('DataType',    [], ...                            % Valor numérico: RFlookBin (1-2), CRFS Bin (4, 7-8, 60-65 e 67-69), Argus (167-168), CellPlan (1000) e SM1809 (1809)
-                          'ThreadID',    [], ...
-                          'FreqStart',   [], ...                            % Valor numérico (em Hertz)
-                          'FreqStop',    [], ...                            % Valor numérico (em Hertz)
-                          'LevelUnit',   [], ...                            % 1 (dBm) | 2 (dBµV) | 3 (dBµV/m)
-                          'DataPoints',  [], ...
-                          'Resolution',  [], ...                            % Valor numérico (em Hertz) - caso não registrado em arquivo, valor igual a -1
-                          'SampleTime',  [], ...
-                          'Threshold',   [], ...
-                          'TraceMode',   [], ...                            % CRFS Bin: 1 (Single Measurement) | 2 (Mean)    | 3 (Peak)    | 4 (Minimum)
-                                             ...                            % Outros..: 1 (ClearWrite)         | 2 (Average) | 3 (MaxHold) | 4 (MinHold)
-                          'Detector',    [], ...                            % 1 (Sample) | 2 (Average/RMS) | 3 (Positive Peak) | 4 (Negative Peak)
-                          'metaString',  []);                               % {Unit, Resolution, traceMode, Detector, antennaName}
+        %-----------------------------------------------------------------%
+        Receiver
+        TaskData = struct('Name',             '', ...
+                          'ID',               [], ...
+                          'Description',      '')
+        MetaData = struct('DataType',         [], ...                       % Valor numérico: RFlookBin (1-2), CRFSBin (4, 7-8, 60-65 e 67-69), Argus (167-168), CellPlan (1000) e SM1809 (1809)
+                          'FreqStart',        [], ...                       % Valor numérico (em Hertz)
+                          'FreqStop',         [], ...                       % Valor numérico (em Hertz)
+                          'LevelUnit',        [], ...                       % dBm | dBµV | dBµV/m
+                          'DataPoints',       [], ...
+                          'Resolution',       -1, ...                       % Valor numérico (em Hertz) ou -1 (caso não registrado em arquivo)
+                          'Threshold',        -1, ...
+                          'TraceMode',        [], ...                       % ClearWrite | Average | MaxHold | MinHold
+                          'TraceIntegration', -1, ...                       % Aplicável apenas p/ "Average", "MaxHold" ou "MinHold"
+                          'Detector',         '', ...                       % 1 (Sample) | 2 (Average/RMS) | 3 (Positive Peak) | 4 (Negative Peak)
+                          'Antenna',          '')
+        Data                                                                % Data{1}: timestamp; Data{2}: matrix; and Data{3}: stats
         ObservationTime
         Samples
-        Data
-        statsData
-        FileFormat
-        TaskName
-        Description
-        RelatedFiles
+        RelatedFiles = table('Size', [0,5],                                                         ...
+                             'VariableTypes', {'cell', 'datetime', 'datetime', 'double', 'double'}, ...
+                             'VariableNames', {'Name', 'BeginTime', 'EndTime', 'Samples', 'RevisitTime'})
         RelatedGPS
-        gps
-        UserData
+        GPS
+        UserData     = class.userData
+        FileMap                                                             % Auxilia o processo de leitura dos dados de espectro
     end
+
+
+    methods
+        %-----------------------------------------------------------------%
+        function obj = PreAllocationData(obj)
+            obj.Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, obj.Samples), ...
+                        zeros(obj.MetaData.DataPoints, obj.Samples, 'single'),                            ...
+                        zeros(obj.MetaData.DataPoints, 3)};
+        end
+    end
+
 
     methods (Static = true)
         %-----------------------------------------------------------------%
@@ -101,10 +92,16 @@ classdef specData
                 case 'LevelUnit'
                     switch Value
                         case 'dBm';                ID = 1;
-                        case {'dBµV', 'dBμV', 'dBÂµV', 'dBÂμV'};     ID = 2;
+                        case {'dBµV', 'dBμV'};     ID = 2;
                         case {'dBµV/m', 'dBμV/m'}; ID = 3;
                     end
             end        
+        end
+
+
+        %-----------------------------------------------------------------%
+        function Value = str2str(Value)
+            Value = replace(Value, 'μ', 'µ');
         end
     end
 end

@@ -1,6 +1,6 @@
 {
   "openGL": "Hardware Full",
-  "userpath": "C:\\P&D",
+  "userpath": "",
   "pythonPath": "",
   "layout": {
     "theme": "cyan",
@@ -14,7 +14,7 @@
       0.6,
       0.73
     ],
-    "position": "SideBySide"
+    "position": "Center"
   },
   "Merge": {
     "OptionalFieldsToRemove": [],
