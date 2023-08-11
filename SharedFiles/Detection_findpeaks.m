@@ -14,29 +14,50 @@ function [newIndex, newFreq, newBW] = Detection_findpeaks(Data, Attributes)
         case 'MaxHold'; idx1 = 4;
     end
 
-    delete(findobj(Type='Line', Tag='HalfProminenceWidth'))
-    drawnow nocallbacks
+    %---------------------------------------------------------------------%
+    % ## METHOD 1: internal findpeaks ##
+    %---------------------------------------------------------------------%
+    % delete(findobj(Type='Line', Tag='HalfProminenceWidth'))
+    % drawnow nocallbacks
+    % 
+    % tempFig = figure('Visible', 'on');
+    % findpeaks(Data.statsData(:,idx1), 'NPeaks',            Attributes.NPeaks,                  ...
+    %                                   'MinPeakHeight',     Attributes.THR,                     ...
+    %                                   'MinPeakProminence', Attributes.Proeminence,             ...
+    %                                   'MinPeakDistance',   1000 * Attributes.Distance / aCoef, ...
+    %                                   'MinPeakWidth',      1000 * Attributes.BW / aCoef,       ...
+    %                                   'SortStr',           'descend',                          ...
+    %                                   'Annotate',          'extents');
+    % 
+    % h = findobj(Type='Line', Tag='HalfProminenceWidth');
+    % if ~isempty(h)
+    %     for ii = 1:numel(h.XData)/3
+    %         newIndex(ii,1)    = mean(h.XData(3*(ii-1)+1:3*(ii-1)+2));
+    %         newBW_Index(ii,1) = diff(h.XData(3*(ii-1)+1:3*(ii-1)+2));
+    %     end
+    % 
+    %     newFreq  = (aCoef .* newIndex + bCoef) ./ 1e+6;
+    %     newBW    = newBW_Index * aCoef / 1e+6;
+    %     newIndex = round(newIndex);
+    % end
+    % delete(tempFig)
 
-    tempFig = figure('Visible', 'off');
-    findpeaks_R2021b(Data.statsData(:,idx1), 'NPeaks',            Attributes.NPeaks,                  ...
-                                             'MinPeakHeight',     Attributes.THR,                     ...
-                                             'MinPeakProminence', Attributes.Proeminence,             ...
-                                             'MinPeakDistance',   1000 * Attributes.Distance / aCoef, ...
-                                             'MinPeakWidth',      1000 * Attributes.BW / aCoef,       ...
-                                             'SortStr',           'descend',                          ...
-                                             'Annotate',          'extents');
-             
 
-    h = findobj(Type='Line', Tag='HalfProminenceWidth');
-    if ~isempty(h)
-        for ii = 1:numel(h.XData)/3
-            newIndex(ii,1)    = round(mean(h.XData(3*(ii-1)+1:3*(ii-1)+2)));
-            newBW_Index(ii,1) = diff(h.XData(3*(ii-1)+1:3*(ii-1)+2));
-        end
+    %---------------------------------------------------------------------%
+    % ## METHOD 2: edited findpeaks ##
+    %---------------------------------------------------------------------%
+    idxRange = matlab.findpeaks(Data.statsData(:,idx1), 'NPeaks',            Attributes.NPeaks,                  ...
+                                                        'MinPeakHeight',     Attributes.THR,                     ...
+                                                        'MinPeakProminence', Attributes.Proeminence,             ...
+                                                        'MinPeakDistance',   1000 * Attributes.Distance / aCoef, ...
+                                                        'MinPeakWidth',      1000 * Attributes.BW / aCoef,       ...
+                                                        'SortStr',           'descend');
 
-        newFreq = (aCoef .* newIndex + bCoef) ./ 1e+6;                                                  % Em MHz
-        newBW   = newBW_Index * aCoef / 1e+6;                                                           % Em MHz
+    if ~isempty(idxRange)
+        newIndex = mean(idxRange, 2);
+        newFreq  = (aCoef .* newIndex + bCoef) ./ 1e+6;                     % Em MHz
+        newBW    = (idxRange(:,2)-idxRange(:,1)) * aCoef / 1e+6;            % Em MHz
+
+        newIndex = round(newIndex);
     end
-    delete(tempFig)
-
 end
