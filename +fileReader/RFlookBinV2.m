@@ -95,7 +95,7 @@ function specData = Fcn_MetaDataReader(rawData, filename)
                                     MetaStruct.Resolution, ...
                                     MetaStruct.TraceMode,  ...
                                     MetaStruct.Detector,   ...
-                                    MetaStruct.AntennaInfo};
+                                    jsonencode(MetaStruct.AntennaInfo)};
 
     % Número de bytes do cabeçalho dos blocos de espectro:
     % (a) blockOffset1: gps e atenuação
@@ -154,6 +154,8 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     end
 
     if ~isempty(gpsData.Matrix)
+        gpsData.Latitude  = mean(gpsData.Matrix(:,1));
+        gpsData.Longitude = mean(gpsData.Matrix(:,2));
         gpsData.Location  = geo_FindCity(gpsData);
     end
 
