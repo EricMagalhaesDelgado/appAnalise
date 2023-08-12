@@ -4,8 +4,8 @@ classdef (Abstract) Constants
         %-----------------------------------------------------------------%
         appName       = 'appAnalise'
 
-        windowSize    = [1016, 696]
-        windowMinSize = [ 440, 696]
+        windowSize    = [1244, 660]
+        windowMinSize = [ 526, 696]
 
         gps2locAPI    = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=<Latitude>&longitude=<Longitude>&localityLanguage=pt'
         gps2loc_City  = 'city'
