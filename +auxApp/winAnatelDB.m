@@ -290,7 +290,7 @@ classdef winAnatelDB < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
             
-            app.CallingApp.auxWin9 = [];
+            app.CallingApp.auxWin8 = [];
             delete(app)
             
         end
