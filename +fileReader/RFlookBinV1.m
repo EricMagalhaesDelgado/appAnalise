@@ -1,4 +1,4 @@
-function [SpecInfo, metaData, specData] = RFLookBin(filename, ReadType)
+function [SpecInfo, metaData, specData] = RFlookBinV1(filename, ReadType)
 % FILEREADER_RFLOOKBIN Leitor de arquivo no formato RFlookBin.
     
     arguments

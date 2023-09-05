@@ -3,9 +3,6 @@ classdef specData
     properties
         %-----------------------------------------------------------------%
         Receiver
-        TaskData = struct('Name',             '', ...
-                          'ID',               [], ...
-                          'Description',      '')
         MetaData = struct('DataType',         [], ...                       % Valor numérico: RFlookBin (1-2), CRFSBin (4, 7-8, 60-65 e 67-69), Argus (167-168), CellPlan (1000) e SM1809 (1809)
                           'FreqStart',        [], ...                       % Valor numérico (em Hertz)
                           'FreqStop',         [], ...                       % Valor numérico (em Hertz)
@@ -13,29 +10,40 @@ classdef specData
                           'DataPoints',       [], ...
                           'Resolution',       -1, ...                       % Valor numérico (em Hertz) ou -1 (caso não registrado em arquivo)
                           'Threshold',        -1, ...
-                          'TraceMode',        [], ...                       % ClearWrite | Average | MaxHold | MinHold
+                          'TraceMode',        '', ...                       % "ClearWrite" | "Average" | "MaxHold" | "MinHold" | "OCC" | "SingleMeasurement" | "Mean" | "Peak" | "Minimum"
                           'TraceIntegration', -1, ...                       % Aplicável apenas p/ "Average", "MaxHold" ou "MinHold"
-                          'Detector',         '', ...                       % 1 (Sample) | 2 (Average/RMS) | 3 (Positive Peak) | 4 (Negative Peak)
-                          'Antenna',          '')
+                          'Detector',         '', ...                       % "Sample" | "Average/RMS" | "Positive Peak" | "Negative Peak"
+                          'Antenna',          [])
         Data                                                                % Data{1}: timestamp; Data{2}: matrix; and Data{3}: stats
-        ObservationTime
-        Samples
-        RelatedFiles = table('Size', [0,5],                                                         ...
-                             'VariableTypes', {'cell', 'datetime', 'datetime', 'double', 'double'}, ...
-                             'VariableNames', {'Name', 'BeginTime', 'EndTime', 'Samples', 'RevisitTime'})
-        RelatedGPS
         GPS
-        UserData     = class.userData
+        RelatedFiles = table('Size', [0,9],                                                                                           ...
+                             'VariableTypes', {'cell', 'cell', 'double', 'cell', 'datetime', 'datetime', 'double', 'double', 'cell'}, ...
+                             'VariableNames', {'File', 'Task', 'ID', 'Description', 'BeginTime', 'EndTime', 'nSweeps', 'RevisitTime', 'GPS'})
+        UserData     = class.userData.empty
         FileMap                                                             % Auxilia o processo de leitura dos dados de espectro
     end
 
 
     methods
         %-----------------------------------------------------------------%
-        function obj = PreAllocationData(obj)
-            obj.Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, obj.Samples), ...
-                        zeros(obj.MetaData.DataPoints, obj.Samples, 'single'),                            ...
-                        zeros(obj.MetaData.DataPoints, 3)};
+        function obj = PreAllocationData(obj, idx)
+
+            if nargin == 1
+                idx = 1;
+            end
+
+            obj(idx).Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, obj(idx).RelatedFiles.nSweeps), ...
+                             zeros(obj(idx).MetaData.DataPoints, obj(idx).RelatedFiles.nSweeps, 'single'),                       ...
+                             zeros(obj(idx).MetaData.DataPoints, 3)};
+        end
+
+
+        %-----------------------------------------------------------------%
+        function List = IDList(obj)
+            List = [];
+            for ii = 1:numel(obj)
+                List = [List, obj(ii).RelatedFiles.ID];
+            end
         end
     end
 

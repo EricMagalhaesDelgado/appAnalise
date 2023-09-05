@@ -1,16 +1,16 @@
-function specData = RFlookBinV2(filename, ReadType, metaData)
+function specData = RFlookBinV2(fileName, ReadType, metaData)
 
     % Author.: Eric Magalhães Delgado
-    % Date...: July 19, 2023
+    % Date...: September 04, 2023
     % Version: 1.00
 
     arguments
-        filename char
+        fileName char
         ReadType char   = 'SingleFile'
         metaData struct = []
     end
     
-    fileID = fopen(filename, 'r');
+    fileID = fopen(fileName, 'r');
     if fileID == -1
         error('File not found.');
     end
@@ -25,7 +25,7 @@ function specData = RFlookBinV2(filename, ReadType, metaData)
 
     switch ReadType
         case {'MetaData', 'SingleFile'}
-            specData = Fcn_MetaDataReader(rawData, filename);
+            specData = Fcn_MetaDataReader(rawData, fileName);
 
             if strcmp(ReadType, 'SingleFile')
                 specData = Fcn_SpecDataReader(specData, rawData);
@@ -42,12 +42,8 @@ end
 function specData = Fcn_MetaDataReader(rawData, filename)
 
     % Criação das variáveis principais (specData e gpsData)
-    % specData = class.specData;
-    specData = struct('Node',         '', 'ThreadID',   '', 'MetaData',   [], 'ObservationTime', '', 'Samples',     [], ...
-                      'Data',         {}, 'statsData',  [], 'FileFormat', '', 'TaskName',        '', 'Description', '', ...
-                      'RelatedFiles', [], 'RelatedGPS', {}, 'gps',        [], 'UserData',        []);
-    gpsData  = struct('Status',     0, 'Latitude',  -1, 'Longitude', -1, ...
-                      'Count',      0, 'Location',  '', 'Matrix',    []);
+    specData = class.specData.empty;
+    gpsData  = struct('Status', 0, 'Matrix', []);
 
     
     % Busca pelas expressões que delimitam os blocos de espectro:
@@ -74,28 +70,22 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     nMetaStruct    = typecast(rawData(19:22), 'uint32');
     MetaStruct     = jsondecode(native2unicode(rawData(23:22+nMetaStruct)));
 
-    specData(1).Node             = MetaStruct.Receiver;
-    specData.ThreadID            = MetaStruct.ID;
-    specData.FileFormat          = 'RFlookBin';
-    specData.TaskName            = MetaStruct.Task;
-    specData.Description         = MetaStruct.Description;
+    specData(1).Receiver          = MetaStruct.Receiver;
     
     specData.MetaData.DataType   = 2;
-    specData.MetaData.ThreadID   = MetaStruct.ID; 
     specData.MetaData.FreqStart  = MetaStruct.FreqStart;
     specData.MetaData.FreqStop   = MetaStruct.FreqStop;
-    specData.MetaData.LevelUnit  = class.specData.str2id('LevelUnit', MetaStruct.Unit);
+    specData.MetaData.LevelUnit  = class.specData.str2str(MetaStruct.Unit);
     specData.MetaData.DataPoints = MetaStruct.DataPoints;
     specData.MetaData.Resolution = str2double(extractBefore(MetaStruct.Resolution, ' kHz'))*1000;
-    specData.MetaData.SampleTime = [];    
-    specData.MetaData.Threshold  = [];
-    specData.MetaData.TraceMode  = class.specData.str2id('TraceMode', MetaStruct.TraceMode);
-    specData.MetaData.Detector   = class.specData.str2id('Detector',  MetaStruct.Detector);
-    specData.MetaData.metaString = {MetaStruct.Unit,       ...
-                                    MetaStruct.Resolution, ...
-                                    MetaStruct.TraceMode,  ...
-                                    MetaStruct.Detector,   ...
-                                    jsonencode(MetaStruct.AntennaInfo)};
+    specData.MetaData.TraceMode  = MetaStruct.TraceMode;
+
+    if ~strcmp(MetaStruct.TraceMode, 'ClearWrite')
+        specData.MetaData.TraceIntegration = MetaStruct.TraceIntegration;
+    end
+    
+    specData.MetaData.Detector   = MetaStruct.Detector;
+    specData.MetaData.Antenna    = MetaStruct.AntennaInfo;
 
     % Número de bytes do cabeçalho dos blocos de espectro:
     % (a) blockOffset1: gps e atenuação
@@ -110,36 +100,29 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     else;                            blockOffset2 =  0;
     end
 
-    specData.Samples  = numel(startIndex);
-    specData.UserData = struct('BitsPerSample', BitsPerSample, ...
-                               'blockOffset1',  blockOffset1,  ...
-                               'blockOffset2',  blockOffset2,  ...
-                               'idxTable',      table(startIndex', stopIndex', 'VariableNames', {'startByte', 'stopByte'}), ...
-                               'attData',       struct('Mode', attMode_ID, 'Array', []));
+    specData.FileMap = struct('BitsPerSample', BitsPerSample, ...
+                              'blockOffset1',  blockOffset1,  ...
+                              'blockOffset2',  blockOffset2,  ...
+                              'idxTable',      table(startIndex', stopIndex', 'VariableNames', {'startByte', 'stopByte'}), ...
+                              'attData',       struct('Mode', attMode_ID, 'Array', []));
 
     % O gpsMode_ID por ser 0 (manual), 1 (Built-in) ou 2 (External).
     % (a) Se gpsMode_ID = 0     >> gpsData.Status = -1
     % (b) Se gpsMode_ID = 1 | 2 >> gpsData.Status = 0 (invalid) | 1 (valid)
+    Samples = numel(startIndex);
+
     if gpsMode_ID
-        for ii = 1:specData.Samples
+        for ii = 1:Samples
             blockArray = rawData(startIndex(ii):stopIndex(ii));
 
-            if     ii == 1;                BeginTime = observationTime(blockArray);
-            elseif ii == specData.Samples; EndTime   = observationTime(blockArray);
+            if     ii == 1;       BeginTime = observationTime(blockArray);
+            elseif ii == Samples; EndTime   = observationTime(blockArray);
             end
             
             if blockArray(9)
+                gpsData.Status = 1;
                 gpsData.Matrix(end+1,:) = [typecast(blockArray(10:13), 'single'), typecast(blockArray(14:17), 'single')];
             end
-        end
-
-        if ~isempty(gpsData.Matrix)
-            gpsData.Status    = 1;
-            gpsData.Count     = height(gpsData.Matrix);
-            gpsData.Latitude  = mean(gpsData.Matrix(:,1));
-            gpsData.Longitude = mean(gpsData.Matrix(:,2));
-        else
-            gpsData.Status    = 0;
         end
 
     else
@@ -148,26 +131,17 @@ function specData = Fcn_MetaDataReader(rawData, filename)
 
         if isfield(MetaStruct, 'Latitude') && isfield(MetaStruct, 'Longitude')
             gpsData.Status = -1;
-            gpsData.Count  = 1;
             gpsData.Matrix(end+1,:) = [MetaStruct.Latitude, MetaStruct.Longitude];
         end
     end
-
-    if ~isempty(gpsData.Matrix)
-        gpsData.Latitude  = mean(gpsData.Matrix(:,1));
-        gpsData.Longitude = mean(gpsData.Matrix(:,2));
-        gpsData.Location  = geo_FindCity(gpsData);
-    end
+    gpsData = fcn.gpsSummary({gpsData});
 
     [~, file, ext]  = fileparts(filename);
-    ObservationTime = sprintf('%s - %s', datestr(BeginTime, 'dd/mm/yyyy HH:MM:SS'), datestr(EndTime, 'dd/mm/yyyy HH:MM:SS'));
-    RevisitTime     = seconds(EndTime-BeginTime)/(specData.Samples-1);
+    RevisitTime     = seconds(EndTime-BeginTime)/(Samples-1);
 
-    specData.ObservationTime = ObservationTime;
-    specData.gps             = rmfield(gpsData, {'Count', 'Matrix'});
-    specData.RelatedGPS      = {gpsData};
-    specData.RelatedFiles    = table({[file ext]}, BeginTime, EndTime, specData.Samples, RevisitTime, ...
-                                      'VariableNames', {'Name', 'BeginTime', 'EndTime', 'Samples', 'RevisitTime'});    
+    specData.GPS = rmfield(gpsData, 'Matrix');
+    specData.RelatedFiles(end+1,:) = {[file ext], MetaStruct.Task, MetaStruct.ID, MetaStruct.Description, BeginTime, EndTime, Samples, RevisitTime, {gpsData}};
+    
 end
 
 
@@ -178,22 +152,21 @@ function specData = Fcn_SpecDataReader(specData, rawData)
         return
     end
 
-    % Pré-alocação das variáveis na memória...
-    specData.Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, specData.Samples), ...
-                     zeros(specData.MetaData.DataPoints, specData.Samples, 'single')};
+    specData = specData.PreAllocationData();
+    nSweeps  = specData.RelatedFiles.nSweeps;
     
-    if specData.UserData.attData.Mode
-        specData.UserData.attData.Array = zeros(specData.Samples, 1, 'uint8');
+    if specData.FileMap.attData.Mode
+        specData.FileMap.attData.Array = zeros(nSweeps, 1, 'uint8');
     end
 
     % Apenas para simplificar a notação...
-    BitsPerSample = specData.UserData.BitsPerSample;    
-    startIndex    = specData.UserData.idxTable.startByte;
-    stopIndex     = specData.UserData.idxTable.stopByte;    
-    blockOffset1  = specData.UserData.blockOffset1;
-    blockOffset2  = specData.UserData.blockOffset2;
+    BitsPerSample = specData.FileMap.BitsPerSample;    
+    startIndex    = specData.FileMap.idxTable.startByte;
+    stopIndex     = specData.FileMap.idxTable.stopByte;    
+    blockOffset1  = specData.FileMap.blockOffset1;
+    blockOffset2  = specData.FileMap.blockOffset2;
 
-    for ii = specData.Samples:-1:1
+    for ii = nSweeps:-1:1
         try
             blockArray = rawData(startIndex(ii):stopIndex(ii));
             TimeStamp  = observationTime(blockArray);
@@ -216,8 +189,8 @@ function specData = Fcn_SpecDataReader(specData, rawData)
                 specData.Data{1}(ii)   = TimeStamp;
                 specData.Data{2}(:,ii) = newArray;
                 
-                if ~isempty(specData.UserData.attData.Array)
-                    specData.UserData.attData.Array(ii) = blockArray(blockOffset1+8);
+                if ~isempty(specData.FileMap.attData.Array)
+                    specData.FileMap.attData.Array(ii) = blockArray(blockOffset1+8);
                 end
             else
                 error('Not expected array length.')
@@ -227,12 +200,19 @@ function specData = Fcn_SpecDataReader(specData, rawData)
             specData.Data{1}(ii)   = [];
             specData.Data{2}(:,ii) = [];
 
-            if ~isempty(specData.UserData.attData.Array)
-                specData.UserData.attData.Array(ii) = [];
+            if ~isempty(specData.FileMap.attData.Array)
+                specData.FileMap.attData.Array(ii) = [];
             end
         end
     end
-    specData.Samples = numel(specData.Data{1});
+
+    BeginTime   = specData.Data{1}(1);
+    EndTime     = specData.Data{1}(end);
+    nSweeps     = numel(specData.Data{1});
+    RevisitTime = seconds(EndTime-BeginTime)/(nSweeps-1);
+
+    specData.RelatedFiles(1,5:8) = {BeginTime, EndTime, nSweeps, RevisitTime};
+    specData.FileMap = [];
 end
 
 
