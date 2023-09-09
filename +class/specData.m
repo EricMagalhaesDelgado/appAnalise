@@ -1,19 +1,19 @@
-classdef specData
+classdef specData < handle
 
     properties
         %-----------------------------------------------------------------%
         Receiver
-        MetaData = struct('DataType',         [], ...                       % Valor numérico: RFlookBin (1-2), CRFSBin (4, 7-8, 60-65 e 67-69), Argus (167-168), CellPlan (1000) e SM1809 (1809)
-                          'FreqStart',        [], ...                       % Valor numérico (em Hertz)
-                          'FreqStop',         [], ...                       % Valor numérico (em Hertz)
-                          'LevelUnit',        [], ...                       % dBm | dBµV | dBµV/m
-                          'DataPoints',       [], ...
-                          'Resolution',       -1, ...                       % Valor numérico (em Hertz) ou -1 (caso não registrado em arquivo)
-                          'Threshold',        -1, ...
-                          'TraceMode',        '', ...                       % "ClearWrite" | "Average" | "MaxHold" | "MinHold" | "OCC" | "SingleMeasurement" | "Mean" | "Peak" | "Minimum"
-                          'TraceIntegration', -1, ...                       % Aplicável apenas p/ "Average", "MaxHold" ou "MinHold"
-                          'Detector',         '', ...                       % "Sample" | "Average/RMS" | "Positive Peak" | "Negative Peak"
-                          'Antenna',          [])
+        MetaData     = struct('DataType',         [], ...                   % Valor numérico: RFlookBin (1-2), CRFSBin (4, 7-8, 60-65 e 67-69), Argus (167-168), CellPlan (1000) e SM1809 (1809)
+                              'FreqStart',        [], ...                   % Valor numérico (em Hertz)
+                              'FreqStop',         [], ...                   % Valor numérico (em Hertz)
+                              'LevelUnit',        [], ...                   % dBm | dBµV | dBµV/m
+                              'DataPoints',       [], ...
+                              'Resolution',       -1, ...                   % Valor numérico (em Hertz) ou -1 (caso não registrado em arquivo)
+                              'Threshold',        -1, ...
+                              'TraceMode',        '', ...                   % "ClearWrite" | "Average" | "MaxHold" | "MinHold" | "OCC" | "SingleMeasurement" | "Mean" | "Peak" | "Minimum"
+                              'TraceIntegration', -1, ...                   % Aplicável apenas p/ "Average", "MaxHold" ou "MinHold"
+                              'Detector',         '', ...                   % "Sample" | "Average/RMS" | "Positive Peak" | "Negative Peak"
+                              'Antenna',          [])
         Data                                                                % Data{1}: timestamp; Data{2}: matrix; and Data{3}: stats
         GPS
         RelatedFiles = table('Size', [0,9],                                                                                           ...
@@ -21,6 +21,7 @@ classdef specData
                              'VariableNames', {'File', 'Task', 'ID', 'Description', 'BeginTime', 'EndTime', 'nSweeps', 'RevisitTime', 'GPS'})
         UserData     = class.userData.empty
         FileMap                                                             % Auxilia o processo de leitura dos dados de espectro
+        Enable       = true
     end
 
 
