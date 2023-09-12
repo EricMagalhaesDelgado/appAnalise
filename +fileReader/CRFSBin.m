@@ -1,7 +1,7 @@
 function specData = CRFSBin(fileName, ReadType, metaData)
 
     % Author.: Eric Magalhães Delgado
-    % Date...: September 04, 2023
+    % Date...: September 11, 2023
     % Version: 2.01
 
     arguments
@@ -32,7 +32,7 @@ function specData = CRFSBin(fileName, ReadType, metaData)
             end
             
         case 'SpecData'
-            specData = metaData(1).Data;
+            specData = copy(metaData(1).Data, {});
             specData = Fcn_SpecDataReader(specData, rawData, fileName);
     end
 end
@@ -272,7 +272,7 @@ function [specData, idx] = Fcn_BinInfo(specData, ThreadID, DataType, Description
                  'Detector',         '',         ...
                  'Antenna',          AntennaID);
     
-    idx  = numel(specData)+1;
+    idx = numel(specData)+1;
     for ii = 1:numel(specData)
         if (specData(ii).RelatedFiles.ID == ThreadID) && strcmp(specData(ii).RelatedFiles.Description, Description) && isequal(specData(ii).MetaData, Bin)
             idx = ii;
@@ -348,7 +348,7 @@ function Description = Read_Description(specData, ii, messageTable)
     if isequal(messageTable.ThreadID', specData.IDList)
         Description = messageTable.Message{ii};
     else
-        idx = find(messageTable.ThreadID == specData(ii).TaskData.ID);
+        idx = find(messageTable.ThreadID == specData(ii).RelatedFiles.ID);
         if ~isempty(idx)
             if numel(idx) == 1
                 Description = messageTable.Message{idx};
@@ -483,216 +483,216 @@ end
 % DataType 8 (OCC)
 function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType08(specData, rawArray, ThreadID, DataType)
 
-    FreqStart   = double(typecast(rawArray(13:16), 'uint32')) * 1e+6;               % (01:04) (4 bytes)
-    FreqStop    = double(typecast(rawArray(17:20), 'uint32')) * 1e+6;               % (05:08) (4 bytes)
-    Threshold   = double(typecast(rawArray(21:24),  'int32'));                      % (09:12) (4 bytes)
-    AntennaID   = typecast(rawArray(37:40), 'uint32');                              % (25:28) (4 bytes)
-    NDATA       = typecast(rawArray(49:52), 'uint32');                              % (37:40) (4 bytes)
+    FreqStart      = double(typecast(rawArray(13:16), 'uint32')) * 1e+6;               % (01:04) (4 bytes)
+    FreqStop       = double(typecast(rawArray(17:20), 'uint32')) * 1e+6;               % (05:08) (4 bytes)
+    Threshold      = double(typecast(rawArray(21:24),  'int32'));                      % (09:12) (4 bytes)
+    AntennaID      = typecast(rawArray(37:40), 'uint32');                              % (25:28) (4 bytes)
+    NDATA          = typecast(rawArray(49:52), 'uint32');                              % (37:40) (4 bytes)
 
-    Description = '';
-    Resolution  = [];
-    TraceID     = [];
-    UnitID      = 0;
+    Description    = '';
+    Resolution     = [];
+    TraceID        = [];
+    UnitID         = 0;
 
     [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 52;
-    OffsetLevel = 0;
+    OffsetByte     = 52;
+    OffsetLevel    = 0;
 end
 
 
 % DataType 60
 function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType60(specData, rawArray, ThreadID, DataType)
     % v.3 commom fields
-    auxF0 = double(typecast(rawArray(25:28), 'uint32'));                            % (13:16) (4 bytes)
-    auxF1 = double(typecast(rawArray(29:32), 'uint32'));                            % (17:20) (4 bytes)
-    expF0 = double(typecast(rawArray(33:33), 'int8'));                              % (21:21) (1 byte )
-    FreqStart  = auxF0 * 10^expF0;
-    FreqStop   = auxF1 * 10^expF0;
+    auxF0          = double(typecast(rawArray(25:28), 'uint32'));                      % (13:16) (4 bytes)
+    auxF1          = double(typecast(rawArray(29:32), 'uint32'));                      % (17:20) (4 bytes)
+    expF0          = double(typecast(rawArray(33:33), 'int8'));                        % (21:21) (1 byte )
+    FreqStart      = auxF0 * 10^expF0;
+    FreqStop       = auxF1 * 10^expF0;
 
-    AntennaID   = rawArray(34);                                                     % (22:22) (1 byte )
-    GERROR      = typecast(rawArray(35), 'int8');                                   % (23:23) (1 byte )
+    AntennaID      = rawArray(34);                                                     % (22:22) (1 byte )
+    GERROR         = typecast(rawArray(35), 'int8');                                   % (23:23) (1 byte )
     if GERROR ~= -1
         error('GERROR');
     end
 
     % others fields...
-    TraceID     = rawArray(39);                                                     % (27:27) (1 byte )
-    OffsetLevel = typecast(rawArray(41), 'int8');                                   % (29:29) (1 byte )
-    NTUN        = typecast(rawArray(43:44), 'uint16');                              % (31:32) (2 bytes)
-    NAGC        = typecast(rawArray(45:46), 'uint16');                              % (33:34) (2 bytes)
-    NDATA       = typecast(rawArray(49:52), 'uint32');                              % (37:40) (4 bytes)
+    TraceID        = rawArray(39);                                                     % (27:27) (1 byte )
+    OffsetLevel    = typecast(rawArray(41), 'int8');                                   % (29:29) (1 byte )
+    NTUN           = typecast(rawArray(43:44), 'uint16');                              % (31:32) (2 bytes)
+    NAGC           = typecast(rawArray(45:46), 'uint16');                              % (33:34) (2 bytes)
+    NDATA          = typecast(rawArray(49:52), 'uint32');                              % (37:40) (4 bytes)
 
-    Description = '';
-    Resolution  = [];
-    Threshold   = [];
-    UnitID      = 0;
+    Description    = '';
+    Resolution     = [];
+    Threshold      = [];
+    UnitID         = 0;
 
     [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 52 + 4*NTUN + NAGC;
+    OffsetByte     = 52 + 4*NTUN + NAGC;
 end
 
 
 % DataType 61 (Compressed)
 function [specData, ID, OffsetByte, OffsetLevel, NCDATA] = Read_DataType61(specData, rawArray, ThreadID, DataType)
     % v.3 commom fields
-    auxF0 = double(typecast(rawArray(25:28), 'uint32'));                            % (13:16) (4 bytes)
-    auxF1 = double(typecast(rawArray(29:32), 'uint32'));                            % (17:20) (4 bytes)
-    expF0 = double(typecast(rawArray(33:33), 'int8'));                              % (21:21) (1 byte )
-    FreqStart  = auxF0 * 10^expF0;
-    FreqStop   = auxF1 * 10^expF0;
+    auxF0          = double(typecast(rawArray(25:28), 'uint32'));                      % (13:16) (4 bytes)
+    auxF1          = double(typecast(rawArray(29:32), 'uint32'));                      % (17:20) (4 bytes)
+    expF0          = double(typecast(rawArray(33:33), 'int8'));                        % (21:21) (1 byte )
+    FreqStart      = auxF0 * 10^expF0;
+    FreqStop       = auxF1 * 10^expF0;
 
-    AntennaID   = rawArray(34);                                                     % (22:22) (1 byte )
-    GERROR      = typecast(rawArray(35), 'int8');                                   % (23:23) (1 byte )
+    AntennaID      = rawArray(34);                                                     % (22:22) (1 byte )
+    GERROR         = typecast(rawArray(35), 'int8');                                   % (23:23) (1 byte )
     if GERROR ~= -1
         error('GERROR');
     end
 
     % others fields...
-    TraceID     = rawArray(39);                                                     % (27:27) (1 byte )
-    OffsetLevel = typecast(rawArray(41), 'int8');                                   % (29:29) (1 byte )
-    NTUN        = typecast(rawArray(43:44), 'uint16');                              % (31:32) (2 bytes)
-    NAGC        = typecast(rawArray(45:46), 'uint16');                              % (33:34) (2 bytes)
-    NCDATA      = typecast(rawArray(49:52), 'uint32');                              % (37:40) (4 bytes)
-    Threshold   = double(typecast(rawArray(53:56), 'int32'));                       % (41:44) (4 bytes)
-    NDATA       = typecast(rawArray(57:60), 'uint32');                              % (45:48) (4 bytes)
+    TraceID        = rawArray(39);                                                     % (27:27) (1 byte )
+    OffsetLevel    = typecast(rawArray(41), 'int8');                                   % (29:29) (1 byte )
+    NTUN           = typecast(rawArray(43:44), 'uint16');                              % (31:32) (2 bytes)
+    NAGC           = typecast(rawArray(45:46), 'uint16');                              % (33:34) (2 bytes)
+    NCDATA         = typecast(rawArray(49:52), 'uint32');                              % (37:40) (4 bytes)
+    Threshold      = double(typecast(rawArray(53:56), 'int32'));                       % (41:44) (4 bytes)
+    NDATA          = typecast(rawArray(57:60), 'uint32');                              % (45:48) (4 bytes)
 
-    Description = '';
-    Resolution  = [];
-    UnitID      = 0;
+    Description    = '';
+    Resolution     = [];
+    UnitID         = 0;
 
     [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 60 + 4*NTUN + NAGC;
+    OffsetByte     = 60 + 4*NTUN + NAGC;
 end
 
 
 % DataType 62 (OCC)
 function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType62(specData, rawArray, ThreadID, DataType)
     % v.3 commom fields
-    auxF0 = double(typecast(rawArray(25:28), 'uint32'));                            % (13:16) (4 bytes)
-    auxF1 = double(typecast(rawArray(29:32), 'uint32'));                            % (17:20) (4 bytes)
-    expF0 = double(typecast(rawArray(33:33), 'int8'));                              % (21:21) (1 byte )
-    FreqStart  = auxF0 * 10^expF0;
-    FreqStop   = auxF1 * 10^expF0;
+    auxF0          = double(typecast(rawArray(25:28), 'uint32'));                      % (13:16) (4 bytes)
+    auxF1          = double(typecast(rawArray(29:32), 'uint32'));                      % (17:20) (4 bytes)
+    expF0          = double(typecast(rawArray(33:33), 'int8'));                        % (21:21) (1 byte )
+    FreqStart      = auxF0 * 10^expF0;
+    FreqStop       = auxF1 * 10^expF0;
 
-    AntennaID   = rawArray(34);                                                     % (22:22) (1 byte )
-    GERROR      = typecast(rawArray(35), 'int8');                                   % (23:23) (1 byte )
+    AntennaID      = rawArray(34);                                                     % (22:22) (1 byte )
+    GERROR         = typecast(rawArray(35), 'int8');                                   % (23:23) (1 byte )
     if GERROR ~= -1
         error('GERROR');
     end
 
     % others fields...
-    Threshold   = double(typecast(rawArray(39:40), 'int16'));                       % (27:28) (2 bytes)
-    NDATA       = typecast(rawArray(53:56), 'uint32');                              % (41:44) (4 bytes)
+    Threshold      = double(typecast(rawArray(39:40), 'int16'));                       % (27:28) (2 bytes)
+    NDATA          = typecast(rawArray(53:56), 'uint32');                              % (41:44) (4 bytes)
 
-    Description = '';
-    Resolution  = [];
-    TraceID     = [];
-    UnitID      = 0;
+    Description    = '';
+    Resolution     = [];
+    TraceID        = [];
+    UnitID         = 0;
 
     [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 56;
-    OffsetLevel = 0;
+    OffsetByte     = 56;
+    OffsetLevel    = 0;
 end
 
 
 % DataType 63
 function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType63(specData, rawArray, ThreadID, DataType)
     % v.4 commom fields
-    IntegerPart = double(typecast(rawArray(25:26), 'uint16'));                      % (13:14) (2 bytes)
-    DecimalPart = double(typecast(rawArray(27:30), 'int32'));                       % (15:18) (4 bytes)
-    FreqStart   = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    IntegerPart    = double(typecast(rawArray(25:26), 'uint16'));                      % (13:14) (2 bytes)
+    DecimalPart    = double(typecast(rawArray(27:30), 'int32'));                       % (15:18) (4 bytes)
+    FreqStart      = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
 
-    IntegerPart = double(typecast(rawArray(31:32), 'uint16'));                      % (19:20) (2 bytes)
-    DecimalPart = double(typecast(rawArray(33:36), 'int32'));                       % (21:24) (4 bytes)
-    FreqStop    = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    IntegerPart    = double(typecast(rawArray(31:32), 'uint16'));                      % (19:20) (2 bytes)
+    DecimalPart    = double(typecast(rawArray(33:36), 'int32'));                       % (21:24) (4 bytes)
+    FreqStop       = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
 
     % others fields...
-    AntennaID   = rawArray(49);                                                     % (37:37) (1 byte )
-    TraceID     = rawArray(50);                                                     % (38:38) (1 byte )
-    UnitID      = rawArray(51);                                                     % (39:39) (1 byte )
-    OffsetLevel = typecast(rawArray(52), 'int8');                                   % (40:40) (1 byte )
-    GERROR      = typecast(rawArray(53), 'int8');                                   % (41:41) (1 byte )
+    AntennaID      = rawArray(49);                                                     % (37:37) (1 byte )
+    TraceID        = rawArray(50);                                                     % (38:38) (1 byte )
+    UnitID         = rawArray(51);                                                     % (39:39) (1 byte )
+    OffsetLevel   = typecast(rawArray(52), 'int8');                                    % (40:40) (1 byte )
+    GERROR         = typecast(rawArray(53), 'int8');                                   % (41:41) (1 byte )
     if GERROR ~= -1
         error('GERROR');
     end
 
-    NTUN        = typecast(rawArray(56:57), 'uint16');                              % (44:45) (2 bytes)
-    NAGC        = typecast(rawArray(58:59), 'uint16');                              % (46:47) (2 bytes)
-    NDATA       = typecast(rawArray(61:64), 'uint32');                              % (49:52) (4 bytes)
+    NTUN           = typecast(rawArray(56:57), 'uint16');                              % (44:45) (2 bytes)
+    NAGC           = typecast(rawArray(58:59), 'uint16');                              % (46:47) (2 bytes)
+    NDATA          = typecast(rawArray(61:64), 'uint32');                              % (49:52) (4 bytes)
 
-    Description = '';
-    Resolution  = [];
-    Threshold   = [];
+    Description    = '';
+    Resolution     = [];
+    Threshold      = [];
     
-    ID          = Fcn_BinInfo(ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 64 + 4*NTUN + NAGC;
+    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
+    OffsetByte     = 64 + 4*NTUN + NAGC;
 end
 
 
 % DataType 64 (Compressed)
 function [specData, ID, OffsetByte, OffsetLevel, NCDATA] = Read_DataType64(specData, rawArray, ThreadID, DataType)
     % v.4 commom fields
-    IntegerPart = double(typecast(rawArray(25:26), 'uint16'));                      % (13:14) (2 bytes)
-    DecimalPart = double(typecast(rawArray(27:30), 'int32'));                       % (15:18) (4 bytes)
-    FreqStart   = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    IntegerPart    = double(typecast(rawArray(25:26), 'uint16'));                      % (13:14) (2 bytes)
+    DecimalPart    = double(typecast(rawArray(27:30), 'int32'));                       % (15:18) (4 bytes)
+    FreqStart      = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
 
-    IntegerPart = double(typecast(rawArray(31:32), 'uint16'));                      % (19:20) (2 bytes)
-    DecimalPart = double(typecast(rawArray(33:36), 'int32'));                       % (21:24) (4 bytes)
-    FreqStop    = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    IntegerPart    = double(typecast(rawArray(31:32), 'uint16'));                      % (19:20) (2 bytes)
+    DecimalPart    = double(typecast(rawArray(33:36), 'int32'));                       % (21:24) (4 bytes)
+    FreqStop       = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
 
     % others fields...
-    AntennaID   = rawArray(49);                                                     % (37:37) (1 byte )
-    TraceID     = rawArray(50);                                                     % (38:38) (1 byte )
-    UnitID      = rawArray(51);                                                     % (39:39) (1 byte )
-    OffsetLevel = typecast(rawArray(52), 'int8');                                   % (40:40) (1 byte )
-    GERROR      = typecast(rawArray(53), 'int8');                                   % (41:41) (1 byte )
+    AntennaID      = rawArray(49);                                                     % (37:37) (1 byte )
+    TraceID        = rawArray(50);                                                     % (38:38) (1 byte )
+    UnitID         = rawArray(51);                                                     % (39:39) (1 byte )
+    OffsetLevel    = typecast(rawArray(52), 'int8');                                   % (40:40) (1 byte )
+    GERROR         = typecast(rawArray(53), 'int8');                                   % (41:41) (1 byte )
     if GERROR ~= -1
         error('GERROR');
     end
 
-    NTUN        = typecast(rawArray(56:57), 'uint16');                              % (44:45) (2 bytes)
-    NAGC        = typecast(rawArray(58:59), 'uint16');                              % (46:47) (2 bytes)
-    NCDATA      = typecast(rawArray(61:64), 'uint32');                              % (49:52) (4 bytes)
-    Threshold   = double(typecast(rawArray(65:68), 'int32'));                       % (53:56) (4 bytes)
-    NDATA       = typecast(rawArray(69:72), 'uint32');                              % (57:60) (4 bytes)
+    NTUN           = typecast(rawArray(56:57), 'uint16');                              % (44:45) (2 bytes)
+    NAGC           = typecast(rawArray(58:59), 'uint16');                              % (46:47) (2 bytes)
+    NCDATA         = typecast(rawArray(61:64), 'uint32');                              % (49:52) (4 bytes)
+    Threshold      = double(typecast(rawArray(65:68), 'int32'));                       % (53:56) (4 bytes)
+    NDATA          = typecast(rawArray(69:72), 'uint32');                              % (57:60) (4 bytes)
 
-    Description = '';
-    Resolution  = [];
+    Description    = '';
+    Resolution     = [];
     
-    ID          = Fcn_BinInfo(ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 72 + 4*NTUN + NAGC;
+    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
+    OffsetByte     = 72 + 4*NTUN + NAGC;
 end
 
 
 % DataType 65 (OCC)
 function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType65(specData, rawArray, ThreadID, DataType)
     % v.4 commom fields
-    IntegerPart = double(typecast(rawArray(25:26), 'uint16'));                      % (13:14) (2 bytes)
-    DecimalPart = double(typecast(rawArray(27:30), 'int32'));                       % (15:18) (4 bytes)
-    FreqStart   = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    IntegerPart    = double(typecast(rawArray(25:26), 'uint16'));                      % (13:14) (2 bytes)
+    DecimalPart    = double(typecast(rawArray(27:30), 'int32'));                       % (15:18) (4 bytes)
+    FreqStart      = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
 
-    IntegerPart = double(typecast(rawArray(31:32), 'uint16'));                      % (19:20) (2 bytes)
-    DecimalPart = double(typecast(rawArray(33:36), 'int32'));                       % (21:24) (4 bytes)
-    FreqStop    = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    IntegerPart    = double(typecast(rawArray(31:32), 'uint16'));                      % (19:20) (2 bytes)
+    DecimalPart    = double(typecast(rawArray(33:36), 'int32'));                       % (21:24) (4 bytes)
+    FreqStop       = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
 
     % others fields...
-    AntennaID   = rawArray(45);                                                     % (33:33) (1 byte )
-    UnitID      = typecast(rawArray(47:48), 'uint16');                              % (35:36) (2 bytes)
-    GERROR      = typecast(rawArray(49), 'int8');                                   % (37:37) (1 byte )
+    AntennaID      = rawArray(45);                                                     % (33:33) (1 byte )
+    UnitID         = typecast(rawArray(47:48), 'uint16');                              % (35:36) (2 bytes)
+    GERROR         = typecast(rawArray(49), 'int8');                                   % (37:37) (1 byte )
     if GERROR ~= -1
         error('GERROR');
     end
     
-    Threshold   = double(typecast(rawArray(53:54), 'int16'));                       % (41:42) (2 bytes)
-    NDATA       = typecast(rawArray(57:60), 'uint32');                              % (45:48) (4 bytes)
+    Threshold      = double(typecast(rawArray(53:54), 'int16'));                       % (41:42) (2 bytes)
+    NDATA          = typecast(rawArray(57:60), 'uint32');                              % (45:48) (4 bytes)
 
-    Description = '';
-    Resolution  = [];
-    TraceID     = [];
+    Description    = '';
+    Resolution     = [];
+    TraceID        = [];
     
-    ID          = Fcn_BinInfo(ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 60;
-    OffsetLevel = 0;
+    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
+    OffsetByte     = 60;
+    OffsetLevel    = 0;
 end
 
 
@@ -700,106 +700,106 @@ end
 function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType67(specData, rawArray, ThreadID, DataType)
 
     % v.5 commom fields
-    DESCLEN     = double(typecast(rawArray(33:36), 'uint32'));                      % (21:24)           (      4 bytes)
-    Description = deblank(char(rawArray(37:36+DESCLEN)));                           % (25:24+DESCLEN)   (DESCLEN bytes)
+    DESCLEN        = double(typecast(rawArray(33:36), 'uint32'));                      % (21:24)           (      4 bytes)
+    Description    = deblank(char(rawArray(37:36+DESCLEN)));                           % (25:24+DESCLEN)   (DESCLEN bytes)
     
-    IntegerPart = double(typecast(rawArray(37+DESCLEN:38+DESCLEN), 'uint16'));      % (25:26) + DESCLEN (      2 bytes)
-    DecimalPart = double(typecast(rawArray(39+DESCLEN:42+DESCLEN), 'int32'));       % (27:30) + DESCLEN (      4 bytes)
-    FreqStart   = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    IntegerPart    = double(typecast(rawArray(37+DESCLEN:38+DESCLEN), 'uint16'));      % (25:26) + DESCLEN (      2 bytes)
+    DecimalPart    = double(typecast(rawArray(39+DESCLEN:42+DESCLEN), 'int32'));       % (27:30) + DESCLEN (      4 bytes)
+    FreqStart      = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
     
-    IntegerPart = double(typecast(rawArray(43+DESCLEN:44+DESCLEN), 'uint16'));      % (31:32) + DESCLEN (      2 bytes)
-    DecimalPart = double(typecast(rawArray(45+DESCLEN:48+DESCLEN), 'int32'));       % (33:36) + DESCLEN (      4 bytes)
-    FreqStop    = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
-    Resolution  = double(typecast(rawArray(49+DESCLEN:52+DESCLEN), 'int32'));       % (37:40) + DESCLEN (      4 bytes)
+    IntegerPart    = double(typecast(rawArray(43+DESCLEN:44+DESCLEN), 'uint16'));      % (31:32) + DESCLEN (      2 bytes)
+    DecimalPart    = double(typecast(rawArray(45+DESCLEN:48+DESCLEN), 'int32'));       % (33:36) + DESCLEN (      4 bytes)
+    FreqStop       = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    Resolution     = double(typecast(rawArray(49+DESCLEN:52+DESCLEN), 'int32'));       % (37:40) + DESCLEN (      4 bytes)
 
     % others fields...
-    AntennaID   = rawArray(65+DESCLEN);                                             % (53:53) + DESCLEN (      1 byte )
-    TraceID     = rawArray(66+DESCLEN);                                             % (54:54) + DESCLEN (      1 byte )
-    UnitID      = rawArray(67+DESCLEN);                                             % (55:55) + DESCLEN (      1 byte )
-    OffsetLevel = typecast(rawArray(68+DESCLEN), 'int8');                           % (56:56) + DESCLEN (      1 byte )
+    AntennaID      = rawArray(65+DESCLEN);                                             % (53:53) + DESCLEN (      1 byte )
+    TraceID        = rawArray(66+DESCLEN);                                             % (54:54) + DESCLEN (      1 byte )
+    UnitID         = rawArray(67+DESCLEN);                                             % (55:55) + DESCLEN (      1 byte )
+    OffsetLevel    = typecast(rawArray(68+DESCLEN), 'int8');                           % (56:56) + DESCLEN (      1 byte )
 
-    GERROR      = typecast(rawArray(69+DESCLEN), 'int8');                           % (57:57) + DESCLEN (      1 byte )
+    GERROR         = typecast(rawArray(69+DESCLEN), 'int8');                           % (57:57) + DESCLEN (      1 byte )
     if GERROR ~= -1
         error('GERROR');
     end
-    NTUN        = typecast(rawArray(72+DESCLEN:73+DESCLEN), 'uint16');              % (60:61) + DESCLEN (      2 bytes)
-    NAGC        = typecast(rawArray(74+DESCLEN:75+DESCLEN), 'uint16');              % (62:63) + DESCLEN (      2 bytes)
-    NDATA       = typecast(rawArray(77+DESCLEN:80+DESCLEN), 'uint32');              % (65:68) + DESCLEN (      4 bytes)
-    Threshold   = [];
+    NTUN           = typecast(rawArray(72+DESCLEN:73+DESCLEN), 'uint16');              % (60:61) + DESCLEN (      2 bytes)
+    NAGC           = typecast(rawArray(74+DESCLEN:75+DESCLEN), 'uint16');              % (62:63) + DESCLEN (      2 bytes)
+    NDATA          = typecast(rawArray(77+DESCLEN:80+DESCLEN), 'uint32');              % (65:68) + DESCLEN (      4 bytes)
+    Threshold      = [];
 
     [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 80 + DESCLEN + 4*NTUN + NAGC;
+    OffsetByte     = 80 + DESCLEN + 4*NTUN + NAGC;
 end
 
 
 % DataType 68 (Compressed)
 function [specData, ID, OffsetByte, OffsetLevel, NCDATA] = Read_DataType68(specData, rawArray, ThreadID, DataType)
     % v.5 commom fields
-    DESCLEN     = double(typecast(rawArray(33:36), 'uint32'));                      % (21:24)           (      4 bytes)
-    Description = deblank(char(rawArray(37:36+DESCLEN)));                           % (25:24+DESCLEN)   (DESCLEN bytes)
+    DESCLEN        = double(typecast(rawArray(33:36), 'uint32'));                      % (21:24)           (      4 bytes)
+    Description    = deblank(char(rawArray(37:36+DESCLEN)));                           % (25:24+DESCLEN)   (DESCLEN bytes)
     
-    IntegerPart = double(typecast(rawArray(37+DESCLEN:38+DESCLEN), 'uint16'));      % (25:26) + DESCLEN (      2 bytes)
-    DecimalPart = double(typecast(rawArray(39+DESCLEN:42+DESCLEN), 'int32'));       % (27:30) + DESCLEN (      4 bytes)
-    FreqStart   = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    IntegerPart    = double(typecast(rawArray(37+DESCLEN:38+DESCLEN), 'uint16'));      % (25:26) + DESCLEN (      2 bytes)
+    DecimalPart    = double(typecast(rawArray(39+DESCLEN:42+DESCLEN), 'int32'));       % (27:30) + DESCLEN (      4 bytes)
+    FreqStart      = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
     
-    IntegerPart = double(typecast(rawArray(43+DESCLEN:44+DESCLEN), 'uint16'));      % (31:32) + DESCLEN (      2 bytes)
-    DecimalPart = double(typecast(rawArray(45+DESCLEN:48+DESCLEN), 'int32'));       % (33:36) + DESCLEN (      4 bytes)
-    FreqStop    = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
-    Resolution  = double(typecast(rawArray(49+DESCLEN:52+DESCLEN), 'int32'));       % (37:40) + DESCLEN (      4 bytes)
+    IntegerPart    = double(typecast(rawArray(43+DESCLEN:44+DESCLEN), 'uint16'));      % (31:32) + DESCLEN (      2 bytes)
+    DecimalPart    = double(typecast(rawArray(45+DESCLEN:48+DESCLEN), 'int32'));       % (33:36) + DESCLEN (      4 bytes)
+    FreqStop       = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    Resolution     = double(typecast(rawArray(49+DESCLEN:52+DESCLEN), 'int32'));       % (37:40) + DESCLEN (      4 bytes)
     
     % others fields...
-    AntennaID   = rawArray(65+DESCLEN);                                             % (53:53) + DESCLEN (      1 byte )
-    TraceID     = rawArray(66+DESCLEN);                                             % (54:54) + DESCLEN (      1 byte )
-    UnitID      = rawArray(67+DESCLEN);                                             % (55:55) + DESCLEN (      1 byte )
-    OffsetLevel = typecast(rawArray(68+DESCLEN), 'int8');                           % (56:56) + DESCLEN (      1 byte )
-    GERROR      = typecast(rawArray(69+DESCLEN), 'int8');                           % (57:57) + DESCLEN (      1 byte )
+    AntennaID      = rawArray(65+DESCLEN);                                             % (53:53) + DESCLEN (      1 byte )
+    TraceID        = rawArray(66+DESCLEN);                                             % (54:54) + DESCLEN (      1 byte )
+    UnitID         = rawArray(67+DESCLEN);                                             % (55:55) + DESCLEN (      1 byte )
+    OffsetLevel    = typecast(rawArray(68+DESCLEN), 'int8');                           % (56:56) + DESCLEN (      1 byte )
+    GERROR         = typecast(rawArray(69+DESCLEN), 'int8');                           % (57:57) + DESCLEN (      1 byte )
     if GERROR ~= -1
         error('GERROR');
     end
     
-    NTUN        = typecast(rawArray(72+DESCLEN:73+DESCLEN), 'uint16');              % (60:61) + DESCLEN (      2 bytes)
-    NAGC        = typecast(rawArray(74+DESCLEN:75+DESCLEN), 'uint16');              % (62:63) + DESCLEN (      2 bytes)
-    NCDATA      = typecast(rawArray(77+DESCLEN:80+DESCLEN), 'uint32');              % (65:68) + DESCLEN (      4 bytes)
-    Threshold   = double(typecast(rawArray(81+DESCLEN:84+DESCLEN), 'int32'));       % (69:72) + DESCLEN (      4 bytes)
-    NDATA       = typecast(rawArray(85+DESCLEN:88+DESCLEN), 'uint32');              % (73:76) + DESCLEN (      4 bytes)
+    NTUN           = typecast(rawArray(72+DESCLEN:73+DESCLEN), 'uint16');              % (60:61) + DESCLEN (      2 bytes)
+    NAGC           = typecast(rawArray(74+DESCLEN:75+DESCLEN), 'uint16');              % (62:63) + DESCLEN (      2 bytes)
+    NCDATA         = typecast(rawArray(77+DESCLEN:80+DESCLEN), 'uint32');              % (65:68) + DESCLEN (      4 bytes)
+    Threshold      = double(typecast(rawArray(81+DESCLEN:84+DESCLEN), 'int32'));       % (69:72) + DESCLEN (      4 bytes)
+    NDATA          = typecast(rawArray(85+DESCLEN:88+DESCLEN), 'uint32');              % (73:76) + DESCLEN (      4 bytes)
     
     [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 88 + DESCLEN + 4*NTUN + NAGC;
+    OffsetByte     = 88 + DESCLEN + 4*NTUN + NAGC;
 end
 
 
 % DataType 69 (OCC)
 function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType69(specData, rawArray, ThreadID, DataType)
     % v.5 commom fields
-    DESCLEN     = double(typecast(rawArray(33:36), 'uint32'));                      % (21:24)           (      4 bytes)
-    Description = deblank(char(rawArray(37:36+DESCLEN)));                           % (25:24+DESCLEN)   (DESCLEN bytes)
+    DESCLEN        = double(typecast(rawArray(33:36), 'uint32'));                      % (21:24)           (      4 bytes)
+    Description    = deblank(char(rawArray(37:36+DESCLEN)));                           % (25:24+DESCLEN)   (DESCLEN bytes)
     
-    IntegerPart = double(typecast(rawArray(37+DESCLEN:38+DESCLEN), 'uint16'));      % (25:26) + DESCLEN (      2 bytes)
-    DecimalPart = double(typecast(rawArray(39+DESCLEN:42+DESCLEN), 'int32'));       % (27:30) + DESCLEN (      4 bytes)
-    FreqStart   = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    IntegerPart    = double(typecast(rawArray(37+DESCLEN:38+DESCLEN), 'uint16'));      % (25:26) + DESCLEN (      2 bytes)
+    DecimalPart    = double(typecast(rawArray(39+DESCLEN:42+DESCLEN), 'int32'));       % (27:30) + DESCLEN (      4 bytes)
+    FreqStart      = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
     
-    IntegerPart = double(typecast(rawArray(43+DESCLEN:44+DESCLEN), 'uint16'));      % (31:32) + DESCLEN (      2 bytes)
-    DecimalPart = double(typecast(rawArray(45+DESCLEN:48+DESCLEN), 'int32'));       % (33:36) + DESCLEN (      4 bytes)
-    FreqStop    = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
-    Resolution  = double(typecast(rawArray(49+DESCLEN:52+DESCLEN), 'int32'));       % (37:40) + DESCLEN (      4 bytes)
+    IntegerPart    = double(typecast(rawArray(43+DESCLEN:44+DESCLEN), 'uint16'));      % (31:32) + DESCLEN (      2 bytes)
+    DecimalPart    = double(typecast(rawArray(45+DESCLEN:48+DESCLEN), 'int32'));       % (33:36) + DESCLEN (      4 bytes)
+    FreqStop       = (IntegerPart + DecimalPart / 1e+9) * 1e+6;
+    Resolution     = double(typecast(rawArray(49+DESCLEN:52+DESCLEN), 'int32'));       % (37:40) + DESCLEN (      4 bytes)
     
     % others fields...
-    AntennaID   = rawArray(62+DESCLEN);                                             % (50:50) + DESCLEN (      1 byte )
-    UnitID      = typecast(rawArray(63+DESCLEN:64+DESCLEN), 'uint16');              % (51:52) + DESCLEN (      2 bytes)
+    AntennaID      = rawArray(62+DESCLEN);                                             % (50:50) + DESCLEN (      1 byte )
+    UnitID         = typecast(rawArray(63+DESCLEN:64+DESCLEN), 'uint16');              % (51:52) + DESCLEN (      2 bytes)
     
-    GERROR      = typecast(rawArray(65+DESCLEN), 'int8');                           % (53:53) + DESCLEN (      1 byte )
+    GERROR         = typecast(rawArray(65+DESCLEN), 'int8');                           % (53:53) + DESCLEN (      1 byte )
     if GERROR ~= -1
         error('GERROR');
     end
     
-    Threshold   = double(typecast(rawArray(69+DESCLEN:70+DESCLEN), 'int16'));       % (57:58) + DESCLEN (      2 bytes)
-    SampleTime  = double(typecast(rawArray(71+DESCLEN:72+DESCLEN), 'uint16'));      % (59:60) + DESCLEN (      2 bytes)
-    NDATA       = typecast(rawArray(73+DESCLEN:76+DESCLEN), 'uint32');              % (61:64) + DESCLEN (      4 bytes)
-    TraceID     = [];
+    Threshold      = double(typecast(rawArray(69+DESCLEN:70+DESCLEN), 'int16'));       % (57:58) + DESCLEN (      2 bytes)
+    SampleTime     = double(typecast(rawArray(71+DESCLEN:72+DESCLEN), 'uint16'));      % (59:60) + DESCLEN (      2 bytes)
+    NDATA          = typecast(rawArray(73+DESCLEN:76+DESCLEN), 'uint32');              % (61:64) + DESCLEN (      4 bytes)
+    TraceID        = [];
     
-    ID          = Fcn_BinInfo(ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
-    OffsetByte  = 76 + DESCLEN;
-    OffsetLevel = 0;
+    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
+    OffsetByte     = 76 + DESCLEN;
+    OffsetLevel    = 0;
 end
 
 

@@ -12,7 +12,7 @@ classdef metaData < handle
 
     methods
         %-----------------------------------------------------------------%
-        function Read(obj, RootFolder)
+        function Read_MetaData(obj, RootFolder)
             
             [~, fileName, fileExt] = fileparts(obj.File);
             
@@ -101,6 +101,16 @@ classdef metaData < handle
                                               'nSweeps',         sum(obj(1).Data(1).RelatedFiles.nSweeps),                     ...
                                               'RevisitTime',     sprintf('%.3f segundos', mean(obj(1).Data(1).RelatedFiles.RevisitTime)));
             end
+       end
+
+
+        %-----------------------------------------------------------------%
+        function estimatedMemory = EstimatedMemory(obj, idx)
+
+            estimatedMemory = 0;
+            for ii = 1:numel(obj(idx).Data)
+                estimatedMemory = estimatedMemory + 4 * obj(idx).Data(ii).RelatedFiles.nSweeps .* obj(idx).Data(ii).MetaData.DataPoints .* 1e-6;
+            end
         end
     end
 
@@ -112,16 +122,6 @@ classdef metaData < handle
             samplesArray = [];
             for ii = 1:numel(obj(idx).Data)
                 samplesArray = [samplesArray; obj(idx).Data(ii).RelatedFiles.nSweeps];
-            end
-        end
-
-
-        %-----------------------------------------------------------------%
-        function estimatedMemory = EstimatedMemory(obj, idx)
-
-            estimatedMemory = 0;
-            for ii = 1:numel(obj(idx).Data)
-                estimatedMemory = estimatedMemory + 4 * obj(idx).Data(ii).RelatedFiles.nSweeps .* obj(idx).Data(ii).MetaData.DataPoints .* 1e-6;
             end
         end
     end

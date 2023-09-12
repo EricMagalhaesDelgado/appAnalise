@@ -3,11 +3,9 @@
   "pythonPath": "",
   "openGL": "Hardware Full",
   "Merge": {
-    "OptionalFieldsToRemove": [],
-    "ThreadIDStatus": "keep",
-    "DataTypeStatus": "keep",
-    "AntennaNameStatus": "keep",
-    "DistanceValue": 100
+    "DataType": "keep",
+    "Antenna": "keep",
+    "Distance": 100
   },
   "Image": {
     "Visibility": "on",

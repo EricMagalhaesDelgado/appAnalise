@@ -19,7 +19,7 @@ classdef specData < handle
         RelatedFiles = table('Size', [0,9],                                                                                           ...
                              'VariableTypes', {'cell', 'cell', 'double', 'cell', 'datetime', 'datetime', 'double', 'double', 'cell'}, ...
                              'VariableNames', {'File', 'Task', 'ID', 'Description', 'BeginTime', 'EndTime', 'nSweeps', 'RevisitTime', 'GPS'})
-        UserData     = class.userData.empty
+        UserData     = class.userData()
         FileMap                                                             % Auxilia o processo de leitura dos dados de espectro
         Enable       = true
     end
@@ -33,8 +33,8 @@ classdef specData < handle
                 idx = 1;
             end
 
-            obj(idx).Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, obj(idx).RelatedFiles.nSweeps), ...
-                             zeros(obj(idx).MetaData.DataPoints, obj(idx).RelatedFiles.nSweeps, 'single'),                       ...
+            obj(idx).Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, sum(obj(idx).RelatedFiles.nSweeps)), ...
+                             zeros(obj(idx).MetaData.DataPoints, sum(obj(idx).RelatedFiles.nSweeps), 'single'),                       ...
                              zeros(obj(idx).MetaData.DataPoints, 3)};
         end
 
@@ -44,6 +44,19 @@ classdef specData < handle
             List = [];
             for ii = 1:numel(obj)
                 List = [List, obj(ii).RelatedFiles.ID];
+            end
+        end
+
+
+        %-----------------------------------------------------------------%
+        function copyObj = copy(obj, fields2remove)            
+            copyObj  = class.specData();
+            propList = setdiff(properties(copyObj), fields2remove);
+
+            for ii = 1:numel(obj)
+                for jj = 1:numel(propList)
+                    copyObj(ii).(propList{jj}) = obj(ii).(propList{jj});                
+                end
             end
         end
     end

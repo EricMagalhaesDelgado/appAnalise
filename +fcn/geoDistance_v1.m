@@ -1,4 +1,4 @@
-function Distance = geo_lldistkm_v1(latlon1, latlon2)
+function Distance = geoDistance_v1(latlon1, latlon2)
 
     radius = 6371;
     

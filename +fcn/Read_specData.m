@@ -1,6 +1,6 @@
 function Read_specData(app, d)
     
-    % Organização dos fluxos de dados e pré-alocação
+    % Organização dos fluxos de dados.
     samplesMap = specDataReader_Map(app);
 
     for ii = 1:numel(app.metaData)
@@ -38,71 +38,59 @@ function Read_specData(app, d)
                     SpecInfo = prj_specData;
                 else
                     SpecInfo = rmfield(prj_specData, {'Emissions', 'reportFlag', 'reportOCC', 'reportDetection', 'reportClassification', 'reportAttachments'});
-                    File_specDataReader_OpenProject(app, prj_Info)
+                    specDataReader_OpenProject(app, prj_Info)
                 end
         end
         
-        % Eliminar alguns campos para possibilitar comparar o fluxo
-        % lido (SpecInfo >> auxSpecInfo) com o já salvo (app.specData >> auxSpecData)
-        auxSpecInfo = specDataReader_MetaData(SpecInfo);
-        auxSpecData = specDataReader_MetaData(app.specData);
+        % Eliminar alguns campos para possibilitar comparar o fluxo lido 
+        % (SpecInfo >> auxSpecInfo) com o já salvo (app.specData >> auxSpecData)
+        SpecInfo_MetaData = specDataReader_MetaData(app, SpecInfo);
+        specData_MetaData = specDataReader_MetaData(app, app.specData);
         
         for jj = 1:numel(SpecInfo)
-            % Necessário pois no leitor do RFLookBin, por exemplo, não é lida a
-            % informação de GPS.
-            if isempty(SpecInfo(jj).RelatedFiles) || isempty(SpecInfo(jj).RelatedGPS) || isempty(SpecInfo(jj).GPS)
-                SpecInfo(jj).RelatedFiles = app.metaData(ii).Data(jj).RelatedFiles;
-                SpecInfo(jj).RelatedGPS   = app.metaData(ii).Data(jj).RelatedGPS;
-                SpecInfo(jj).GPS          = app.metaData(ii).Data(jj).GPS;
-            end
             auxSpecInfo_GPS = [SpecInfo(jj).GPS.Latitude, SpecInfo(jj).GPS.Longitude];
             
-            ind1 = [];
+            idx1 = [];
             for kk = 1:numel(app.specData)
                 auxSpecData_GPS = [app.specData(kk).GPS.Latitude, app.specData(kk).GPS.Longitude];
-                Distance_GPS    = geoDistance_v1(auxSpecInfo_GPS, auxSpecData_GPS) * 1000;
+                Distance_GPS    = fcn.geoDistance_v1(auxSpecInfo_GPS, auxSpecData_GPS) * 1000;
                 
-                if isequal(auxSpecData(kk), auxSpecInfo(jj)) && (Distance_GPS <= class.Constants.mergeDistance)
-                    ind1 = kk;
+                if isequal(specData_MetaData(kk), SpecInfo_MetaData(jj)) && (Distance_GPS <= app.General.Merge.Distance)
+                    idx1 = kk;
                     break
                 end
             end
 
-            if isempty(ind1)
+            if isempty(idx1)
                 continue
             end
             
-            if ii == 1; ind2 = 1;
-            else;       ind2 = sum(samplesMap(ind1, 1:(ii-1)))+1;
+            if ii == 1; idx2 = 1;
+            else;       idx2 = sum(samplesMap(idx1, 1:(ii-1)))+1;
             end
-            ind3 = sum(samplesMap(ind1, 1:ii));
+            idx3 = sum(samplesMap(idx1, 1:ii));
             
-            try
-                app.specData(ind1).Data{1}(1,ind2:ind3) = SpecInfo(jj).Data{1};
-                app.specData(ind1).Data{2}(:,ind2:ind3) = SpecInfo(jj).Data{2};
-            catch
-                pause(1)
-            end
-            
-            if ~any(contains(app.specData(ind1).RelatedFiles.Name, SpecInfo(jj).RelatedFiles.Name))
-                app.specData(ind1).RelatedFiles(end+1:end+height(SpecInfo(jj).RelatedFiles), :) = SpecInfo(jj).RelatedFiles; 
-                app.specData(ind1).RelatedGPS   = [app.specData(ind1).RelatedGPS,   SpecInfo(jj).RelatedGPS];
-            end
+            app.specData(idx1).Data{1}(1,idx2:idx3) = SpecInfo(jj).Data{1};
+            app.specData(idx1).Data{2}(:,idx2:idx3) = SpecInfo(jj).Data{2};
         end
     end
     
-    % Manipulações acessórias
-    d.Message = '<font style="font-size:12;">In progress others manipulations, such as statistical measures and identification of occupancy flow...</font>';
+    % Manipulações acessórias.
+    d.Message = '<font style="font-size:12;">Em andamento outras manipulações, como aferição de dados estatísticas e identificaçã do fluxo de ocupação...</font>';
     specDataReader_FinalOperation(app)
 end
 
 
 %-------------------------------------------------------------------------%
 function samplesMap = specDataReader_Map(app)
-    for ii = 1:numel(app.metaData)
-        SpecInfo         = app.metaData(ii).Data;
-        SpecInfo.FileMap = [];
 
+    for ii = 1:numel(app.metaData)
+        SpecInfo  = copy(app.metaData(ii).Data, {'RelatedFiles', 'FileMap'});
+
+        % auxSamples e fileIndexMap são duas matrizes que mapeiam o número de 
+        % amostras e a sua posição em app.metaData(ii).Data(jj), respectivamente. 
+        % São essenciais na leitura das matrizes de níveis, visto que possibilitam 
+        % a pré-alocação.
         auxSamples = app.metaData(ii).Samples;
         if isempty(auxSamples); auxSamples = 0;
         end
@@ -110,24 +98,28 @@ function samplesMap = specDataReader_Map(app)
         % Inicialização de app.specData...
         if ii == 1
             app.specData = SpecInfo;
+
             samplesMap   = auxSamples;
+            fileIndexMap = (1:numel(app.metaData(ii).Data))';
             continue
         end
 
         % Mapeamento entre os fluxos...
-        auxSpecInfo = specDataReader_MetaData(SpecInfo);
+        SpecInfo_MetaData = specDataReader_MetaData(app, SpecInfo);
         for jj = 1:numel(SpecInfo)
-            auxSpecInfo_GPS = [SpecInfo(jj).GPS.Latitude, SpecInfo(jj).GPS.Longitude];
-            auxSpecData     = specDataReader_MetaData(app.specData);
+            SpecInfo_GPS      = [SpecInfo(jj).GPS.Latitude, SpecInfo(jj).GPS.Longitude];
+            specData_MetaData = specDataReader_MetaData(app, app.specData);
 
             idx1 = [];
             for kk = 1:numel(app.specData)
-                auxSpecData_GPS = [app.specData(kk).GPS.Latitude, app.specData(kk).GPS.Longitude];
-                Distance_GPS    = geoDistance_v1(auxSpecInfo_GPS, auxSpecData_GPS) * 1000;
+                specData_GPS = [app.specData(kk).GPS.Latitude, app.specData(kk).GPS.Longitude];
+                Distance_GPS = fcn.geoDistance_v1(SpecInfo_GPS, specData_GPS) * 1000;
 
-                if isequal(auxSpecData(kk), auxSpecInfo(jj)) && (Distance_GPS <= class.Constants.mergeDistance)
+                if isequal(specData_MetaData(kk), SpecInfo_MetaData(jj)) && (Distance_GPS <= app.General.Merge.Distance)
                     idx1 = kk;
-                    samplesMap(kk, ii) = auxSamples(jj);
+
+                    samplesMap(idx1, ii)   = auxSamples(jj);
+                    fileIndexMap(idx1, ii) = jj;
                     break
                 end
             end
@@ -135,16 +127,28 @@ function samplesMap = specDataReader_Map(app)
             if isempty(idx1)
                 idx2 = numel(app.specData)+1;
                 
-                app.specData(idx2)    = SpecInfo(jj);
-                samplesMap(idx2, ii) = auxSamples(jj);
+                app.specData(idx2)     = SpecInfo(jj);
+                samplesMap(idx2, ii)   = auxSamples(jj);
+                fileIndexMap(idx2, ii) = jj;
             end
         end
     end
     
     % Pré-alocação
-    totalSamples = sum(samplesMap, 2);
+    specDataReader_PreAllocationData(app, fileIndexMap)
+end
+
+
+%-------------------------------------------------------------------------%
+function specDataReader_PreAllocationData(app, fileIndexMap)
+
     for ii = 1:numel(app.specData)
-        app.specData(ii).Samples = totalSamples(ii);
+        for jj = 1:width(fileIndexMap)
+            idx = fileIndexMap(ii,jj);
+            if idx
+                app.specData(ii).RelatedFiles(end+1,:) = app.metaData(jj).Data(idx).RelatedFiles;
+            end
+        end
         app.specData(ii) = app.specData(ii).PreAllocationData();
     end
 end
@@ -158,7 +162,7 @@ function specDataReader_FinalOperation(app)
     % - Secundário: ID
     ID = [];
     for ii = 1:numel(app.specData)
-        ID = [ID; app.specData(ii).TaskData.ID];
+        ID = [ID; app.specData(ii).RelatedFiles.ID(1)];
     end
     [~,    idx1] = sortrows(table({app.specData.Receiver}', ID));
     app.specData = app.specData(idx1);
@@ -170,29 +174,30 @@ function specDataReader_FinalOperation(app)
             app.specData(ii).Data{2}         = app.specData(ii).Data{2}(:,idx2);
         end
 
-        if height(app.specData(ii).RelatedFiles) > 1
-            app.specData(ii).ObservationTime = sprintf('%s - %s', datestr(app.specData(ii).Data{1}(1), 'dd/mm/yyyy HH:MM:SS'), datestr(app.specData(ii).Data{1}(end), 'dd/mm/yyyy HH:MM:SS'));
-        end
-
         % GPS
-        if numel(app.specData(ii).RelatedGPS) > 1
-            app.specData(ii).GPS = rmfield(gpsSummary(app.specData(ii).RelatedGPS), 'Matrix');
+        if height(app.specData(ii).RelatedFiles) > 1
+            gpsStatus = max(cellfun(@(x) x.Status, app.specData(ii).RelatedFiles.GPS));
+            if gpsStatus
+                gpsData = struct('Status', gpsStatus, ...
+                                 'Matrix', cell2mat(cellfun(@(x) x.Matrix, app.specData(ii).RelatedFiles.GPS, 'UniformOutput', false)));
+                app.specData(ii).GPS = rmfield(fcn.gpsSummary({gpsData}), 'Matrix');
+            end
         end
 
         % Basic statistical of the data, and OCC map
+        app.specData(ii).Data{3} = [min(app.specData(ii).Data{2}, [], 2), ...
+                                    mean(app.specData(ii).Data{2}, 2),    ...
+                                    max(app.specData(ii).Data{2}, [], 2)];
+
         if ismember(app.specData(ii).MetaData.DataType, class.Constants.specDataTypes)
-            app.specData(ii).Data{3} = [min(app.specData(ii).Data{2}, [], 2),                                         ...
-                                        eval(sprintf('%s(app.specData(ii).Data{2}, 2)', class.Constants.averageFcn)), ...
-                                        max(app.specData(ii).Data{2}, [], 2)];
-    
-            occInd = [];
+            idxOCC = [];
             for jj = 1:numel(app.specData)
                 if ismember(app.specData(jj).MetaData.DataType, class.Constants.occDataTypes)
-                    occInd = [occInd, jj];
+                    idxOCC = [idxOCC, jj];
                 end
             end
 
-            for kk = occInd
+            for kk = idxOCC
                 logEvaluation = strcmp(app.specData(ii).Receiver, app.specData(kk).Receiver)                 & ...
                                 app.specData(ii).MetaData.FreqStart  == app.specData(kk).MetaData.FreqStart  & ...
                                 app.specData(ii).MetaData.FreqStop   == app.specData(kk).MetaData.FreqStop   & ...
@@ -204,25 +209,74 @@ function specDataReader_FinalOperation(app)
             end
             
             if ~isempty(app.specData(ii).UserData.reportOCC.Related)
-                app.specData(ii).UserData.reportOCC.Index = app.specData(ii).UserData.reportOCC.Related(1);
+                app.specData(ii).UserData.reportOCC.idx = app.specData(ii).UserData.reportOCC.Related(1);
             end
-            
-        elseif ismember(app.specData(ii).MetaData.DataType, class.Constants.occDataTypes)
-            app.specData(ii).Data{3} = [min(app.specData(ii).Data{2}, [], 2),                                         ...
-                                        eval(sprintf('%s(app.specData(ii).Data{2}, 2)', class.Constants.averageFcn)), ...
-                                        max(app.specData(ii).Data{2}, [], 2)];
         end
-    end    
+    end
 end
 
 
 %-------------------------------------------------------------------------%
-function ComparableData = specDataReader_MetaData(RawData)
+function ComparableData = specDataReader_MetaData(app, RawData)
+
+    % Inicialmente, busca-se no arquivo de configuração (GeneralSettings.json)
+    % se campos opcionais devem ser desconsiderados dessa análise.
+    % Atualmente, apenas dois campos opcionais - "DataType" e "Antenna". Os
+    % outros são todos essenciais, não podendo ser desconsiderados da análise.
+
+    field2remove = {};
+    if strcmp(app.General.Merge.DataType, 'remove')
+        field2remove = {'DataType'};
+    end
+    
+    if strcmp(app.General.Merge.Antenna, 'remove')
+        field2remove = [field2remove, 'Antenna'];
+    end
 
     for ii = 1:numel(RawData)
         tempStruct = RawData(ii).MetaData;
         tempStruct.Receiver = RawData(ii).Receiver;
 
+        if ~isempty(field2remove)
+            tempStruct = rmfield(tempStruct, field2remove);
+        end
+
         ComparableData(ii) = tempStruct;
     end
+end
+
+
+%-------------------------------------------------------------------------%
+function specDataReader_OpenProject(app, prj_Info)
+
+    idx = find(ismember([app.metaData.Type], {'Project data'}));
+    app.ProjectFilename.Value = app.metaData(idx).File;
+    
+    app.ProjectName.Value    = prj_Info.Name;
+    app.peaksTable           = prj_Info.peaksTable;
+    app.exceptionList        = prj_Info.exceptionList;
+    app.Report_Issue.Value   = prj_Info.reportInfo.Issue;
+    app.Report_Version.Value = prj_Info.reportInfo.General.Version;
+
+    Type = prj_Info.reportInfo.Model.Name;
+    if ismember(Type, app.Report_Type.Items)
+        app.Report_Type.Value        = Type;
+    else
+        app.Report_Type.Items{end+1} = Type;
+        app.Report_Type.Value        = app.Report_Type{end};
+        
+        app.General.Models(end+1,:)  = prj_Info.reportInfo.Name;
+    end
+
+    app.projData                 = prj_Info.reportInfo.Attachments;
+
+    app.Report_DatePicker1.Value = prj_Info.reportInfo.TimeStamp(1);
+    app.Report_Spinner1.Value    = hour(prj_Info.reportInfo.TimeStamp(1));
+    app.Report_Spinner2.Value    = minute(prj_Info.reportInfo.TimeStamp(1));
+                
+    app.Report_DatePicker2.Value = prj_Info.reportInfo.TimeStamp(2);
+    app.Report_Spinner3.Value    = hour(prj_Info.reportInfo.TimeStamp(2));
+    app.Report_Spinner4.Value    = minute(prj_Info.reportInfo.TimeStamp(2));
+    
+    app.Report_ImageWarn.Visible = 0;                
 end
