@@ -71,39 +71,6 @@ classdef metaData < handle
         end
 
 
-       %-----------------------------------------------------------------%
-       function fileSummary = FileSummary(obj, idx1, idx2)
-
-            fileSummary = struct('group', 'GERAL',                                  ...
-                                  'value', struct('File',    obj(idx1).File,        ...
-                                                  'Type',    obj(idx1).Type,        ...
-                                                  'nData',   numel(obj(idx1).Data), ...
-                                                  'Memory',  sprintf('%.3f MB', obj(idx1).Memory)));
-
-            if numel(idx2) == 1
-                BeginTime = datestr(min(obj(idx1).Data(idx2).RelatedFiles.BeginTime), 'dd/mm/yyyy HH:MM:SS');
-                EndTime   = datestr(max(obj(idx1).Data(idx2).RelatedFiles.EndTime),   'dd/mm/yyyy HH:MM:SS');
-    
-                fileSummary(2).group = 'RECEPTOR';
-                fileSummary(2).value = struct('Receiver',        obj(idx1).Data(idx2).Receiver, ...
-                                              'MetaData',        rmfield(obj(idx1).Data(idx2).MetaData, {'DataType', 'FreqStart', 'FreqStop'}));
-
-                fileSummary(2).value.MetaData.Resolution = sprintf('%.3f kHz', fileSummary(2).value.MetaData.Resolution/1000);
-    
-                fileSummary(3).group = 'GPS';
-                fileSummary(3).value = obj(idx1).Data(idx2).GPS;
-    
-                fileSummary(4).group = 'OUTROS ASPECTOS';
-                fileSummary(4).value = struct('File',            strjoin(obj(idx1).Data(idx2).RelatedFiles.File, ', '),        ...
-                                              'Task',            strjoin(obj(idx1).Data(idx2).RelatedFiles.Task, ', '),        ...
-                                              'Description',     strjoin(obj(idx1).Data(idx2).RelatedFiles.Description, ', '), ...
-                                              'ObservationTime', sprintf('%s - %s', BeginTime, EndTime),                       ...
-                                              'nSweeps',         sum(obj(1).Data(1).RelatedFiles.nSweeps),                     ...
-                                              'RevisitTime',     sprintf('%.3f segundos', mean(obj(1).Data(1).RelatedFiles.RevisitTime)));
-            end
-       end
-
-
         %-----------------------------------------------------------------%
         function estimatedMemory = EstimatedMemory(obj, idx)
 

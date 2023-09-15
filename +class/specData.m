@@ -9,6 +9,7 @@ classdef specData < handle
                               'LevelUnit',        [], ...                   % dBm | dBµV | dBµV/m
                               'DataPoints',       [], ...
                               'Resolution',       -1, ...                   % Valor numérico (em Hertz) ou -1 (caso não registrado em arquivo)
+                              'VBW',              -1, ...
                               'Threshold',        -1, ...
                               'TraceMode',        '', ...                   % "ClearWrite" | "Average" | "MaxHold" | "MinHold" | "OCC" | "SingleMeasurement" | "Mean" | "Peak" | "Minimum"
                               'TraceIntegration', -1, ...                   % Aplicável apenas p/ "Average", "MaxHold" ou "MinHold"
@@ -19,7 +20,7 @@ classdef specData < handle
         RelatedFiles = table('Size', [0,9],                                                                                           ...
                              'VariableTypes', {'cell', 'cell', 'double', 'cell', 'datetime', 'datetime', 'double', 'double', 'cell'}, ...
                              'VariableNames', {'File', 'Task', 'ID', 'Description', 'BeginTime', 'EndTime', 'nSweeps', 'RevisitTime', 'GPS'})
-        UserData     = class.userData()
+        UserData     = class.userData.empty
         FileMap                                                             % Auxilia o processo de leitura dos dados de espectro
         Enable       = true
     end

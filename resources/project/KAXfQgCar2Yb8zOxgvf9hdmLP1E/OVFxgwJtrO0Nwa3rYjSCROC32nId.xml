@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Info Type="StartUp" Visible="0" Icon="" File="+plotFcn/toolbar_occ.m" Name="toolbar_occ">
+    <Extension Value="c39e285a-cc9b-4c40-838b-ac8c4ceb3ec3" Name="StartUpPrev"/>
+</Info>

@@ -266,6 +266,7 @@ function [specData, idx] = Fcn_BinInfo(specData, ThreadID, DataType, Description
                  'LevelUnit',        UnitID,     ...
                  'DataPoints',       NDATA,      ...
                  'Resolution',       Resolution, ...
+                 'VBW',              -1,         ...
                  'Threshold',        Threshold,  ...
                  'TraceMode',        TraceID,    ...
                  'TraceIntegration', -1,         ...
@@ -490,7 +491,7 @@ function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType08(specDa
     NDATA          = typecast(rawArray(49:52), 'uint32');                              % (37:40) (4 bytes)
 
     Description    = '';
-    Resolution     = [];
+    Resolution     = -1;
     TraceID        = [];
     UnitID         = 0;
 
@@ -585,7 +586,7 @@ function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType62(specDa
     NDATA          = typecast(rawArray(53:56), 'uint32');                              % (41:44) (4 bytes)
 
     Description    = '';
-    Resolution     = [];
+    Resolution     = -1;
     TraceID        = [];
     UnitID         = 0;
 
@@ -621,10 +622,10 @@ function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType63(specDa
     NDATA          = typecast(rawArray(61:64), 'uint32');                              % (49:52) (4 bytes)
 
     Description    = '';
-    Resolution     = [];
-    Threshold      = [];
+    Resolution     = -1;
+    Threshold      = -1;
     
-    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
+    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
     OffsetByte     = 64 + 4*NTUN + NAGC;
 end
 
@@ -657,9 +658,9 @@ function [specData, ID, OffsetByte, OffsetLevel, NCDATA] = Read_DataType64(specD
     NDATA          = typecast(rawArray(69:72), 'uint32');                              % (57:60) (4 bytes)
 
     Description    = '';
-    Resolution     = [];
+    Resolution     = -1;
     
-    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
+    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
     OffsetByte     = 72 + 4*NTUN + NAGC;
 end
 
@@ -687,10 +688,10 @@ function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType65(specDa
     NDATA          = typecast(rawArray(57:60), 'uint32');                              % (45:48) (4 bytes)
 
     Description    = '';
-    Resolution     = [];
-    TraceID        = [];
+    Resolution     = -1;
+    TraceID        = -1;
     
-    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
+    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
     OffsetByte     = 60;
     OffsetLevel    = 0;
 end
@@ -725,7 +726,7 @@ function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType67(specDa
     NTUN           = typecast(rawArray(72+DESCLEN:73+DESCLEN), 'uint16');              % (60:61) + DESCLEN (      2 bytes)
     NAGC           = typecast(rawArray(74+DESCLEN:75+DESCLEN), 'uint16');              % (62:63) + DESCLEN (      2 bytes)
     NDATA          = typecast(rawArray(77+DESCLEN:80+DESCLEN), 'uint32');              % (65:68) + DESCLEN (      4 bytes)
-    Threshold      = [];
+    Threshold      = -1;
 
     [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
     OffsetByte     = 80 + DESCLEN + 4*NTUN + NAGC;
@@ -793,11 +794,10 @@ function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType69(specDa
     end
     
     Threshold      = double(typecast(rawArray(69+DESCLEN:70+DESCLEN), 'int16'));       % (57:58) + DESCLEN (      2 bytes)
-    SampleTime     = double(typecast(rawArray(71+DESCLEN:72+DESCLEN), 'uint16'));      % (59:60) + DESCLEN (      2 bytes)
     NDATA          = typecast(rawArray(73+DESCLEN:76+DESCLEN), 'uint32');              % (61:64) + DESCLEN (      4 bytes)
     TraceID        = [];
     
-    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, SampleTime, Threshold, AntennaID, TraceID, UnitID, NDATA);
+    [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);
     OffsetByte     = 76 + DESCLEN;
     OffsetLevel    = 0;
 end

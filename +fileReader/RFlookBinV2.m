@@ -1,7 +1,7 @@
 function specData = RFlookBinV2(fileName, ReadType, metaData)
 
     % Author.: Eric Magalhães Delgado
-    % Date...: September 04, 2023
+    % Date...: September 09, 2023
     % Version: 1.00
 
     arguments
@@ -32,7 +32,7 @@ function specData = RFlookBinV2(fileName, ReadType, metaData)
             end
             
         case 'SpecData'
-            specData = metaData(1).Data;
+            specData = copy(metaData(1).Data, {});
             specData = Fcn_SpecDataReader(specData, rawData);
     end
 end
@@ -77,7 +77,12 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     specData.MetaData.FreqStop   = MetaStruct.FreqStop;
     specData.MetaData.LevelUnit  = class.specData.str2str(MetaStruct.Unit);
     specData.MetaData.DataPoints = MetaStruct.DataPoints;
+    
     specData.MetaData.Resolution = str2double(extractBefore(MetaStruct.Resolution, ' kHz'))*1000;
+    if isfield(MetaStruct, 'VBW')
+        specData.MetaData.Resolution = str2double(extractBefore(MetaStruct.VBW, ' kHz'))*1000;
+    end
+
     specData.MetaData.TraceMode  = MetaStruct.TraceMode;
 
     if ~strcmp(MetaStruct.TraceMode, 'ClearWrite')
@@ -109,14 +114,18 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     % O gpsMode_ID por ser 0 (manual), 1 (Built-in) ou 2 (External).
     % (a) Se gpsMode_ID = 0     >> gpsData.Status = -1
     % (b) Se gpsMode_ID = 1 | 2 >> gpsData.Status = 0 (invalid) | 1 (valid)
-    Samples = numel(startIndex);
+    nSweeps = numel(startIndex);
 
     if gpsMode_ID
-        for ii = 1:Samples
+        for ii = 1:nSweeps
             blockArray = rawData(startIndex(ii):stopIndex(ii));
 
-            if     ii == 1;       BeginTime = observationTime(blockArray);
-            elseif ii == Samples; EndTime   = observationTime(blockArray);
+            if  ii == 1
+                BeginTime = observationTime(blockArray);
+            end
+
+            if ii == nSweeps
+                EndTime   = observationTime(blockArray);
             end
             
             if blockArray(9)
@@ -137,10 +146,10 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     gpsData = fcn.gpsSummary({gpsData});
 
     [~, file, ext]  = fileparts(filename);
-    RevisitTime     = seconds(EndTime-BeginTime)/(Samples-1);
+    RevisitTime     = seconds(EndTime-BeginTime)/(nSweeps-1);
 
     specData.GPS = rmfield(gpsData, 'Matrix');
-    specData.RelatedFiles(end+1,:) = {[file ext], MetaStruct.Task, MetaStruct.ID, MetaStruct.Description, BeginTime, EndTime, Samples, RevisitTime, {gpsData}};
+    specData.RelatedFiles(end+1,:) = {[file ext], MetaStruct.Task, MetaStruct.ID, MetaStruct.Description, BeginTime, EndTime, nSweeps, RevisitTime, {gpsData}};
     
 end
 

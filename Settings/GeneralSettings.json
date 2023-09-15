@@ -1,7 +1,7 @@
 {
   "userPath": "",
   "pythonPath": "",
-  "openGL": "Hardware Full",
+  "openGL": "hardware",
   "Merge": {
     "DataType": "keep",
     "Antenna": "keep",
@@ -12,30 +12,34 @@
     "Format": "jpeg",
     "Resolution": 120
   },
-  "Waterfall": {
-    "Colormap": "winter",
-    "Depth": 512
+  "Colormap": {
+    "Persistance": "winter",
+    "WaterFall": "winter"
   },
   "Colors": [
     [
-      1,
-      0.07,
-      0.65
+      0.38,
+      0.6,
+      0.73
     ],
     [
-      0.47,
-      0.67,
-      0.19
-    ],
-    [
-      1,
-      0.07,
-      0.65
-    ],
-    [
-      1,
-      1,
+      0.39,
+      0.83,
       0.07
+    ],
+    [
+      1,
+      0.07,
+      0.65
+    ],
+    [
+      0.93,
+      0.69,
+      0.13
     ]
-  ]
+  ],
+  "Integration": {
+    "Trace": 10,
+    "SampleTime": 10
+  }
 }

@@ -3,6 +3,8 @@ classdef (Abstract) Constants
     properties (Constant)
         %-----------------------------------------------------------------%
         appName       = 'appAnalise'
+        appRelease    = 'R2023a'
+        appVersion    = '1.41'
 
         windowSize    = [1244, 660]
         windowMinSize = [ 880, 660]
@@ -11,10 +13,11 @@ classdef (Abstract) Constants
         gps2loc_City  = 'city'
         gps2loc_Unit  = 'principalSubdivisionCode'
 
+        userPaths     = {fullfile(getenv('USERPROFILE'), 'Documents'); fullfile(getenv('USERPROFILE'), 'Downloads')}
+        Interactions  = {'datacursor', 'zoomin', 'restoreview'}
+
         yMinLimRange  = 80                                                  % Minimum y-Axis limit range
         yMaxLimRange  = 100                                                 % Maximum y-Axis limit range
-        
-        channelStep   = 0.025                                               % MHz (Channel Step)
 
         specDataTypes = [1, 2, 4, 7, 60, 61, 63, 64, 67, 68, 167, 168, 1000, 1809];
         occDataTypes  = [8, 62, 65, 69];

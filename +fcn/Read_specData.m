@@ -6,7 +6,7 @@ function Read_specData(app, d)
     for ii = 1:numel(app.metaData)
         [~, name, ext] = fileparts(app.metaData(ii).File);
         fileName = [name ext];
-        d.Message = sprintf('<font style="font-size:12;">In progress reading spectral data from the file below:\n• %s\n\n%d of %d</font>', fileName, ii, numel(app.metaData));
+        d.Message = sprintf('<font style="font-size:12;">Em andamento a leitura dos dados de espectro do arquivo:\n• %s\n\n%d de %d</font>', fileName, ii, numel(app.metaData));
         
         switch lower(ext)
             case '.bin'
@@ -92,7 +92,8 @@ function samplesMap = specDataReader_Map(app)
         % São essenciais na leitura das matrizes de níveis, visto que possibilitam 
         % a pré-alocação.
         auxSamples = app.metaData(ii).Samples;
-        if isempty(auxSamples); auxSamples = 0;
+        if isempty(auxSamples)
+            auxSamples = 0;
         end
 
         % Inicialização de app.specData...
@@ -135,14 +136,23 @@ function samplesMap = specDataReader_Map(app)
     end
     
     % Pré-alocação
-    specDataReader_PreAllocationData(app, fileIndexMap)
+    samplesMap = specDataReader_PreAllocationData(app, samplesMap, fileIndexMap);
 end
 
 
 %-------------------------------------------------------------------------%
-function specDataReader_PreAllocationData(app, fileIndexMap)
+function samplesMap = specDataReader_PreAllocationData(app, samplesMap, fileIndexMap)
 
-    for ii = 1:numel(app.specData)
+    for ii = numel(app.specData):-1:1
+        % Elimina fluxos filtrados...
+        if ~app.specData(ii).Enable
+            app.specData(ii)   = [];
+            samplesMap(ii,:)   = [];
+            fileIndexMap(ii,:) = [];
+
+            continue
+        end
+
         for jj = 1:width(fileIndexMap)
             idx = fileIndexMap(ii,jj);
             if idx
@@ -168,6 +178,8 @@ function specDataReader_FinalOperation(app)
     app.specData = app.specData(idx1);
     
     for ii = 1:numel(app.specData)
+        app.specData(ii).UserData(1).reportFlag = false;
+
         % Sorting data...
         if ~issorted(app.specData(ii).Data{1})
             [app.specData(ii).Data{1}, idx2] = sort(app.specData(ii).Data{1});

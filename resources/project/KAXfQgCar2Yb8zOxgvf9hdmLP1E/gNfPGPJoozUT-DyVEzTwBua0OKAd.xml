@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Info Type="StartUp" Visible="0" Icon="" File="+plotFcn/toolbar_minHold.m" Name="toolbar_minHold">
+    <Extension Value="d6450737-6a42-43dd-a520-f135062d2423" Name="StartUpPrev"/>
+</Info>

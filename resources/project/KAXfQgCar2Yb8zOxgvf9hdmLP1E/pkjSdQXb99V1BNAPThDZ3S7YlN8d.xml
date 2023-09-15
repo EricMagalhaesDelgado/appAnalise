@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Info Type="StartUp" Visible="0" Icon="" File="+plotFcn/toolbar_plotclone.m" Name="toolbar_plotclone">
+    <Extension Value="b6ae43ff-19ff-46d1-bdda-15918063b3db" Name="StartUpPrev"/>
+</Info>
