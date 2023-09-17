@@ -10,16 +10,30 @@ function Draw(app, idx)
         % Propriedades do app que poderão ser referenciadas, caso criadas
         % curvas estatísticas (MinHold | Average | MaxHold), ou caso a
         % janela de integração não seja "full".
+
         app.xArray = linspace(FreqStart, FreqStop, app.specData(idx).MetaData.DataPoints);
         app.General.Integration.Trace = plotFcn.TraceIntegration(app, idx);
 
-        % Outras características dos eixos.
+        % Limites do app.axes1, os quais ficam armazenadas em app.restoreView 
+        % para recuperação posterior. O comportamento padrão do "restoreView"
+        % (existente no toolbar do eixo) não se mostrou adequado porque ao
+        % ser acionado, não há troca das propriedades "XLim" e "YLim", logo
+        % os controles "uispinner" não são atualizados.
+
+        xLimits = [FreqStart, FreqStop];
         yLimits = YLimits(app, idx);
-        set(app.axes1, XLim=[FreqStart, FreqStop], YLim=yLimits, YScale='linear')
+        app.restoreView = {xLimits, yLimits};
+
+        set(app.axes1, XLim=xLimits, YLim=yLimits, YScale='linear')
         ylabel(app.axes1, sprintf('Nível (%s)', LevelUnit))
 
-        % Curva "guia" (ClearWrite), além das curvas estatísticas (MinHold | 
-        % Average | MaxHold)
+        % Curva a plotar em app.axes1 (na sua ordem correta!).
+        % Persistance >> ClearWrite >> MinHold >> Average >> MaxHold
+        
+        if app.play_Persistance.Value
+            plotFcn.Persistance(app, idx, newArray, LevelUnit, 'Creation')
+        end
+
         app.line_ClrWrite = plot(app.axes1, app.xArray, newArray, Color=app.General.Colors(4,:), Tag='ClrWrite');
         plotFcn.DataTipModel(app.line_ClrWrite, LevelUnit)
         
@@ -35,12 +49,24 @@ function Draw(app, idx)
             plotFcn.maxHold(app, idx, newArray, LevelUnit)
         end
 
-        % Persistence and Waterfall
-        app.surface_WFall = image(app.axes3, app.xArray, 1:app.specData(ii).Band(jj).Waterfall.Depth, app.specData(ii).Band(jj).Waterfall.Matrix(idx2,:), CDataMapping='scaled', Tag='Waterfall');
-        plotFcn.DataTipModel(app.surface_WFall, LevelUnit)
+        % Curva a plotar em app.axes2.
+
+        if app.play_Occupancy.Value
+            plotFcn.OCC(app, idx, newArray, LevelUnit)
+        end
+
+        % Curva a plotar em app.axes3.
+        
+        if app.play_Waterfall.Value
+            plotFcn.Waterfall(app, idx, newArray, LevelUnit)
+        end
 
     else
         app.line_ClrWrite.YData = newArray;
+
+        if app.play_Persistance.Value && ~strcmp(app.play_Persistance_Samples.Value, 'full')
+            plotFcn.Persistance(app, idx, newArray, '', 'Update')
+        end
 
         if ~strcmp(app.play_TraceIntegration.Value, 'Inf')
             if ~isempty(app.line_MinHold)
@@ -55,9 +81,6 @@ function Draw(app, idx)
                 app.line_MaxHold.YData = max(app.line_MaxHold.YData, newArray);
             end
         end
-
-        % Persistência
-        % WaterFall
     end
     drawnow
 end
