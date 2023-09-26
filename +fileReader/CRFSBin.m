@@ -240,7 +240,7 @@ function specData = Fcn_DataOrganization(specData, gpsData, fileName, rawData, B
         specData(ii).FileMap = BlocksTable(BlocksTable.ID == ii, 2:6);
 
         [BeginTime, EndTime, RevisitTime] = Read_ObservationTime(specData(ii), rawData, fileName);
-        specData(ii).RelatedFiles(1,[1:2 5:9]) = {[file ext], Taskname, BeginTime, EndTime, height(specData(ii).FileMap), RevisitTime, {gpsData}};
+        specData(ii).RelatedFiles(1,[1:2 5:10]) = {[file ext], Taskname, BeginTime, EndTime, height(specData(ii).FileMap), RevisitTime, {gpsData}, char(matlab.lang.internal.uuid())};
         
         
         if ~isempty(messageTable)

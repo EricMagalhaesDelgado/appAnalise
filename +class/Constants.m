@@ -21,6 +21,8 @@ classdef (Abstract) Constants
 
         specDataTypes = [1, 2, 4, 7, 60, 61, 63, 64, 67, 68, 167, 168, 1000, 1809];
         occDataTypes  = [8, 62, 65, 69];
+
+        xDecimals     = 5
     end
 
     

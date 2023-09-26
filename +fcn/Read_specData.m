@@ -1,7 +1,7 @@
 function Read_specData(app, d)
     
     % Organização dos fluxos de dados.
-    samplesMap = specDataReader_Map(app);
+    specDataReader_Map(app)
 
     for ii = 1:numel(app.metaData)
         [~, name, ext] = fileparts(app.metaData(ii).File);
@@ -42,21 +42,13 @@ function Read_specData(app, d)
                 end
         end
         
-        % Eliminar alguns campos para possibilitar comparar o fluxo lido 
-        % (SpecInfo >> auxSpecInfo) com o já salvo (app.specData >> auxSpecData)
-        SpecInfo_MetaData = specDataReader_MetaData(app, SpecInfo);
-        specData_MetaData = specDataReader_MetaData(app, app.specData);
+        % Identificar fluxo lido (SpecInfo) com o já salvo (app.specData)
         
         for jj = 1:numel(SpecInfo)
-            auxSpecInfo_GPS = [SpecInfo(jj).GPS.Latitude, SpecInfo(jj).GPS.Longitude];
-            
-            idx1 = [];
             for kk = 1:numel(app.specData)
-                auxSpecData_GPS = [app.specData(kk).GPS.Latitude, app.specData(kk).GPS.Longitude];
-                Distance_GPS    = fcn.geoDistance_v1(auxSpecInfo_GPS, auxSpecData_GPS) * 1000;
-                
-                if isequal(specData_MetaData(kk), SpecInfo_MetaData(jj)) && (Distance_GPS <= app.General.Merge.Distance)
-                    idx1 = kk;
+                idx1 = find(strcmp(app.specData(kk).RelatedFiles.uuid, SpecInfo(jj).RelatedFiles.uuid));
+
+                if ~isempty(idx1)
                     break
                 end
             end
@@ -65,13 +57,13 @@ function Read_specData(app, d)
                 continue
             end
             
-            if ii == 1; idx2 = 1;
-            else;       idx2 = sum(samplesMap(idx1, 1:(ii-1)))+1;
+            if idx1 == 1; idx2 = 1;
+            else;         idx2 = sum(app.specData(kk).RelatedFiles.nSweeps(1:(idx1-1)))+1;
             end
-            idx3 = sum(samplesMap(idx1, 1:ii));
+            idx3 = sum(app.specData(kk).RelatedFiles.nSweeps(1:idx1));
             
-            app.specData(idx1).Data{1}(1,idx2:idx3) = SpecInfo(jj).Data{1};
-            app.specData(idx1).Data{2}(:,idx2:idx3) = SpecInfo(jj).Data{2};
+            app.specData(kk).Data{1}(1,idx2:idx3) = SpecInfo(jj).Data{1};
+            app.specData(kk).Data{2}(:,idx2:idx3) = SpecInfo(jj).Data{2};
         end
     end
     
@@ -82,7 +74,7 @@ end
 
 
 %-------------------------------------------------------------------------%
-function samplesMap = specDataReader_Map(app)
+function specDataReader_Map(app)
 
     for ii = 1:numel(app.metaData)
         SpecInfo  = copy(app.metaData(ii).Data, {'RelatedFiles', 'FileMap'});
@@ -99,9 +91,7 @@ function samplesMap = specDataReader_Map(app)
         % Inicialização de app.specData...
         if ii == 1
             app.specData = SpecInfo;
-
-            samplesMap   = auxSamples;
-            fileIndexMap = (1:numel(app.metaData(ii).Data))';
+            fileIndexMap = num2cell((1:numel(app.metaData(ii).Data))');
             continue
         end
 
@@ -119,8 +109,11 @@ function samplesMap = specDataReader_Map(app)
                 if isequal(specData_MetaData(kk), SpecInfo_MetaData(jj)) && (Distance_GPS <= app.General.Merge.Distance)
                     idx1 = kk;
 
-                    samplesMap(idx1, ii)   = auxSamples(jj);
-                    fileIndexMap(idx1, ii) = jj;
+                    if width(fileIndexMap) < ii
+                        fileIndexMap{idx1, ii} = jj;
+                    else
+                        fileIndexMap{idx1, ii} = [fileIndexMap{idx1, ii}, jj];
+                    end
                     break
                 end
             end
@@ -129,34 +122,32 @@ function samplesMap = specDataReader_Map(app)
                 idx2 = numel(app.specData)+1;
                 
                 app.specData(idx2)     = SpecInfo(jj);
-                samplesMap(idx2, ii)   = auxSamples(jj);
-                fileIndexMap(idx2, ii) = jj;
+                fileIndexMap{idx2, ii} = jj;
             end
         end
     end
     
     % Pré-alocação
-    samplesMap = specDataReader_PreAllocationData(app, samplesMap, fileIndexMap);
+    specDataReader_PreAllocationData(app, fileIndexMap);
 end
 
 
 %-------------------------------------------------------------------------%
-function samplesMap = specDataReader_PreAllocationData(app, samplesMap, fileIndexMap)
+function specDataReader_PreAllocationData(app, fileIndexMap)
 
     for ii = numel(app.specData):-1:1
         % Elimina fluxos filtrados...
         if ~app.specData(ii).Enable
             app.specData(ii)   = [];
-            samplesMap(ii,:)   = [];
             fileIndexMap(ii,:) = [];
 
             continue
         end
 
         for jj = 1:width(fileIndexMap)
-            idx = fileIndexMap(ii,jj);
-            if idx
-                app.specData(ii).RelatedFiles(end+1,:) = app.metaData(jj).Data(idx).RelatedFiles;
+            idx = fileIndexMap{ii,jj};
+            for kk = idx
+                app.specData(ii).RelatedFiles(end+1,:) = app.metaData(jj).Data(kk).RelatedFiles;
             end
         end
         app.specData(ii) = app.specData(ii).PreAllocationData();

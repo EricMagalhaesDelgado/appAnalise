@@ -149,7 +149,7 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     RevisitTime     = seconds(EndTime-BeginTime)/(nSweeps-1);
 
     specData.GPS = rmfield(gpsData, 'Matrix');
-    specData.RelatedFiles(end+1,:) = {[file ext], MetaStruct.Task, MetaStruct.ID, MetaStruct.Description, BeginTime, EndTime, nSweeps, RevisitTime, {gpsData}};
+    specData.RelatedFiles(end+1,:) = {[file ext], MetaStruct.Task, MetaStruct.ID, MetaStruct.Description, BeginTime, EndTime, nSweeps, RevisitTime, {gpsData}, char(matlab.lang.internal.uuid())};
     
 end
 

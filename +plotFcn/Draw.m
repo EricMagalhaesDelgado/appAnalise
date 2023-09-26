@@ -3,15 +3,16 @@ function Draw(app, idx)
     newArray = app.specData(idx).Data{2}(:,app.timeIndex)';
 
     if isempty(app.line_ClrWrite)
-        FreqStart = app.specData(idx).MetaData.FreqStart / 1e+6;
-        FreqStop  = app.specData(idx).MetaData.FreqStop  / 1e+6;
-        LevelUnit = app.specData(idx).MetaData.LevelUnit;
+        DataPoints = app.specData(idx).MetaData.DataPoints;
+        FreqStart  = app.specData(idx).MetaData.FreqStart / 1e+6;
+        FreqStop   = app.specData(idx).MetaData.FreqStop  / 1e+6;
+        LevelUnit  = app.specData(idx).MetaData.LevelUnit;
 
         % Propriedades do app que poderão ser referenciadas, caso criadas
         % curvas estatísticas (MinHold | Average | MaxHold), ou caso a
         % janela de integração não seja "full".
 
-        app.xArray = linspace(FreqStart, FreqStop, app.specData(idx).MetaData.DataPoints);
+        update(app.Band, DataPoints, FreqStart, FreqStop)
         app.General.Integration.Trace = plotFcn.TraceIntegration(app, idx);
 
         % Limites do app.axes1, os quais ficam armazenadas em app.restoreView 
@@ -27,14 +28,14 @@ function Draw(app, idx)
         set(app.axes1, XLim=xLimits, YLim=yLimits, YScale='linear')
         ylabel(app.axes1, sprintf('Nível (%s)', LevelUnit))
 
-        % Curva a plotar em app.axes1 (na sua ordem correta!).
+        % Curvas a plotar em app.axes1 (na sua ordem correta!).
         % Persistance >> ClearWrite >> MinHold >> Average >> MaxHold
         
         if app.play_Persistance.Value
             plotFcn.Persistance(app, idx, newArray, LevelUnit, 'Creation')
         end
 
-        app.line_ClrWrite = plot(app.axes1, app.xArray, newArray, Color=app.General.Colors(4,:), Tag='ClrWrite');
+        app.line_ClrWrite = plot(app.axes1, app.Band.xArray, newArray, Color=app.General.Colors(4,:), Tag='ClrWrite');
         plotFcn.DataTipModel(app.line_ClrWrite, LevelUnit)
         
         if app.play_MinHold.Value
@@ -68,7 +69,7 @@ function Draw(app, idx)
             plotFcn.Persistance(app, idx, newArray, '', 'Update')
         end
 
-        if ~strcmp(app.play_TraceIntegration.Value, 'Inf')
+        if ~isinf(app.General.Integration.Trace)
             if ~isempty(app.line_MinHold)
                 app.line_MinHold.YData = min(app.line_MinHold.YData, newArray);
             end

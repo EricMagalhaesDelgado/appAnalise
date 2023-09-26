@@ -1,4 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<Info Type="StartUp" Visible="0" Icon="" File="+plotFcn/toolbar_meanHold.m" Name="toolbar_meanHold">
-    <Extension Value="fd161535-1719-47c0-9de7-a98b2c57c26f" Name="StartUpPrev"/>
-</Info>
