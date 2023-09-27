@@ -186,7 +186,7 @@ function specData = Fcn_SpecDataReader(specData, rawData)
             end
     
             compressedArray = blockArray(blockOffset1+blockOffset2+9:end);
-            processedArray  = class.CompressLib.decompress(compressedArray);
+            processedArray  = matlabCommunity.CompressLib.decompress(compressedArray);
     
             switch BitsPerSample
                 case  8; newArray = single(processedArray)./2 + OFFSET;

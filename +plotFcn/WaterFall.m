@@ -13,7 +13,7 @@ function WaterFall(app)
         plotFcn.DataTipModel(app.img_WaterFall, LevelUnit)
         
     else
-        set(findobj(app.play_WaterFallGrid, '-not', 'Type', 'uilabel'), Enable=0)
+        set(findobj(app.play_WaterFallGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigridlayout'}), Enable=0)
     end
     drawnow
 end

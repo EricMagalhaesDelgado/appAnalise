@@ -1,4 +1,4 @@
-function OCC(app)
+function OCC(app, idx, newArray, LevelUnit)
 
     if app.play_Occupancy.Value
         set(app.play_occGrid.Children, Enable=1)
@@ -13,7 +13,7 @@ function OCC(app)
         % Plot_StartUp2_OCC(app, idx)
         
     else
-        set(findobj(app.play_occGrid, '-not', 'Type', 'uilabel'), Enable=0)
+        set(findobj(app.play_occGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigridlayout'}), Enable=0)
     end
     drawnow
 end
@@ -91,3 +91,17 @@ function Plot_StartUp2_OCC(app, idx)
     end
     
 end   
+
+
+        function occLineROI(app, src, event)            
+            switch(event.EventName)
+                case{'MovingROI'}
+                    disableDefaultInteractivity(app.axes1)                    
+                    app.play_occValue.Value = event.CurrentPosition(1,2);
+                    app.line_OCCLabel.Position(2)      = event.CurrentPosition(1,2);
+                    
+                case{'ROIMoved'}
+                    enableDefaultInteractivity(app.axes1)                    
+                    set(app.axes2.Children, 'YData', zeros(1, numel(app.line_ClrWrite.YData), 'single'));
+            end            
+        end
