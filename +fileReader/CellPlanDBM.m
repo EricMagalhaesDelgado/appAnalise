@@ -22,7 +22,8 @@ function specData = CellPlanDBM(filename, ReadType, metaData, RootFolder)
     [~, tempFile] = fileparts(filename);
     tempFile = fullfile(RootFolder, 'Temp', sprintf('~%s.bin', tempFile));    
 
-    if isdeployed; RootFolder = fullfile(ctfroot, 'appAnalise');
+    if isdeployed
+        RootFolder = fullfile(ctfroot, class.Constants.appName);
     end
     cd(fullfile(pathToMFILE, 'CellPlanDBM'))
     system(sprintf('CellPlan_dBmReader.exe "%s" "%s"', filename, tempFile));

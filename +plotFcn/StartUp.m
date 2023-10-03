@@ -13,7 +13,7 @@ function StartUp(app, idx)
     app.line_MinHold       = [];
     app.line_Average       = [];
     app.line_MaxHold       = [];
-    app.img_Persistance    = [];
+    app.obj_Persistance    = [];
 
     app.mkr_ROI            = [];
     app.mkr_Label          = [];

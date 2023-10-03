@@ -32,10 +32,11 @@ function Draw(app, idx)
         % Persistance >> ClearWrite >> MinHold >> Average >> MaxHold
         
         if app.play_Persistance.Value
-            plotFcn.Persistance(app, idx, newArray, LevelUnit, 'Creation')
+            plotFcn.Persistance(app, idx, 'Creation')
         end
 
         app.line_ClrWrite = plot(app.axes1, app.Band.xArray, newArray, Color=app.General.Colors(4,:), Tag='ClrWrite');
+        set(app.line_ClrWrite, 'Visible', app.play_LineVisibility.Value)
         plotFcn.DataTipModel(app.line_ClrWrite, LevelUnit)
         
         if app.play_MinHold.Value
@@ -59,14 +60,14 @@ function Draw(app, idx)
         % Curva a plotar em app.axes3.
         
         if app.play_Waterfall.Value
-            plotFcn.Waterfall(app, idx, newArray, LevelUnit)
+            plotFcn.WaterFall(app, idx, 'Creation', LevelUnit)
         end
 
     else
         app.line_ClrWrite.YData = newArray;
 
         if app.play_Persistance.Value && ~strcmp(app.play_Persistance_Samples.Value, 'full')
-            plotFcn.Persistance(app, idx, newArray, '', 'Update')
+            plotFcn.Persistance(app, idx, 'Update')
         end
 
         if ~isinf(app.General.Integration.Trace)
@@ -81,6 +82,10 @@ function Draw(app, idx)
             if ~isempty(app.line_MaxHold)
                 app.line_MaxHold.YData = max(app.line_MaxHold.YData, newArray);
             end
+        end
+
+        if app.play_Waterfall.Value && ~isempty(app.line_WaterFallTime) && strcmp(app.play_Waterfall_Timestamp.Value, 'on')
+            app.line_WaterFallTime.YData = [app.specData(idx).Data{1}(app.timeIndex), app.specData(idx).Data{1}(app.timeIndex)];
         end
     end
     drawnow

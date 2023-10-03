@@ -1,89 +1,83 @@
-function WaterFall(app)
+function WaterFall(app, idx, Type, LevelUnit)
+
+    hComponents = findobj(app.play_WaterFallGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigridlayout'});
 
     if app.play_Waterfall.Value
-        set(app.play_WaterFallGrid.Children, Enable=1)
+        set(hComponents, Enable=1)
 
-        % Identifica índice do fluxo espectral plotado.
-        idx = [];
-        if ~isempty(app.play_PlotPanel.UserData)
-            idx = app.play_PlotPanel.UserData.NodeData;
-        end
+        if isempty(app.img_WaterFall)
+            DataPoints = app.specData(idx).MetaData.DataPoints;
+            nSweeps    = numel(app.specData(idx).Data{1});
 
-        app.img_WaterFall = image(app.axes3, app.xArray, 1:numel(app.specData(idx).Data{1}), app.specData(idx).Data{2}', CDataMapping='scaled', Tag='Waterfall');
-        plotFcn.DataTipModel(app.img_WaterFall, LevelUnit)
+            % Definição do fator inicial de decimação de amostras para desenho
+            % do WaterFall.
+            switch app.play_Waterfall_Decimation.Value
+                case 'auto'
+                    nWaterFallPoints     = DataPoints*nSweeps;
+                    nMaxWaterFallPoints = class.Constants.nMaxWaterFallPoints;
+    
+                    if nWaterFallPoints > nMaxWaterFallPoints
+                        Decimate = ceil(nWaterFallPoints/nMaxWaterFallPoints);
+                    else
+                        Decimate = 1;
+                    end
+
+                otherwise
+                    Decimate = str2double(app.play_Waterfall_Decimation.Value);
+            end
+
+            % Ajuste do fator de decimação, de forma que após aplicação desse
+            % fator reste ao menos duas varreduras.    
+            while true
+                t = app.specData(idx).Data{1}(1:Decimate:end);
+                if numel(t) > 1; break
+                else;            Decimate = round(Decimate/2);
+                end
+            end
+    
+            if ~strcmp(app.play_Waterfall_Decimation.Value, 'auto')
+                app.play_Waterfall_Decimation.Value = num2str(Decimate);
+            end
+    
+            if t(1) == t(end)
+                t(end) = t(1)+seconds(1);
+            end
+
+            % Grid            
+            [X, Y] = meshgrid(app.Band.xArray, t);
+    
+            app.axes3.CLimMode = 'auto';
+            app.img_WaterFall = mesh(app.axes3, X, Y, app.specData(idx).Data{2}(:,1:Decimate:end)', 'MeshStyle', app.play_Waterfall_Interpolation.Value, 'SelectionHighlight', 'off', 'Tag', 'WaterFall');
+            plotFcn.DataTipModel(app.img_WaterFall, LevelUnit)
+            view(app.axes3, 0, 90);
+            
+            if strcmp(app.play_Waterfall_Timestamp.Value, 'on')
+                app.line_WaterFallTime = line(app.axes3, [app.Band.xArray(1), app.Band.xArray(end)], [app.specData(idx).Data{1}(app.timeIndex), app.specData(idx).Data{1}(app.timeIndex)], [app.axes1.YLim(2) app.axes1.YLim(2)], ...
+                                                        'Color', 'red', 'LineWidth', 1, 'PickableParts', 'none', 'Tag', 'WaterFall_time');
+            end
+            
+            tTickLabel    = linspace(t(1), t(end), 3);
+            [~, tIndex]   = min(abs(app.specData(idx).Data{1} - tTickLabel(2)));
+            tTickLabel(2) = app.specData(idx).Data{1}(tIndex);
+    
+            set(app.axes3, 'YLim' , [t(1), t(end)], 'YTick', tTickLabel, 'YTickLabel', [1, round(tIndex), nSweeps])
+    
+            % Colors limits
+            app.axes3.CLim(2)  = round(app.axes3.CLim(2));
+            app.axes3.CLim(1)  = round(app.axes3.CLim(2) - diff(app.axes3.CLim)/2);
+    
+            app.play_Waterfall_cLim1.Value = app.axes3.CLim(1);
+            app.play_Waterfall_cLim2.Value = app.axes3.CLim(2);
+        end   
         
     else
-        set(findobj(app.play_WaterFallGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigridlayout'}), Enable=0)
+        set(hComponents, Enable=0)
+
+        if strcmp(Type, 'Delete')
+            cla(app.axes3)
+            
+            app.img_WaterFall      = [];
+            app.line_WaterFallTime = [];
+        end
     end
-    drawnow
-end
-
-       
-function Plot_StartUp2_WaterFall(app)
-    ind1 = app.traceInfo.SelectedNode;
-    
-    if isempty(findobj('Tag', 'wfSurface'))
-        if strcmp(app.play_Waterfall_Decimation.Value, 'auto')
-            auxSize = app.specData(ind1).MetaData.DataPoints .* app.specData(ind1).Samples;
-            if auxSize > 1474560; Decimate = ceil(auxSize/1474560);
-            else;                 Decimate = 1;
-            end
-        else
-            Decimate = str2double(app.play_Waterfall_Decimation.Value);
-        end
-
-        while true
-            t = app.specData(ind1).Data{1}(1:Decimate:end);
-            if numel(t) > 1; break
-            else;            Decimate = round(Decimate/2);
-            end
-        end
-
-        if ~strcmp(app.play_Waterfall_Decimation.Value, 'auto')
-            app.play_Waterfall_Decimation.Value = num2str(Decimate);
-        end
-
-        if t(1) == t(end)
-            t(end) = t(1)+seconds(1);
-        end
-        app.RestoreView{3} = [t(1), t(end)];
-        
-        [X, Y] = meshgrid(app.x, t);
-
-        app.axes3.CLimMode = 'auto';
-        mesh(app.axes3, X, Y, app.specData(ind1).Data{2}(:,1:Decimate:end)', 'MeshStyle', app.play_Waterfall_Interpolation.Value, 'SelectionHighlight', 'off', 'Tag', 'wfSurface')
-        view(app.axes3, 0, 90);
-        
-        if strcmp(app.play_Waterfall_Timestamp.Value, 'on')
-            app.line_wfTime = line(app.axes3, [app.x(1), app.x(end)], [app.specData(ind1).Data{1}(app.timeIndex), app.specData(ind1).Data{1}(app.timeIndex)], [app.axes1.YLim(2) app.axes1.YLim(2)], ...
-                                              'Color', 'red', 'LineWidth', 1, 'PickableParts', 'none', 'Tag', 'wfTimeStamp');
-        end
-        
-        tTickLabel    = linspace(t(1), t(end), 3);
-        [~, tIndex]   = min(abs(app.specData(ind1).Data{1} - tTickLabel(2)));
-        tTickLabel(2) =  app.specData(ind1).Data{1}(tIndex);
-
-        set(app.axes3, 'YLim' , [t(1), t(end)], 'YTick', tTickLabel, 'YTickLabel', [1, round(tIndex), app.specData(ind1).Samples])
-
-        hText = findobj('Tag', 'DecimateLabel');
-        if isempty(hText)
-            text(app.axes3, 1.01, .98, 0, sprintf('FD: %.0f', Decimate), 'Units', 'normalized', 'FontName', 'Helvetica', 'FontSize', 7, 'Tag', 'DecimateLabel')
-        else
-            hText.String = sprintf('FD: %.0f', Decimate);
-        end
-
-        % Colors limits
-        app.axes3.CLim(2)  = round(app.axes3.CLim(2));
-        app.axes3.CLim(1)  = round(app.axes3.CLim(2) - diff(app.axes3.CLim)/2);
-
-        app.RestoreView{4} = app.axes3.CLim;
-
-        app.play_Waterfall_cLim1.Value = app.axes3.CLim(1);
-        app.play_Waterfall_cLim2.Value = app.axes3.CLim(2);
-
-        Li = app.axes3.CLim(1);
-        Ls = app.axes3.CLim(2);
-        
-        set(app.cBar1, Limits=[Li, Ls], Ticks=[Li, Ls], TickLabels={num2str(Li), num2str(Ls)})
-    end    
 end

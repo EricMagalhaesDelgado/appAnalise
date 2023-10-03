@@ -1,7 +1,7 @@
 function specData = CRFSBin(fileName, ReadType, metaData)
 
     % Author.: Eric Magalhães Delgado
-    % Date...: September 11, 2023
+    % Date...: September 29, 2023
     % Version: 2.01
 
     arguments
@@ -315,10 +315,12 @@ end
 %-------------------------------------------------------------------------%
 function [BeginTime, EndTime, RevisitTime] = Read_ObservationTime(specData, rawData, filename)
 
+    Samples = height(specData.FileMap);
+
     if ismember(specData.MetaData.DataType, [4, 7])
-        fileInfo = dir(filename);
-        EndTime  = datetime(fileInfo.date, 'Locale', 'system');
-        BeginTime = EndTime - seconds(specData.RelatedFiles.nSweeps-1);
+        fileInfo  = dir(filename);
+        EndTime   = datetime(fileInfo.date, 'Locale', 'system');
+        BeginTime = EndTime - seconds(Samples-1);
         
     else
         BytesOffset = 0;
@@ -334,10 +336,10 @@ function [BeginTime, EndTime, RevisitTime] = Read_ObservationTime(specData, rawD
         ind2 = specData.FileMap.StopByte(end);
         EndTime  = Read_TimeStamp(rawData(ind1:ind2), specData.MetaData.DataType);
     end
+
     BeginTime.Format = 'dd/MM/yyyy HH:mm:ss';
     EndTime.Format   = 'dd/MM/yyyy HH:mm:ss';
 
-    Samples          = height(specData.FileMap);
     RevisitTime      = seconds(EndTime-BeginTime)/(Samples-1);    
 end
 

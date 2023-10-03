@@ -23,6 +23,8 @@ classdef (Abstract) Constants
         occDataTypes  = [8, 62, 65, 69];
 
         xDecimals     = 5
+
+        nMaxWaterFallPoints = 1474560
     end
 
     
