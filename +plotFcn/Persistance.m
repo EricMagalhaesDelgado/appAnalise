@@ -5,6 +5,11 @@ function Persistance(app, idx, Type)
     if app.play_Persistance.Value
         set(hComponents, Enable=1)
 
+        if ~strcmp(app.play_Persistance_Samples.Value, 'full')
+            app.play_Persistance_cLim_Mode.Enable = 0;
+            set(app.play_Persistance_cLim_Grid2.Children, Enable=0)
+        end
+
         switch Type
             case 'Creation'
                 DataPoints    = app.Band.DataPoints;
@@ -56,6 +61,9 @@ function Persistance(app, idx, Type)
                         specHist = histcounts2(app.specData(idx).Data{2}, repmat(app.Band.xArray', 1, numel(app.specData(idx).Data{1})), ...
                                                app.obj_Persistance.yEdges, app.obj_Persistance.xEdges);
 
+                        set(app.obj_Persistance.handle, 'CData', (100 * specHist ./ sum(specHist)), ...
+                                                        'AlphaData', double(logical(specHist))*app.play_Persistance_Transparency.Value)
+
                     otherwise
                         idx2 = app.timeIndex;
                         idx1 = idx2 - (app.obj_Persistance.ySamples-1);
@@ -65,10 +73,13 @@ function Persistance(app, idx, Type)
                         
                         specHist = histcounts2(app.specData(idx).Data{2}(:, idx1:idx2), repmat(app.Band.xArray', 1, idx2-idx1+1), ...
                                                app.obj_Persistance.yEdges, app.obj_Persistance.xEdges);
-                end
-    
-                set(app.obj_Persistance.handle, 'CData', (100 * specHist ./ sum(specHist)), ...
+
+                        set(app.obj_Persistance.handle, 'CData', (100 * specHist ./ sum(specHist)), ...
                                                 'AlphaData', double(logical(specHist))*app.play_Persistance_Transparency.Value)
+
+                        app.play_Persistance_cLim1.Value = app.axes1.CLim(1);
+                        app.play_Persistance_cLim2.Value = app.axes1.CLim(2);
+                end
         end
         
     else

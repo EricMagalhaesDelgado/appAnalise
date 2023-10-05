@@ -23,7 +23,7 @@ function Draw(app, idx)
 
         xLimits = [FreqStart, FreqStop];
         yLimits = YLimits(app, idx);
-        app.restoreView = {xLimits, yLimits};
+        app.restoreView(1:2) = {xLimits, yLimits};
 
         set(app.axes1, XLim=xLimits, YLim=yLimits, YScale='linear')
         ylabel(app.axes1, sprintf('Nível (%s)', LevelUnit))

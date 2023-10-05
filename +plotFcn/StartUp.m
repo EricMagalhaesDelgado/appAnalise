@@ -9,6 +9,8 @@ function StartUp(app, idx)
     app.play_PlaybackSlider.Value = 0;
 
     % Controle dos handles.
+    app.restoreView        = {[0,1], [0,1], [0,1]};
+
     app.line_ClrWrite      = [];
     app.line_MinHold       = [];
     app.line_Average       = [];
