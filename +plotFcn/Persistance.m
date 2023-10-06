@@ -1,6 +1,6 @@
 function Persistance(app, idx, Type)
 
-    hComponents = findobj(app.play_PersistanceGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigridlayout'});
+    hComponents = findobj(app.play_PersistanceGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigrid', '-or', 'Type', 'uipanel'});
 
     if app.play_Persistance.Value
         set(hComponents, Enable=1)

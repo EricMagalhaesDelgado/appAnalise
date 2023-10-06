@@ -2,7 +2,7 @@ function WaterFall(app, idx, Type, LevelUnit)
 
     switch Type
         case 'Creation'
-            hComponents = findobj(app.play_WaterFallGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigridlayout'});
+            hComponents = findobj(app.play_WaterFallGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigrid', '-or', 'Type', 'uipanel'});
             
             if app.play_Waterfall.Value
                 set(hComponents, Enable=1)
