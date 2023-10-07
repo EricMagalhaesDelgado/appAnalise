@@ -54,7 +54,21 @@ function Draw(app, idx)
         % Curva a plotar em app.axes2.
 
         if app.play_Occupancy.Value
-            plotFcn.OCC(app, idx, newArray, LevelUnit)
+            occInfo  = play_OCCInfo(app);
+            occIndex = find(cellfun(@(x) isequal(x, occInfo), {app.specData(idx).UserData.OCC.Info}));
+            
+            if isempty(occIndex)
+                occIndex = numel(app.specData(idx).UserData.OCC)+1;
+    
+                occTHR   = class.OCC.Threshold(app.specData(idx), occInfo);
+                occData  = class.OCC.Analysis( app.specData(idx), occInfo, occTHR);
+    
+                app.specData(idx).UserData.OCC(occIndex) = struct('Info', occInfo, ...
+                                                                  'THR',  occTHR,  ...
+                                                                  'Data', {occData});
+            end
+    
+            plotFcn.OCC(app, idx, 'Creation', LevelUnit, occIndex)
         end
 
         % Curva a plotar em app.axes3.

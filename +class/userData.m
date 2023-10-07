@@ -6,6 +6,7 @@ classdef userData < dynamicprops
                                      'VariableTypes', {'uint16', 'double', 'double', 'logical', 'cell'}, ...
                                      'VariableNames', {'idx', 'FreqCenter', 'BW', 'isTruncated', 'Parameters'})
         Channels             = []
+        OCC                  = struct('Info', {}, 'THR', {}, 'Data', {})
 
         reportFlag           = false
         reportOCC            = struct('Related', [], 'idx', [], 'Method', '', 'Parameters', '')
