@@ -39,7 +39,7 @@
     ]
   ],
   "Integration": {
-    "Trace": 10,
+    "Trace": null,
     "SampleTime": 10
   }
 }

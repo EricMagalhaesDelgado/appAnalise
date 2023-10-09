@@ -7,4 +7,5 @@ function maxHold(app, idx, newArray, LevelUnit)
     end
 
     plotFcn.DataTipModel(app.line_MaxHold, LevelUnit)
+    plotFcn.axesStackingOrder(app)
 end

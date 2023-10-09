@@ -87,8 +87,7 @@ classdef OCC
             referenceTime.Minute = referenceTime.Minute - mod(referenceTime.Minute, occInfo.IntegrationTime);
             referenceTime.Second = 0;
 
-            % Aqui começa a aferição da ocupação...
-
+            % Aqui começa a aferição da ocupação orientada ao BIN...
             occStamp = 1;            
             while referenceTime < specData.Data{1}(end)
                 [~, idx] = find((specData.Data{1} >= referenceTime) & ...
@@ -97,28 +96,27 @@ classdef OCC
                 if ~isempty(idx)
                     switch occInfo.Method
                         case {'Linear fixo', 'Envoltória do ruído'}
-                            auxMatrix = single(specData.Data{2}(:, idx) > occTHR);
+                            occMatrix = single(specData.Data{2}(:, idx) > occTHR);
 
                         case 'Linear adaptativo'
-                            auxMatrix = single(specData.Data{2}(:, idx) > occTHR(idx));
+                            occMatrix = single(specData.Data{2}(:, idx) > occTHR(idx));
                     end
                     
                     occData{1}(occStamp)   = referenceTime;
-                    occData{2}(:,occStamp) = 100 * sum(auxMatrix, 2) / size(auxMatrix, 2);
+                    occData{2}(:,occStamp) = 100 * sum(occMatrix, 2) / width(occMatrix);
 
-                    occStamp  = occStamp + 1;    
+                    occStamp  = occStamp + 1;
                 end
                 referenceTime = referenceTime + minutes(occInfo.IntegrationTime);
             end
 
             % Elimina amostras relacionadas a períodos de tempo não
-            % monitorados...
-            
+            % monitorados...            
             if occStamp-1 < occSamples
                 occData{1}(occStamp:end)   = [];
                 occData{2}(:,occStamp:end) = [];
             end
-                
+
             occData{3} = [ min(occData{2}, [], 2), ...
                           mean(occData{2},     2), ...
                            max(occData{2}, [], 2)];

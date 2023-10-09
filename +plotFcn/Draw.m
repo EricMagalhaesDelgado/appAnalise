@@ -9,11 +9,9 @@ function Draw(app, idx)
         LevelUnit  = app.specData(idx).MetaData.LevelUnit;
 
         % Propriedades do app que poderão ser referenciadas, caso criadas
-        % curvas estatísticas (MinHold | Average | MaxHold), ou caso a
-        % janela de integração não seja "full".
+        % curvas estatísticas (MinHold | Average | MaxHold).
 
         update(app.Band, DataPoints, FreqStart, FreqStop)
-        app.General.Integration.Trace = plotFcn.TraceIntegration(app, idx);
 
         % Limites do app.axes1, os quais ficam armazenadas em app.restoreView 
         % para recuperação posterior. O comportamento padrão do "restoreView"
@@ -43,31 +41,18 @@ function Draw(app, idx)
             plotFcn.minHold(app, idx, newArray, LevelUnit)
         end
 
-        if app.play_Average.Value
-            plotFcn.Average(app, idx, newArray, LevelUnit)
-        end
-
         if app.play_MaxHold.Value
             plotFcn.maxHold(app, idx, newArray, LevelUnit)
         end
 
-        % Curva a plotar em app.axes2.
+        if app.play_Average.Value
+            plotFcn.Average(app, idx, newArray, LevelUnit)
+        end
+
+        % Curva a plotar em app.axes1 e app.axes2.
 
         if app.play_Occupancy.Value
-            occInfo  = play_OCCInfo(app);
-            occIndex = find(cellfun(@(x) isequal(x, occInfo), {app.specData(idx).UserData.OCC.Info}));
-            
-            if isempty(occIndex)
-                occIndex = numel(app.specData(idx).UserData.OCC)+1;
-    
-                occTHR   = class.OCC.Threshold(app.specData(idx), occInfo);
-                occData  = class.OCC.Analysis( app.specData(idx), occInfo, occTHR);
-    
-                app.specData(idx).UserData.OCC(occIndex) = struct('Info', occInfo, ...
-                                                                  'THR',  occTHR,  ...
-                                                                  'Data', {occData});
-            end
-    
+            occIndex = play_OCCIndex(app, idx);    
             plotFcn.OCC(app, idx, 'Creation', LevelUnit, occIndex)
         end
 

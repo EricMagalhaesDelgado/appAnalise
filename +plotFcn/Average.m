@@ -7,4 +7,5 @@ function Average(app, idx, newArray, LevelUnit)
     end
 
     plotFcn.DataTipModel(app.line_Average, LevelUnit)
+    plotFcn.axesStackingOrder(app)
 end
