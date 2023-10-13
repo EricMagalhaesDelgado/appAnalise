@@ -2,16 +2,16 @@ classdef ChannelLib < handle
 
     properties
         %-----------------------------------------------------------------%
-        Channel     = table('Size', [0,5],                                                 ...
-                            'VariableTypes', {'cell', 'double', 'double', 'cell', 'cell'}, ...
-                            'VariableNames', {'Name', 'FreqStart', 'FreqStop', 'FindPeaks', 'Channels'})
+        Channel   = table('Size', [0,7],                                                                       ...
+                          'VariableTypes', {'cell', 'double', 'double', 'double', 'double', 'cell', 'struct'}, ...
+                          'VariableNames', {'Name', 'FreqStart', 'FreqStop', 'StepWidth', 'ChannelBW', 'FreqList', 'FindPeaks'})
 
-        Exception   = table('Size', [0,2],                       ...
-                            'VariableTypes', {'double', 'cell'}, ...
-                            'VariableNames', {'FreqCenter', 'Description'})
+        Exception = table('Size', [0,2],                       ...
+                          'VariableTypes', {'double', 'cell'}, ...
+                          'VariableNames', {'FreqCenter', 'Description'})
 
-        ChannelStep
-        BandSpan
+        DefaultChannelStep
+        DefaultMinBandSpan
     end
 
 
@@ -22,50 +22,44 @@ classdef ChannelLib < handle
             channelTempLib = jsondecode(fileread(fullfile(RootFolder, 'Settings', 'ChannelLib.json')));
 
             obj.Channel     = struct2table(channelTempLib.Channel);
-            obj.Exception   = struct2table(channelTempLib.Exception);            
-            obj.ChannelStep = channelTempLib.ChannelStep;
-            obj.BandSpan    = channelTempLib.BandSpan;
+            obj.Exception   = struct2table(channelTempLib.Exception);
+
+            obj.DefaultChannelStep = channelTempLib.DefaultChannelStep;
+            obj.DefaultMinBandSpan = channelTempLib.DefaultMinBandSpan;
         end
 
 
         %-----------------------------------------------------------------%
-        function TruncatedList = Misc_TruncatedFrequency(obj, Data, FreqList)
+        function TruncatedList = TruncatedFrequency(obj, specData, FreqList)
         
-            idx1 = FindBand(obj, Data);
+            idx1 = FindBand(obj, specData);
             
             TruncatedList = [];
             for ii = numel(FreqList):-1:1
-                if ~isempty(idx1) && FreqList(ii) >= peaksReference(idx1).Band(1)/1e+6 && FreqList(ii) <= peaksReference(idx1).Band(2)/1e+6
-                    Channels  = peaksReference(idx1).Channels;
+                if ~isempty(idx1) && FreqList(ii) >= obj.Channel.FreqStart(idx1)/1e+6 && FreqList(ii) <= obj.Channel.FreqStart(idx1)/1e+6
+                    Channels  = obj.Channel.Channels{idx1};
         
                 else
-                    FreqStart = Data.MetaData.FreqStart ./ 1e+6;            % Hz >> MHz
-                    FreqStop  = Data.MetaData.FreqStop  ./ 1e+6;            % Hz >> MHz
-                    Channels  = FreqStart:obj.ChannelStep:FreqStop;
+                    FreqStart = specData.MetaData.FreqStart ./ 1e+6;            % Hz >> MHz
+                    FreqStop  = specData.MetaData.FreqStop  ./ 1e+6;            % Hz >> MHz
+                    Channels  = FreqStart:obj.DefaultChannelStep:FreqStop;
                 end
         
-                [~, idx2]       = min(abs(Channels - FreqList(ii)));
+                [~, idx2] = min(abs(Channels - FreqList(ii)));
                 TruncatedList(ii,1) = Channels(idx2);
             end
         end
 
 
         %-----------------------------------------------------------------%
-        function [idx, Band] = FindBand(obj, Data)
+        function idx = FindBand(obj, specData)
         
-            CF   = (Data.MetaData.FreqStart + Data.MetaData.FreqStop)/2;
-            Span =  Data.MetaData.FreqStop  - Data.MetaData.FreqStart;
+            FreqStart = specData.MetaData.FreqStart/1e+6;
+            FreqStop  = specData.MetaData.FreqStop /1e+6;
         
-            idx  = [];
-            Band = '';
-        
-            for ii = 1:height(obj.Channel)
-                if (CF > obj.Channel.FreqStart(ii)) && (CF < peaksReference(ii).Band(2)) && (Span >= obj.refSpan)
-                    idx  = ii;
-                    Band = peaksReference(ii).Description;
-                    break
-                end
-            end        
+            idx = find(((FreqStart >= obj.Channel.FreqStart) & (FreqStart <= obj.Channel.FreqStop)) | ...
+                       ((FreqStart <= obj.Channel.FreqStart) & (FreqStop  >= obj.Channel.FreqStop)) | ...
+                       ((FreqStop  >= obj.Channel.FreqStart) & (FreqStop  <= obj.Channel.FreqStop)));
         end
     end
 end

@@ -79,16 +79,6 @@ function specDataReader_Map(app)
     for ii = 1:numel(app.metaData)
         SpecInfo  = copy(app.metaData(ii).Data, {'RelatedFiles', 'FileMap'});
 
-        % auxSamples e fileIndexMap são duas matrizes que mapeiam o número de 
-        % amostras e a sua posição em app.metaData(ii).Data(jj), respectivamente. 
-        % São essenciais na leitura das matrizes de níveis, visto que possibilitam 
-        % a pré-alocação.
-        auxSamples = app.metaData(ii).Samples;
-        if isempty(auxSamples)
-            auxSamples = 0;
-        end
-
-        % Inicialização de app.specData...
         if ii == 1
             app.specData = SpecInfo;
             fileIndexMap = num2cell((1:numel(app.metaData(ii).Data))');
@@ -187,12 +177,14 @@ function specDataReader_FinalOperation(app)
             end
         end
 
-        % Basic statistical of the data, and OCC map
-        app.specData(ii).Data{3} = [min(app.specData(ii).Data{2}, [], 2), ...
-                                    mean(app.specData(ii).Data{2}, 2),    ...
-                                    max(app.specData(ii).Data{2}, [], 2)];
+        % Estatística básica dos dados:
+        app.specData(ii).Data{3} = [ min(app.specData(ii).Data{2}, [], 2), ...
+                                    mean(app.specData(ii).Data{2},     2), ...
+                                     max(app.specData(ii).Data{2}, [], 2)];
 
         if ismember(app.specData(ii).MetaData.DataType, class.Constants.specDataTypes)
+            % Mapeamento entre os fluxos de espectro e os de ocupação
+            % (eventualmente gerados pelo Logger):
             idxOCC = [];
             for jj = 1:numel(app.specData)
                 if ismember(app.specData(jj).MetaData.DataType, class.Constants.occDataTypes)
@@ -214,6 +206,10 @@ function specDataReader_FinalOperation(app)
             if ~isempty(app.specData(ii).UserData.reportOCC.Related)
                 app.specData(ii).UserData.reportOCC.idx = app.specData(ii).UserData.reportOCC.Related(1);
             end
+
+            % Mapeamento entre os fluxos de espectro e as canalizações
+            % aplicáveis à cada faixa.
+            app.specData(ii).UserData.channelLibIndex = app.channelObj.FindBand(app.specData(ii));
         end
     end
 end

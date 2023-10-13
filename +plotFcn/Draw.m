@@ -10,7 +10,6 @@ function Draw(app, idx)
 
         % Propriedades do app que poderão ser referenciadas, caso criadas
         % curvas estatísticas (MinHold | Average | MaxHold).
-
         update(app.Band, DataPoints, FreqStart, FreqStop)
 
         % Limites do app.axes1, os quais ficam armazenadas em app.restoreView 
@@ -18,7 +17,6 @@ function Draw(app, idx)
         % (existente no toolbar do eixo) não se mostrou adequado porque ao
         % ser acionado, não há troca das propriedades "XLim" e "YLim", logo
         % os controles "uispinner" não são atualizados.
-
         xLimits = [FreqStart, FreqStop];
         yLimits = YLimits(app, idx);
         app.restoreView(1:2) = {xLimits, yLimits};
@@ -27,8 +25,7 @@ function Draw(app, idx)
         ylabel(app.axes1, sprintf('Nível (%s)', LevelUnit))
 
         % Curvas a plotar em app.axes1 (na sua ordem correta!).
-        % Persistance >> ClearWrite >> MinHold >> Average >> MaxHold
-        
+        % Persistance >> ClearWrite >> MinHold >> Average >> MaxHold        
         if app.play_Persistance.Value
             plotFcn.Persistance(app, idx, 'Creation')
         end
@@ -50,16 +47,19 @@ function Draw(app, idx)
         end
 
         % Curva a plotar em app.axes1 e app.axes2.
-
         if app.play_Occupancy.Value
             occIndex = play_OCCIndex(app, idx);    
             plotFcn.OCC(app, idx, 'Creation', LevelUnit, occIndex)
         end
 
-        % Curva a plotar em app.axes3.
-        
+        % Curva a plotar em app.axes3.        
         if app.play_Waterfall.Value
             plotFcn.WaterFall(app, idx, 'Creation', LevelUnit)
+        end
+
+        % Customização do playback:
+        if strcmp(app.specData(idx).UserData.customPlayback.Type, 'manual')
+            plotFcn.Datatip(app, idx)
         end
 
     else
