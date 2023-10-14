@@ -1,21 +1,30 @@
 {
   "Channel": [
     {
-      "Name": "TV_1",
-      "FreqStart": 54,
-      "FreqStop": 88,
-      "FirstChannel": -1,
-      "StepWidth": -1,
+      "Name": "TV Low VHF (1)",
+      "Band": [54, 72],
+      "FirstChannel": 57,
+      "LastChannel": 69,
+      "StepWidth": 6,
       "ChannelBW": 6,
-      "FreqList": [
-        [
-          57,
-          63,
-          69,
-          79,
-          85
-        ]
-      ],
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+      "FindPeaks": {
+        "Prominence": 10,
+        "Distance": 4.5,
+        "BW": 0.15,
+        "OCC": 67
+      }
+    },
+      {
+      "Name": "TV Low VHF (2)",
+      "Band": [76, 88],
+      "FirstChannel": 79,
+      "LastChannel": 85,
+      "StepWidth": 6,
+      "ChannelBW": 6,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 4.5,
@@ -25,12 +34,13 @@
     },
     {
       "Name": "FM",
-      "FreqStart": 76,
-      "FreqStop": 108,
+      "Band": [76, 108],
       "FirstChannel": 76.1,
+      "LastChannel": 107.9,
       "StepWidth": 0.2,
       "ChannelBW": 0.256,
       "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 0.2,
@@ -40,12 +50,13 @@
     },
     {
       "Name": "Aircraft_1",
-      "FreqStart": 108,
-      "FreqStop": 117.9,
+      "Band": [108, 118],
       "FirstChannel": 108,
+      "LastChannel": 117.9,
       "StepWidth": 0.1,
       "ChannelBW": 0.01,
       "FreqList": [],
+      "Reference": "",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 0.025,
@@ -55,12 +66,13 @@
     },
     {
       "Name": "Aircraft_2",
-      "FreqStart": 118,
-      "FreqStop": 137,
+      "Band": [118, 137],
       "FirstChannel": 118,
+      "LastChannel": 137,
       "StepWidth": 0.025,
       "ChannelBW": 0.01,
       "FreqList": [],
+      "Reference": "",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 0.025,
@@ -69,13 +81,14 @@
       }
     },
     {
-      "Name": "TV_2",
-      "FreqStart": 174,
-      "FreqStop": 216,
+      "Name": "TV High VHF",
+      "Band": [174, 216],
       "FirstChannel": 177,
+      "LastChannel": 213,
       "StepWidth": 6,
       "ChannelBW": 6,
       "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 4.5,
@@ -84,13 +97,30 @@
       }
     },
     {
-      "Name": "TV_3",
-      "FreqStart": 470,
-      "FreqStop": 698,
+      "Name": "TV UHF (1)",
+      "Band": [470, 608],
       "FirstChannel": 473,
+      "LastChannel": 605,
       "StepWidth": 6,
       "ChannelBW": 6,
       "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+      "FindPeaks": {
+        "Prominence": 10,
+        "Distance": 4.5,
+        "BW": 0.15,
+        "OCC": 67
+      }
+    },
+      {
+      "Name": "TV UHF (2)",
+      "Band": [614, 698],
+      "FirstChannel": 617,
+      "LastChannel": 695,
+      "StepWidth": 6,
+      "ChannelBW": 6,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 4.5,
@@ -99,13 +129,14 @@
       }
     },
     {
-      "Name": "Cellular_700",
-      "FreqStart": 768,
-      "FreqStop": 798,
-      "FirstChannel": 10,
+      "Name": "Cellular 700MHz",
+      "Band": [763, 803],
+      "FirstChannel": 768,
+      "LastChannel": 798,
       "StepWidth": 10,
       "ChannelBW": 10,
       "FreqList": [],
+      "Reference": "",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 10,
@@ -114,10 +145,10 @@
       }
     },
     {
-      "Name": "Cellular_800",
-      "FreqStart": 869,
-      "FreqStop": 894,
-      "FirstChannel": -1,
+      "Name": "Cellular 800MHz",
+      "Band": [869, 894],
+      "FirstChannel": 874.5,
+      "LastChannel": 892.75,
       "StepWidth": -1,
       "ChannelBW": -1,
       "FreqList": [
@@ -128,6 +159,7 @@
           892.75
         ]
       ],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2006/89-resolucao-454",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 2.5,
@@ -136,10 +168,10 @@
       }
     },
     {
-      "Name": "Cellular_900",
-      "FreqStart": 943.5,
-      "FreqStop": 960,
-      "FirstChannel": -1,
+      "Name": "Cellular 900MHz",
+      "Band": [943.5, 960],
+      "FirstChannel": 944.75,
+      "LastChannel": 958.75,
       "StepWidth": -1,
       "ChannelBW": -1,
       "FreqList": [
@@ -154,6 +186,7 @@
           958.75
         ]
       ],
+      "Reference": "",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 2.5,
@@ -162,13 +195,14 @@
       }
     },
     {
-      "Name": "Cellular_1880",
-      "FreqStart": 1805,
-      "FreqStop": 1877.5,
+      "Name": "Cellular 1.88GHz",
+      "Band": [1805, 1880],
       "FirstChannel": 1807.5,
+      "LastChannel": 1877.5,
       "StepWidth": 2.5,
       "ChannelBW": -1,
       "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2022/1760-resolucao-757",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 2.5,
@@ -177,13 +211,14 @@
       }
     },
     {
-      "Name": "Cellular_2100",
-      "FreqStart": 2110,
-      "FreqStop": 2167.5,
+      "Name": "Cellular 2.1GHz",
+      "Band": [2110, 2200],
       "FirstChannel": 2112.5,
+      "LastChannel": 2197.5,
       "StepWidth": 2.5,
       "ChannelBW": -1,
       "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2022/1760-resolucao-757",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 2.5,
@@ -192,13 +227,30 @@
       }
     },
     {
-      "Name": "Cellular_2500",
-      "FreqStart": 2625,
-      "FreqStop": 2680,
-      "FirstChannel": 2630,
-      "StepWidth": 10,
+      "Name": "Cellular 2.5GHz",
+      "Band": [2620, 2690],
+      "FirstChannel": 2622.5,
+      "LastChannel": 2687.5,
+      "StepWidth": 2.5,
       "ChannelBW": -1,
       "FreqList": [],
+      "Reference": "",
+      "FindPeaks": {
+        "Prominence": 10,
+        "Distance": 10,
+        "BW": 10,
+        "OCC": 67
+      }
+    },
+      {
+      "Name": "Cellular 3.5GHz",
+      "Band": [3300, 3800],
+      "FirstChannel": 3305,
+      "LastChannel": 3795,
+      "StepWidth": 5,
+      "ChannelBW": -1,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2019/1285-resolucao-711",
       "FindPeaks": {
         "Prominence": 10,
         "Distance": 10,

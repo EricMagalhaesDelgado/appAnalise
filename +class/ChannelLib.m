@@ -2,14 +2,8 @@ classdef ChannelLib < handle
 
     properties
         %-----------------------------------------------------------------%
-        Channel   = table('Size', [0,7],                                                                       ...
-                          'VariableTypes', {'cell', 'double', 'double', 'double', 'double', 'cell', 'struct'}, ...
-                          'VariableNames', {'Name', 'FreqStart', 'FreqStop', 'StepWidth', 'ChannelBW', 'FreqList', 'FindPeaks'})
-
-        Exception = table('Size', [0,2],                       ...
-                          'VariableTypes', {'double', 'cell'}, ...
-                          'VariableNames', {'FreqCenter', 'Description'})
-
+        Channel
+        Exception
         DefaultChannelStep
         DefaultMinBandSpan
     end
@@ -21,8 +15,8 @@ classdef ChannelLib < handle
 
             channelTempLib = jsondecode(fileread(fullfile(RootFolder, 'Settings', 'ChannelLib.json')));
 
-            obj.Channel     = struct2table(channelTempLib.Channel);
-            obj.Exception   = struct2table(channelTempLib.Exception);
+            obj.Channel    = struct2table(channelTempLib.Channel);
+            obj.Exception  = struct2table(channelTempLib.Exception);
 
             obj.DefaultChannelStep = channelTempLib.DefaultChannelStep;
             obj.DefaultMinBandSpan = channelTempLib.DefaultMinBandSpan;
@@ -54,12 +48,14 @@ classdef ChannelLib < handle
         %-----------------------------------------------------------------%
         function idx = FindBand(obj, specData)
         
-            FreqStart = specData.MetaData.FreqStart/1e+6;
-            FreqStop  = specData.MetaData.FreqStop /1e+6;
+            FreqStart  = specData.MetaData.FreqStart/1e+6;
+            FreqStop   = specData.MetaData.FreqStop /1e+6;
+
+            BandLimits = cell2mat(obj.Channel.Band);
+            BandLimits = [BandLimits(1:2:end), BandLimits(2:2:end)]; 
         
-            idx = find(((FreqStart >= obj.Channel.FreqStart) & (FreqStart <= obj.Channel.FreqStop)) | ...
-                       ((FreqStart <= obj.Channel.FreqStart) & (FreqStop  >= obj.Channel.FreqStop)) | ...
-                       ((FreqStop  >= obj.Channel.FreqStart) & (FreqStop  <= obj.Channel.FreqStop)));
+            idx = find(((FreqStart >= BandLimits(:,1)) & (FreqStart <= BandLimits(:,2))) | ...
+                       ((FreqStart <= BandLimits(:,1)) & (FreqStop  >= BandLimits(:,1))));
         end
     end
 end

@@ -68,7 +68,7 @@ function Read_specData(app, d)
     end
     
     % Manipulações acessórias.
-    d.Message = '<font style="font-size:12;">Em andamento outras manipulações, como aferição de dados estatísticas e identificaçã do fluxo de ocupação...</font>';
+    d.Message = '<font style="font-size:12;">Em andamento outras manipulações, como aferição de dados estatísticas e identificação do fluxo de ocupação...</font>';
     specDataReader_FinalOperation(app)
 end
 
