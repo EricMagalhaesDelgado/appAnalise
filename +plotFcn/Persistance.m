@@ -85,7 +85,7 @@ function Persistance(app, idx, Type)
     else
         set(hComponents, Enable=0)
 
-        if strcmp(Type, 'Delete')
+        if strcmp(Type, 'Delete') && ~isempty(app.obj_Persistance)
             delete(app.obj_Persistance.handle)
             app.obj_Persistance = [];
         end

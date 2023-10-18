@@ -6,6 +6,7 @@ classdef ChannelLib < handle
         Exception
         DefaultChannelStep
         DefaultMinBandSpan
+        FindPeaks
     end
 
 
@@ -17,6 +18,7 @@ classdef ChannelLib < handle
 
             obj.Channel    = struct2table(channelTempLib.Channel);
             obj.Exception  = struct2table(channelTempLib.Exception);
+            obj.FindPeaks  = struct2table(channelTempLib.FindPeaks);
 
             obj.DefaultChannelStep = channelTempLib.DefaultChannelStep;
             obj.DefaultMinBandSpan = channelTempLib.DefaultMinBandSpan;

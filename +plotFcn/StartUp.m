@@ -31,7 +31,7 @@ function StartUp(app, idx)
     nSweeps = sum(app.specData(idx).RelatedFiles.nSweeps);
     if nSweeps > 2
         if ismember(app.specData(idx).MetaData.DataType, class.Constants.specDataTypes)
-            set(app.play_Occupancy, Enable=1)
+            app.play_Occupancy.Enable = 1;
         else
             % Não tem sentido fazer uma análise de ocupação de um fluxo espectral 
             % de ocupação!
@@ -46,9 +46,9 @@ function StartUp(app, idx)
         set(app.play_Occupancy,   Enable=0, Value=0)
         set(app.play_Waterfall,   Enable=0, Value=0)
 
-        plotFcn.Persistance(app)
-        plotFcn.OCC(app)
-        plotFcn.WaterFall(app)
+        plotFcn.Persistance(app, idx, 'Delete')
+        plotFcn.OCC(app, idx, 'Delete', '', [])
+        plotFcn.WaterFall(app, idx, 'Delete', '')
     end
 
     % Outros aspectos:
@@ -62,37 +62,35 @@ function StartUp(app, idx)
     % Customização do playback:
     switch app.specData(idx).UserData.customPlayback.Type
         case 'auto'
-            app.play_Customization.Value              = 0;
-            
-            app.play_LineVisibility.Value             = 'on';
-            app.play_Waterfall_Decimation.Value       = 'auto';
+            app.play_Customization.Value             = 0;
+            app.play_Waterfall_Decimation.Value      = 'auto';
 
         case 'manual'
-            app.play_Customization.Value              = 1;
+            app.play_Customization.Value             = 1;
 
-            app.play_MinHold.Value                    = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_MinHold;
-            app.play_Average.Value                    = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Average;
-            app.play_MaxHold.Value                    = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_MaxHold;
-            app.play_Persistance.Value                = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Persistance;
-            app.play_Occupancy.Value                  = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Occupancy;
-            app.play_Waterfall.Value                  = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Waterfall;
+            app.play_MinHold.Value                   = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_MinHold;
+            app.play_Average.Value                   = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Average;
+            app.play_MaxHold.Value                   = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_MaxHold;
+            app.play_Persistance.Value               = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Persistance;
+            app.play_Occupancy.Value                 = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Occupancy;
+            app.play_Waterfall.Value                 = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Waterfall;
 
-            app.play_Persistance_Interpolation.Value  = app.specData(idx).UserData.customPlayback.Parameters.Persistance.play_Persistance_Interpolation;
-            app.play_Persistance_Samples.Value        = app.specData(idx).UserData.customPlayback.Parameters.Persistance.play_Persistance_Samples;
-            app.play_Persistance_Transparency.Value   = app.specData(idx).UserData.customPlayback.Parameters.Persistance.play_Persistance_Transparency;
+            app.play_Persistance_Interpolation.Value = app.specData(idx).UserData.customPlayback.Parameters.Persistance.play_Persistance_Interpolation;
+            app.play_Persistance_Samples.Value       = app.specData(idx).UserData.customPlayback.Parameters.Persistance.play_Persistance_Samples;
+            app.play_Persistance_Transparency.Value  = app.specData(idx).UserData.customPlayback.Parameters.Persistance.play_Persistance_Transparency;
 
-            app.play_OCC_Method.Value                 = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_Method;
+            app.play_OCC_Method.Value                = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_Method;
             layoutFcn.OCC(app, app.specData(idx).MetaData.LevelUnit)
             
-            app.play_OCC_IntegrationTime.Value        = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_IntegrationTime;
-            app.play_OCC_Orientation.Value            = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_Orientation;
-            app.play_OCC_THR.Value                    = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_THR;
-            app.play_OCC_Offset.Value                 = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_Offset;
-            app.play_OCC_ceilFactor.Value             = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_ceilFactor;
-            app.play_OCC_noiseFcn.Value               = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_noiseFcn;
-            app.play_OCC_noiseTrashSamples.Value      = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_noiseTrashSamples;
-            app.play_OCC_noiseUsefulSamples.Value     = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_noiseUsefulSamples;
+            app.play_OCC_IntegrationTime.Value       = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_IntegrationTime;
+            app.play_OCC_Orientation.Value           = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_Orientation;
+            app.play_OCC_THR.Value                   = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_THR;
+            app.play_OCC_Offset.Value                = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_Offset;
+            app.play_OCC_ceilFactor.Value            = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_ceilFactor;
+            app.play_OCC_noiseFcn.Value              = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_noiseFcn;
+            app.play_OCC_noiseTrashSamples.Value     = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_noiseTrashSamples;
+            app.play_OCC_noiseUsefulSamples.Value    = app.specData(idx).UserData.customPlayback.Parameters.Occupancy.play_OCC_noiseUsefulSamples;
 
-            app.play_Waterfall_Decimation.Value       = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.play_Waterfall_Decimation;
+            app.play_Waterfall_Decimation.Value      = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.play_Waterfall_Decimation;
     end
 end

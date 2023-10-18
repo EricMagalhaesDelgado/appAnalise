@@ -30,9 +30,7 @@ function Draw(app, idx)
             plotFcn.Persistance(app, idx, 'Creation')
         end
 
-        app.line_ClrWrite = plot(app.axes1, app.Band.xArray, newArray, Color=app.General.Colors(4,:), Tag='ClrWrite');
-        set(app.line_ClrWrite, 'Visible', app.play_LineVisibility.Value)
-        plotFcn.DataTipModel(app.line_ClrWrite, LevelUnit)
+        plotFcn.clrWrite(app, idx, 'InitialPlot', 1)
         
         if app.play_MinHold.Value
             plotFcn.minHold(app, idx, newArray, LevelUnit)
@@ -62,8 +60,14 @@ function Draw(app, idx)
             plotFcn.Datatip(app, idx)
         end
 
+        plotFcn.axesStackingOrder(app)
+
     else
         app.line_ClrWrite.YData = newArray;
+
+        for ii = 1:numel(app.mkr_Label)
+            app.mkr_Label(ii).Position(2) = app.line_ClrWrite.YData(app.line_ClrWrite.MarkerIndices(ii));
+        end
 
         if app.play_Persistance.Value && ~strcmp(app.play_Persistance_Samples.Value, 'full')
             plotFcn.Persistance(app, idx, 'Update')

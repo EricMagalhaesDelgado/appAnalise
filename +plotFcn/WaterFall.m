@@ -1,9 +1,9 @@
 function WaterFall(app, idx, Type, LevelUnit)
 
+    hComponents = findobj(app.play_WaterFallGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigrid', '-or', 'Type', 'uipanel'});
+
     switch Type
         case 'Creation'
-            hComponents = findobj(app.play_WaterFallGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigrid', '-or', 'Type', 'uipanel'});
-            
             if app.play_Waterfall.Value
                 set(hComponents, Enable=1)
         
@@ -90,5 +90,7 @@ function WaterFall(app, idx, Type, LevelUnit)
             
             app.img_WaterFall      = [];
             app.line_WaterFallTime = [];
+            
+            set(hComponents, Enable=0)
     end
 end

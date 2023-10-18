@@ -47,7 +47,7 @@ function OCC(app, LevelUnit)
             switch app.play_OCC_Method.Value
                 case'Linear adaptativo'
                     set(app.play_OCC_ceilFactorLabel, Visible=0)
-                    set(app.play_OCC_ceilFactor,     Visible=0, Enable=0)
+                    set(app.play_OCC_ceilFactor,      Visible=0, Enable=0)
 
                 case 'Envoltória do ruído'
                     set(app.play_OCC_ceilFactorLabel, Visible=1)
