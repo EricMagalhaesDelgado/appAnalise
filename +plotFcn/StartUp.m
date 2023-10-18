@@ -53,11 +53,11 @@ function StartUp(app, idx)
 
     % Outros aspectos:
     app.play_PlotPanel.UserData = app.play_Tree.SelectedNodes;
-    app.play_tool_SelectedNode.Text = sprintf('%s\nID %d: %.3f - %.3f MHz', app.specData(idx).Receiver,                  ...
-                                                                            app.specData(idx).RelatedFiles.ID(1),        ...
-                                                                            app.specData(idx).MetaData.FreqStart / 1e+6, ...
-                                                                            app.specData(idx).MetaData.FreqStop  / 1e+6);
-    app.play_tool_Timestamp.Text    = sprintf('1 de %d\n%s', nSweeps, app.specData(idx).Data{1}(1));
+    app.play_SelectedNode.Text  = sprintf('%s\nID %d: %.3f - %.3f MHz', app.specData(idx).Receiver,                  ...
+                                                                        app.specData(idx).RelatedFiles.ID(1),        ...
+                                                                        app.specData(idx).MetaData.FreqStart / 1e+6, ...
+                                                                        app.specData(idx).MetaData.FreqStop  / 1e+6);
+    app.play_Timestamp.Text     = sprintf('1 de %d\n%s', nSweeps, app.specData(idx).Data{1}(1));
 
     % Customização do playback:
     switch app.specData(idx).UserData.customPlayback.Type
@@ -74,6 +74,17 @@ function StartUp(app, idx)
             app.play_Persistance.Value               = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Persistance;
             app.play_Occupancy.Value                 = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Occupancy;
             app.play_Waterfall.Value                 = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_Waterfall;
+
+            if app.play_Occupancy.Value && app.play_Waterfall.Value
+                app.play_LayoutRatio.Items = {'2:1:1', '1:2:1', '1:1:2'};
+            elseif app.play_Occupancy.Value
+                app.play_LayoutRatio.Items = {'3:1:0', '1:1:0', '1:3:0'};
+            elseif app.play_Waterfall.Value
+                app.play_LayoutRatio.Items = {'3:0:1', '1:0:1', '1:0:3'};
+            else
+                set(app.play_LayoutRatio, Items={'1:0:0'})
+            end
+            app.play_LayoutRatio.Value               = app.specData(idx).UserData.customPlayback.Parameters.Controls.play_LayoutRatio;
 
             app.play_Persistance_Interpolation.Value = app.specData(idx).UserData.customPlayback.Parameters.Persistance.play_Persistance_Interpolation;
             app.play_Persistance_Samples.Value       = app.specData(idx).UserData.customPlayback.Parameters.Persistance.play_Persistance_Samples;
