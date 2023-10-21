@@ -199,12 +199,12 @@ function specDataReader_FinalOperation(app)
                                 app.specData(ii).MetaData.DataPoints == app.specData(kk).MetaData.DataPoints;
     
                 if logEvaluation
-                    app.specData(ii).UserData.reportOCC.Related = [app.specData(ii).UserData.reportOCC.Related, kk];
+                    app.specData(ii).UserData.occMethod.RelatedThreadIndex = [app.specData(ii).UserData.occMethod.RelatedThreadIndex, kk];
                 end
             end
             
-            if ~isempty(app.specData(ii).UserData.reportOCC.Related)
-                app.specData(ii).UserData.reportOCC.idx = app.specData(ii).UserData.reportOCC.Related(1);
+            if ~isempty(app.specData(ii).UserData.occMethod.RelatedThreadIndex)
+                app.specData(ii).UserData.occMethod.SelectedThreadIndex = app.specData(ii).UserData.occMethod.RelatedThreadIndex(1);
             end
 
             % Mapeamento entre os fluxos de espectro e as canalizações

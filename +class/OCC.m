@@ -5,6 +5,9 @@ classdef OCC
         function occTHR = Threshold(specData, occInfo)
 
             switch occInfo.Method
+                case 'Linear fixo (COLETA)'
+                    occTHR = str2double(occInfo.THRCaptured);
+
                 case 'Linear fixo'
                     occTHR = occInfo.THR;
 

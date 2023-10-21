@@ -12,7 +12,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 5
+      "FindPeaksIndex": 4
     },
     {
       "Name": "TV Low VHF (2)",
@@ -26,7 +26,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 5
+      "FindPeaksIndex": 4
     },
     {
       "Name": "FM",
@@ -82,7 +82,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 5
+      "FindPeaksIndex": 4
     },
     {
       "Name": "TV UHF (1)",
@@ -96,7 +96,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 5
+      "FindPeaksIndex": 4
     },
     {
       "Name": "TV UHF (2)",
@@ -110,7 +110,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 5
+      "FindPeaksIndex": 4
     },
     {
       "Name": "Cellular 700MHz",
@@ -231,6 +231,10 @@
       "Description": "[DOC] ICA102-16, Comunicação interpilotos (ar-ar)."
     },
     {
+      "FreqCenter": 131.55,
+      "Description": "[DOC] Aircraft Communications Addressing and Reporting System (ACARS)."
+    },
+    {
       "FreqCenter": 156.3,
       "Description": "[DOC] CH06 VHF, Segurança/socorro"
     },
@@ -289,9 +293,9 @@
       "C2_maxOCC": 67
     },
     {
-      "Name": "Generic",
-      "Cn_Distance": 0.025,
-      "Cn_BW": 0.010,
+      "Name": "TV",
+      "Cn_Distance": 4.5,
+      "Cn_BW": 0.150,
       "C1_Fcn": "mean",
       "C1_Prominence": 10,
       "C2_Prominence": 30,
@@ -299,9 +303,9 @@
       "C2_maxOCC": 67
     },
     {
-      "Name": "TV",
-      "Cn_Distance": 4.5,
-      "Cn_BW": 0.150,
+      "Name": "Unknown",
+      "Cn_Distance": 0.025,
+      "Cn_BW": 0.010,
       "C1_Fcn": "mean",
       "C1_Prominence": 10,
       "C2_Prominence": 30,

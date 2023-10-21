@@ -7,12 +7,15 @@ function OCC(app, idx, Type, LevelUnit, occIndex)
 
                 xArray  = app.Band.xArray;
 
-                occInfo = app.specData(idx).UserData.OCC(occIndex).Info;
-                occTHR  = app.specData(idx).UserData.OCC(occIndex).THR;
-                occData = app.specData(idx).UserData.OCC(occIndex).Data;
+                occInfo = app.specData(idx).UserData.occCache(occIndex).Info;
+                occTHR  = app.specData(idx).UserData.occCache(occIndex).THR;
+                occData = app.specData(idx).UserData.occCache(occIndex).Data;
 
                 % app.axes1
                 switch occInfo.Method
+                    case 'Linear fixo (COLETA)'
+                        hPlotAxes1    = plot(app.axes1, [xArray(1), xArray(end)], [occTHR, occTHR], Color='red', LineStyle='-', LineWidth=1, Marker='o', MarkerSize=4, MarkerIndices=1:2, MarkerFaceColor='red', MarkerEdgeColor='black', Tag='occTHR');
+
                     case 'Linear fixo'
                         hPlotAxes1    = images.roi.Line(app.axes1,'Position',[xArray(1) occTHR; xArray(end) occTHR], 'Color', 'red', 'MarkerSize', 4, 'Deletable', 0, 'LineWidth', 1, 'InteractionsAllowed', 'translate', 'Tag', 'occTHR');
                         

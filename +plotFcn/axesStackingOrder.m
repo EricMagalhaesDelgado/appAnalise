@@ -1,6 +1,6 @@
 function axesStackingOrder(app)
 
-    refStackingOrder = {'mkrLabels', 'occTHR', 'MaxHold', 'Average', 'MinHold', 'ClrWrite', 'mkrROI', 'mkrLine', 'Persistance'};
+    refStackingOrder = {'mkrLabels', 'occTHR', 'Average', 'ClrWrite', 'MaxHold', 'MinHold', 'mkrROI', 'mkrLine', 'Persistance'};
     
     StackingOrderTag = arrayfun(@(x) x.Tag, app.axes1.Children, 'UniformOutput', false)';
     newOrderIndex    = [];

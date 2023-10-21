@@ -1,17 +1,13 @@
-function [newIndex, newFreq, newBW] = Detection_findpeaks(Data, Attributes)
+function [newIndex, newFreq, newBW] = Detection_findpeaks(app, idx1, Attributes)
 
     newIndex = [];
     newFreq  = [];
     newBW    = [];
 
-    Span     = Data.MetaData.FreqStop - Data.MetaData.FreqStart;
-    aCoef    = Span ./ (Data.MetaData.DataPoints - 1);
-    bCoef    = Data.MetaData.FreqStart - aCoef;
-
     switch Attributes.Fcn
-        case 'Mediana'; idx1 = 2;
-        case 'Média';   idx1 = 3;
-        case 'MaxHold'; idx1 = 4;
+        case 'MinHold'; idx2 = 1;
+        case 'Média';   idx2 = 2;
+        case 'MaxHold'; idx2 = 3;
     end
 
     %---------------------------------------------------------------------%
@@ -46,17 +42,17 @@ function [newIndex, newFreq, newBW] = Detection_findpeaks(Data, Attributes)
     %---------------------------------------------------------------------%
     % ## METHOD 2: edited findpeaks ##
     %---------------------------------------------------------------------%
-    idxRange = matlab.findpeaks(Data.statsData(:,idx1), 'NPeaks',            Attributes.NPeaks,                  ...
-                                                        'MinPeakHeight',     Attributes.THR,                     ...
-                                                        'MinPeakProminence', Attributes.Proeminence,             ...
-                                                        'MinPeakDistance',   1000 * Attributes.Distance / aCoef, ...
-                                                        'MinPeakWidth',      1000 * Attributes.BW / aCoef,       ...
-                                                        'SortStr',           'descend');
+    idxRange = matlab.findpeaks(app.specData(idx1).Data{3}(:,idx2), 'NPeaks',            Attributes.NPeaks,                           ...
+                                                                    'MinPeakHeight',     Attributes.THR,                              ...
+                                                                    'MinPeakProminence', Attributes.Prominence,                       ...
+                                                                    'MinPeakDistance',   1000 * Attributes.Distance / app.Band.aCoef, ...
+                                                                    'MinPeakWidth',      1000 * Attributes.BW       / app.Band.aCoef, ...
+                                                                    'SortStr',           'descend');
 
     if ~isempty(idxRange)
         newIndex = mean(idxRange, 2);
-        newFreq  = (aCoef .* newIndex + bCoef) ./ 1e+6;                     % Em MHz
-        newBW    = (idxRange(:,2)-idxRange(:,1)) * aCoef / 1e+6;            % Em MHz
+        newFreq  = (app.Band.aCoef .* newIndex + app.Band.bCoef) ./ 1e+6;   % Em MHz
+        newBW    = (idxRange(:,2)-idxRange(:,1)) * app.Band.aCoef / 1e+6;   % Em MHz
 
         newIndex = round(newIndex);
     end
