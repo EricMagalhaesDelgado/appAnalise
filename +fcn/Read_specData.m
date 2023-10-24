@@ -17,7 +17,7 @@ function Read_specData(app, d)
                 if contains(Format, 'CRFS', "IgnoreCase", true)
                     SpecInfo = fileReader.CRFSBin(app.metaData(ii).File, 'SpecData', app.metaData(ii));
                 elseif contains(Format, 'RFlookBin v.1/1', "IgnoreCase", true)
-                    SpecInfo = fileReader.RFLookBin(app.metaData(ii).File, 'SingleFile');
+                    SpecInfo = fileReader.RFlookBinV1(app.metaData(ii).File, 'SpecData', app.metaData(ii));
                 elseif contains(Format, 'RFlookBin v.2/1', "IgnoreCase", true)
                     SpecInfo = fileReader.RFlookBinV2(app.metaData(ii).File, 'SpecData', app.metaData(ii));
                 end

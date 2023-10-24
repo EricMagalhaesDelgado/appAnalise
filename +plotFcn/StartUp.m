@@ -68,10 +68,12 @@ function StartUp(app, idx)
 
 
     % Barra de status.
+    FreqStart = app.specData(idx).MetaData.FreqStart / 1e+6;
+    FreqStop  = app.specData(idx).MetaData.FreqStop  / 1e+6;
+
     app.play_SelectedNode.Text   = sprintf('%s\nID %d: %.3f - %.3f MHz', app.specData(idx).Receiver,                  ...
                                                                          app.specData(idx).RelatedFiles.ID(1),        ...
-                                                                         app.specData(idx).MetaData.FreqStart / 1e+6, ...
-                                                                         app.specData(idx).MetaData.FreqStop  / 1e+6);
+                                                                         FreqStart, FreqStop);
     app.play_Timestamp.Text      = sprintf('1 de %d\n%s', nSweeps, app.specData(idx).Data{1}(1));
 
 
@@ -99,4 +101,16 @@ function StartUp(app, idx)
         app.play_Channel_Tree.SelectedNodes = app.play_Channel_Tree.Children(1);
         play_Channel_TreeSelectionChanged(app)
     end
+
+
+    % Atualiza-se a árvore com as subfaixas sob análise, caso aplicável.
+    app.play_BandLimits_Status.Value = app.specData(idx).UserData.bandLimitsStatus;
+
+    app.play_BandLimits_xLim1.Limits = [-Inf, Inf];
+    app.play_BandLimits_xLim2.Limits = [-Inf, Inf];
+    set(app.play_BandLimits_xLim1, Value=FreqStart, Limits=[FreqStart, FreqStop])    
+    set(app.play_BandLimits_xLim2, Value=FreqStop,  Limits=[FreqStart, FreqStop])
+
+    play_BandLimits_Layout(app, idx)
+    play_BandLimits_TreeBuilding(app, idx)
 end

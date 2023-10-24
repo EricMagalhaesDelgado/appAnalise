@@ -65,7 +65,7 @@ classdef specData < handle
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function str = id2str(Type, id)        
+        function str = id2str(Type, id)
             switch Type
                 case 'TraceMode'
                     switch id
@@ -74,15 +74,23 @@ classdef specData < handle
                         case 3; str = 'MaxHold';
                         case 4; str = 'MinHold';
                     end
-        
+
+                % Em tese, os IDs deveriam ser apenas 1 a 4 representando,
+                % respectivamente, "Sample", "Average/RMS", "Positive Peak" 
+                % e "Negative Peak".
+                %
+                % Notei, contudo, arquivos de monitoração gerados pelo appColeta
+                % v. 1.11 nos quais esse ID estava igual a "0". Foram monitorações 
+                % conduzidas com o R&S EB500.
                 case 'Detector'
                     switch id
+                        case 0; str = 'Sample';
                         case 1; str = 'Sample';
                         case 2; str = 'Average/RMS';
                         case 3; str = 'Positive Peak';
                         case 4; str = 'Negative Peak';
-                    end
-        
+                    end        
+
                 case 'LevelUnit'
                     switch id
                         case 1; str = 'dBm';
@@ -94,7 +102,7 @@ classdef specData < handle
 
 
         %-----------------------------------------------------------------%
-        function ID = str2id(Type, Value)        
+        function ID = str2id(Type, Value)
             switch Type
                 case 'TraceMode'
                     switch Value

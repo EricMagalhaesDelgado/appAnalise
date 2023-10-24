@@ -6,7 +6,12 @@ function Draw(app, idx)
         DataPoints = app.specData(idx).MetaData.DataPoints;
         FreqStart  = app.specData(idx).MetaData.FreqStart / 1e+6;
         FreqStop   = app.specData(idx).MetaData.FreqStop  / 1e+6;
-        LevelUnit  = app.specData(idx).MetaData.LevelUnit;
+
+        if ismember(app.specData(idx).MetaData.DataType, class.Constants.occDataTypes)
+            LevelUnit = '%';
+        else
+            LevelUnit = app.specData(idx).MetaData.LevelUnit;
+        end
 
         % Propriedades do app que poderão ser referenciadas, caso criadas
         % curvas estatísticas (MinHold | Average | MaxHold).
@@ -31,6 +36,7 @@ function Draw(app, idx)
         end
 
         plotFcn.clrWrite(app, idx, 'InitialPlot', 1)
+        plotFcn.BandLimits(app, idx)
         
         if app.play_MinHold.Value
             plotFcn.minHold(app, idx, newArray, LevelUnit)

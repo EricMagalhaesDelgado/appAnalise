@@ -6,7 +6,7 @@ classdef OCC
 
             switch occInfo.Method
                 case 'Linear fixo (COLETA)'
-                    occTHR = str2double(occInfo.THRCaptured);
+                    occTHR = occInfo.THRCaptured;
 
                 case 'Linear fixo'
                     occTHR = occInfo.THR;

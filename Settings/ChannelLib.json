@@ -259,58 +259,53 @@
       "Description": "[DOC] AIS2, Segurança/socorro"
     }
   ],
-  "DefaultChannelStep": 0.0125,
+  "DefaultChannelStep": 0.025,
   "DefaultMinBandSpan": 10,
   "FindPeaks": [
     {
       "Name": "Aircraft",
-      "Cn_Distance": 0.025,
-      "Cn_BW": 0.010,
-      "C1_Fcn": "mean",
-      "C1_Prominence": 10,
-      "C2_Prominence": 30,
-      "C2_meanOCC": 1,
-      "C2_maxOCC": 10
+      "Distance": 0.025,
+      "BW": 0.010,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 1,
+      "maxOCC": 10
     },
     {
       "Name": "Cellular",
-      "Cn_Distance": 2.5,
-      "Cn_BW": 2.5,
-      "C1_Fcn": "mean",
-      "C1_Prominence": 10,
-      "C2_Prominence": 30,
-      "C2_meanOCC": 10,
-      "C2_maxOCC": 67
+      "Distance": 2.5,
+      "BW": 2.5,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 10,
+      "maxOCC": 67
     },
     {
       "Name": "FM",
-      "Cn_Distance": 0.200,
-      "Cn_BW": 0.050,
-      "C1_Fcn": "mean",
-      "C1_Prominence": 10,
-      "C2_Prominence": 30,
-      "C2_meanOCC": 10,
-      "C2_maxOCC": 67
+      "Distance": 0.200,
+      "BW": 0.050,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 10,
+      "maxOCC": 67
     },
     {
       "Name": "TV",
-      "Cn_Distance": 4.5,
-      "Cn_BW": 0.150,
-      "C1_Fcn": "mean",
-      "C1_Prominence": 10,
-      "C2_Prominence": 30,
-      "C2_meanOCC": 10,
-      "C2_maxOCC": 67
+      "Distance": 4.5,
+      "BW": 0.150,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 10,
+      "maxOCC": 67
     },
     {
       "Name": "Unknown",
-      "Cn_Distance": 0.025,
-      "Cn_BW": 0.010,
-      "C1_Fcn": "mean",
-      "C1_Prominence": 10,
-      "C2_Prominence": 30,
-      "C2_meanOCC": 10,
-      "C2_maxOCC": 67
+      "Distance": 0.025,
+      "BW": 0.010,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 10,
+      "maxOCC": 67
     }
   ]
 }

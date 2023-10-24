@@ -27,7 +27,7 @@ function clrWrite(app, idx, plotType, selectedEmission)
             case 'DeleteButtonPushed'
                 delete(findobj('Tag', 'mkrTemp', '-or', 'Tag', 'mkrLine', '-or', 'Tag', 'mkrLabels', '-or', 'Tag', 'mkrROI'))
                 
-                app.mkr_ROI       = [];
+                app.mkr_ROI   = [];
                 app.mkr_Label = [];
     end
 
@@ -40,18 +40,20 @@ function clrWrite(app, idx, plotType, selectedEmission)
     else
         app.line_ClrWrite.MarkerIndices = app.specData(idx).UserData.Emissions.idx;
 
+        yLevel1   = app.restoreView{2}(1)+1;
+        yLevel2   = app.restoreView{2}(2)-app.restoreView{2}(1)-2;
+
         mkrLabels = {};
         for ii = 1:height(app.specData(idx).UserData.Emissions)
             mkrLabels = [mkrLabels {['  ' num2str(ii)]}];
 
             FreqStart = app.specData(idx).UserData.Emissions.FreqCenter(ii) - app.specData(idx).UserData.Emissions.BW(ii)/(2*1000);
             FreqStop  = app.specData(idx).UserData.Emissions.FreqCenter(ii) + app.specData(idx).UserData.Emissions.BW(ii)/(2*1000);
-            BW        = app.specData(idx).UserData.Emissions.BW(ii)/1000;
-            Level     = app.restoreView{2}(1)+1;
+            BW        = app.specData(idx).UserData.Emissions.BW(ii)/1000;            
             
             % Cria uma linha por emissão, posicionando-o na parte inferior
             % do plot.
-            line(app.axes1, [FreqStart, FreqStop], [Level, Level], ...
+            line(app.axes1, [FreqStart, FreqStop], [yLevel1, yLevel1], ...
                             Color=[0.40,0.73,0.88], LineWidth=1, ...
                             Marker='.',             MarkerSize=14, ...
                             PickableParts='none',   Tag='mkrLine')
@@ -59,8 +61,8 @@ function clrWrite(app, idx, plotType, selectedEmission)
             % Cria um ROI para a emissão selecionada, posicionando-o em
             % todo o plot.
             if ii == selectedEmission
-                newPosition = [FreqStart, app.restoreView{2}(1) + 1, ...
-                               BW,        app.restoreView{2}(2) - app.restoreView{2}(1) - 2];
+                newPosition = [FreqStart, yLevel1, ...
+                               BW,        yLevel2];
                 
                 if isempty(app.mkr_ROI)
                     app.mkr_ROI = images.roi.Rectangle(app.axes1, Position=newPosition,   ...

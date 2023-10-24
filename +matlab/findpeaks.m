@@ -14,7 +14,7 @@ narginchk(1,22);
 
 % keep only the indices of finite peaks that meet the required
 % minimum height and threshold
-iPk = removePeaksBelowMinPeakHeight(y,iFinite,minH,refW);
+iPk = removePeaksBelowMinPeakHeight(y,iFinite,minH);
 iPk = removePeaksBelowThreshold(y,iPk,minT);
 
 % obtain the indices of each peak (iPk), the prominence base (bPk), and
@@ -190,12 +190,9 @@ iPk = iTemp(iMax)-1;
 
 
 %--------------------------------------------------------------------------
-function iPk = removePeaksBelowMinPeakHeight(Y,iPk,Ph,widthRef)
+function iPk = removePeaksBelowMinPeakHeight(Y,iPk,Ph)
 if ~isempty(iPk) 
   iPk = iPk(Y(iPk) > Ph);
-  if isempty(iPk) && ~strcmp(widthRef,'halfheight')
-    warning(message('signal:findpeaks:largeMinPeakHeight', 'MinPeakHeight', 'MinPeakHeight'));
-  end
 end
     
 
