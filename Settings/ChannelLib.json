@@ -12,7 +12,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 4
+      "FindPeaksName": "TV"
     },
     {
       "Name": "TV Low VHF (2)",
@@ -26,7 +26,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 4
+      "FindPeaksName": "TV"
     },
     {
       "Name": "FM",
@@ -40,7 +40,7 @@
       "ChannelBW": 0.256,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 3
+      "FindPeaksName": "FM"
     },
     {
       "Name": "Aircraft_1",
@@ -54,7 +54,7 @@
       "ChannelBW": 0.01,
       "FreqList": [],
       "Reference": "",
-      "FindPeaksIndex": 1
+      "FindPeaksName": "Aircraft"
     },
     {
       "Name": "Aircraft_2",
@@ -68,7 +68,7 @@
       "ChannelBW": 0.01,
       "FreqList": [],
       "Reference": "",
-      "FindPeaksIndex": 1
+      "FindPeaksName": "Aircraft"
     },
     {
       "Name": "TV High VHF",
@@ -82,7 +82,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 4
+      "FindPeaksName": "TV"
     },
     {
       "Name": "TV UHF (1)",
@@ -96,7 +96,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 4
+      "FindPeaksName": "TV"
     },
     {
       "Name": "TV UHF (2)",
@@ -110,7 +110,7 @@
       "ChannelBW": 6,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
-      "FindPeaksIndex": 4
+      "FindPeaksName": "TV"
     },
     {
       "Name": "Cellular 700MHz",
@@ -124,7 +124,7 @@
       "ChannelBW": 10,
       "FreqList": [],
       "Reference": "",
-      "FindPeaksIndex": 2
+      "FindPeaksName": "Cellular"
     },
     {
       "Name": "Cellular 800MHz",
@@ -143,7 +143,7 @@
         892.75
       ],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2006/89-resolucao-454",
-      "FindPeaksIndex": 2
+      "FindPeaksName": "Cellular"
     },
     {
       "Name": "Cellular 900MHz",
@@ -166,7 +166,7 @@
         958.75
       ],
       "Reference": "",
-      "FindPeaksIndex": 2
+      "FindPeaksName": "Cellular"
     },
     {
       "Name": "Cellular 1.88GHz",
@@ -180,7 +180,7 @@
       "ChannelBW": -1,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2022/1760-resolucao-757",
-      "FindPeaksIndex": 2
+      "FindPeaksName": "Cellular"
     },
     {
       "Name": "Cellular 2.1GHz",
@@ -194,7 +194,7 @@
       "ChannelBW": -1,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2022/1760-resolucao-757",
-      "FindPeaksIndex": 2
+      "FindPeaksName": "Cellular"
     },
     {
       "Name": "Cellular 2.5GHz",
@@ -208,7 +208,7 @@
       "ChannelBW": -1,
       "FreqList": [],
       "Reference": "",
-      "FindPeaksIndex": 2
+      "FindPeaksName": "Cellular"
     },
     {
       "Name": "Cellular 3.5GHz",
@@ -222,7 +222,7 @@
       "ChannelBW": -1,
       "FreqList": [],
       "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2019/1285-resolucao-711",
-      "FindPeaksIndex": 2
+      "FindPeaksName": "Cellular"
     }
   ],
   "Exception": [

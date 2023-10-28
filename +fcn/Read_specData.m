@@ -199,17 +199,17 @@ function specDataReader_FinalOperation(app)
                                 app.specData(ii).MetaData.DataPoints == app.specData(kk).MetaData.DataPoints;
     
                 if logEvaluation
-                    app.specData(ii).UserData.occMethod.RelatedThreadIndex = [app.specData(ii).UserData.occMethod.RelatedThreadIndex, kk];
+                    app.specData(ii).UserData.occMethod.RelatedIndex = [app.specData(ii).UserData.occMethod.RelatedIndex, kk];
                 end
             end
             
-            if ~isempty(app.specData(ii).UserData.occMethod.RelatedThreadIndex)
-                app.specData(ii).UserData.occMethod.SelectedThreadIndex = app.specData(ii).UserData.occMethod.RelatedThreadIndex(1);
+            if ~isempty(app.specData(ii).UserData.occMethod.RelatedIndex)
+                app.specData(ii).UserData.occMethod.SelectedIndex = app.specData(ii).UserData.occMethod.RelatedIndex(1);
             end
 
             % Mapeamento entre os fluxos de espectro e as canalizações
             % aplicáveis à cada faixa.
-            app.specData(ii).UserData.channelLibIndex = app.channelObj.FindBand(app.specData(ii));
+            app.specData(ii).UserData.channelLibIndex = app.channelObj.FindRelatedBands(app.specData(ii));
         end
     end
 end

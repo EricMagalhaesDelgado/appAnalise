@@ -73,6 +73,6 @@ function occLineROI(src, event, app)
             app.play_OCC_THR.Value = event.CurrentPosition(1,2);
             
         case 'ROIMoved'
-            play_OCCNewPlot(app, '')
+            play_OCCNewPlot(app)
     end
 end

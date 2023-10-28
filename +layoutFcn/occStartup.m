@@ -3,13 +3,13 @@ function occStartup(app, idx)
     % Ajuste dos itens de app.play_OCC_Method, o qual depende da existência
     % de fluxos de ocupação relacionados aos fluxos de espectro. Lembrando
     % que atualmente os fluxos de ocupação são aqueles gerados pelo Logger.
-    if isempty(app.specData(idx).UserData.occMethod.RelatedThreadIndex)
+    if isempty(app.specData(idx).UserData.occMethod.RelatedIndex)
         app.play_OCC_Method.Items      = {'Linear fixo', 'Linear adaptativo', 'Envoltória do ruído'};
         app.play_OCC_THRCaptured.Items = {};
 
     else
         app.play_OCC_Method.Items      = {'Linear fixo (COLETA)', 'Linear fixo', 'Linear adaptativo', 'Envoltória do ruído'};
-        app.play_OCC_THRCaptured.Items = arrayfun(@(x) num2str(x.MetaData.Threshold), app.specData(app.specData(idx).UserData.occMethod.RelatedThreadIndex), 'UniformOutput', false);
+        app.play_OCC_THRCaptured.Items = arrayfun(@(x) num2str(x.MetaData.Threshold), app.specData(app.specData(idx).UserData.occMethod.RelatedIndex), 'UniformOutput', false);
     end
 
     
@@ -35,12 +35,12 @@ end
 function ComponentsUpdate(app, idx)
 
     if isempty(app.specData(idx).UserData.occMethod.CacheIndex)
-        SelectedThreadIndex = app.specData(idx).UserData.occMethod.SelectedThreadIndex;
+        SelectedIndex = app.specData(idx).UserData.occMethod.SelectedIndex;
         
-        if ~isempty(SelectedThreadIndex)
+        if ~isempty(SelectedIndex)
             app.play_OCC_Method.Value                  = 'Linear fixo (COLETA)';
-            app.play_OCC_IntegrationTimeCaptured.Value = mean(app.specData(SelectedThreadIndex).RelatedFiles.RevisitTime)/60;
-            app.play_OCC_THRCaptured.Value             = num2str(app.specData(SelectedThreadIndex).MetaData.Threshold);
+            app.play_OCC_IntegrationTimeCaptured.Value = mean(app.specData(SelectedIndex).RelatedFiles.RevisitTime)/60;
+            app.play_OCC_THRCaptured.Value             = num2str(app.specData(SelectedIndex).MetaData.Threshold);
         end
 
     else
