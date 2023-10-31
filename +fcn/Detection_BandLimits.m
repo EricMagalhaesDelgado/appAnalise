@@ -1,14 +1,19 @@
-function [newIndex, newFreq, newBW] = Detection_BandLimits(app, idx, newIndex, newFreq, newBW)
+function Detection_BandLimits(SpecInfo)
 
-    if app.specData(idx).UserData.bandLimitsStatus && height(app.specData(idx).UserData.bandLimitsTable)
-        bandLimitsTable = app.specData(idx).UserData.bandLimitsTable;
+    bandLimitsTable = SpecInfo.UserData.bandLimitsTable;
+    emissionsTable  = SpecInfo.UserData.Emissions;
 
-        for ii = height(newFreq):-1:1
-            if ~any((newFreq(ii) >= bandLimitsTable.FreqStart) & (newFreq(ii) <= bandLimitsTable.FreqStop))
-                newIndex(ii) = [];
-                newFreq(ii)  = [];
-                newBW(ii)    = [];
+    if SpecInfo.UserData.bandLimitsStatus && ~isempty(bandLimitsTable)
+        for ii = height(emissionsTable):-1:1
+            if ~any((emissionsTable.FreqCenter(ii) >= bandLimitsTable.FreqStart) & ...
+                    (emissionsTable.FreqCenter(ii) <= bandLimitsTable.FreqStop))
+                emissionsTable(ii,:) = [];
             end
         end
     end
+
+    [~, uniqueIndex] = unique(emissionsTable.idx);
+    emissionsTable   = emissionsTable(uniqueIndex,:);
+    
+    SpecInfo.UserData.Emissions = emissionsTable;
 end

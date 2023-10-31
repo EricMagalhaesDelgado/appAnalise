@@ -1,16 +1,16 @@
-function ReportGenerator_PeaksUpdate(app, CheckedRows, Peaks)
+function ReportGenerator_PeaksUpdate(app, idx, Peaks)
     
-    if isequal(CheckedRows, find([app.specData.reportFlag]))
+    if isequal(idx, arrayfun(@(x) x.UserData.reportFlag, app.specData))
         if ~isempty(Peaks); app.peaksTable      = Peaks;
         else;               app.peaksTable(:,:) = [];
         end
         
     else
-        for ii = CheckedRows
-            Tag = sprintf('%s\nThreadID %d: %.3f - %.3f MHz', app.specData(ii).Node,                       ...
-                                                              app.specData(ii).ThreadID,                   ...
-                                                              app.specData(ii).MetaData.FreqStart ./ 1e+6, ...
-                                                              app.specData(ii).MetaData.FreqStop  ./ 1e+6);
+        for ii = idx
+            Tag = sprintf('%s\nID %d: %.3f - %.3f MHz', app.specData(ii).Receiver,                  ...
+                                                        app.specData(ii).RelatedFiles.ID(1),        ...
+                                                        app.specData(ii).MetaData.FreqStart / 1e+6, ...
+                                                        app.specData(ii).MetaData.FreqStop  / 1e+6);
             if ~isempty(Peaks)
                 newTags = unique(Peaks.Tag);
 

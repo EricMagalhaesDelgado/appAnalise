@@ -19,7 +19,7 @@ classdef userData < dynamicprops
 
         Emissions            = table('Size', [0, 5],                                                     ...
                                      'VariableTypes', {'uint16', 'double', 'double', 'logical', 'cell'}, ...
-                                     'VariableNames', {'idx', 'FreqCenter', 'BW', 'isTruncated', 'Parameters'})
+                                     'VariableNames', {'idx', 'FreqCenter', 'BW', 'isTruncated', 'Detection'})
 
         reportFlag           = false
         reportOCC            = []

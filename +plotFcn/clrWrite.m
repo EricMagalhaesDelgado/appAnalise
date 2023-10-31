@@ -123,10 +123,22 @@ function mkrLineROI(src, evt, app, idx1)
             
             newIndex = round((app.play_FindPeaks_PeakCF.Value*1e+6 - app.Band.bCoef)/app.Band.aCoef);
             
-            app.specData(idx1).UserData.Emissions(idx2,[1:3, 5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value, 'Detecção manual'};
-            app.specData(idx1).UserData.Emissions = sortrows(app.specData(idx1).UserData.Emissions, 'idx');
+            app.specData(idx1).UserData.Emissions(idx2,[1:3, 5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value, jsonencode(struct('Algorithm', 'Manual'))};
+            fcn.Detection_BandLimits(app.specData(idx1))
             
+            % Se o ROI que delimita a emissão for arrastada para uma área
+            % fora das subfaixas sob análise, então a emissão é excluída.
+            % E caso não exista outra emissão relacionada ao fluxo de dados,
+            % então a próprio ROI é excluída.
             selectedEmission = find(app.specData(idx1).UserData.Emissions.idx == newIndex, 1);
+            if isempty(selectedEmission)
+                if ~isempty(app.specData(idx1).UserData.Emissions)
+                    selectedEmission = 1;
+                else
+                    delete(app.mkr_ROI)
+                    app.mkr_ROI = [];
+                end
+            end
             plotFcn.clrWrite(app, idx1, 'PeakValueChanged', selectedEmission)
     end            
 end

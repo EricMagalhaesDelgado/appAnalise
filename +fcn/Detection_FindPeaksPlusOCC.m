@@ -1,4 +1,4 @@
-function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, idx1, Attributes)
+function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, SpecInfo, idx1, Attributes)
 
     % DETECTION ALGORITHM: FindPeaks+OCC (appAnálise v. 1.00)
     %
@@ -19,8 +19,8 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, idx1, Attr
     % Critério 1: Média
     % (Critério primário)
     THR1 = -inf;
-    if app.specData(idx1).MetaData.Threshold ~= -1
-        THR1 = app.specData(idx1).MetaData.Threshold + Attributes.Prominence1;
+    if SpecInfo(idx1).MetaData.Threshold ~= -1
+        THR1 = SpecInfo(idx1).MetaData.Threshold + Attributes.Prominence1;
     end
     
     Attributes_C1 = struct('Fcn',        'Média',                ...
@@ -30,14 +30,14 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, idx1, Attr
                            'Distance',   Attributes.Distance,    ...
                            'BW',         Attributes.BW);
         
-    [meanIndex, meanFrequency, meanBW] = fcn.Detection_FindPeaks(app, idx1, Attributes_C1);
+    [meanIndex, meanFrequency, meanBW] = fcn.Detection_FindPeaks(SpecInfo, idx1, Attributes_C1);
 
 
     % Critério 2: MaxHold
     % (Critério secundário)
     THR2 = -inf;
-    if app.specData(idx1).MetaData.Threshold ~= -1
-        THR2 = app.specData(idx1).MetaData.Threshold + Attributes.Prominence2;
+    if SpecInfo(idx1).MetaData.Threshold ~= -1
+        THR2 = SpecInfo(idx1).MetaData.Threshold + Attributes.Prominence2;
     end
     Attributes_C2 = struct('Fcn',        'MaxHold',              ...
                            'NPeaks',     100,                    ...
@@ -48,16 +48,18 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, idx1, Attr
                            'meanOCC',    Attributes.meanOCC,     ...
                            'maxOCC',     Attributes.maxOCC);
 
-    [maxIndex, maxFrequency, maxBW] = fcn.Detection_FindPeaks(app, idx1, Attributes_C2);
+    [maxIndex, maxFrequency, maxBW] = fcn.Detection_FindPeaks(SpecInfo, idx1, Attributes_C2);
     
     if ~isempty(maxIndex)
-        if isempty(app.specData(idx1).UserData.occMethod.CacheIndex)
+        if isempty(SpecInfo(idx1).UserData.occMethod.CacheIndex)
+            % Isso é aplicável apenas ao modo "PLAYBACK", caso não tenha
+            % sido feita nenhuma avaliação de ocupação.
             play_OCCIndex(app, idx1);
         end        
-        occIndex = app.specData(idx1).UserData.occMethod.CacheIndex;
+        occIndex = SpecInfo(idx1).UserData.occMethod.CacheIndex;
 
-        occIndex_Mean = find(app.specData(idx1).UserData.occCache(occIndex).Data{3}(:,2) >= Attributes.meanOCC);
-        occIndex_Max  = find(app.specData(idx1).UserData.occCache(occIndex).Data{3}(:,3) >= Attributes.maxOCC);
+        occIndex_Mean = find(SpecInfo(idx1).UserData.occCache(occIndex).Data{3}(:,2) >= Attributes.meanOCC);
+        occIndex_Max  = find(SpecInfo(idx1).UserData.occCache(occIndex).Data{3}(:,3) >= Attributes.maxOCC);
         
         [maxIndex, idx2] = intersect(maxIndex, intersect(occIndex_Mean, occIndex_Max), 'stable');
         
