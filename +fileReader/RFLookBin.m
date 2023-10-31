@@ -42,7 +42,7 @@ function [SpecInfo, metaData, specData] = RFLookBin(filename, ReadType)
     Resolution  = sprintf('%.3f kHz', SpecInfo.MetaData.Resolution/1000);
     TraceMode   = Fcn_TraceModeMap(SpecInfo.MetaData.TraceMode);
     Detector    = Fcn_DetectorMap(SpecInfo.MetaData.Detector);    
-    SpecInfo.MetaData.metaString = {Unit, Resolution, TraceMode, Detector, antennaName};
+    SpecInfo.MetaData.metaString = {Unit, Resolution, TraceMode, Detector, jsonencode(antennaName)};
     
     SpecInfo.Samples     = double(metaData.Data.WritedSamples);
     SpecInfo.FileFormat  = 'RFlookBin';

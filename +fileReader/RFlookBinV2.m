@@ -120,12 +120,18 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     % O gpsMode_ID por ser 0 (manual), 1 (Built-in) ou 2 (External).
     % (a) Se gpsMode_ID = 0     >> gpsData.Status = -1
     % (b) Se gpsMode_ID = 1 | 2 >> gpsData.Status = 0 (invalid) | 1 (valid)
+    nSweeps = numel(startIndex);
+
     if gpsMode_ID
-        for ii = 1:specData.Samples
+        for ii = 1:nSweeps
             blockArray = rawData(startIndex(ii):stopIndex(ii));
 
-            if     ii == 1;                BeginTime = observationTime(blockArray);
-            elseif ii == specData.Samples; EndTime   = observationTime(blockArray);
+            if  ii == 1
+                BeginTime = observationTime(blockArray);
+            end
+
+            if ii == nSweeps
+                EndTime   = observationTime(blockArray);
             end
             
             if blockArray(9)
