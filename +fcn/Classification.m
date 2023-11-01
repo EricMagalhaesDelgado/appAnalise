@@ -1,28 +1,33 @@
 function Peaks = Classification(app, SpecInfo, idx, Peaks)
 
-    % CLASSIFICATION_ALGORITHM1 PeakClassification1
     % Trata-se de algoritmo de classificação de emissões, comparando-as com a base 
     % *anatelDB*.
-    % 
-    % Versão: *29/04/2022*
-    
+    % Versão: 29/04/2022
 
     global AnatelDB
 
+    % Trunca a frequência central da emissão, caso aplicável, possibilitando 
+    % a sua classificação.
+    Peaks.Truncated(:) = single(-1);
+    for ii = 1:height(Peaks)
+        if SpecInfo(idx).UserData.Emissions.isTruncated(ii)
+            Peaks.Truncated(ii) = TruncatedFrequency(app.channelObj, SpecInfo(idx), ii);
+        else
+            Peaks.Truncated(ii) = SpecInfo(idx).UserData.Emissions.Frequency(ii);
+        end
+    end
 
-    % Identifica as características da canalização primária do fluxo de
-    % dados sob análise.
-    findPeaks       = FindPeaksOfPrimaryBand(app.channelObj, SpecInfo(idx));
 
-
-    % Informações relacionadas às emissões...
-    Peaks.minLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).Data{3}(Peaks.idx,1)),                             'UniformOutput', false);
-    Peaks.meanLevel = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).Data{3}(Peaks.idx,2)),                             'UniformOutput', false);
-    Peaks.maxLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).Data{3}(Peaks.idx,3)),                             'UniformOutput', false);
+    % Informações relacionadas à frequência central das emissões. Ou seja,
+    % o nível mínimo ou máximo, por exemplo, não se refere à EMISSÃO ou ao
+    % CANAL, mas ao BIN da emissão que corresponde à sua frequência central.
+    Peaks.minLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).Data{3}(Peaks.Index,1)),                             'UniformOutput', false);
+    Peaks.meanLevel = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).Data{3}(Peaks.Index,2)),                             'UniformOutput', false);
+    Peaks.maxLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).Data{3}(Peaks.Index,3)),                             'UniformOutput', false);
 
     occIndex = SpecInfo(idx).UserData.occMethod.CacheIndex;
-    Peaks.meanOCC   = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).UserData.occCache(occIndex).Data{3}(Peaks.idx,2)), 'UniformOutput', false);
-    Peaks.maxOCC    = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).UserData.occCache(occIndex).Data{3}(Peaks.idx,3)), 'UniformOutput', false);
+    Peaks.meanOCC   = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).UserData.occCache(occIndex).Data{3}(Peaks.Index,2)), 'UniformOutput', false);
+    Peaks.maxOCC    = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).UserData.occCache(occIndex).Data{3}(Peaks.Index,3)), 'UniformOutput', false);
     
 
     % Valores iniciais da classificação de cada emissão...
@@ -38,33 +43,31 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
     Peaks.Classification(:) = {jsonencode(SpecInfo(idx).UserData.reportClassification)};
 
 
-
-
-
-
-    % PRECISO AGORA TRUNCAR AS FREQUÊNCIAS... 
-    % VERIFICAR OS NOMES DAS COLUNAS DE PEAKTABLE
-
-
-    
-
-
-    Peaks = Peaks(:,[1:7, 9:22, 8, 23]);
+    % Organização da tabela, de forma que fique idêntica à app.peaksTable.
+    % peaksTable    = table('Size', [0, 23],                                                                                                                                                                                                         ...
+    %                       'VariableTypes', {'cell', 'single', 'single', 'uint16', 'double', 'single', 'double', 'cell', 'cell', 'cell', 'cell', 'cell', 'cell', 'cell', 'int16', 'int32', 'cell', 'cell', 'cell', 'cell', 'cell', 'cell', 'cell'}, ...
+    %                       'VariableNames', {'Tag', 'Latitude', 'Longitude', 'Index', 'Frequency', 'Truncated', 'BW', 'minLevel', 'meanLevel', 'maxLevel', 'meanOCC', 'maxOCC', 'Type', 'Regulatory', 'Service', 'Station', 'Description', 'Distance', 'Irregular', 'RiskLevel', 'occMethod', 'Detection', 'Classification'});
+    Peaks = Peaks(:,[1:5, 9, 6, 10:22, 23, 8, 24]);
     Peaks = sortrows(Peaks, {'Tag', 'Frequency'});
 
 
-    % Consulta à *base _offline_ da Agência* (Mosaico, Stel e SRD).    
+    % Informações que possibilitam a classificação de uma emissão:
+    % (a) Identificas as características da canalização primária do fluxo de
+    %     dados sob análise.
+    % (b) Parâmetros relacionados ao algoritmo de classificação
+    %     implementado - "Contour", "ClassMultiplier" e "bwFactors".
+    findPeaks       = FindPeaksOfPrimaryBand(app.channelObj, SpecInfo(idx)); 
     RuralContour    = SpecInfo(idx).UserData.reportClassification.Parameters.Contour;
     classMultiplier = SpecInfo(idx).UserData.reportClassification.Parameters.ClassMultiplier;
     bwFactors       = SpecInfo(idx).UserData.reportClassification.Parameters.bwFactors / 100;
-        
+
+
+    % Classificação...        
     for ii = 1:height(Peaks)
-        idx1 = find((abs(ExceptionGlobalList.Frequency-Peaks.Truncated(ii)) <= class.Constants.floatDiffTolerance), 1);
+        idx1 = find((abs(app.channelObj.Exception.FreqCenter - Peaks.Truncated(ii)) <= class.Constants.floatDiffTolerance), 1);
         
         if ~isempty(idx1)
-            Service     = int16(-1);
-            Station     = int32(-1);
-            Description = ExceptionGlobalList.Description{idx1};
+            Description = app.channelObj.Exception.Description{idx1};
             Distance    = Inf;
                         
         else
@@ -72,9 +75,12 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
             auxDistance = [];
             
             if ~isempty(idx2)
-                auxDistance = geo_lldistkm_v2(struct('lat', SpecInfo(idx).gps.Latitude, 'lon', SpecInfo(idx).gps.Longitude), AnatelDB(idx2, 3:4));
+                auxDistance = fcn.geoDistance_v2(struct('lat', SpecInfo(idx).GPS.Latitude, 'lon', SpecInfo(idx).GPS.Longitude), AnatelDB(idx2, 3:4));
             end
 
+            % Como referência de BW, usa-se a BW da própria emissão. Caso o
+            % registro do anateldb possua a designação de emissão da estação, 
+            % então é substituído esse valor pelo constante no anateldb.
             BW = Peaks.BW(ii);
 
             while true
@@ -134,6 +140,7 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
                                 auxDistance(idx3) = [];
                                 continue
                             end
+
                         else
                             break
                         end
@@ -148,7 +155,7 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
                 RuralContour = classMultiplier * classContour;
             end
                 
-            if (Distance > RuralContour) || (BW < (1-bwFactors(1)) * Peaks.BW(ii)) || (BW > (1+bwFactors(2)) * Peaks.BW(ii))
+            if (Distance > RuralContour) | (BW < (1-bwFactors(1))*Peaks.BW(ii)) | (BW > (1+bwFactors(2))*Peaks.BW(ii))
                 Distance = [];
             end
         end

@@ -14,9 +14,8 @@ function Controller(app, Mode)
             case 'Report'
                 % Verifica se o template e relatório selecionado demanda
                 % arquivos externos (imagens e tabelas).
-                ExternalFiles_Flag = extractBefore(reportInfo.Model.Template, '"Origin": "External"');
-                if ~isempty(ExternalFiles_Flag)
-                    msg = '<font style="font-size:12;">Confirma que foram relacionados os arquivos externos ao appAnálise estabelecidos no modelo?</font>';
+                if contains(reportInfo.Model.Template, '"Origin": "External"')
+                    msg = '<font style="font-size:12;">Confirma que foram relacionados os arquivos externos ao appAnalise estabelecidos no modelo?</font>';
                     selection = uiconfirm(app.UIFigure, msg, 'appAnálise', 'Options', {'OK', 'Cancelar'}, 'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question', 'Interpreter', 'html');
                     
                     if selection == "Cancelar"
@@ -25,16 +24,16 @@ function Controller(app, Mode)
                 end
 
                 % Verifica...
-                [htmlReport, Peaks] = report.ReportGenerator(app.specData(idx), reportInfo, app.exceptionList);
+                [htmlReport, Peaks] = report.ReportGenerator(app, idx, reportInfo);
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
 
                 switch app.report_Version.Value
                     case 'Definitiva'
-                        filename = fullfile(app.menu_userPath.Value, sprintf('Report_%s_%.0f.html', datestr(datetime('now'), 'yyyy.mm.dd_THH.MM.SS'), app.Report_Issue.Value));
+                        filename = fullfile(app.menu_userPath.Value, sprintf( 'Report_%s_%.0f.html', datestr(now, 'yyyy.mm.dd_THH.MM.SS'), app.report_Issue.Value));
                         fileID   = fopen(filename, 'w', 'native', 'ISO-8859-1');
 
                     case 'Preliminar'
-                        filename = fullfile(app.menu_userPath.Value, sprintf('~Report_%s_%.0f.html', datestr(datetime('now'), 'yyyy.mm.dd_THH.MM.SS'), app.Report_Issue.Value));
+                        filename = fullfile(app.menu_userPath.Value, sprintf('~Report_%s_%.0f.html', datestr(now, 'yyyy.mm.dd_THH.MM.SS'), app.report_Issue.Value));
                         fileID   = fopen(filename, 'w');
                 end
                 
@@ -52,7 +51,7 @@ function Controller(app, Mode)
 
             case 'Preview'
                 Peaks = report.PreviewGenerator(app, idx, reportInfo);
-                ReportGenerator_PeaksUpdate(app, idx, Peaks)
+                report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
         end
         
     catch ME
@@ -170,7 +169,7 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
     % Juntar numa mesma variável a informação gerada pelo algoritmo
     % embarcado no appAnálise (app.peaksTable) com a informação
     % gerada pelo fiscal (app.exceptionList).
-    [infoTable, countTable] = ReportGenerator_Table_Summary(app.peaksTable, app.exceptionList);
+    [infoTable, countTable] = report.ReportGenerator_Table_Summary(app.peaksTable, app.exceptionList);
 
     ReportProject.emissionsValue1 = sum(infoTable{:,2:4}, 'all');                               % Qtd. emissões
     ReportProject.emissionsValue2 = sum(infoTable{:,2});                                        % Qtd. emissões licenciadas
@@ -179,12 +178,12 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
     ReportProject.tableJournal = infoTable(:,cell2mat(reportInfo.Model.Type.JournalTable));
 
     % Arquivo JSON
-    tableStr = ReportGenerator_Aux4(app, idx, countTable);
+    tableStr = ReportGenerator_Aux3(app, idx, countTable);
 end
 
 
 %-----------------------------------------------------------------%
-function tableStr = ReportGenerator_Aux4(app, ProjectRows, countTable)
+function tableStr = ReportGenerator_Aux3(app, ProjectRows, countTable)
     
     % Tabelas que irão compor o JSON que será carregado como anexo
     % à inspeção (no Fiscaliza).
@@ -196,9 +195,9 @@ function tableStr = ReportGenerator_Aux4(app, ProjectRows, countTable)
     DetectionTable      = table('Size', [0, 2], 'VariableTypes', {'uint16', 'cell'}, 'VariableNames', {'PK3', 'Detection'});
     ClassificationTable = table('Size', [0, 2], 'VariableTypes', {'uint16', 'cell'}, 'VariableNames', {'PK4', 'Classification'});
     
-    PeakTable = countTable(:,5:21);
+    PeakTable           = countTable(:,5:21);
     PeakTable.Frequency = round(PeakTable.Frequency, 3);
-    PeakTable.BW        = round(1000 * PeakTable.BW, 3);
+    PeakTable.BW        = round(PeakTable.BW, 3);
 
     occMethod = unique(countTable.occMethod);
     occMethodTable(1:numel(occMethod),:) = [num2cell((1:numel(occMethod))'), occMethod];
@@ -214,7 +213,12 @@ function tableStr = ReportGenerator_Aux4(app, ProjectRows, countTable)
         if ismember(app.specData(ii).MetaData.DataType, class.Constants.specDataTypes)
             jj = jj+1;
 
-            occInfo = jsondecode(app.specData(ii).UserData.reportOCC.Parameters);
+            occInfo = app.specData(ii).UserData.reportOCC;
+            if isfield(occInfo, 'IntegrationTime')
+                IntegrationTime = occInfo.IntegrationTime;
+            else
+                IntegrationTime = occInfo.IntegrationTimeCaptured;
+            end
             
             TaskTable(end+1,:) = {jj,                                  ...
                                   app.specData(ii).Receiver,           ...
@@ -225,9 +229,9 @@ function tableStr = ReportGenerator_Aux4(app, ProjectRows, countTable)
                                   datestr(app.specData(ii).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), ...
                                   datestr(app.specData(ii).Data{1}(end), 'dd/mm/yyyy HH:MM:SS'), ...
                                   numel(app.specData(ii).Data{1}),      ...
-                                  occInfo.IntegrationTime,              ...
+                                  IntegrationTime,                      ...
                                   app.specData(ii).RelatedFiles.Description{1}, ...
-                                  strjoin(app.specData(ii).RelatedFiles.Name, ', ')};
+                                  strjoin(app.specData(ii).RelatedFiles.File, ', ')};
             
             Tag = sprintf('%s\nID %d: %.3f - %.3f MHz', app.specData(ii).Receiver,                  ...
                                                         app.specData(ii).RelatedFiles.ID(1),        ...

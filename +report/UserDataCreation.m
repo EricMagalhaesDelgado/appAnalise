@@ -14,6 +14,7 @@ function UserDataCreation(app, idx1)
            isempty(app.specData(ii).UserData.reportDetection) || ...
            isempty(app.specData(ii).UserData.reportClassification)
             
+
             % Ocupação
             if isempty(app.specData(ii).UserData.occMethod.CacheIndex)
                 if isempty(app.specData(ii).UserData.occMethod.RelatedIndex)        
@@ -25,18 +26,17 @@ function UserDataCreation(app, idx1)
                                                                  'noiseUsefulSamples', 0.20);
                 else
                     idx2 = app.specData(ii).UserData.occMethod.SelectedIndex;
-    
-                    app.play_OCC_THRCaptured.Value = num2str(app.specData(idx2).MetaData.Threshold);
-                    app.play_OCC_IntegrationTimeCaptured.Value = mean(app.specData(idx2).RelatedFiles.RevisitTime)/60;
-
-                    occIndex = play_OCCIndex(app, ii);
-                    app.specData(ii).UserData.reportOCC = app.specData(ii).UserData.occCache(occIndex).Info;
+                    app.specData(ii).UserData.reportOCC = struct('Method',                  'Linear fixo (COLETA)', ...
+                                                                 'IntegrationTimeCaptured', mean(app.specData(idx2).RelatedFiles.RevisitTime)/60, ...
+                                                                 'THRCaptured',             app.specData(idx2).MetaData.Threshold);
                 end
+                occIndex = play_OCCIndex(app, ii, 'REPORT');
 
             else
                 occIndex = app.specData(ii).UserData.occMethod.CacheIndex;
-                app.specData(ii).UserData.reportOCC = app.specData(ii).UserData.occCache(occIndex).Info;
             end
+            app.specData(ii).UserData.reportOCC = app.specData(ii).UserData.occCache(occIndex).Info;
+
 
             % Detecção de emissões
             findPeaks = FindPeaksOfPrimaryBand(app.channelObj, app.specData(ii));
@@ -60,8 +60,9 @@ function UserDataCreation(app, idx1)
                                                                                         'maxOCC',      findPeaks.maxOCC));
             end
 
+
             % Classificação das emissões
-            app.specData(ii).UserData.reportClassification = struct('Algorithm', 'appAnalise v. 1.20',         ...
+            app.specData(ii).UserData.reportClassification = struct('Algorithm', 'Frequency+Distance Type 1',  ...
                                                                     'Parameters', struct('Contour', 30,        ...
                                                                                          'ClassMultiplier', 2, ...
                                                                                          'bwFactors', [100, 300]));

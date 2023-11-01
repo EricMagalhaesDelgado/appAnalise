@@ -23,10 +23,12 @@ function ReportGenerator_PeaksUpdate(app, idx, Peaks)
                     app.peaksTable(end+1:end+numel(newInd), :) = Peaks(newInd,:);
                     
                     app.peaksTable = sortrows(app.peaksTable, 'Tag');
+                    
                 else
                     oldInd = find(strcmp(app.peaksTable.Tag, Tag));
                     app.peaksTable(oldInd, :) = [];
                 end
+
             else
                 oldInd = find(strcmp(app.peaksTable.Tag, Tag));
                 app.peaksTable(oldInd, :) = [];

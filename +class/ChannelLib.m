@@ -96,7 +96,7 @@ classdef ChannelLib < handle
             end
             Channels  = unique(Channels);
 
-            [~, idxFind] = min(abs(Channels - specData.UserData.Emissions.FreqCenter(idxEmission)));
+            [~, idxFind] = min(abs(Channels - specData.UserData.Emissions.Frequency(idxEmission)));
             Truncated    = Channels(idxFind);
         end
 
@@ -104,8 +104,8 @@ classdef ChannelLib < handle
         %-----------------------------------------------------------------%
         function Channels = ChannelList(obj, specData, truncatedType, Channels, idxEmission)
 
-            emission_downLim = specData.UserData.Emissions.FreqCenter(idxEmission) - specData.UserData.Emissions.BW(idxEmission)/2000;
-            emission_upLim   = specData.UserData.Emissions.FreqCenter(idxEmission) + specData.UserData.Emissions.BW(idxEmission)/2000;
+            emission_downLim = specData.UserData.Emissions.Frequency(idxEmission) - specData.UserData.Emissions.BW(idxEmission)/2000;
+            emission_upLim   = specData.UserData.Emissions.Frequency(idxEmission) + specData.UserData.Emissions.BW(idxEmission)/2000;
 
             switch truncatedType
                 case 'Lib'

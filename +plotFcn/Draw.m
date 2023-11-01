@@ -52,7 +52,7 @@ function Draw(app, idx)
 
         % Curva a plotar em app.axes1 e app.axes2.
         if app.play_Occupancy.Value
-            occIndex = play_OCCIndex(app, idx);    
+            occIndex = play_OCCIndex(app, idx, 'PLAYBACK');
             plotFcn.OCC(app, idx, 'Creation', LevelUnit, occIndex)
         end
 

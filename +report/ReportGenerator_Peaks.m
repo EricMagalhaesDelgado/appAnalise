@@ -6,7 +6,7 @@ function Peaks = ReportGenerator_Peaks(app, SpecInfo, idx)
     % app.specData, as emissões aqui identificadas ficarão visíveis no
     % modo "PLAYBACK" também.
 
-    if ~SpecInfo.UserData.reportDetection.ManualMode
+    if ~SpecInfo(idx).UserData.reportDetection.ManualMode
         Algorithm  = SpecInfo(idx).UserData.reportDetection.Algorithm;
         Attributes = SpecInfo(idx).UserData.reportDetection.Parameters;
 

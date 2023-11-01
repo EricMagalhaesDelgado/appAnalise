@@ -17,11 +17,11 @@ function clrWrite(app, idx, plotType, selectedEmission)
 
             case 'TreeSelectionChanged'
                 idx2 = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
-                app.mkr_ROI.Position(:, [1, 3]) = [app.specData(idx).UserData.Emissions.FreqCenter(idx2) - app.specData(idx).UserData.Emissions.BW(idx2)/(2*1000), ...
+                app.mkr_ROI.Position(:, [1, 3]) = [app.specData(idx).UserData.Emissions.Frequency(idx2) - app.specData(idx).UserData.Emissions.BW(idx2)/(2*1000), ...
                                                    app.specData(idx).UserData.Emissions.BW(idx2)/1000];
                 return
             
-            case {'AddButtonPushed', 'PeakValueChanged'}
+            case 'PeakValueChanged'
                 delete(findobj('Tag', 'mkrTemp', '-or', 'Tag', 'mkrLine', '-or', 'Tag', 'mkrLabels'))
 
             case 'DeleteButtonPushed'
@@ -38,7 +38,7 @@ function clrWrite(app, idx, plotType, selectedEmission)
         app.line_ClrWrite.MarkerIndices = [];
 
     else
-        app.line_ClrWrite.MarkerIndices = app.specData(idx).UserData.Emissions.idx;
+        app.line_ClrWrite.MarkerIndices = app.specData(idx).UserData.Emissions.Index;
 
         yLevel1   = app.restoreView{2}(1)+1;
         yLevel2   = app.restoreView{2}(2)-app.restoreView{2}(1)-2;
@@ -47,8 +47,8 @@ function clrWrite(app, idx, plotType, selectedEmission)
         for ii = 1:height(app.specData(idx).UserData.Emissions)
             mkrLabels = [mkrLabels {['  ' num2str(ii)]}];
 
-            FreqStart = app.specData(idx).UserData.Emissions.FreqCenter(ii) - app.specData(idx).UserData.Emissions.BW(ii)/(2*1000);
-            FreqStop  = app.specData(idx).UserData.Emissions.FreqCenter(ii) + app.specData(idx).UserData.Emissions.BW(ii)/(2*1000);
+            FreqStart = app.specData(idx).UserData.Emissions.Frequency(ii) - app.specData(idx).UserData.Emissions.BW(ii)/(2*1000);
+            FreqStop  = app.specData(idx).UserData.Emissions.Frequency(ii) + app.specData(idx).UserData.Emissions.BW(ii)/(2*1000);
             BW        = app.specData(idx).UserData.Emissions.BW(ii)/1000;            
             
             % Cria uma linha por emissão, posicionando-o na parte inferior
@@ -82,7 +82,7 @@ function clrWrite(app, idx, plotType, selectedEmission)
             end
         end
 
-        app.mkr_Label = text(app.axes1, app.specData(idx).UserData.Emissions.FreqCenter, double(app.specData(idx).Data{2}(app.specData(idx).UserData.Emissions.idx, app.timeIndex)), mkrLabels, ...
+        app.mkr_Label = text(app.axes1, app.specData(idx).UserData.Emissions.Frequency, double(app.specData(idx).Data{2}(app.specData(idx).UserData.Emissions.Index, app.timeIndex)), mkrLabels, ...
                                              Color=[0.40,0.73,0.88], FontSize=11, FontWeight='bold', FontName='Helvetica', FontSmoothing='on', Tag='mkrLabels', Visible=app.play_LineVisibility.Value);
     end
 end
@@ -124,21 +124,6 @@ function mkrLineROI(src, evt, app, idx1)
             newIndex = round((app.play_FindPeaks_PeakCF.Value*1e+6 - app.Band.bCoef)/app.Band.aCoef);
             
             app.specData(idx1).UserData.Emissions(idx2,[1:3, 5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value, jsonencode(struct('Algorithm', 'Manual'))};
-            fcn.Detection_BandLimits(app.specData(idx1))
-            
-            % Se o ROI que delimita a emissão for arrastada para uma área
-            % fora das subfaixas sob análise, então a emissão é excluída.
-            % E caso não exista outra emissão relacionada ao fluxo de dados,
-            % então a próprio ROI é excluída.
-            selectedEmission = find(app.specData(idx1).UserData.Emissions.idx == newIndex, 1);
-            if isempty(selectedEmission)
-                if ~isempty(app.specData(idx1).UserData.Emissions)
-                    selectedEmission = 1;
-                else
-                    delete(app.mkr_ROI)
-                    app.mkr_ROI = [];
-                end
-            end
-            plotFcn.clrWrite(app, idx1, 'PeakValueChanged', selectedEmission)
+            play_BandLimits_updateEmissions(app, idx1, newIndex)
     end            
 end

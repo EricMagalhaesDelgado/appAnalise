@@ -1,14 +1,18 @@
 function htmlContent = ReportGenerator_HTML(Template, opt)
-%  REPORTGENERATOR_HTML Gerador de elementos p/ relatório HTML
+
     arguments
         Template struct
         opt      cell = {[], '', '', []}
     end
+
     global ID_img
     global ID_tab
+    
     Type = Template.Type;
     Data = Template.Data;
+    
     htmlContent = '';
+    
     switch Type
         case {'Item', 'Subitem', 'Paragraph'}
             switch Type
@@ -17,9 +21,11 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
                 case 'Paragraph'; Class = 'Texto_Justificado';
             end
             htmlContent = sprintf('<p class="%s" contenteditable="%s">%s</p>\n\n', Class, Data.Editable, Data.String);
+
         case 'Footnote'
             Class = 'Tabela_Texto_8';
-            htmlContent = sprintf('<p class="%s" contenteditable="%s" style="color: #808080;">%s</p>\n\n', Class, Data.Editable, Data.String); 
+            htmlContent = sprintf('<p class="%s" contenteditable="%s" style="color: #808080;">%s</p>\n\n', Class, Data.Editable, Data.String);
+
         case 'List'
             Class = 'Texto_Justificado';
             htmlContent = sprintf('<ul style="margin-left: 80px;">');
@@ -30,6 +36,7 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
                                        '\t</li>'], htmlContent, Class, Data(ii).Editable, Data(ii).String);
             end
             htmlContent = sprintf('%s\n</ul>\n\n', htmlContent);
+
         case 'Image'
             fontStyle = 'Tabela_Texto_8';
             
@@ -40,11 +47,11 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
             if ~isempty(imgFullPath)
                 if ~isempty(Intro)
                     Intro       = jsondecode(Intro);
-                    htmlContent = ReportGenerator_HTML(struct('Type', Intro.Type, 'Data', struct('Editable', 'false', 'String', Intro.String)));
+                    htmlContent = report.ReportGenerator_HTML(struct('Type', Intro.Type, 'Data', struct('Editable', 'false', 'String', Intro.String)));
                 end
                 
                 ID_img = ID_img+1;
-                [imgExt, imgString] = ReportGenerator_img2base64(imgFullPath);
+                [imgExt, imgString] = report.ReportGenerator_img2base64(imgFullPath);
     
                 htmlContent = sprintf(['%s<figure id="image_%.0f">\n'                                                                             ...
                                        '\t<p class="Texto_Centralizado"><img src="data:image/%s;base64,%s" style="width:%s; height:%s;" /></p>\n' ...
@@ -53,14 +60,15 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
                                        '\t</figcaption>\n'                                                                                        ...
                                        '</figure>\n\n'], htmlContent, ID_img, imgExt, imgString, Data.Settings.Width, Data.Settings.Height, fontStyle, ID_img, Data.Caption);
                 if LineBreak
-                    htmlContent = sprintf('%s%s', htmlContent, ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
+                    htmlContent = sprintf('%s%s', htmlContent, report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
                 end
             else
                 if ~isempty(Error)
                     Error       = jsondecode(Error);
-                    htmlContent = sprintf('%s%s', htmlContent, ReportGenerator_HTML(struct('Type', Error.Type, 'Data', struct('Editable', 'false', 'String', Error.String))));
+                    htmlContent = sprintf('%s%s', htmlContent, report.ReportGenerator_HTML(struct('Type', Error.Type, 'Data', struct('Editable', 'false', 'String', Error.String))));
                 end
             end
+
         case 'Table'
             tableStyle = 'tabela_corpo';
             fontStyle  = 'Tabela_Texto_8';
@@ -71,7 +79,7 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
             if ~isempty(Table)
                 if ~isempty(Intro)
                     Intro       = jsondecode(Intro);
-                    htmlContent = ReportGenerator_HTML(struct('Type', Intro.Type, 'Data', struct('Editable', 'false', 'String', Intro.String)));
+                    htmlContent = report.ReportGenerator_HTML(struct('Type', Intro.Type, 'Data', struct('Editable', 'false', 'String', Intro.String)));
                 end
                 
                 ID_tab  = ID_tab+1;                            
@@ -153,12 +161,13 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
                                      '\t</tbody>\n' ...
                                      '</table>\n\n'], htmlContent);
                 if LineBreak            
-                    htmlContent = sprintf('%s%s', htmlContent, ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
+                    htmlContent = sprintf('%s%s', htmlContent, report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
                 end
+
             else
                 if ~isempty(Error)
                     Error       = jsondecode(Error);
-                    htmlContent = sprintf('%s%s', htmlContent, ReportGenerator_HTML(struct('Type', Error.Type, 'Data', struct('Editable', 'false', 'String', Error.String))));
+                    htmlContent = sprintf('%s%s', htmlContent, report.ReportGenerator_HTML(struct('Type', Error.Type, 'Data', struct('Editable', 'false', 'String', Error.String))));
                 end
             end
     end

@@ -1,7 +1,9 @@
 function peaksTable = PreviewGenerator(app, idx, reportInfo)
 
+    global ID_img
+    ID_img = 0;
+
     SpecInfo   = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
-    ID_img     = 0;    
     peaksTable = [];
 
     for ii = 1:numel(SpecInfo)
@@ -12,10 +14,8 @@ function peaksTable = PreviewGenerator(app, idx, reportInfo)
             else;                   peaksTable = [peaksTable; Peaks];
             end
         end
-
-        SpecInfo(ii).Peaks = Peaks;
         
         ID_img = ID_img+1;
-        ReportGenerator_Plot(SpecInfo, ii, ID_img, reportInfo);
+        report.ReportGenerator_Plot(SpecInfo, ii, reportInfo);
     end
 end

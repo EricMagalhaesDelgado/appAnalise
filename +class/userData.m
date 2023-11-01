@@ -1,4 +1,4 @@
-classdef userData < dynamicprops
+classdef userData
 
     properties
         %-----------------------------------------------------------------%
@@ -19,12 +19,15 @@ classdef userData < dynamicprops
 
         Emissions            = table('Size', [0, 5],                                                     ...
                                      'VariableTypes', {'uint16', 'double', 'double', 'logical', 'cell'}, ...
-                                     'VariableNames', {'idx', 'FreqCenter', 'BW', 'isTruncated', 'Detection'})
+                                     'VariableNames', {'Index', 'Frequency', 'BW', 'isTruncated', 'Detection'})
 
         reportFlag           = false
+        
         reportOCC            = []
         reportDetection      = [] % struct('ManualMode', 0, 'Algorithm', {}, 'Parameters', {})
         reportClassification = [] % struct('Algorithm', {}, 'Parameters', {})
+
+        reportPeaksTable     = []
         reportAttachments    = struct('image', '', 'table', struct('Source', '', 'SheetID', 1))
     end
 end
