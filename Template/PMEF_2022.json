@@ -542,8 +542,8 @@
               {
                 "Editable": "false",
                 "String": "Largura ocupada (kHz)",
-                "Precision": "%.3f",
-                "Multiplier": 1E+3,
+                "Precision": "%.1f",
+                "Multiplier": 1,
                 "Width": "70px"
               },
               {

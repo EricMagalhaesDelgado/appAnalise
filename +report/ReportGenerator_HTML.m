@@ -44,6 +44,7 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
             Intro       = opt{2};
             Error       = opt{3};
             LineBreak   = opt{4};
+            
             if ~isempty(imgFullPath)
                 if ~isempty(Intro)
                     Intro       = jsondecode(Intro);
@@ -72,10 +73,12 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
         case 'Table'
             tableStyle = 'tabela_corpo';
             fontStyle  = 'Tabela_Texto_8';
+
             Table     = opt{1};
             Intro     = opt{2};
             Error     = opt{3};
             LineBreak = opt{4};
+
             if ~isempty(Table)
                 if ~isempty(Intro)
                     Intro       = jsondecode(Intro);
@@ -142,8 +145,7 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
                                         Table{ii, jj}{1}{kk} = sprintf('<p class="%s" contenteditable="%s">%s</p>', fontStyle, Data.Settings(jj).Editable, Table{ii, jj}{1}{kk});
                                     end
                                 end
-                                value = strjoin(Table{ii, jj}{1});
-    
+                                value = strjoin(Table{ii, jj}{1});    
                             end
                             
                         elseif isdatetime(Table{ii, jj})

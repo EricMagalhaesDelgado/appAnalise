@@ -41,9 +41,15 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                 tableStyleFlag = 0;
             end
         end
+
+        NN = 1;
+        if Template(ii).Recurrence
+            NN = numel(SpecInfo);
+        end
+
         
         jj = 0;
-        while jj < numel(SpecInfo)
+        while jj < NN
             jj = jj+1;
 
             if jj > 1
@@ -264,7 +270,7 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children)
 
     else
         if Recurrence
-            Source    = SpecInfo(idx).reportAttachments.image;
+            Source    = SpecInfo(idx).UserData.reportAttachments.image;
         else
             ID_imgExt = ID_imgExt+1;
 
@@ -288,7 +294,7 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children)
                     Image = report.ReportGenerator_Plot(SpecInfo, idx, reportInfo, Layout);
 
                 case 'Drive-Test'
-                    Image = report.ReportGenerator_DriveTest(idx, reportInfo, Layout);
+                    Image = report.ReportGenerator_DriveTest(SpecInfo, idx, reportInfo, Layout);
 
                 case 'Histogram'
                     % Pendente                    
@@ -311,8 +317,8 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
 
     else
         if Recurrence
-            Source    = SpecInfo(idx).reportAttachments.table.Source;
-            SheetID   = SpecInfo(idx).reportAttachments.table.SheetID;
+            Source    = SpecInfo(idx).UserData.reportAttachments.table.Source;
+            SheetID   = SpecInfo(idx).UserData.reportAttachments.table.SheetID;
         else
             ID_tabExt = ID_tabExt+1;
 
@@ -341,16 +347,15 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                     end
         
                 case 'Peaks'
-                    if ~isempty(SpecInfo(idx).Peaks)
-                        SpecInfo(idx).Peaks.ID(:) = "P" + string(1:height(SpecInfo(idx).Peaks)');
-                        SpecInfo(idx).Peaks       = movevars(SpecInfo(idx).Peaks, 'ID', 'Before', 1);
-                        
-                        Table = SpecInfo(idx).Peaks;
+                    if ~isempty(SpecInfo(idx).UserData.reportPeaksTable)                        
+                        Table       = SpecInfo(idx).UserData.reportPeaksTable;
+                        Table.ID(:) = "P" + string(1:height(Table)');
+                        Table       = movevars(Table, 'ID', 'Before', 1);
                         
                         % FILTRO
                         if ~isempty(Children.Data.Filter)
-                            ind_Field = find(strcmp(Children.Data.Filter.Column, SpecInfo(idx).Peaks.Properties.VariableNames), 1);
-                            ind_Value = strcmp(SpecInfo(idx).Peaks{:,ind_Field}, Children.Data.Filter.Value);
+                            ind_Field = find(strcmp(Children.Data.Filter.Column, Table.Properties.VariableNames), 1);
+                            ind_Value = strcmp(Table{:,ind_Field}, Children.Data.Filter.Value);
         
                             Table(~ind_Value,:) = [];
                         end
@@ -387,14 +392,14 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                             Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
         
                             if ismember(Children.Data.Columns{ii}, ["minLevel", "meanLevel", "maxLevel"])
-                                Table.Properties.VariableNames{ii} = sprintf('%s (%s)', Table.Properties.VariableNames{ii}, SpecInfo(idx).MetaData.metaString{1});
+                                Table.Properties.VariableNames{ii} = sprintf('%s (%s)', Table.Properties.VariableNames{ii}, SpecInfo(idx).MetaData.LevelUnit);
                             end
                         end
                     end
         
                 case 'Summary'        
                     if ~isempty(peaksTable)
-                        infoTable = ReportGenerator_Table_Summary(peaksTable, exceptionList);
+                        infoTable = report.ReportGenerator_Table_Summary(peaksTable, exceptionList);
         
                         % COLUNAS DE INFOTABLE
                         ind_Peaks = cellfun(@(x) find(strcmp(x, infoTable.Properties.VariableNames)), Children.Data.Columns);
@@ -435,7 +440,7 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                                   'VariableNames', VariableNames);
         
                     ll = 0;
-                    for jj = 1:numel(SpecInfo)
+                    for jj = 1:MM
                         if ismember(SpecInfo(jj).MetaData.DataType, class.Constants.specDataTypes)
                             ll = ll+1;
         
