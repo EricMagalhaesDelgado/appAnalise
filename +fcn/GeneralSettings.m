@@ -2,7 +2,6 @@ function GeneralSettings(appGeneral, RootFolder)
 
     appGeneral = rmfield(appGeneral, {'ver', 'Models', 'Report'});
     
-    appGeneral.stationInfo.Computer = '';
     if ismember(appGeneral.userPath, class.Constants.userPaths)
         appGeneral.userPath = '';
     end
