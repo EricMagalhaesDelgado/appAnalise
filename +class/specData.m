@@ -41,15 +41,6 @@ classdef specData < handle
 
 
         %-----------------------------------------------------------------%
-        function List = IDList(obj)
-            List = [];
-            for ii = 1:numel(obj)
-                List = [List, obj(ii).RelatedFiles.ID];
-            end
-        end
-
-
-        %-----------------------------------------------------------------%
         function copyObj = copy(obj, fields2remove)            
             copyObj  = class.specData();
             propList = setdiff(properties(copyObj), fields2remove);
@@ -59,6 +50,12 @@ classdef specData < handle
                     copyObj(ii).(propList{jj}) = obj(ii).(propList{jj});                
                 end
             end
+        end
+
+
+        %-----------------------------------------------------------------%
+        function IDs = IDList(obj)
+            IDs = arrayfun(@(x) x.RelatedFiles.ID(1), obj);
         end
     end
 

@@ -128,7 +128,7 @@ classdef ChannelLib < handle
 
                 case 'Custom'
                     for ii = 1:height(specData.UserData.channelManual)
-                        if emission_downLim > obj.Channel.Band{ii}(2) || emission_upLim < obj.Channel.Band{ii}(1)
+                        if emission_downLim > specData.UserData.channelManual.Band{ii}(2) || emission_upLim < specData.UserData.channelManual.Band{ii}(1)
                             continue
                         end
 

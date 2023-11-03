@@ -54,7 +54,7 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, SpecInfo, 
         if isempty(SpecInfo(idx1).UserData.occMethod.CacheIndex)
             % Isso é aplicável apenas ao modo "PLAYBACK", caso não tenha
             % sido feita nenhuma avaliação de ocupação.
-            play_OCCIndex(app, idx1);
+            play_OCCIndex(app, idx1, 'PLAYBACK');
         end        
         occIndex = SpecInfo(idx1).UserData.occMethod.CacheIndex;
 
