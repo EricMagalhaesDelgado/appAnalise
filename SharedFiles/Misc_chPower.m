@@ -29,7 +29,7 @@ function chPower = Misc_chPower(rawData, chLimits)
     
     xData  = linspace(Start, Stop, Points)';
 
-    switch rawData.MetaData.metaString{1}
+    switch rawData.MetaData.LevelUnit
         case 'dBm';  yData = rawData.Data{2};
         case 'dBµV'; yData = rawData.Data{2} - 107;
         otherwise;   error('Unidade ainda não tratada...')

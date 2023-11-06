@@ -1,14 +1,10 @@
 function Controller(app, Mode)
 
     d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'on', 'Interpreter', 'html'); 
-    d.Message = '<font style="font-size:12;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, como, por exemplo, a busca de emissões, a comparação com a base de dados da Agência e a geração de plots.</font>';
+    d.Message = '<font style="font-size:12;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, como, por exemplo, a busca de emissões e a comparação com a base de dados da Agência...</font>';
         
     try
-        if isempty(app.General.ver.fiscaliza)
-            app.General.ver = fcn.startup_Versions("Full", app.RootFolder);
-        end
-    
-        [idx, reportInfo] = report.GeneralInfo(app, Mode);
+        [idx, reportInfo] = ReportGenerator_Aux1(app, Mode);
         
         switch Mode
             case 'Report'
@@ -16,7 +12,7 @@ function Controller(app, Mode)
                 % arquivos externos (imagens e tabelas).
                 if contains(reportInfo.Model.Template, '"Origin": "External"')
                     msg = '<font style="font-size:12;">Confirma que foram relacionados os arquivos externos ao appAnalise estabelecidos no modelo?</font>';
-                    selection = uiconfirm(app.UIFigure, msg, 'appAnálise', 'Options', {'OK', 'Cancelar'}, 'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question', 'Interpreter', 'html');
+                    selection = uiconfirm(app.UIFigure, msg, '', 'Options', {'OK', 'Cancelar'}, 'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question', 'Interpreter', 'html');
                     
                     if selection == "Cancelar"
                         return
@@ -49,9 +45,19 @@ function Controller(app, Mode)
                 end
                 web(filename, '-new')
 
+
             case 'Preview'
                 Peaks = report.PreviewGenerator(app, idx, reportInfo);
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
+
+
+            case 'auxApp.SignalAnalysis'
+                [~, countTable] = report.ReportGenerator_Table_Summary(app.CallingApp.peaksTable, app.CallingApp.exceptionList);
+                tableStr = ReportGenerator_Aux3(app.CallingApp, idx, countTable);
+    
+                filename = fullfile(app.CallingApp.menu_userPath.Value, sprintf('preReport_%s.json', datestr(now, 'yyyymmdd_THHMMSS')));
+                writematrix(tableStr, filename, "FileType", "text", "QuoteStrings", "none")
+                layoutFcn.modalWindow(app.UIFigure, 'ccTools.MessageBox', sprintf('Informações relacionadas às emissões foram salvas no arquivo <b>%s</b>', replace(filename, '\', '\\')));
         end
         
     catch ME
@@ -63,7 +69,23 @@ function Controller(app, Mode)
 end
 
 
-%-----------------------------------------------------------------%
+%-------------------------------------------------------------------------%
+function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
+    switch Mode
+        case {'Report', 'Preview'}
+            if isempty(app.General.ver.fiscaliza)
+                app.General.ver = fcn.startup_Versions("Full", app.RootFolder);
+            end
+        
+            [idx, reportInfo] = report.GeneralInfo(app, Mode);
+
+        case 'auxApp.SignalAnalysis'    
+            [idx, reportInfo] = report.GeneralInfo(app.CallingApp, Mode);
+    end
+end
+
+
+%-------------------------------------------------------------------------%
 function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
 
     % Variável que possibilitará o preenchimento dos campos
@@ -121,8 +143,8 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
 end
 
 
-%-----------------------------------------------------------------%
-function tableStr = ReportGenerator_Aux3(app, ProjectRows, countTable)
+%-------------------------------------------------------------------------%
+function tableStr = ReportGenerator_Aux3(app, idx, countTable)
     
     % Tabelas que irão compor o JSON que será carregado como anexo
     % à inspeção (no Fiscaliza).
@@ -148,7 +170,7 @@ function tableStr = ReportGenerator_Aux3(app, ProjectRows, countTable)
     ClassificationTable(1:numel(Classification),:) = [num2cell((1:numel(Classification))'), Classification];
 
     jj = 0;
-    for ii = ProjectRows
+    for ii = idx
         if ismember(app.specData(ii).MetaData.DataType, class.Constants.specDataTypes)
             jj = jj+1;
 

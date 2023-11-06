@@ -60,7 +60,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                 Children = Template(ii).Data.Children(ll);
     
                 msgError = '';
-                % try
+                try
                     switch Children.Type
                         case {'Subitem', 'Paragraph', 'List', 'Footnote'}
                             opt1 = [];
@@ -84,9 +84,9 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                             opt4 = Children.Data.LineBreak;
                     end
 
-                % catch ME
-                %     msgError = ME.message; 
-                % end
+                catch ME
+                    msgError = ME.message; 
+                end
 
                 if isempty(msgError)
                     htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
@@ -274,11 +274,11 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children)
         else
             ID_imgExt = ID_imgExt+1;
 
-            % try
+            try
                 Source = reportInfo.Attachments.image{ID_imgExt};
-            % catch
-            %     ID_imgExt = ID_imgExt-1;
-            % end
+            catch
+                ID_imgExt = ID_imgExt-1;
+            end
         end
     end
 
@@ -322,12 +322,12 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
         else
             ID_tabExt = ID_tabExt+1;
 
-            % try
+            try
                 Source  = reportInfo.Attachments.table{ID_tabExt}.Source;
                 SheetID = reportInfo.Attachments.table{ID_tabExt}.SheetID;
-            % catch 
-            %     ID_tabExt = ID_tabExt-1;
-            % end
+            catch 
+                ID_tabExt = ID_tabExt-1;
+            end
         end
     end
 

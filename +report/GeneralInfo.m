@@ -1,7 +1,7 @@
 function [idx, reportInfo] = GeneralInfo(app, Mode)
 
     switch Mode
-        case 'Report'
+        case {'Report', 'auxApp.SignalAnalysis'}
             idx = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
         case 'Preview'
             idx = [];

@@ -93,7 +93,7 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
                     Description = char(AnatelDB.Description(idx2(idx3)));
 
                     if AnatelDB.BW(idx2(idx3)) > 0
-                        BW = AnatelDB.BW(idx2(idx3)) / 1e+3;
+                        BW = AnatelDB.BW(idx2(idx3));
                     end
 
                 else
