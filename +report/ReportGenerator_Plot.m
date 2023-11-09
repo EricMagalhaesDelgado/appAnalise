@@ -94,7 +94,7 @@ function filename = ReportGenerator_Plot(SpecInfo, idx, reportInfo, Layout)
 
     % Export figure as PNG or JPEG file
     filename = '';
-    if reportInfo.General.Mode == "Report"
+    if ismember(reportInfo.General.Mode, {'Report', 'auxApp.winTemplate'})
         if reportInfo.General.Version == "Definitiva"
             filename = sprintf( 'Image_%s_ID%.0f.%s', datestr(datetime('now'), 'yyyy.mm.dd_THH.MM.SS'), SpecInfo(idx).RelatedFiles.ID(1), reportInfo.General.Image.Format);
         else

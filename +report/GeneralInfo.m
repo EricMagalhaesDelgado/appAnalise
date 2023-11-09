@@ -1,7 +1,7 @@
-function [idx, reportInfo] = GeneralInfo(app, Mode)
+function [idx, reportInfo] = GeneralInfo(app, Mode, reportTemplateIndex)
 
     switch Mode
-        case {'Report', 'auxApp.SignalAnalysis'}
+        case {'Report', 'auxApp.winTemplate', 'auxApp.winSignalAnalysis'}
             idx = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
         case 'Preview'
             idx = [];
@@ -32,10 +32,6 @@ function [idx, reportInfo] = GeneralInfo(app, Mode)
     else
         filterStatus = false;
     end
-
-
-    % Identificação do modelo de relatório.    
-    reportTemplateIndex = find(strcmp(app.report_Type.Items, app.report_Type.Value), 1);
     
 
     % Criação de variável local que suportará a criação do relatório de

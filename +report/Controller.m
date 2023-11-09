@@ -51,7 +51,15 @@ function Controller(app, Mode)
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
 
 
-            case 'auxApp.SignalAnalysis'
+            case 'auxApp.winTemplate'
+                reportInfo.General.Version          = 'Preliminar';
+                reportInfo.General.Image.Visibility = 'off';
+
+                htmlReport = report.ReportGenerator(app.CallingApp, idx, reportInfo);
+                app.HTML.HTMLSource = htmlReport;
+
+
+            case 'auxApp.winSignalAnalysis'
                 [~, countTable] = report.ReportGenerator_Table_Summary(app.CallingApp.peaksTable, app.CallingApp.exceptionList);
                 tableStr = ReportGenerator_Aux3(app.CallingApp, idx, countTable);
     
@@ -77,10 +85,16 @@ function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
                 app.General.ver = fcn.startup_Versions("Full", app.RootFolder);
             end
         
-            [idx, reportInfo] = report.GeneralInfo(app, Mode);
+            reportTemplateIndex = find(strcmp(app.report_Type.Items, app.report_Type.Value), 1);
+            [idx, reportInfo]   = report.GeneralInfo(app, Mode, reportTemplateIndex);
 
-        case 'auxApp.SignalAnalysis'    
-            [idx, reportInfo] = report.GeneralInfo(app.CallingApp, Mode);
+        case 'auxApp.winTemplate'
+            reportTemplateIndex = app.Tree1.SelectedNodes.NodeData;
+            [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
+
+        case 'auxApp.winSignalAnalysis'
+            reportTemplateIndex = find(strcmp(app.CallingApp.report_Type.Items, app.CallingApp.report_Type.Value), 1);
+            [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
     end
 end
 
