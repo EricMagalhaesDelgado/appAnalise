@@ -1,4 +1,4 @@
-function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, SpecInfo, idx1, Attributes)
+function [newIndex, newFreq, newBW, Method] = Detection_FindPeaksPlusOCC(app, SpecInfo, idx1, Attributes)
 
     % DETECTION ALGORITHM: FindPeaks+OCC (appAnálise v. 1.00)
     %
@@ -23,14 +23,15 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, SpecInfo, 
         THR1 = SpecInfo(idx1).MetaData.Threshold + Attributes.Prominence1;
     end
     
-    Attributes_C1 = struct('Fcn',        'Média',                ...
+    Attributes_C1 = struct('Algorithm',  'FindPeaks+OCC',        ...
+                           'Fcn',        'Média',                ...
                            'NPeaks',     100,                    ...
                            'THR',        THR1,                   ...
                            'Prominence', Attributes.Prominence1, ...
                            'Distance',   Attributes.Distance,    ...
                            'BW',         Attributes.BW);
         
-    [meanIndex, meanFrequency, meanBW] = fcn.Detection_FindPeaks(SpecInfo, idx1, Attributes_C1);
+    [meanIndex, meanFrequency, meanBW, meanMethod] = fcn.Detection_FindPeaks(SpecInfo, idx1, Attributes_C1);
 
 
     % Critério 2: MaxHold
@@ -39,7 +40,8 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, SpecInfo, 
     if SpecInfo(idx1).MetaData.Threshold ~= -1
         THR2 = SpecInfo(idx1).MetaData.Threshold + Attributes.Prominence2;
     end
-    Attributes_C2 = struct('Fcn',        'MaxHold',              ...
+    Attributes_C2 = struct('Algorithm',  'FindPeaks+OCC',        ...
+                           'Fcn',        'MaxHold',              ...
                            'NPeaks',     100,                    ...
                            'THR',        THR2,                   ...
                            'Prominence', Attributes.Prominence2, ...
@@ -48,7 +50,7 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, SpecInfo, 
                            'meanOCC',    Attributes.meanOCC,     ...
                            'maxOCC',     Attributes.maxOCC);
 
-    [maxIndex, maxFrequency, maxBW] = fcn.Detection_FindPeaks(SpecInfo, idx1, Attributes_C2);
+    [maxIndex, maxFrequency, maxBW, maxMethod] = fcn.Detection_FindPeaks(SpecInfo, idx1, Attributes_C2);
     
     if ~isempty(maxIndex)
         if isempty(SpecInfo(idx1).UserData.occMethod.CacheIndex)
@@ -65,6 +67,7 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, SpecInfo, 
         
         maxFrequency = maxFrequency(idx2);
         maxBW        = maxBW(idx2);
+        maxMethod    = maxMethod(idx2);
     end
 
 
@@ -77,6 +80,7 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, SpecInfo, 
                 maxIndex(ii)     = [];
                 maxFrequency(ii) = [];
                 maxBW(ii)        = [];
+                maxMethod(ii)   = [];
 
                 break
             end
@@ -88,4 +92,5 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaksPlusOCC(app, SpecInfo, 
     newIndex = [meanIndex;     maxIndex];
     newFreq  = [meanFrequency; maxFrequency];
     newBW    = [meanBW;        maxBW];
+    Method   = [meanMethod;   maxMethod];
 end

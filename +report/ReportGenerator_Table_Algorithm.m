@@ -23,7 +23,7 @@ function Table = ReportGenerator_Table_Algorithm(SpecInfo, idx)
         bandLimits = sprintf('Faixa sob análise: %s', strjoin(bandLimits, ', '));
     end
     
-    [DetectionType, ~, DetectionTypeIndex] = unique(SpecInfo(idx).UserData.reportPeaksTable.Detection);
+    [DetectionType, ~, DetectionTypeIndex] = unique(SpecInfo(idx).UserData.reportPeaksTable.Detection, 'stable');
 
     Detection = {};
     if SpecInfo(idx).UserData.reportDetection.ManualMode

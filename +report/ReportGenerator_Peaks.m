@@ -8,22 +8,22 @@ function Peaks = ReportGenerator_Peaks(app, SpecInfo, idx)
 
     if ~SpecInfo(idx).UserData.reportDetection.ManualMode
         Algorithm  = SpecInfo(idx).UserData.reportDetection.Algorithm;
+
         Attributes = SpecInfo(idx).UserData.reportDetection.Parameters;
+        Attributes.Algorithm = Algorithm;
 
         switch Algorithm
             case 'FindPeaks'
-                [newIndex, newFreq, newBW] = fcn.Detection_FindPeaks(SpecInfo, idx, Attributes);
+                [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaks(SpecInfo, idx, Attributes);
 
             case 'FindPeaks+OCC'
-                [newIndex, newFreq, newBW] = fcn.Detection_FindPeaksPlusOCC(app, SpecInfo, idx, Attributes);
+                [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaksPlusOCC(app, SpecInfo, idx, Attributes);
         end
-
         newBW  = newBW * 1000;
-        Method = jsonencode(rmfield(SpecInfo(idx).UserData.reportDetection, 'ManualMode'));
 
         if ~isempty(newIndex)
             NN = numel(newIndex);
-            SpecInfo(idx).UserData.Emissions(end+1:end+NN,:) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), repmat({Method}, numel(newIndex), 1));
+            SpecInfo(idx).UserData.Emissions(end+1:end+NN,:) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), Method);
             fcn.Detection_BandLimits(SpecInfo(idx))
         end
     end

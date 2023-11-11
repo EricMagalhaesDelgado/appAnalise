@@ -1,8 +1,9 @@
-function [newIndex, newFreq, newBW] = Detection_FindPeaks(SpecInfo, idx1, Attributes)
+function [newIndex, newFreq, newBW, Method] = Detection_FindPeaks(SpecInfo, idx1, Attributes)
 
     newIndex = [];
     newFreq  = [];
     newBW    = [];
+    Method   = [];
 
     switch Attributes.Fcn
         case 'MinHold'; idx2 = 1;
@@ -61,5 +62,7 @@ function [newIndex, newFreq, newBW] = Detection_FindPeaks(SpecInfo, idx1, Attrib
         newBW    = (idxRange(:,2)-idxRange(:,1)) * aCoef / 1e+6;            % Em MHz
 
         newIndex = round(newIndex);
+        Method   = repmat({jsonencode(struct('Algorithm',  Attributes.Algorithm, ...
+                                             'Parameters', rmfield(Attributes, 'Algorithm')))}, numel(newIndex), 1);
     end
 end

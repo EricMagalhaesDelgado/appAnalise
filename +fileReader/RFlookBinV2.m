@@ -1,8 +1,8 @@
 function specData = RFlookBinV2(fileName, ReadType, metaData)
 
     % Author.: Eric Magalhães Delgado
-    % Date...: September 09, 2023
-    % Version: 1.00
+    % Date...: November 10, 2023
+    % Version: 1.01
 
     arguments
         fileName char
@@ -117,6 +117,7 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     nSweeps = numel(startIndex);
 
     if gpsMode_ID
+        gpsArray = zeros(nSweeps, 3);
         for ii = 1:nSweeps
             blockArray = rawData(startIndex(ii):stopIndex(ii));
 
@@ -127,12 +128,12 @@ function specData = Fcn_MetaDataReader(rawData, filename)
             if ii == nSweeps
                 EndTime   = observationTime(blockArray);
             end
-            
-            if blockArray(9)
-                gpsData.Status = 1;
-                gpsData.Matrix(end+1,:) = [typecast(blockArray(10:13), 'single'), typecast(blockArray(14:17), 'single')];
-            end
+
+            gpsArray(ii,:) = [single(blockArray(9)),                 ...    % STATUS
+                              typecast(blockArray(10:13), 'single'), ...    % LATITUDE
+                              typecast(blockArray(14:17), 'single')];       % LONGITUDE
         end
+        gpsData = fcn.gpsInterpolation(gpsArray);
 
     else
         BeginTime = observationTime(rawData(startIndex(1):stopIndex(1)));
