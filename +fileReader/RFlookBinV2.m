@@ -1,16 +1,16 @@
-function specData = RFlookBinV2(filename, ReadType, metaData)
+function specData = RFlookBinV2(fileName, ReadType, metaData)
 
     % Author.: Eric Magalhães Delgado
     % Date...: July 19, 2023
     % Version: 1.00
 
     arguments
-        filename char
+        fileName char
         ReadType char   = 'SingleFile'
         metaData struct = []
     end
     
-    fileID = fopen(filename, 'r');
+    fileID = fopen(fileName, 'r');
     if fileID == -1
         error('File not found.');
     end
@@ -25,7 +25,7 @@ function specData = RFlookBinV2(filename, ReadType, metaData)
 
     switch ReadType
         case {'MetaData', 'SingleFile'}
-            specData = Fcn_MetaDataReader(rawData, filename);
+            specData = Fcn_MetaDataReader(rawData, fileName);
 
             if strcmp(ReadType, 'SingleFile')
                 specData = Fcn_SpecDataReader(specData, rawData);
@@ -134,18 +134,19 @@ function specData = Fcn_MetaDataReader(rawData, filename)
                 EndTime   = observationTime(blockArray);
             end
             
-            if blockArray(9)
-                gpsData.Matrix(end+1,:) = [typecast(blockArray(10:13), 'single'), typecast(blockArray(14:17), 'single')];
-            end
+            gpsArray(ii,:) = [single(blockArray(9)),                 ...    % STATUS
+                              typecast(blockArray(10:13), 'single'), ...    % LATITUDE
+                              typecast(blockArray(14:17), 'single')];       % LONGITUDE
         end
+        gpsTempData    = fcn.gpsInterpolation(gpsArray);
+
+        gpsData.Status = gpsTempData.Status;
+        gpsData.Matrix = gpsTempData.Matrix;
 
         if ~isempty(gpsData.Matrix)
-            gpsData.Status    = 1;
             gpsData.Count     = height(gpsData.Matrix);
             gpsData.Latitude  = mean(gpsData.Matrix(:,1));
             gpsData.Longitude = mean(gpsData.Matrix(:,2));
-        else
-            gpsData.Status    = 0;
         end
 
     else

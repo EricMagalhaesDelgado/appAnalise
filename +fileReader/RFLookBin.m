@@ -76,21 +76,16 @@ function [SpecInfo, metaData, specData] = RFLookBin(filename, ReadType)
                     for ii = 1:SpecInfo.Samples
                         gpsArray(ii,:) = [double(specData{1}.Data(ii).gpsStatus), double(specData{1}.Data(ii).Latitude), double(specData{1}.Data(ii).Longitude)];
                     end
+
                     gpsStatus = max(gpsArray(:,1));
                     if gpsStatus
-                        SpecInfo.gps.Status = gpsStatus;
-                        idx_invalid = find(gpsArray(:,1) == 0);
-                        if ~isempty(idx_invalid)
-                            idx_valid = find(gpsArray(:,1) == 1);
-                            latArray  = interp1(idx_valid, gpsArray(idx_valid,2), idx_invalid, 'linear', 'extrap');
-                            longArray = interp1(idx_valid, gpsArray(idx_valid,3), idx_invalid, 'linear', 'extrap');
-                            gpsArray(idx_invalid,2:3) = [latArray, longArray];
-                        end                        
+                        gpsData = fcn.gpsInterpolation(gpsArray);
                         
-                        SpecInfo.gps.Count     = SpecInfo.Samples;
-                        SpecInfo.gps.Latitude  = mean(gpsArray(:,2));
-                        SpecInfo.gps.Longitude = mean(gpsArray(:,3));
-                        SpecInfo.gps.Matrix    = gpsArray(:,2:3);                        
+                        SpecInfo.gps.Status    = gpsData.Status;
+                        SpecInfo.gps.Count     = height(gpsData.Matrix);
+                        SpecInfo.gps.Latitude  = mean(gpsData.Matrix(:,1));
+                        SpecInfo.gps.Longitude = mean(gpsData.Matrix(:,2));
+                        SpecInfo.gps.Matrix    = gpsData.Matrix;
                     else
                         if metaData.Data.gpsStatus
                             SpecInfo.gps.Count     = 1;                    
