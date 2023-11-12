@@ -1,4 +1,4 @@
 {
-  "version": "https://www.anatel.gov.br/dadosabertos/paineis_de_dados/sentinela/VersionFile.json",
+  "VersionFile": "https://www.anatel.gov.br/dadosabertos/paineis_de_dados/sentinela/VersionFile.json",
   "anateldb": "https://www.anatel.gov.br/dadosabertos/paineis_de_dados/sentinela/AnatelDB.parquet.gzip"
 }
