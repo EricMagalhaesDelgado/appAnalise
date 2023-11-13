@@ -164,7 +164,6 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
             end
     
         catch ME
-            ME.message
             switch ME.message
                 case {'CHECKSUM', 'GERROR'}
                     ii = ii+jj+1;

@@ -1,40 +1,40 @@
 function SM1809(filename, specData)
-%% FILEWRITER_SM1809 *Escrita do arquivo SM1809.*
-% Escrita de arquivo no formato SM1809 - um formato texto estabelecido pela 
-% UIT como _"formato padrão de intercâmbio entre os administradores do espectro 
-% de radiofrequências"_, definido na Recomendação ITU-R SM.1809, publicada em 
-% 2007. O conteúdo do arquivo é extraído da variável "specData", uma estrutura 
-% definida para manuseio de dados de espectro no âmbito do *appAnálise*.
-% 
-% Em relação à recomendação da UIT:
-%% 
-% * Foram inclusos todos campos obrigatórios no _header_, quais sejam: FileType, 
-% LocationName, Latitude, Longitude, FreqStart, FreqStop, AntennaType, FilterBandwidth, 
-% LevelUnits, Date, DataPoints, ScanTime e Detector.
-% * Foi inserido apenas um campo opcional, o MultiScan.
-% * Foram inseridos outros campos opcionais - ObservationTime, TraceMode, Samples, 
-% Node, ThreadID, ScriptName e Description - que não são previstos na Recomendação 
-% e, portanto, somente serão decodificados no próprio appAnálise. O campo TraceMode, 
-% ressalte-se, é importantíssimo pois o registro de uma monitoração com o traço 
-% ClearWrite é muito diferente de uma monitoração com o traço MaxHold, por exemplo. 
-% Além disso, os outros campos são importantes para manter a coerência de dados 
-% da variável "specData", em especial por conta de metadados existentes no CRFS 
-% BIN.
-%% 
-% Quando se tratar de um arquivo que registra uma monitoração multifaixa, alguns 
-% dos parâmetros do _header_ apresentam valores específicos para cada faixa. São 
-% eles:
-%% 
-% * FreqStart
-% * FreqStop
-% * FilterBandwidth
-% * LevelUnits
-% * DataPoints
-% * ScanTime
-% * Detector
-% * TraceMode
-% * ThreadID
-% * Description
+
+    % Escrita de arquivo no formato SM1809 - um formato texto estabelecido pela 
+    % UIT como o "formato padrão de intercâmbio entre os administradores do espectro 
+    % de radiofrequências", definido na Recomendação ITU-R SM.1809, publicada em 
+    % 2007. O conteúdo do arquivo é extraído da variável "specData", uma estrutura 
+    % definida para manuseio de dados de espectro no âmbito do appAnalise.
+    % 
+    % Em relação à recomendação da UIT:
+    % - Foram inclusos todos campos obrigatórios no _header_, quais sejam: FileType, 
+    %   LocationName, Latitude, Longitude, FreqStart, FreqStop, AntennaType, FilterBandwidth, 
+    %   LevelUnits, Date, DataPoints, ScanTime e Detector.
+    % - Foi inserido apenas um campo opcional, o MultiScan.
+    % - Foram inseridos outros campos opcionais - ObservationTime, TraceMode, Samples, 
+    %   Node, ThreadID (ou ID), ScriptName e Description - que não são previstos na Recomendação 
+    %   e, portanto, somente serão decodificados no próprio appAnalise. O campo TraceMode, 
+    %   ressalte-se, é importantíssimo pois o registro de uma monitoração com o traço 
+    %   ClearWrite é muito diferente de uma monitoração com o traço MaxHold, por exemplo. 
+    %
+    % Além disso, os outros campos são importantes para manter a coerência de dados 
+    % da variável "specData", em especial por conta de metadados existentes no CRFS 
+    % BIN.
+    %
+    % Quando se tratar de um arquivo que registra uma monitoração multifaixa, alguns 
+    % dos parâmetros do _header_ apresentam valores específicos para cada faixa. São 
+    % eles:
+    % - FreqStart
+    % - FreqStop
+    % - FilterBandwidth
+    % - LevelUnits
+    % - DataPoints
+    % - ScanTime
+    % - Detector
+    % - TraceMode
+    % - ThreadID | ID
+    % - Description
+
     arguments
         filename char
         specData struct
@@ -158,6 +158,7 @@ function SM1809(filename, specData)
         for jj = 1:Samples
             strData = sprintf('%.1f,', specData(1).Data{2}(:,jj)');
             fprintf(fileID, sprintf('%s,%s', datestr(specData(1).Data{1}(jj), 'HH:MM:SS'), strData(1:end-1)));
+            
             for kk = 2:length(specData)
                 strData = sprintf('%.1f,', specData(kk).Data{2}(:,jj)');
                 fprintf(fileID,'; ,%s', strData(1:end-1));
@@ -165,11 +166,12 @@ function SM1809(filename, specData)
             fprintf(fileID, newline);
         end
     end
+
     fclose(fileID);
 end
-%% 
-% Conversão de grau decimal (que é o formato armazenado na variável specData) 
-% para o formato padrão do SM1809.
+
+
+%-------------------------------------------------------------------------%
 function [Latitude, Longitude] = gpsConversionFormats(gps)
     arguments
         gps struct

@@ -150,11 +150,13 @@ function specData = Fcn_MetaDataReader(fileName)
                                 end
     
                             case 'Range Definition'
-                                if ~isnan(str2double(subFieldValue))
-                                    specData.RelatedFiles.ID(1)          = str2double(subFieldValue);
-                                    specData.RelatedFiles.Description{1} = DefaultDescription(specData.RelatedFiles.ID(1), specData.MetaData.FreqStart, specData.MetaData.FreqStop);
-                                else
-                                    specData.RelatedFiles.Description{1} = fieldValue;
+                                if strcmp(subFieldName, 'Name')
+                                    if ~isnan(str2double(subFieldValue))
+                                        specData.RelatedFiles.ID(1)          = str2double(subFieldValue);
+                                        specData.RelatedFiles.Description{1} = DefaultDescription(specData.RelatedFiles.ID(1), specData.MetaData.FreqStart, specData.MetaData.FreqStop);
+                                    else
+                                        specData.RelatedFiles.Description{1} = subFieldValue;
+                                    end
                                 end
 
                             case 'Device 1'
@@ -210,7 +212,7 @@ function specData = Fcn_SpecDataReader(specData)
     % E, por fim, preenche o vetor de timestamp e a matriz de níveis...
     specData              = PreAllocationData(specData);
 
-    specData.Data{1}(:)   = datetime(rawTable.Time(idxSweeps), 'InputFormat', InputFormat)';
+    specData.Data{1}(:)   = datetime(DateTimePreProcess(rawTable.Time(idxSweeps)), 'InputFormat', InputFormat)';
     specData.Data{2}(:,:) = reshape(rawTable{:,3}, [DataPoints, nSweeps]);
 
     specData.FileMap      = [];
@@ -307,20 +309,17 @@ end
 function [TimeStamp, InputFormat] = str2datetime(sTimeStamp)
     % Ao que parece, o Argus usa o formato definido no sistema operacional
     % (Windows) de hora/data no arquivo CSV. Como são múltiplos formatos,
-    % foi prevista a decodificação dos principais (ao menos os mais comuns
-    % nas línguas portuguesa e inglesa).
+    % foi prevista a decodificação dos principais (os mais comuns nas línguas 
+    % portuguesa e inglesa).
      
     datetimeFormats      = table('Size', [0,2],                     ...
                                  'VariableTypes', {'cell', 'cell'}, ...
                                  'VariableNames', {'Format', 'Expression'});
 
-    datetimeFormats(1,:) = {'yyyy-MM-dd  HH:mm:ss,SSS', '^\d{4}[-]\d{2}[-]\d{2}\s+\d{2}:\d{2}:\d{2}[,]\d{3}$'};
-    datetimeFormats(2,:) = {'yyyy-MM-dd  HH:mm:ss.SSS', '^\d{4}[-]\d{2}[-]\d{2}\s+\d{2}:\d{2}:\d{2}[.]\d{3}$'};
-    datetimeFormats(3,:) = {'dd/MM/yyyy  HH:mm:ss,SSS', '^\d{2}[/]\d{2}[/]\d{4}\s+\d{2}:\d{2}:\d{2}[,]\d{3}$'};
-    datetimeFormats(4,:) = {'dd/MM/yyyy  HH:mm:ss.SSS', '^\d{2}[/]\d{2}[/]\d{4}\s+\d{2}:\d{2}:\d{2}[.]\d{3}$'};
-    datetimeFormats(5,:) = {'dd.MM.yyyy  HH:mm:ss,SSS', '^\d{2}[.]\d{2}[.]\d{4}\s+\d{2}:\d{2}:\d{2}[,]\d{3}$'};
-    datetimeFormats(6,:) = {'dd.MM.yyyy  HH:mm:ss.SSS', '^\d{2}[.]\d{2}[.]\d{4}\s+\d{2}:\d{2}:\d{2}[.]\d{3}$'};
-        
+    datetimeFormats(1,:) = {'yyyy.MM.dd  HH:mm:ss.SSS', '^\d{4}[.]\d{1,2}[.]\d{1,2}\s+\d{1,2}:\d{2}:\d{2}[.]\d{3}$'};
+    datetimeFormats(2,:) = {'dd.MM.yyyy  HH:mm:ss.SSS', '^\d{1,2}[.]\d{1,2}[.]\d{4}\s+\d{1,2}:\d{2}:\d{2}[.]\d{3}$'};
+
+    sTimeStamp = DateTimePreProcess(sTimeStamp);
     for ii = 1:height(datetimeFormats)
         tempTime = regexp(sTimeStamp, datetimeFormats.Expression{ii}, 'match');
 
@@ -334,6 +333,12 @@ function [TimeStamp, InputFormat] = str2datetime(sTimeStamp)
     if ~exist('TimeStamp', 'var')
         error('fileReader:ArgusCSV', 'Unsupported date/time format')
     end
+end
+
+
+%-------------------------------------------------------------------------%
+function sTimeStamp = DateTimePreProcess(sTimeStamp)
+    sTimeStamp = replace(sTimeStamp, {',', '/', '-'}, '.');
 end
 
 
