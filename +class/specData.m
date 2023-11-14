@@ -36,7 +36,7 @@ classdef specData < handle
 
             obj(idx).Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, sum(obj(idx).RelatedFiles.nSweeps)), ...
                              zeros(obj(idx).MetaData.DataPoints, sum(obj(idx).RelatedFiles.nSweeps), 'single'),                       ...
-                             zeros(obj(idx).MetaData.DataPoints, 3)};
+                             zeros(obj(idx).MetaData.DataPoints, 3, 'single')};
         end
 
 

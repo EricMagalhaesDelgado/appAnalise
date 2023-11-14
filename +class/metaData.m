@@ -42,11 +42,10 @@ classdef metaData < handle
                     obj.Data = fileReader.SM1809(obj.File, 'MetaData', []);
                     
                 case '.csv'
-                    obj.Data = fileReader.ArgusCSV(obj.File, 'SingleFile', []);
+                    obj.Data = fileReader.ArgusCSV(obj.File, 'MetaData', []);
 
                 case '.mat'
-                    load(obj.File, '-mat', 'prj_metaData')
-                    obj.Data = prj_metaData;                
+                    obj.Data = fileReader.MAT(obj.File, 'MetaData', []);           
             end
 
             obj.Samples = SamplesArray(obj, 1);
@@ -76,7 +75,7 @@ classdef metaData < handle
 
             estimatedMemory = 0;
             for ii = 1:numel(obj(idx).Data)
-                estimatedMemory = estimatedMemory + 4 * obj(idx).Data(ii).RelatedFiles.nSweeps .* obj(idx).Data(ii).MetaData.DataPoints .* 1e-6;
+                estimatedMemory = estimatedMemory + 4 * sum(obj(idx).Data(ii).RelatedFiles.nSweeps) .* obj(idx).Data(ii).MetaData.DataPoints .* 1e-6;
             end
         end
     end
@@ -85,11 +84,7 @@ classdef metaData < handle
     methods (Access = protected)
         %-----------------------------------------------------------------%
         function samplesArray = SamplesArray(obj, idx)
-
-            samplesArray = [];
-            for ii = 1:numel(obj(idx).Data)
-                samplesArray = [samplesArray; obj(idx).Data(ii).RelatedFiles.nSweeps];
-            end
+            samplesArray = arrayfun(@(x) sum(x.RelatedFiles.nSweeps), obj(idx).Data)';
         end
     end
 end

@@ -43,20 +43,13 @@ classdef userData
                 app.specData(ii).UserData.reportFlag = true;
         
                 % As propriedades "reportOCC", "reportDetection" e "reportClassification"
-                % são criadas apenas aqui.                
-                if isempty(app.specData(ii).UserData.reportOCC)       || ...
-                   isempty(app.specData(ii).UserData.reportDetection) || ...
-                   isempty(app.specData(ii).UserData.reportClassification)                    
-        
-                    % Ocupação
+                % são criadas aqui...
+                
+                % Ocupação
+                if isempty(app.specData(ii).UserData.reportOCC)
                     if isempty(app.specData(ii).UserData.occMethod.CacheIndex)
                         if isempty(app.specData(ii).UserData.occMethod.RelatedIndex)        
-                            app.specData(ii).UserData.reportOCC = struct('Method',            'Linear adaptativo', ...
-                                                                         'IntegrationTime',    15,                 ...
-                                                                         'Offset',             12,                 ...
-                                                                         'noiseFcn',           'mean',             ...
-                                                                         'noiseTrashSamples',  0.10,               ...
-                                                                         'noiseUsefulSamples', 0.20);
+                            app.specData(ii).UserData.reportOCC = class.Constants.reportOCC;
                         else
                             idx2 = app.specData(ii).UserData.occMethod.SelectedIndex;
                             app.specData(ii).UserData.reportOCC = struct('Method',                  'Linear fixo (COLETA)', ...
@@ -69,19 +62,13 @@ classdef userData
                         occIndex = app.specData(ii).UserData.occMethod.CacheIndex;
                     end
                     app.specData(ii).UserData.reportOCC = app.specData(ii).UserData.occCache(occIndex).Info;
-        
-        
-                    % Detecção de emissões
+                end
+
+                % Detecção de emissões
+                if isempty(app.specData(ii).UserData.reportDetection)
                     findPeaks = FindPeaksOfPrimaryBand(app.channelObj, app.specData(ii));
                     if isempty(findPeaks)
-                        app.specData(ii).UserData.reportDetection = struct('ManualMode', 0,                        ...
-                                                                           'Algorithm', 'FindPeaks+OCC',           ...
-                                                                           'Parameters', struct('Distance',    25, ... % kHz
-                                                                                                'BW',          10, ... % kHz
-                                                                                                'Prominence1', 10, ...
-                                                                                                'Prominence2', 30, ...
-                                                                                                'meanOCC',     10, ...
-                                                                                                'maxOCC',      67));
+                        app.specData(ii).UserData.reportDetection = class.Constants.reportDetection;
                     else
                         app.specData(ii).UserData.reportDetection = struct('ManualMode', 0,                                               ...
                                                                            'Algorithm', 'FindPeaks+OCC',                                  ...
@@ -92,13 +79,11 @@ classdef userData
                                                                                                 'meanOCC',     findPeaks.meanOCC,         ...
                                                                                                 'maxOCC',      findPeaks.maxOCC));
                     end
-        
-        
-                    % Classificação das emissões
-                    app.specData(ii).UserData.reportClassification = struct('Algorithm', 'Frequency+Distance Type 1',  ...
-                                                                            'Parameters', struct('Contour', 30,        ...
-                                                                                                 'ClassMultiplier', 2, ...
-                                                                                                 'bwFactors', [100, 300]));
+                end
+
+                % Classificação das emissões
+                if isempty(app.specData(ii).UserData.reportClassification)
+                    app.specData(ii).UserData.reportClassification = class.Constants.reportClassification;
                 end
             end
         end
