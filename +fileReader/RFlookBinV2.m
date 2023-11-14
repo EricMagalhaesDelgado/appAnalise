@@ -123,6 +123,7 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     nSweeps = numel(startIndex);
 
     if gpsMode_ID
+        gpsArray = zeros(nSweeps, 3);
         for ii = 1:nSweeps
             blockArray = rawData(startIndex(ii):stopIndex(ii));
 
