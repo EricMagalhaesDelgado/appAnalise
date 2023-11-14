@@ -20,15 +20,21 @@ function Table = ReportGenerator_Table_Algorithm(SpecInfo, idx)
             bandLimits{end+1} = sprintf('%.3f - %.3f MHz', bandLimitsTable.FreqStart(ii), ...
                                                            bandLimitsTable.FreqStop(ii));
         end
-        bandLimits = sprintf('Faixa sob análise: %s', strjoin(bandLimits, ', '));
+        bandLimits = sprintf('• Faixa sob análise: %s', strjoin(bandLimits, ', '));
     end
     
     [DetectionType, ~, DetectionTypeIndex] = unique(SpecInfo(idx).UserData.reportPeaksTable.Detection, 'stable');
 
-    Detection = {};
     if SpecInfo(idx).UserData.reportDetection.ManualMode
-        Detection = {'Detecção limitada às emissoes identificadas no modo PLAYBACK do appAnalise'; ...
-                     '&nbsp;'};
+        Detection = {'Detecção limitada às emissoes identificadas no modo PLAYBACK do appAnalise'};
+    else
+        Detection = {'Detecção não limitada às emissões identificadas no modo PLAYBACK do appAnalise'; ...
+                     sprintf('Algoritmo: %s',  SpecInfo(idx).UserData.reportDetection.Algorithm);              ...
+                     sprintf('Parâmetros: %s', jsonencode(SpecInfo(idx).UserData.reportDetection.Parameters))};
+    end
+
+    if ~isempty(DetectionType)
+        Detection = [Detection; '&nbsp;'];
     end
 
     for ii =1:numel(DetectionType)
@@ -38,11 +44,11 @@ function Table = ReportGenerator_Table_Algorithm(SpecInfo, idx)
 
         if isfield(sDetectionType, 'Parameters')
             Detection(end+1:end+4,1) = {sprintf('Algoritmo: %s',  sDetectionType.Algorithm);              ...
-                                        sprintf('Parâmetros: %s', jsonencode(sDetectionType.Parameters)); ...
-                                        bandLimits; sprintf('Emissões: %s', PeaksLabel)};
+                                        sprintf('• Parâmetros: %s', jsonencode(sDetectionType.Parameters)); ...
+                                        bandLimits; sprintf('• Emissões: %s', PeaksLabel)};
         else
             Detection(end+1:end+3,1) = {sprintf('Algoritmo: %s',  sDetectionType.Algorithm);              ...
-                                        bandLimits; sprintf('Emissões: %s', PeaksLabel)};
+                                        bandLimits; sprintf('• Emissões: %s', PeaksLabel)};
         end
 
         if (numel(DetectionType) > 1) && (ii < numel(DetectionType))
