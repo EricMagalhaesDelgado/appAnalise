@@ -1,3 +1,7 @@
+v. 1.39 (14/11/2023)
+- BUGS
+(a) Corrigido BUG no leitor do RFlookBinV2 que impedia a visualização da informação espectral em mapa (Drive-test).
+
 v. 1.38 (12/11/2023)
 - BUGS
 (a) Implementada lógica, na leitura de arquivos binários gerados pelo appColetaV2, que possibilita a interpolação/extrapolação de coordenadas geográficas que não foram devidamente aferidas, possibilitando que a relação de varreduras e coordenadas seja 1:1.

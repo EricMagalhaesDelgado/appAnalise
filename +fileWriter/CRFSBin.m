@@ -1,50 +1,52 @@
-function CRFSBin(filename, specData)
-%% FILEWRITER_CRFSBIN *Escrita do arquivo CRFS BIN (versão 5).*
-% Escrita de arquivo no formato CRFS BIN (versão 5). O conteúdo do arquivo é 
-% extraído da variável "specData", uma estrutura definida para manuseio de dados 
-% de espectro no âmbito do *appAnálise*, sendo possível a geração dos tipos de 
-% dados 21 (Informações textuais), 40 (GPS), 67 (Espectro) e 69 (Ocupação).
-% 
-% Versão: *11/06/2021*
+function CRFSBin(fileName, SpecInfo)
+
+    % Escrita de arquivo no formato CRFS BIN (versão 5). O conteúdo do arquivo é 
+    % extraído da variável "specData", sendo possível a geração dos tipos de 
+    % dados 21 (Informações textuais), 40 (GPS), 67 (Espectro) e 69 (Ocupação).
+
+    % Author.: Eric Magalhães Delgado
+    % Date...: June 11, 2021
+    % Version: 1.00
+
     arguments
-        filename char
-        specData struct
+        fileName
+        SpecInfo
     end
     
-    global fileID
-    
-    fileID = fopen(filename, 'w+');
+    fileID = fopen(fileName, 'w+');
     
     % Format
     fwrite(fileID, 23, 'int32');
     fwrite(fileID, ['CRFS DATA FILE V023' zeros(1, 13)], 'char*1');
     
     % Unit Information (DataType 21)
-    Write_DataType21(specData(1))
+    Write_DataType21(fileID, SpecInfo(1))
     
     % GPS data (DataType 40)
-    if specData(1).gps.Status
-        Write_DataType40(specData(1))
+    if SpecInfo(1).GPS.Status
+        Write_DataType40(fileID, SpecInfo(1))
     end
     
     % Spectral data (DataType 67) and OCC data (DataType 69)
-    for ii = 1:numel(specData)
-        switch specData(ii).MetaData.metaString{5}
-            case 'CRFS RFeye (Auto)'; specData(ii).MetaData.Antenna = 0;
-            case 'CRFS RFeye Port 1'; specData(ii).MetaData.Antenna = 1;
-            case 'CRFS RFeye Port 2'; specData(ii).MetaData.Antenna = 2;
-            case 'CRFS RFeye Port 3'; specData(ii).MetaData.Antenna = 3;
-            case 'CRFS RFeye Port 4'; specData(ii).MetaData.Antenna = 4;
+    SPECTYPES = [4, 7, 60, 61, 63, 64, 67, 68];
+    OCCTYPES  = [8, 62, 65, 69];
+
+    for ii = 1:numel(SpecInfo)
+        nSweep = numel(SpecInfo(ii).Data{1});
+        
+        switch SpecInfo(ii).MetaData.Antenna.SwitchMode
+            case 'manual'; antennaPort = SpecInfo(ii).MetaData.Antenna.Port;
+            case 'auto';   antennaPort = 0;
         end
         
-        if ismember(specData(ii).MetaData.DataType, [1, 60, 61, 63, 64, 67, 68, 167, 168, 1809])
-            for jj = 1:specData(ii).Samples
-                Write_DataType67(specData(ii), jj)
+        if ismember(SpecInfo(ii).MetaData.DataType, SPECTYPES)
+            for jj = 1:nSweep
+                Write_DataType67(fileID, SpecInfo(ii), antennaPort, jj)
             end
             
-        elseif ismember(specData(ii).MetaData.DataType, [62, 65, 69])
-            for jj = 1:specData(ii).Samples
-                Write_DataType69(specData(ii), jj)
+        elseif ismember(SpecInfo(ii).MetaData.DataType, OCCTYPES)
+            for jj = 1:nSweep
+                Write_DataType69(fileID, SpecInfo(ii), antennaPort, jj)
             end
         end
     end
@@ -52,20 +54,18 @@ function CRFSBin(filename, specData)
     fclose(fileID);
     clear global fileID
 end
-%% Funções auxiliares
-% BlockHeader
-function Write_BlockHeader(ThreadID, BytesBlock, DataType)
-    
-    global fileID
+
+
+%-------------------------------------------------------------------------%
+function Write_BlockHeader(fileID, ThreadID, BytesBlock, DataType)
     
     fwrite(fileID, [ThreadID, BytesBlock], 'uint32');
-    fwrite(fileID, DataType, 'int32');
-    
+    fwrite(fileID, DataType, 'int32');    
 end
-% BlockTrailer
-function Write_BlockTrailer(BytesBlock)
-    
-    global fileID
+
+
+%-------------------------------------------------------------------------%
+function Write_BlockTrailer(fileID, BytesBlock)
     
     fseek(fileID, -(12+BytesBlock), 'cof');
     CheckSumAdd = fread(fileID, (12+BytesBlock), 'uint8');
@@ -73,13 +73,13 @@ function Write_BlockTrailer(BytesBlock)
     fseek(fileID, 0, 'cof');                                    % Artifício que possibilita escrita após leitura.
     
     fwrite(fileID, CheckSumAdd, 'uint32');
-    fwrite(fileID, 'UUUU',      'char*1');
-    
+    fwrite(fileID, 'UUUU',      'char*1');    
 end
-% DataType 21
-function Write_DataType21(SpecInfo)
+
+
+%-------------------------------------------------------------------------%
+function Write_DataType21(fileID, SpecInfo)
     
-    global fileID
     Hostname = SpecInfo.Node;
     Hostname = [Hostname zeros(1, 16-length(Hostname))];
     
@@ -98,7 +98,7 @@ function Write_DataType21(SpecInfo)
     FileNumber = 0;
     BytesBlock = 28 + unitInfoLength + methodLength;
     
-    Write_BlockHeader(0, BytesBlock, 21);
+    Write_BlockHeader(fileID, 0, BytesBlock, 21);
     
     fwrite(fileID, Hostname,       'char*1');
     fwrite(fileID, unitInfoLength, 'uint32');
@@ -107,16 +107,14 @@ function Write_DataType21(SpecInfo)
     fwrite(fileID, method,         'char*1');
     fwrite(fileID, FileNumber,     'uint32');
     
-    Write_BlockTrailer(BytesBlock)
-    
+    Write_BlockTrailer(fileID, BytesBlock)    
 end
-%% 
-% *DataType 40*
-function Write_DataType40(SpecInfo)
+
+
+%-------------------------------------------------------------------------%
+function Write_DataType40(fileID, SpecInfo)
     
-    global fileID
-    
-    Write_BlockHeader(1, 40, 40);
+    Write_BlockHeader(fileID, 1, 40, 40);
     
     fwrite(fileID,   day(SpecInfo.Data{1}(1)));                 % Wall Clock Date
     fwrite(fileID, month(SpecInfo.Data{1}(1)));
@@ -140,21 +138,20 @@ function Write_DataType40(SpecInfo)
     fwrite(fileID, second(SpecInfo.Data{1}(1)));
     fwrite(fileID, 0);
         
-    fwrite(fileID, SpecInfo.gps.Status);                        % Positional fix and status of first GPS block
+    fwrite(fileID, SpecInfo.GPS.Status);                        % Positional fix and status of first GPS block
     fwrite(fileID, 0);                                          % Sattelites
     fwrite(fileID, 0, 'uint16');                                % Heading
-    fwrite(fileID, SpecInfo.gps.Latitude  .* 1e+6, 'int32');    % Latitude   (mean)
-    fwrite(fileID, SpecInfo.gps.Longitude .* 1e+6, 'int32');    % Longitude  (mean)
+    fwrite(fileID, SpecInfo.GPS.Latitude  .* 1e+6, 'int32');    % Latitude   (mean)
+    fwrite(fileID, SpecInfo.GPS.Longitude .* 1e+6, 'int32');    % Longitude  (mean)
     fwrite(fileID, 0, 'uint32');                                % Speed
     fwrite(fileID, 0, 'uint32');                                % Altitude
         
-    Write_BlockTrailer(40)
+    Write_BlockTrailer(fileID, 40)
 end
-%% 
-% *DataType 67 (Dados de espectro)*
-function Write_DataType67(SpecInfo, ind)
-    
-    global fileID
+
+
+%-------------------------------------------------------------------------%
+function Write_DataType67(fileID, SpecInfo, antennaPort, ind)
     
     % Description
     Description = SpecInfo.Description;
@@ -172,7 +169,7 @@ function Write_DataType67(SpecInfo, ind)
         BytesBlock = BytesBlock + NPAD;
     end
     
-    Write_BlockHeader(SpecInfo.ThreadID, BytesBlock, 67);
+    Write_BlockHeader(fileID, SpecInfo.ThreadID, BytesBlock, 67);
     
     fwrite(fileID,   day(SpecInfo.Data{1}(ind)));               % WALLDATE
     fwrite(fileID, month(SpecInfo.Data{1}(ind)));
@@ -218,7 +215,7 @@ function Write_DataType67(SpecInfo, ind)
     
     fwrite(fileID, 1, 'int32');                                 % NAMAL (Number of loops)
     
-    fwrite(fileID, SpecInfo.MetaData.Antenna);                  % Antenna number [0-255]
+    fwrite(fileID, antennaPort);                                % Antenna number [0-255]
     fwrite(fileID, SpecInfo.MetaData.TraceMode);                % Processing (0: single measurement; 1: average; 2: peak; 3: minimum)
     
     if ismember(SpecInfo.MetaData.LevelUnit, [1,2])
@@ -249,14 +246,12 @@ function Write_DataType67(SpecInfo, ind)
     fwrite(fileID, EncodedSpec, 'uint8');
     fwrite(fileID, zeros(1,NPAD));                              % Padding
     
-    Write_BlockTrailer(BytesBlock)
-    
+    Write_BlockTrailer(fileID, BytesBlock)    
 end
-%% 
-% *DataType 69 (Dados de ocupação)*
-function Write_DataType69(SpecInfo, ind)
-    
-    global fileID
+
+
+%-------------------------------------------------------------------------%
+function Write_DataType69(fileID, SpecInfo, antennaPort, ind)
     
     % Description
     Description = SpecInfo.Description;
@@ -274,7 +269,7 @@ function Write_DataType69(SpecInfo, ind)
         BytesBlock = BytesBlock + NPAD;
     end
     
-    Write_BlockHeader(SpecInfo.ThreadID, BytesBlock, 69);
+    Write_BlockHeader(fileID, SpecInfo.ThreadID, BytesBlock, 69);
     
     fwrite(fileID,   day(SpecInfo.Data{1}(ind)));               % WALLDATE
     fwrite(fileID, month(SpecInfo.Data{1}(ind)));
@@ -312,7 +307,7 @@ function Write_DataType69(SpecInfo, ind)
     fwrite(fileID, zeros(1, 2), 'uint16');                      % STARTCHAN and STOPCHAN
     fwrite(fileID, 2, 'int32');                                 % Operation type (2: Peak)
     fwrite(fileID, 1);                                          % Operation count
-    fwrite(fileID, SpecInfo.MetaData.Antenna);                  % Antenna number [0-255]
+    fwrite(fileID, antennaPort);                                % Antenna number [0-255]
     
     if ismember(SpecInfo.MetaData.LevelUnit, [1,2])
         fwrite(fileID, 0, 'uint16');                            % Data Type (0: dBm; 1: dBµV/m)
@@ -334,6 +329,5 @@ function Write_DataType69(SpecInfo, ind)
     fwrite(fileID, EncodedSpec, 'uint8');
     fwrite(fileID, zeros(1,NPAD));                              % Padding
     
-    Write_BlockTrailer(BytesBlock)
-    
+    Write_BlockTrailer(fileID, BytesBlock)    
 end

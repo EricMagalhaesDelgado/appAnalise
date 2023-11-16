@@ -4,7 +4,7 @@ classdef (Abstract) Constants
         %-----------------------------------------------------------------%
         appName       = 'appAnalise'
         appRelease    = 'R2023a'
-        appVersion    = '1.41'
+        appVersion    = '1.50'
 
         windowSize    = [1244, 660]
         windowMinSize = [ 880, 660]
@@ -49,6 +49,16 @@ classdef (Abstract) Constants
 
     
     methods (Static = true)
+        %-----------------------------------------------------------------%
+        function fileName = DefaultFileName(userPath, Prefix, Issue)
+            fileName = fullfile(userPath, sprintf('%s_%s', Prefix, datestr(now,'yyyy.mm.dd_THH.MM.SS')));
+
+            if Issue > 0
+                fileName = sprintf('%s_%d', fileName, Issue);
+            end
+        end
+
+
         %-----------------------------------------------------------------%
         function [upYLim, strUnit] = yAxisUpLimit(Unit)
             switch lower(Unit)

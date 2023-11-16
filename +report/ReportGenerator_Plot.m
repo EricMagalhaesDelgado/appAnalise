@@ -1,9 +1,8 @@
-function filename = ReportGenerator_Plot(SpecInfo, idx, reportInfo, Layout)
+function FullFileName = ReportGenerator_Plot(SpecInfo, idx, reportInfo, Layout)
 
-    % Função auxiliar à "ReportGenerator" e "PreviewGenerator", possibilitando 
-    % geração do plot para cada uma das faixas, o qual é salvo como imagem no 
-    % formato "PNG" (para posterior inclusão no relatório no formato HTML),
-    % caso aplicável.
+    % Função auxiliar à "ReportGenerator", possibilitando geração do plot 
+    % para cada uma das faixas, o qual é salvo como imagem no formato "PNG" 
+    % (para posterior inclusão no relatório no formato HTML).
     % 
     % Versão: 30/10/2023
 
@@ -22,7 +21,7 @@ function filename = ReportGenerator_Plot(SpecInfo, idx, reportInfo, Layout)
     global ID_img
 
     RootFolder = reportInfo.General.RootFolder;
-    UserPath   = reportInfo.General.UserPath;
+    userPath   = reportInfo.General.UserPath;
 
     xArray = round(linspace(SpecInfo(idx).MetaData.FreqStart / 1e+6, ...
                             SpecInfo(idx).MetaData.FreqStop  / 1e+6, ...
@@ -93,16 +92,15 @@ function filename = ReportGenerator_Plot(SpecInfo, idx, reportInfo, Layout)
 
 
     % Export figure as PNG or JPEG file
-    filename = '';
+    FullFileName = '';
     if ismember(reportInfo.General.Mode, {'Report', 'auxApp.winTemplate'})
-        if reportInfo.General.Version == "Definitiva"
-            filename = sprintf( 'Image_%s_ID%.0f.%s', datestr(datetime('now'), 'yyyy.mm.dd_THH.MM.SS'), SpecInfo(idx).RelatedFiles.ID(1), reportInfo.General.Image.Format);
-        else
-            filename = sprintf('~Image_%s_ID%.0f.%s', datestr(datetime('now'), 'yyyy.mm.dd_THH.MM.SS'), SpecInfo(idx).RelatedFiles.ID(1), reportInfo.General.Image.Format);
+        defaultFilename = class.Constants.DefaultFileName(userPath, sprintf('Image_ID%d', SpecInfo(idx).RelatedFiles.ID(1)), -1);
+        FullFileName    = sprintf('%s.%s', defaultFilename, reportInfo.General.Image.Format);
+        if ~strcmp(reportInfo.General.Version, 'Definitiva')
+            FullFileName = replace(FullFileName, 'Image', '~Image');
         end
-        filename = fullfile(UserPath, filename);
         
-        exportgraphics(fig, filename, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
+        exportgraphics(fig, FullFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
         drawnow nocallbacks
     end
 end
@@ -112,7 +110,7 @@ end
 function Fcn_axes1(axes1, SpecInfo, idx, xArray)
 
     color1   = [1 .07 .65];   % MaxHold
-    color2   = "#005dd1";   % MinHold
+    color2   = "#005dd1";     % MinHold
     color3   = [1 1 .07];     % Median or mean
     roiColor = [.40,.73,.88]; %[.00 .45 .74]; % Band roi region
 

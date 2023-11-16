@@ -127,14 +127,16 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
                     for jj = 1:COLUMNS
                         if isnumeric(Table{ii, jj})
                             value = Table{ii, jj} * Data.Settings(jj).Multiplier;
+                            if isnan(value)
+                                value = [];
+                            end
     
                         elseif ischar(Table{ii, jj}) || isstring(Table{ii, jj})
                             value = char(Table{ii, jj});
     
                         elseif iscell(Table{ii, jj})
                             if ischar(Table{ii, jj}{1}) || isstring(Table{ii, jj}{1})
-                                value = char(Table{ii, jj}{1});
-    
+                                value = char(Table{ii, jj}{1});    
                             else
                                 for kk = 1:numel(Table{ii, jj}{1})
                                     if kk == 1
@@ -150,6 +152,9 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
                             
                         elseif isdatetime(Table{ii, jj})
                             value = datestr(Table{ii, jj}, 'dd/mm/yyyy HH:MM:SS');
+
+                        else
+                            value = [];
                         end
             
                         htmlContent = sprintf('%s\n%s', htmlContent, sprintf(rowTemplate{jj}, value));

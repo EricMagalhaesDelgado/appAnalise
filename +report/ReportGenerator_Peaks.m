@@ -1,4 +1,4 @@
-function Peaks = ReportGenerator_Peaks(app, SpecInfo, idx)
+function Peaks = ReportGenerator_Peaks(app, SpecInfo, idx, reportInfo)
     
     % Detecção automática relacionada ao algoritmo escolhido no modo
     % "RELATÓRIO". Caso o fluxo de dados não for filtrado temporalmente, o 
@@ -6,7 +6,7 @@ function Peaks = ReportGenerator_Peaks(app, SpecInfo, idx)
     % app.specData, as emissões aqui identificadas ficarão visíveis no
     % modo "PLAYBACK" também.
 
-    if ~SpecInfo(idx).UserData.reportDetection.ManualMode
+    if strcmp(reportInfo.DetectionMode, 'Automatic+Manual') && ~SpecInfo(idx).UserData.reportDetection.ManualMode
         Algorithm  = SpecInfo(idx).UserData.reportDetection.Algorithm;
 
         Attributes = SpecInfo(idx).UserData.reportDetection.Parameters;

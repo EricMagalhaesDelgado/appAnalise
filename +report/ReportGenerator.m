@@ -18,10 +18,9 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
     RootFolder    = reportInfo.General.RootFolder;
     Template      = jsondecode(reportInfo.Model.Template);
     
-    SpecInfo      = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);    
-
+    SpecInfo      = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
     exceptionList = app.exceptionList;
-    peaksTable    = Fcn_Peaks(app, SpecInfo, exceptionList);    
+    peaksTable    = Fcn_Peaks(app, SpecInfo, reportInfo, exceptionList);    
     
     % HTML header (style)    
     if strcmp(reportInfo.General.Version, 'Preliminar')
@@ -47,50 +46,54 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
             NN = numel(SpecInfo);
         end
 
-        
-        jj = 0;
-        while jj < NN
-            jj = jj+1;
-
+        for jj = 1:NN
+            % Insere uma quebra de linha, caso exista recorrência no item
+            % (iterando SpecInfo).
             if jj > 1
                 htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
             end
 
-            for ll = 1:numel(Template(ii).Data.Children)
-                Children = Template(ii).Data.Children(ll);
-    
-                msgError = '';
+            for kk = 1:numel(Template(ii).Data.Children)
+                % Children é uma estrutura com os campos "Type" e "Data". Se o 
+                % campo "Type" for igual a "Image" ou "Table" e ocorrer um erro 
+                % na leitura de uma imagem ou tabela externa, por exemplo, o erro 
+                % retornado terá o formato "Configuration file error message: %s". 
+                % Esse "%s" é uma mensagem JSON (e por isso deve ser deserializada) 
+                % de um componente HTML textual ("Subitem" ou "Paragraph", por 
+                % exemplo).
+                Children = Template(ii).Data.Children(kk);
+
                 try
                     switch Children.Type
-                        case {'Subitem', 'Paragraph', 'List', 'Footnote'}
-                            opt1 = [];
-                            opt2 = '';
-                            opt3 = '';
-                            opt4 = [];
-                
-                            for mm = 1:numel(Children.Data)
-                                if ~isempty(Children.Data(mm).Settings)
-                                    Children.Data(mm).String = Fcn_FillWords(SpecInfo, Children, reportInfo, jj);
+                        case {'Subitem', 'Paragraph', 'List', 'Footnote'}                
+                            for ll = 1:numel(Children.Data)
+                                if ~isempty(Children.Data(ll).Settings)
+                                    Children.Data(ll).String = Fcn_FillWords(SpecInfo, jj, reportInfo, Children);
                                 end
                             end
 
-                        otherwise
-                            if     Children.Type == "Image"; opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children);
-                            elseif Children.Type == "Table"; opt1 = Fcn_Table(SpecInfo, jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
+                            htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children));
+
+                        case {'Image', 'Table'}
+                            switch Children.Type
+                                case 'Image'
+                                    opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children);
+
+                                case 'Table'
+                                    opt1 = Fcn_Table(SpecInfo, jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
                             end
 
                             opt2 = Children.Data.Intro;
                             opt3 = Children.Data.Error;
                             opt4 = Children.Data.LineBreak;
+
+                            htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
+
+                        otherwise
+                            error('Unexpected type "%s"', Children.Type)
                     end
 
                 catch ME
-                    msgError = ME.message; 
-                end
-
-                if isempty(msgError)
-                    htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
-                else
                     msgError = extractAfter(ME.message, 'Configuration file error message: ');
 
                     if ~isempty(msgError)
@@ -135,7 +138,7 @@ end
 
 
 %-------------------------------------------------------------------------%
-function String = Fcn_FillWords(SpecInfo, Children, reportInfo, idx)
+function String = Fcn_FillWords(SpecInfo, idx, reportInfo, Children)
 
     for ii = 1:numel(Children.Data.Settings)
         Precision  = string(Children.Data.Settings(ii).Precision);
@@ -169,14 +172,14 @@ function value = Fcn_Source(SpecInfo, idx, reportInfo, Children)
         case 'StepWidth';        value = ((SpecInfo(idx).MetaData.FreqStop - SpecInfo(idx).MetaData.FreqStart) / (SpecInfo(idx).MetaData.DataPoints - 1)) * Multiplier;
         case 'Samples';          value = numel(SpecInfo(idx).Data{1});
         case 'DataPoints';       value = SpecInfo(idx).MetaData.DataPoints;
-        case 'BeginTime';        value = datestr(SpecInfo(idx).Data{1}(1),   'dd/mm/yyyy HH:MM:SS');
-        case 'EndTime';          value = datestr(SpecInfo(idx).Data{1}(end), 'dd/mm/yyyy HH:MM:SS');
+        case 'BeginTime';        value = char(SpecInfo(idx).Data{1}(1));
+        case 'EndTime';          value = char(SpecInfo(idx).Data{1}(end));
         case 'minLevel';         value = sprintf('%.1f %s', min(SpecInfo(idx).Data{3}(:,1)), SpecInfo(idx).MetaData.LevelUnit);
         case 'maxLevel';         value = sprintf('%.1f %s', max(SpecInfo(idx).Data{3}(:,3)), SpecInfo(idx).MetaData.LevelUnit);
         case 'TaskName';         value = SpecInfo(idx).RelatedFiles.Task{1};
         case 'Description';      value = SpecInfo(idx).RelatedFiles.Description{1};
         case 'RelatedFiles';     value = strjoin(SpecInfo(idx).RelatedFiles.File, ', ');
-        case 'gps';              value = jsonencode(SpecInfo(idx).GPS);
+        case 'GPS';              value = jsonencode(SpecInfo(idx).GPS);
         case 'Latitude';         value = SpecInfo(idx).GPS.Latitude;
         case 'Longitude';        value = SpecInfo(idx).GPS.Longitude;
         case 'Location';         value = SpecInfo(idx).GPS.Location;
@@ -209,12 +212,12 @@ end
 
 
 %-------------------------------------------------------------------------%
-function peaksTable = Fcn_Peaks(app, SpecInfo, exceptionList)
+function peaksTable = Fcn_Peaks(app, SpecInfo, reportInfo, exceptionList)
 
     peaksTable = [];
 
     for ii = 1:numel(SpecInfo)
-        Peaks = report.ReportGenerator_Peaks(app, SpecInfo, ii);
+        Peaks = report.ReportGenerator_Peaks(app, SpecInfo, ii, reportInfo);
 
         if ~isempty(Peaks)
             if isempty(peaksTable); peaksTable = Peaks;
@@ -238,7 +241,7 @@ function Peaks = Fcn_exceptionList(Peaks, exceptionList)
 
             % Identifica registros das duas tabelas - peaksTable e exceptionList 
             % - que possuem a mesma "Tag" e a mesma "Frequency".    
-            idx = find(strcmp(Peaks.Tag, Tag) & (abs(Peaks.Frequency-Frequency)<=class.Constants.floatDiffTolerance));
+            idx = find(strcmp(Peaks.Tag, Tag) & (abs(Peaks.Frequency-Frequency) <= class.Constants.floatDiffTolerance));
 
             if numel(idx) == 1
                 if Peaks.Description{idx} == "-"
@@ -463,8 +466,8 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
         case 'External'
             Columns = Children.Data.Columns;
 
-            [~, ~, ext] = fileparts(Source);
-            switch ext
+            [~, ~, fileExt] = fileparts(Source);
+            switch fileExt
                 case '.json'
                     Table = struct2table(jsondecode(fileread(Source)));
 

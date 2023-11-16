@@ -3,7 +3,7 @@ function Read_specData(app, d)
     % Organização dos fluxos de dados.
     specDataReader_Map(app)
 
-    exceptionListFlag = true;
+    prjInfoFlag = true;
     for ii = 1:numel(app.metaData)
         [~, name, ext] = fileparts(app.metaData(ii).File);
         d.Message = sprintf('<font style="font-size:12;">Em andamento a leitura dos dados de espectro do arquivo:\n• %s\n\n%d de %d</font>', [name ext], ii, numel(app.metaData));
@@ -61,11 +61,17 @@ function Read_specData(app, d)
             if ~isempty(prjInfo)
                 app.specData(kk).UserData(1) = SpecInfo(jj).UserData;
 
-                if ~isempty(prjInfo.exceptionList) && exceptionListFlag
-                    exceptionListFlag     = false;
-                    
-                    app.exceptionList     = prjInfo.exceptionList;
-                    app.exceptionList.Tag = replace(prjInfo.exceptionList.Tag, 'ThreadID', 'ID');
+                if prjInfoFlag
+                    prjInfoFlag = false;
+
+                    app.report_ProjectName.Value     = prjInfo.Name;
+                    app.report_ProjectFilename.Value = app.metaData(ii).File;
+                    app.report_Issue.Value           = prjInfo.reportInfo.Issue;
+
+                    if ~isempty(prjInfo.exceptionList)                    
+                        app.exceptionList     = prjInfo.exceptionList;
+                        app.exceptionList.Tag = replace(prjInfo.exceptionList.Tag, 'ThreadID', 'ID');
+                    end                 
                 end
             end
         end

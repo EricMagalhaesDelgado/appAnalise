@@ -1,13 +1,14 @@
 function Controller(app, Mode)
 
-    d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'on', 'Interpreter', 'html'); 
-    d.Message = '<font style="font-size:12;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, como, por exemplo, a busca de emissões e a comparação com a base de dados da Agência...</font>';
-        
     try
         [idx, reportInfo] = ReportGenerator_Aux1(app, Mode);
         
         switch Mode
             case 'Report'
+                d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'on', 'Interpreter', 'html');
+                d.Message = ['<font style="font-size:12;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
+                             'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações...</font>'];
+
                 % Verifica se o template e relatório selecionado demanda
                 % arquivos externos (imagens e tabelas).
                 if contains(reportInfo.Model.Template, '"Origin": "External"')
@@ -25,33 +26,37 @@ function Controller(app, Mode)
 
                 switch app.report_Version.Value
                     case 'Definitiva'
-                        filename = fullfile(app.menu_userPath.Value, sprintf( 'Report_%s_%.0f.html', datestr(now, 'yyyy.mm.dd_THH.MM.SS'), app.report_Issue.Value));
-                        fileID   = fopen(filename, 'w', 'native', 'ISO-8859-1');
+                        fileName = [class.Constants.DefaultFileName(app.menu_userPath.Value, 'Report', app.report_Issue.Value) '.html'];
+                        fileID   = fopen(fileName, 'w', 'native', 'ISO-8859-1');
 
                     case 'Preliminar'
-                        filename = fullfile(app.menu_userPath.Value, sprintf('~Report_%s_%.0f.html', datestr(now, 'yyyy.mm.dd_THH.MM.SS'), app.report_Issue.Value));
-                        fileID   = fopen(filename, 'w');
+                        fileName = [class.Constants.DefaultFileName(app.menu_userPath.Value, '~Report', app.report_Issue.Value) '.html'];
+                        fileID   = fopen(fileName, 'w');
                 end
                 
                 fprintf(fileID, '%s', htmlReport);
                 fclose(fileID);
     
                 if strcmp(app.report_Version.Value, 'Definitiva')
-                    app.General.Report = filename;
+                    app.General.Report = fileName;
                     
                     [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo);
-                    save(replace(filename, '.html', '.mat'), 'ReportProject', '-mat', '-v7.3')
-                    writematrix(tableStr, replace(filename, '.html', '.json'), "FileType", "text", "QuoteStrings", "none")
+                    save(replace(fileName, '.html', '.mat'), 'ReportProject', '-mat', '-v7.3')
+                    writematrix(tableStr, replace(fileName, '.html', '.json'), "FileType", "text", "QuoteStrings", "none")
                 end
-                web(filename, '-new')
+                web(fileName, '-new')
 
 
-            case 'Preview'
+            case {'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
                 Peaks = report.PreviewGenerator(app, idx, reportInfo);
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
 
 
             case 'auxApp.winTemplate'
+                d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'on', 'Interpreter', 'html');
+                d.Message = ['<font style="font-size:12;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
+                             'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações...</font>'];
+
                 reportInfo.General.Version          = 'Preliminar';
                 reportInfo.General.Image.Visibility = 'off';
 
@@ -62,10 +67,15 @@ function Controller(app, Mode)
             case 'auxApp.winSignalAnalysis'
                 [~, countTable] = report.ReportGenerator_Table_Summary(app.CallingApp.peaksTable, app.CallingApp.exceptionList);
                 tableStr = ReportGenerator_Aux3(app.CallingApp, idx, countTable);
-    
-                filename = fullfile(app.CallingApp.menu_userPath.Value, sprintf('preReport_%s.json', datestr(now, 'yyyymmdd_THHMMSS')));
-                writematrix(tableStr, filename, "FileType", "text", "QuoteStrings", "none")
-                layoutFcn.modalWindow(app.UIFigure, 'ccTools.MessageBox', sprintf('Informações relacionadas às emissões foram salvas no arquivo <b>%s</b>', replace(filename, '\', '\\')));
+
+                defaultFilename = class.Constants.DefaultFileName(app.CallingApp.menu_userPath.Value, 'preReport', app.CallingApp.report_Issue.Value);
+
+                [fileName, filePath, fileIndex] = uiputfile({'*.json', 'appAnalise (*.json)'}, '', defaultFilename);
+                figure(app.UIFigure)
+                
+                if fileIndex
+                    writematrix(tableStr, fullfile(filePath, fileName), "FileType", "text", "QuoteStrings", "none")
+                end
         end
         
     catch ME
@@ -73,14 +83,16 @@ function Controller(app, Mode)
         layoutFcn.modalWindow(app.UIFigure, 'ccTools.MessageBox', getReport(ME));
     end
 
-    delete(d)
+    if exist('d', 'var')
+        delete(d)
+    end
 end
 
 
 %-------------------------------------------------------------------------%
 function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
     switch Mode
-        case {'Report', 'Preview'}
+        case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
             if isempty(app.General.ver.fiscaliza)
                 app.General.ver = fcn.startup_Versions("Full", app.RootFolder);
             end

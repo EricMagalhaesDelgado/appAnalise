@@ -1,6 +1,6 @@
 function ReportGenerator_PeaksUpdate(app, idx, Peaks)
     
-    if isequal(idx, arrayfun(@(x) x.UserData.reportFlag, app.specData))
+    if isequal(idx, find(arrayfun(@(x) x.UserData.reportFlag, app.specData)))
         if ~isempty(Peaks); app.peaksTable      = Peaks;
         else;               app.peaksTable(:,:) = [];
         end
@@ -34,5 +34,5 @@ function ReportGenerator_PeaksUpdate(app, idx, Peaks)
                 app.peaksTable(oldInd, :) = [];
             end
         end
-    end            
+    end
 end

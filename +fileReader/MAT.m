@@ -71,6 +71,11 @@ function specData = Fcn_MetaDataReader(fileName)
                 specData(ii).GPS = rmfield(gpsData, 'Matrix');
             end
 
+
+        case 3
+            specData = prj_metaData;
+
+
         otherwise
             error('fileReader:MAT', 'Not expected MAT-file version.')
     end
@@ -90,6 +95,25 @@ function [specData, prjInfo] = Fcn_SpecDataReader(specData, fileName)
                 specData(ii).Data{3} = zeros(specData(ii).MetaData.DataPoints, 3, 'single');
 
                 if strcmp(prj_Type, 'Project data') && ismember(prj_specData(ii).MetaData.DataType, class.Constants.specDataTypes)
+                    % Quase todas as informações relacionadas a um fluxo espectral 
+                    % incluso num projeto (e registradas num arquivo MAT) são 
+                    % aproveitadas. Exceção às seguintes:
+                    % (a) reportOCC
+                    % (b) TimeStamp
+                    % (c) Emissions: emissões incluídas no PLAYBACK de versões 
+                    %     antigas do appAnalise podem "desrespeitar" os limites
+                    %     de busca, aplicáveis apenas para o algoritmo automatizado.
+                    %     Agora, após a carga dos limites de busca e das emissões
+                    %     é feita uma validação, excluindo emissões, caso fora 
+                    %     dos limites de busca.
+
+                    % UserData.bandLimitStatus & UserData.bandLimitsTable
+                    Band = [specData(ii).MetaData.FreqStart, specData(ii).MetaData.FreqStop] / 1e+6;
+                    if ~isequal(Band, prj_specData(ii).reportDetection.Band)
+                        specData(ii).UserData(1).bandLimitsStatus      = true;
+                        specData(ii).UserData.bandLimitsTable(end+1,:) = {prj_specData(ii).reportDetection.Band(1), prj_specData(ii).reportDetection.Band(2)};
+                    end
+                    
                     % UserData.Emissions
                     if ~isempty(prj_specData(ii).Emissions)
                         oldDetectionType = unique(prj_specData(ii).Emissions.Detection);
@@ -101,22 +125,16 @@ function [specData, prjInfo] = Fcn_SpecDataReader(specData, fileName)
                                     newDetectionType{end+1,1} = jsonencode(struct('Algorithm', 'Manual'));
                                 otherwise
                                     newTempDetectionType      = jsonencode(struct('Algorithm',  'FindPeaks', ...
-                                                                                  'Parameters', extractAfter(prj_specData(ii).Emissions.Detection{jj}, '- ')));
+                                                                                  'Parameters', jsondecode(extractAfter(prj_specData(ii).Emissions.Detection{jj}, '- '))));
                                     newDetectionType{end+1,1} = replace(newTempDetectionType, 'Proeminence', 'Prominence');
                             end
                         end
 
                         NN = height(prj_specData(ii).Emissions.Detection);
                         specData(ii).UserData(1).Emissions(1:NN,:) = prj_specData(ii).Emissions;
-                        specData(ii).UserData.Emissions.Detection  = replace(specData(ii).UserData(1).Emissions.Detection, oldDetectionType, newDetectionType);
+                        specData(ii).UserData.Emissions.Detection  = replace(specData(ii).UserData.Emissions.Detection, oldDetectionType, newDetectionType);
                     end
-
-                    % UserData.bandLimitStatus & UserData.bandLimitsTable
-                    Band = [specData(ii).MetaData.FreqStart, specData(ii).MetaData.FreqStop] / 1e+6;
-                    if ~isequal(Band, prj_specData(ii).reportDetection.Band)
-                        specData(ii).UserData(1).bandLimitsStatus      = true;
-                        specData(ii).UserData.bandLimitsTable(end+1,:) = {prj_specData(ii).reportDetection.Band(1), prj_specData(ii).reportDetection.Band(2)};
-                    end
+                    fcn.Detection_BandLimits(specData(ii))
 
                     % UserData.reportFlag & UserData.reportAttachments
                     specData(ii).UserData.reportFlag        = true;
@@ -141,6 +159,11 @@ function [specData, prjInfo] = Fcn_SpecDataReader(specData, fileName)
                                                                                           'bwFactors',       oldClassificationParameters.bwFactors));
                 end
             end
+
+
+        case 3
+            specData = prj_specData;
+
 
         otherwise
             error('fileReader:MAT', 'Not expected MAT-file version.')

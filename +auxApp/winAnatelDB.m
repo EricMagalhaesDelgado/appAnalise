@@ -100,14 +100,14 @@ classdef winAnatelDB < matlab.apps.AppBase
 
             app.Location.Items = {};
             for ii = 1:numel(specData)
-                if specData(ii).gps.Status
-                    msg = sprintf('%.6f, %.6f (%s)', specData(ii).gps.Latitude,  ...
-                                                     specData(ii).gps.Longitude, ...
-                                                     specData(ii).gps.Location);
+                if specData(ii).GPS.Status
+                    msg = sprintf('%.6f, %.6f (%s)', specData(ii).GPS.Latitude,  ...
+                                                     specData(ii).GPS.Longitude, ...
+                                                     specData(ii).GPS.Location);
 
                     if isempty(app.Location.Items) | ~contains(app.Location.Items, msg)
                         app.Location.Items{end+1} = msg;
-                        app.nodeTable(end+1,:) = {specData(ii).gps.Latitude, specData(ii).gps.Longitude, specData(ii).gps.Location};
+                        app.nodeTable(end+1,:) = {specData(ii).GPS.Latitude, specData(ii).GPS.Longitude, specData(ii).GPS.Location};
                     end
                 end
             end
@@ -124,7 +124,7 @@ classdef winAnatelDB < matlab.apps.AppBase
             global AnatelDB
             global AnatelDB_info
 
-            app.ReleaseDate.Text = sprintf('anateldb\n%s', extractBefore(AnatelDB_info.ReleaseDate, ' '));
+            app.ReleaseDate.Text = sprintf('RFDataHub\n%s', extractBefore(AnatelDB_info.ReleaseDate, ' '));
 
             tempTable          = AnatelDB;
             tempTable.Distance = -1*ones(height(AnatelDB), 1);
@@ -134,7 +134,7 @@ classdef winAnatelDB < matlab.apps.AppBase
                 Node.lat = str2double(Node.lat);
                 Node.lon = str2double(Node.lon);
 
-                tempTable.Distance = double(round(geo_lldistkm_v2(Node, tempTable(:, 3:4)), 1));
+                tempTable.Distance = double(round(fcn.geoDistance_v2(Node, tempTable(:, 3:4)), 1));
             end
 
             app.ccTable.Data = tempTable;
@@ -279,7 +279,7 @@ classdef winAnatelDB < matlab.apps.AppBase
             
             app.CallingApp = mainapp;
             app.RootFolder = app.CallingApp.RootFolder;
-            winPosition(app)
+            fcn.winPosition(app)
             
             startup_AxesCreation(app)
             startup_NodeList(app)
@@ -290,7 +290,7 @@ classdef winAnatelDB < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
             
-            app.CallingApp.auxWin8 = [];
+            app.CallingApp.auxiliarWin8 = [];
             delete(app)
             
         end
@@ -407,8 +407,8 @@ classdef winAnatelDB < matlab.apps.AppBase
         % Image clicked function: Export_save
         function Export_saveImageClicked(app, event)
 
-            Selection = uiconfirm(app.UIFigure, '<font style="font-size:12;">O processo de salvar a base de dados do anateldb poderá demorar alguns minutos. Deseja continuar?</font>', ...
-                                                'appAnalise', 'Interpreter', 'html', 'Options', {'OK', 'Cancelar'}, 'DefaultOption', 2, 'CancelOption', 2);
+            Selection = uiconfirm(app.UIFigure, '<font style="font-size:12;">O processo de salvar a base de dados do RFDataHub poderá demorar alguns minutos. Deseja continuar?</font>', ...
+                                                '', 'Interpreter', 'html', 'Options', {'OK', 'Cancelar'}, 'DefaultOption', 2, 'CancelOption', 2);
             if strcmp(Selection, 'Cancelar')
                 return
             end
@@ -416,10 +416,11 @@ classdef winAnatelDB < matlab.apps.AppBase
             global AnatelDB_info
 
             d = uiprogressdlg(app.UIFigure, "Message", '<font style="font-size:12;">Em andamento...</font>', ...
-                                            "Interpreter", "html", "Indeterminate", "on", "Cancelable", "on", "CancelText", "Cancelar", "Title", "appAnalise");
+                                            "Interpreter", "html", "Indeterminate", "on");
 
             userPath = app.CallingApp.menu_userPath.Value;
-            basename = sprintf('anateldb_%s.xlsx', datestr(now, 'yyyymmdd_THHMMSS'));
+            defaultFileName = [class.Constants.DefaultFileName(userPath, 'RFDataHub', -1) '.xlsx'];
+
             try
                 if ~isempty(app.Location.Value)
                     locName = app.Location.Value;
@@ -428,14 +429,14 @@ classdef winAnatelDB < matlab.apps.AppBase
                 end
 
                 metaFile = sprintf(['Filename: "%s"\n\n',                   ...
-                                    'AnatelDB: %s\n'                        ...
+                                    'RFDataHub: %s\n'                       ...
                                     'ColumnRawNames: {%s}\n'                ...
                                     'ColumnName: {%s}\n'                    ...
                                     'ColumnPrecision: {%s}\n'               ...
                                     'RawDataSize: %d rows x %d columns\n\n' ...
                                     'ReferenceLocation: %s\n'               ...
                                     'FilterSentence: %s\n'                  ...
-                                    'FilteredDataSize: %d rows'], basename,                                   ...
+                                    'FilteredDataSize: %d rows'], defaultFileName,                                   ...
                                                                   jsonencode(AnatelDB_info),                  ...
                                                                   strjoin(app.ccTable.Data.Properties.VariableNames, ', '), ...
                                                                   strjoin(app.ccTable.ColumnName, ', '),      ...
@@ -446,16 +447,17 @@ classdef winAnatelDB < matlab.apps.AppBase
                                                                   struct(app.ccTable).Filters.Text,           ...
                                                                   height(app.ccTable.FilteredIndex));
 
-                writetable(app.ccTable.Data(app.ccTable.FilteredIndex,:), fullfile(userPath, basename), 'WriteMode', 'overwritesheet')
-                writecell({metaFile}, fullfile(userPath, replace(basename, '.xlsx', '.cfg')), "FileType", "text", "QuoteStrings", false, "WriteMode", "overwrite")
+                writetable(app.ccTable.Data(app.ccTable.FilteredIndex,:), defaultFileName, 'WriteMode', 'overwritesheet')
+                writecell({metaFile}, replace(defaultFileName, '.xlsx', '.cfg'), "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite")
                 pause(.100)
     
-                msg = sprintf('Foram salvos os seguintes arquivos na pasta de trabalho:\n- %s\n- %s', basename, replace(basename, '.xlsx', '.cfg'));
-                MessageBox(app, 'info', msg)
+                defaultFileName = replace(defaultFileName, '\', '\\');
+                msg = sprintf('Foram salvos os seguintes arquivos na pasta de trabalho:\n• %s\n• %s', defaultFileName, replace(defaultFileName, '.xlsx', '.cfg'));
+                layoutFcn.modalWindow(app.UIFigure, 'ccTools.MessageBox', msg, 'winWidth', '540px');
 
             catch ME
                 fprintf('%s\n', jsonencode(ME))
-                MessageBox(app, 'error', getReport(ME))
+                layoutFcn.modalWindow(app.UIFigure, 'ccTools.MessageBox', getReport(ME));
             end
             delete(d)
         end
@@ -586,7 +588,7 @@ classdef winAnatelDB < matlab.apps.AppBase
             app.ReleaseDate.FontWeight = 'bold';
             app.ReleaseDate.Layout.Row = 1;
             app.ReleaseDate.Layout.Column = 14;
-            app.ReleaseDate.Text = {'anateldb'; ' '};
+            app.ReleaseDate.Text = {'RFDataHub'; ' '};
 
             % Create Spinner
             app.Spinner = uispinner(app.Grid2);

@@ -125,5 +125,6 @@ function mkrLineROI(src, evt, app, idx1)
             
             app.specData(idx1).UserData.Emissions(idx2,[1:3, 5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value, jsonencode(struct('Algorithm', 'Manual'))};
             play_BandLimits_updateEmissions(app, idx1, newIndex)
-    end            
+            play_UpdatePeaksTable(app, idx1)
+    end
 end

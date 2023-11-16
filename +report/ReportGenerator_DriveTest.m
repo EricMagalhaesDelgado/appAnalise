@@ -1,4 +1,4 @@
-function filename = ReportGenerator_DriveTest(SpecInfo, idx, reportInfo, Layout)
+function FullFileName = ReportGenerator_DriveTest(SpecInfo, idx, reportInfo, Layout)
 
     % REPORT GENERATOR: DRIVE-TEST PLOTS
     % Version: February 3th 2023
@@ -13,7 +13,7 @@ function filename = ReportGenerator_DriveTest(SpecInfo, idx, reportInfo, Layout)
     global ID_img
 
     RootFolder = reportInfo.General.RootFolder;
-    UserPath   = reportInfo.General.UserPath;
+    userPath   = reportInfo.General.UserPath;
 
     % Figure
     mainMonitor = get(0, 'MonitorPositions');
@@ -43,16 +43,15 @@ function filename = ReportGenerator_DriveTest(SpecInfo, idx, reportInfo, Layout)
     end
 
     % Export figure as PNG or JPEG file
-    filename = '';
+    FullFileName = '';
     if strcmp(reportInfo.General.Mode, 'Report')
-        if strcmp(reportInfo.General.Version, 'Definitiva')
-            filename = sprintf( 'Image_%s_ID%.0f.%s', datestr(now, 'yyyy.mm.dd_THH.MM.SS'), SpecInfo(idx).RelatedFiles.ID(1), reportInfo.General.Image.Format);
-        else
-            filename = sprintf('~Image_%s_ID%.0f.%s', datestr(now, 'yyyy.mm.dd_THH.MM.SS'), SpecInfo(idx).RelatedFiles.ID(1), reportInfo.General.Image.Format);
+        defaultFilename = class.Constants.DefaultFileName(userPath, sprintf('Image_ID%d', SpecInfo(idx).RelatedFiles.ID(1)), -1);
+        FullFileName    = sprintf('%s.%s', defaultFilename, reportInfo.General.Image.Format);
+        if ~strcmp(reportInfo.General.Version, 'Definitiva')
+            FullFileName = replace(FullFileName, 'Image', '~Image');
         end
-        filename = fullfile(UserPath, filename);
         
-        exportgraphics(fig, filename, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
+        exportgraphics(fig, FullFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
         drawnow nocallbacks
     end
 end
