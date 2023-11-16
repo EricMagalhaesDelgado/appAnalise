@@ -294,10 +294,10 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children)
         case 'Internal'
             switch Source
                 case 'specImage'
-                    Image = report.ReportGenerator_Plot(SpecInfo, idx, reportInfo, Layout);
+                    Image = report.plotFcn.Spectrum(SpecInfo, idx, reportInfo, Layout);
 
                 case 'Drive-Test'
-                    Image = report.ReportGenerator_DriveTest(SpecInfo, idx, reportInfo, Layout);
+                    Image = report.plotFcn.DriveTest(SpecInfo, idx, reportInfo, Layout);
 
                 case 'Histogram'
                     % Pendente                    

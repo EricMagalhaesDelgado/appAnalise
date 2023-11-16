@@ -1,4 +1,4 @@
-function FullFileName = ReportGenerator_Plot(SpecInfo, idx, reportInfo, Layout)
+function FullFileName = Spectrum(SpecInfo, idx, reportInfo, Layout)
 
     % Função auxiliar à "ReportGenerator", possibilitando geração do plot 
     % para cada uma das faixas, o qual é salvo como imagem no formato "PNG" 

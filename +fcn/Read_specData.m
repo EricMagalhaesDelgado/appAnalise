@@ -47,6 +47,10 @@ function Read_specData(app, d)
                     break
                 end
             end
+
+            if isempty(idx1)
+                continue
+            end
             
             if min(idx1) == 1
                 idx2 = 1;
@@ -178,12 +182,7 @@ function specDataReader_FinalOperation(app)
 
         % GPS
         if height(app.specData(ii).RelatedFiles) > 1
-            gpsStatus = max(cellfun(@(x) x.Status, app.specData(ii).RelatedFiles.GPS));
-            if gpsStatus
-                gpsData = struct('Status', gpsStatus, ...
-                                 'Matrix', cell2mat(cellfun(@(x) x.Matrix, app.specData(ii).RelatedFiles.GPS, 'UniformOutput', false)));
-                app.specData(ii).GPS = rmfield(fcn.gpsSummary({gpsData}), 'Matrix');
-            end
+            fcn.gpsProperty(app, ii)
         end
 
         % Estatística básica dos dados:

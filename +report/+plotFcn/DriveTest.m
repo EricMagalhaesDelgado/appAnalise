@@ -1,4 +1,4 @@
-function FullFileName = ReportGenerator_DriveTest(SpecInfo, idx, reportInfo, Layout)
+function FullFileName = DriveTest(SpecInfo, idx, reportInfo, Layout)
 
     % REPORT GENERATOR: DRIVE-TEST PLOTS
     % Version: February 3th 2023
