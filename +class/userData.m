@@ -21,6 +21,10 @@ classdef userData
                                      'VariableTypes', {'uint16', 'double', 'double', 'logical', 'cell'}, ...
                                      'VariableNames', {'Index', 'Frequency', 'BW', 'isTruncated', 'Detection'})
 
+        measCalibration      = table('Size', [0, 3],                            ...
+                                     'VariableTypes', {'cell', 'cell', 'cell'}, ...
+                                     'VariableNames', {'oldUnitLevel', 'newUnitLevel', 'Name'})
+
         reportFlag           = false
         
         reportOCC            = []

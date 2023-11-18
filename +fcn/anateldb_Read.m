@@ -15,7 +15,7 @@ function anateldb_Read(RootFolder)
             try
                 AnatelDB      = parquetread(filename_parquet);
                 
-                FileVersion   = webread(Misc_PublicLinks(RootFolder));
+                FileVersion   = webread(fcn.PublicLinks(RootFolder));
                 AnatelDB_info = FileVersion.anateldb;
                                 
                 save(filename_mat, 'AnatelDB', 'AnatelDB_info')
@@ -32,5 +32,4 @@ function anateldb_Read(RootFolder)
             end
         end
     end
-
 end

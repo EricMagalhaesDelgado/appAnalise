@@ -67,7 +67,7 @@ function Fcn_Route(fig, SpecInfo, idx)
         Long = [Long; SpecInfo(idx).RelatedFiles.GPS{ii}.Matrix(:,2)];
     end
 
-    axes1 = geoaxes(fig, 'FontSize', 6, 'Units', 'pixels', 'Basemap', 'darkwater', 'FontName', 'Calibri', 'FontSize', 10);
+    axes1 = geoaxes(fig, 'FontSize', 6, 'Units', 'pixels', 'Basemap', 'darkwater', 'FontName', 'Calibri', 'FontSize', 10, 'ToolBar', []);
 
     while true
         try

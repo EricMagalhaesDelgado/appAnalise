@@ -32,7 +32,7 @@ function StartUp(app, idx)
     % Aspecto mais importante da seleção de um novo fluxo! Handle do nó
     % selecionado da árvore acessível através da propriedade "UserData", do
     % componente app.play_PlotPanel.
-    app.play_PlotPanel.UserData  = app.play_Tree.SelectedNodes;
+    app.play_PlotPanel.UserData  = app.play_Tree.SelectedNodes(1);
 
 
     % Painel de metadados.
@@ -72,7 +72,7 @@ function StartUp(app, idx)
     play_Channel_TreeBuilding(app,  idx)
     if ~isempty(app.play_Channel_Tree.Children)
         app.play_Channel_Tree.SelectedNodes = app.play_Channel_Tree.Children(1);
-        play_Channel_TreeSelectionChanged(app)
+        auxiliarWinFunction(app, app, 'plotFcn.StartUp')
     end
 
 
