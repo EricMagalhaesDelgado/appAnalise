@@ -140,14 +140,16 @@ end
 %-------------------------------------------------------------------------%
 function specData = Fcn_SpecDataReader(specData, rawData)
 
-    specData = PreAllocationData(specData);
-    nSweeps  = specData.RelatedFiles.nSweeps;
-    
-    for ii = 1:nSweeps
-        rawArray = rawData(specData.FileMap.StartByte(ii):specData.FileMap.StopByte(ii));
-    
-        specData.Data{1}(ii)   = Read_TimeStamp(rawArray);
-        specData.Data{2}(:,ii) = (typecast(rawArray(25:end), 'single'))';
+    if specData.Enable
+        specData = PreAllocationData(specData);
+        nSweeps  = specData.RelatedFiles.nSweeps;
+        
+        for ii = 1:nSweeps
+            rawArray = rawData(specData.FileMap.StartByte(ii):specData.FileMap.StopByte(ii));
+        
+            specData.Data{1}(ii)   = Read_TimeStamp(rawArray);
+            specData.Data{2}(:,ii) = (typecast(rawArray(25:end), 'single'))';
+        end
     end
 
     specData.FileMap = [];

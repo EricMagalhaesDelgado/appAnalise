@@ -162,66 +162,69 @@ function specData = Fcn_SpecDataReader(specData, rawData)
         return
     end
 
-    specData = specData.PreAllocationData();
-    nSweeps  = specData.RelatedFiles.nSweeps;
+    if specData.Enable
+        specData = specData.PreAllocationData();
+        nSweeps  = specData.RelatedFiles.nSweeps;
+        
+        if specData.FileMap.attData.Mode
+            specData.FileMap.attData.Array = zeros(nSweeps, 1, 'uint8');
+        end
     
-    if specData.FileMap.attData.Mode
-        specData.FileMap.attData.Array = zeros(nSweeps, 1, 'uint8');
-    end
-
-    % Apenas para simplificar a notação...
-    BitsPerSample = specData.FileMap.BitsPerSample;    
-    startIndex    = specData.FileMap.idxTable.startByte;
-    stopIndex     = specData.FileMap.idxTable.stopByte;    
-    blockOffset1  = specData.FileMap.blockOffset1;
-    blockOffset2  = specData.FileMap.blockOffset2;
-
-    for ii = nSweeps:-1:1
-        try
-            blockArray = rawData(startIndex(ii):stopIndex(ii));
-            TimeStamp  = observationTime(blockArray);
+        % Apenas para simplificar a notação...
+        BitsPerSample = specData.FileMap.BitsPerSample;    
+        startIndex    = specData.FileMap.idxTable.startByte;
+        stopIndex     = specData.FileMap.idxTable.stopByte;    
+        blockOffset1  = specData.FileMap.blockOffset1;
+        blockOffset2  = specData.FileMap.blockOffset2;
     
-            if BitsPerSample == 8
-                RefLevel = double(typecast(blockArray(blockOffset1+9:blockOffset1+10), 'int16'));
-                OFFSET   = RefLevel - 127.5;
-            end
-    
-            compressedArray = blockArray(blockOffset1+blockOffset2+9:end);
-            processedArray  = matlabCommunity.CompressLib.decompress(compressedArray);
-    
-            switch BitsPerSample
-                case  8; newArray = single(processedArray)./2 + OFFSET;
-                case 16; newArray = single(processedArray)./100;
-                case 32; newArray = processedArray;
-            end
-    
-            if numel(newArray) == specData.MetaData.DataPoints
-                specData.Data{1}(ii)   = TimeStamp;
-                specData.Data{2}(:,ii) = newArray;
-                
-                if ~isempty(specData.FileMap.attData.Array)
-                    specData.FileMap.attData.Array(ii) = blockArray(blockOffset1+8);
+        for ii = nSweeps:-1:1
+            try
+                blockArray = rawData(startIndex(ii):stopIndex(ii));
+                TimeStamp  = observationTime(blockArray);
+        
+                if BitsPerSample == 8
+                    RefLevel = double(typecast(blockArray(blockOffset1+9:blockOffset1+10), 'int16'));
+                    OFFSET   = RefLevel - 127.5;
                 end
-            else
-                error('Not expected array length.')
-            end
-
-        catch
-            specData.Data{1}(ii)   = [];
-            specData.Data{2}(:,ii) = [];
-
-            if ~isempty(specData.FileMap.attData.Array)
-                specData.FileMap.attData.Array(ii) = [];
+        
+                compressedArray = blockArray(blockOffset1+blockOffset2+9:end);
+                processedArray  = matlabCommunity.CompressLib.decompress(compressedArray);
+        
+                switch BitsPerSample
+                    case  8; newArray = single(processedArray)./2 + OFFSET;
+                    case 16; newArray = single(processedArray)./100;
+                    case 32; newArray = processedArray;
+                end
+        
+                if numel(newArray) == specData.MetaData.DataPoints
+                    specData.Data{1}(ii)   = TimeStamp;
+                    specData.Data{2}(:,ii) = newArray;
+                    
+                    if ~isempty(specData.FileMap.attData.Array)
+                        specData.FileMap.attData.Array(ii) = blockArray(blockOffset1+8);
+                    end
+                else
+                    error('Not expected array length.')
+                end
+    
+            catch
+                specData.Data{1}(ii)   = [];
+                specData.Data{2}(:,ii) = [];
+    
+                if ~isempty(specData.FileMap.attData.Array)
+                    specData.FileMap.attData.Array(ii) = [];
+                end
             end
         end
+    
+        BeginTime   = specData.Data{1}(1);
+        EndTime     = specData.Data{1}(end);
+        nSweeps     = numel(specData.Data{1});
+        RevisitTime = seconds(EndTime-BeginTime)/(nSweeps-1);
+    
+        specData.RelatedFiles(1,5:8) = {BeginTime, EndTime, nSweeps, RevisitTime};
     end
 
-    BeginTime   = specData.Data{1}(1);
-    EndTime     = specData.Data{1}(end);
-    nSweeps     = numel(specData.Data{1});
-    RevisitTime = seconds(EndTime-BeginTime)/(nSweeps-1);
-
-    specData.RelatedFiles(1,5:8) = {BeginTime, EndTime, nSweeps, RevisitTime};
     specData.FileMap = [];
 end
 

@@ -117,24 +117,26 @@ function specData = Fcn_SpecDataReader(specData)
         return
     end
 
-    specData          = specData.PreAllocationData();
-
-    nSweeps           = specData.RelatedFiles.nSweeps;
-    BitsPerPoint      = specData.FileMap.BitsPerPoint;
-    gpsTimestampBlock = specData.FileMap.gpsTimestampBlock;
-    SpectralBlock     = specData.FileMap.SpectralBlock;
-
-    for ii = 1:nSweeps
-        specData.Data{1}(ii) = datetime(gpsTimestampBlock.Data(ii).localTimeStamp, 'Format', 'dd/MM/yyyy HH:mm:ss') + years(2000);
-
-        switch BitsPerPoint
-            case 8
-                OFFSET = single(gpsTimestampBlock.Data(ii).Offset) - 127.5;
-                specData.Data{2}(:,ii) = single(SpectralBlock.Data.Array(:,ii))./2 + OFFSET;
-            case 16
-                specData.Data{2}(:,ii) = single(SpectralBlock.Data.Array(:,ii)) ./ 100;
-            case 32
-                specData.Data{2}(:,ii) = SpectralBlock.Data.Array(:,ii);
+    if specData.Enable
+        specData          = specData.PreAllocationData();
+    
+        nSweeps           = specData.RelatedFiles.nSweeps;
+        BitsPerPoint      = specData.FileMap.BitsPerPoint;
+        gpsTimestampBlock = specData.FileMap.gpsTimestampBlock;
+        SpectralBlock     = specData.FileMap.SpectralBlock;
+    
+        for ii = 1:nSweeps
+            specData.Data{1}(ii) = datetime(gpsTimestampBlock.Data(ii).localTimeStamp, 'Format', 'dd/MM/yyyy HH:mm:ss') + years(2000);
+    
+            switch BitsPerPoint
+                case 8
+                    OFFSET = single(gpsTimestampBlock.Data(ii).Offset) - 127.5;
+                    specData.Data{2}(:,ii) = single(SpectralBlock.Data.Array(:,ii))./2 + OFFSET;
+                case 16
+                    specData.Data{2}(:,ii) = single(SpectralBlock.Data.Array(:,ii)) ./ 100;
+                case 32
+                    specData.Data{2}(:,ii) = SpectralBlock.Data.Array(:,ii);
+            end
         end
     end
 

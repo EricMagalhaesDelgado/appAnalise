@@ -182,16 +182,18 @@ end
 function specData = Fcn_SpecDataReader(specData, rawData, fileName)
 
     for ii = 1:numel(specData)
-        specData(ii) = PreAllocationData(specData(ii));
-        Samples = specData(ii).RelatedFiles.nSweeps;
-        
-        for jj = 1:Samples
-            specData(ii) = Read_SpecData(specData(ii), jj, rawData);
-        end
-
-        if ismember(specData(ii).MetaData.DataType, [4, 7])
-            fileInfo = dir(fileName);
-            specData(ii).Data{1}(1:end) = linspace(datetime(fileInfo.date)-seconds(Samples-1), datetime(fileInfo.date), Samples);
+        if specData(ii).Enable
+            specData(ii) = PreAllocationData(specData(ii));
+            nSweeps = specData(ii).RelatedFiles.nSweeps;
+            
+            for jj = 1:nSweeps
+                specData(ii) = Read_SpecData(specData(ii), jj, rawData);
+            end
+    
+            if ismember(specData(ii).MetaData.DataType, [4, 7])
+                fileInfo = dir(fileName);
+                specData(ii).Data{1}(1:end) = linspace(datetime(fileInfo.date)-seconds(nSweeps-1), datetime(fileInfo.date), nSweeps);
+            end
         end
 
         specData(ii).FileMap = [];
