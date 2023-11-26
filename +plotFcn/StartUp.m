@@ -32,7 +32,7 @@ function StartUp(app, idx)
     % Aspecto mais importante da seleção de um novo fluxo! Handle do nó
     % selecionado da árvore acessível através da propriedade "UserData", do
     % componente app.play_PlotPanel.
-    app.play_PlotPanel.UserData  = app.play_Tree.SelectedNodes(1);
+    app.play_PlotPanel.UserData  = TreeNode(app, idx);
 
 
     % Painel de metadados.
@@ -86,4 +86,20 @@ function StartUp(app, idx)
 
     play_BandLimits_Layout(app, idx)
     play_BandLimits_TreeBuilding(app, idx)
+end
+
+
+%-------------------------------------------------------------------------%
+function treeNode = TreeNode(app, idx)
+    hTreeNodes     = findobj(app.play_Tree, '-not', 'Type', 'uitree');
+    hTreeNodeData  = arrayfun(@(x) x.NodeData, hTreeNodes, "UniformOutput", false);
+    hTreeNodeIndex = find(cellfun(@(x) isequal(idx, x), hTreeNodeData))';
+
+    for ii = hTreeNodeIndex
+        generation = play_findGenerationTreeNode(app, hTreeNodes(ii));
+        if generation == 1
+            treeNode = hTreeNodes(ii);
+            break
+        end
+    end
 end

@@ -57,6 +57,65 @@ classdef specData < handle
         function IDs = IDList(obj)
             IDs = arrayfun(@(x) x.RelatedFiles.ID(1), obj);
         end
+
+
+        %-----------------------------------------------------------------%
+        function obj = merge(obj, idx)
+
+            if numel(idx) < 2
+                error('Devem ser selecionados ao menos dois fluxos espectrais...')
+            end
+
+            mergeTable = table('Size', [0,6],                                                               ...
+                               'VariableTypes', {'double', 'double', 'double', 'double', 'cell', 'double'}, ...
+                               'VariableNames', {'idx', 'DataType', 'FreqStart', 'FreqStop', 'LevelUnit', 'nSweeps'});
+
+            for ii = idx
+                mergeTable(end+1,:) = {ii,                         ...
+                                       obj(ii).MetaData.DataType,  ...
+                                       obj(ii).MetaData.FreqStart, ...
+                                       obj(ii).MetaData.FreqStop,  ...
+                                       obj(ii).MetaData.LevelUnit, ...
+                                       numel(obj(ii).Data{1})};
+            end
+            mergeTable = sortrows(mergeTable, 'FreqStart');
+
+            if issorted(mergeTable.FreqStart, "strictascend")                                                   && ...
+               isequal(mergeTable.FreqStart(2:height(mergeTable)), mergeTable.FreqStop(1:height(mergeTable)-1)) && ...
+               (numel(unique(mergeTable.LevelUnit)) == 1)                                                       && ...
+               (numel(unique(mergeTable.nSweeps))   == 1)                                                       && ...
+               (numel(unique(mergeTable.DataType))  == 1)
+
+                dataMatrix = [];
+                for ii = idx
+                    dataMatrix = [dataMatrix; obj(ii).Data{2}];
+                end
+
+                obj(idx(1)).Data{2} = dataMatrix;
+                obj(idx(1)).Data{3} = class.specData.read_StatsData(dataMatrix);
+
+                obj(idx(1)).MetaData.DataPoints = height(dataMatrix);
+                obj(idx(1)).MetaData.FreqStop   = mergeTable.FreqStop(end);
+
+                obj(idx(2:numel(idx))) = [];
+
+                % Atualizando o mapeamento com os fluxos de ocupação...
+                dataTypesArray = arrayfun(@(x) x.MetaData.DataType, obj);
+                if any(ismember(dataTypesArray, class.Constants.occDataTypes))
+                    for ii = 1:numel(obj)
+                        [relatedIndex, selectedIndex] = class.specData.read_OCCMap(obj, ii);
+    
+                        if ~isempty(relatedIndex)
+                            obj(ii).UserData(1).occMethod.RelatedIndex  = relatedIndex;
+                            obj(ii).UserData(1).occMethod.SelectedIndex = selectedIndex;
+                        end
+                    end
+                end
+
+            else
+                error('Os fluxos espectrais a mesclar não podem ter descontinuidade, devendo possuir um mesmo número de varreduras e estar relacionados à uma única unidade de medida.')
+            end
+        end
     end
 
 
@@ -301,11 +360,7 @@ classdef specData < handle
             % Ordenação dos fluxos dos dados:
             % - Primário:   Receiver
             % - Secundário: ID
-            ID = [];
-            for ii = 1:numel(app.specData)
-                ID = [ID; app.specData(ii).RelatedFiles.ID(1)];
-            end
-            [~,    idx1] = sortrows(table({app.specData.Receiver}', ID));
+            idx1 = class.specData.read_SortData(app.specData);
             app.specData = app.specData(idx1);
             
             for ii = 1:numel(app.specData)
@@ -321,36 +376,17 @@ classdef specData < handle
                 end
         
                 % Estatística básica dos dados:
-                app.specData(ii).Data{3}(:) = [ min(app.specData(ii).Data{2}, [], 2), ...
-                                               mean(app.specData(ii).Data{2},     2), ...
-                                                max(app.specData(ii).Data{2}, [], 2)];
-        
+                app.specData(ii).Data{3}(:) = class.specData.read_StatsData(app.specData(ii).Data{2});
+
+                app.specData(ii).UserData(1).occMethod.RelatedIndex = [];
                 if ismember(app.specData(ii).MetaData.DataType, class.Constants.specDataTypes)
                     % Mapeamento entre os fluxos de espectro e os de ocupação
                     % (eventualmente gerados pelo Logger):
-                    idx3 = [];
-                    for jj = 1:numel(app.specData)
-                        if ismember(app.specData(jj).MetaData.DataType, class.Constants.occDataTypes)
-                            idx3 = [idx3, jj];
-                        end
-                    end
-        
-                    for kk = idx3
-                        logEvaluation = strcmp(app.specData(ii).Receiver, app.specData(kk).Receiver)                 & ...
-                                        app.specData(ii).MetaData.FreqStart  == app.specData(kk).MetaData.FreqStart  & ...
-                                        app.specData(ii).MetaData.FreqStop   == app.specData(kk).MetaData.FreqStop   & ...
-                                        app.specData(ii).MetaData.DataPoints == app.specData(kk).MetaData.DataPoints;
-            
-                        if logEvaluation
-                            app.specData(ii).UserData(1).occMethod.RelatedIndex = [app.specData(ii).UserData.occMethod.RelatedIndex, kk];
-                        end
-                    end
-                    
-                    try
-                        if ~isempty(app.specData(ii).UserData.occMethod.RelatedIndex)
-                            app.specData(ii).UserData.occMethod.SelectedIndex = app.specData(ii).UserData.occMethod.RelatedIndex(1);
-                        end
-                    catch
+                    [relatedIndex, selectedIndex] = class.specData.read_OCCMap(app.specData, ii);
+
+                    if ~isempty(relatedIndex)
+                        app.specData(ii).UserData(1).occMethod.RelatedIndex  = relatedIndex;
+                        app.specData(ii).UserData(1).occMethod.SelectedIndex = selectedIndex;
                     end
         
                     % Mapeamento entre os fluxos de espectro e as canalizações
@@ -359,8 +395,61 @@ classdef specData < handle
                 end
             end
         
-            idx4 = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
-            class.userData.reportProperties_DefaultValues(app, idx4)
+            idx3 = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+            class.userData.reportProperties_DefaultValues(app, idx3)
+        end
+
+
+        %-----------------------------------------------------------------%
+        function [relatedIndex, selectedIndex] = read_OCCMap(Data, ii)
+
+            relatedIndex  = [];
+            selectedIndex = [];
+
+            idx = [];
+            for jj = 1:numel(Data)
+                if ismember(Data(jj).MetaData.DataType, class.Constants.occDataTypes)
+                    idx = [idx, jj];
+                end
+            end
+
+            for kk = idx
+                logEvaluation = strcmp(Data(ii).Receiver, Data(kk).Receiver)                 & ...
+                                Data(ii).MetaData.FreqStart  == Data(kk).MetaData.FreqStart  & ...
+                                Data(ii).MetaData.FreqStop   == Data(kk).MetaData.FreqStop   & ...
+                                Data(ii).MetaData.DataPoints == Data(kk).MetaData.DataPoints;
+    
+                if logEvaluation
+                    relatedIndex = [relatedIndex, kk];
+                end
+            end
+            
+            if ~isempty(relatedIndex)
+                selectedIndex = relatedIndex(1);
+            end
+        end
+
+
+        %-----------------------------------------------------------------%
+        function sortIndex = read_SortData(Data)
+
+            % Ordenação dos fluxos dos dados:
+            % - Primário:   Receiver
+            % - Secundário: ID
+            ID = [];
+            for ii = 1:numel(Data)
+                ID = [ID; Data(ii).RelatedFiles.ID(1)];
+            end
+            [~, sortIndex] = sortrows(table({Data.Receiver}', ID));
+        end
+
+
+        %-----------------------------------------------------------------%
+        function statsData = read_StatsData(Data)
+
+            statsData = [ min(Data, [], 2), ...
+                         mean(Data,     2), ...
+                          max(Data, [], 2)];
         end
         
         

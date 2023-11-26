@@ -1,5 +1,37 @@
 [
   {
+    "Name": "Calibration test",
+    "Type": "Calibration",
+    "xData": [
+      10,
+      20,
+      30,
+      40,
+      49,
+      50,
+      60,
+      61,
+      70,
+      80,
+      90,
+      100
+    ],
+    "yData": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      50,
+      50,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  {
     "Name": "CRFS Low Band (10 MHz - 1.2 GHz)",
     "Type": "Antenna k-Factor",
     "xData": [
@@ -98,7 +130,7 @@
     ]
   },
   {
-    "Name": "Rohde & Schwarz ADDx07 (Argus)",
+    "Name": "R&S ADDx07 (Argus)",
     "Type": "Antenna k-Factor",
     "xData": [
       20,
@@ -454,7 +486,7 @@
     ]
   },
   {
-    "Name": "Rohde & Schwarz ADD107 (20 MHz - 1.3 GHz)",
+    "Name": "R&S ADD107 (20 MHz - 1.3 GHz)",
     "Type": "Antenna k-Factor",
     "xData": [
       20,
@@ -692,7 +724,7 @@
     ]
   },
   {
-    "Name": "Rohde & Schwarz ADD207 (690 MHz - 6 GHz)",
+    "Name": "R&S ADD207 (690 MHz - 6 GHz)",
     "Type": "Antenna k-Factor",
     "xData": [
       690,
