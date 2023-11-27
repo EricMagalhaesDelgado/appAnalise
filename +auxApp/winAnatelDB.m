@@ -280,10 +280,14 @@ classdef winAnatelDB < matlab.apps.AppBase
             app.CallingApp = mainapp;
             app.RootFolder = app.CallingApp.RootFolder;
             fcn.winPosition(app)
+
+            d = uiprogressdlg(app.UIFigure, "Message", '<font style="font-size:12;">Em andamento...</font>', "Interpreter", "html", "Indeterminate", "on");
             
             startup_AxesCreation(app)
             startup_NodeList(app)
             startup_AnatelDB(app)
+
+            delete(d)
 
         end
 

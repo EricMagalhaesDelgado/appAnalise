@@ -177,7 +177,7 @@ function specData = Fcn_SpecDataReader(specData, rawData)
         blockOffset1  = specData.FileMap.blockOffset1;
         blockOffset2  = specData.FileMap.blockOffset2;
     
-        for ii = nSweeps:-1:1
+        for ii = 1:nSweeps
             try
                 blockArray = rawData(startIndex(ii):stopIndex(ii));
                 TimeStamp  = observationTime(blockArray);
@@ -205,21 +205,13 @@ function specData = Fcn_SpecDataReader(specData, rawData)
                     end
                 else
                     error('Not expected array length.')
-                end
-    
+                end    
             catch
-                specData.Data{1}(ii)   = [];
-                specData.Data{2}(:,ii) = [];
-    
-                if ~isempty(specData.FileMap.attData.Array)
-                    specData.FileMap.attData.Array(ii) = [];
-                end
             end
         end
     
         BeginTime   = specData.Data{1}(1);
         EndTime     = specData.Data{1}(end);
-        nSweeps     = numel(specData.Data{1});
         RevisitTime = seconds(EndTime-BeginTime)/(nSweeps-1);
     
         specData.RelatedFiles(1,5:8) = {BeginTime, EndTime, nSweeps, RevisitTime};

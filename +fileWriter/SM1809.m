@@ -1,4 +1,4 @@
-function SM1809(filename, specData)
+function SM1809(filename, SpecInfo)
 
     % Escrita de arquivo no formato SM1809 - um formato texto estabelecido pela 
     % UIT como o "formato padrão de intercâmbio entre os administradores do espectro 
@@ -35,13 +35,12 @@ function SM1809(filename, specData)
     % - ThreadID | ID
     % - Description
 
-    arguments
-        filename char
-        specData struct
-    end
+    % Author.: Eric Magalhães Delgado
+    % Date...: November 26, 2023
+    % Version: 1.01
     
-    if specData(1).gps.Status
-        [Latitude, Longitude] = gpsConversionFormats(specData(1).gps);
+    if SpecInfo(1).GPS.Status
+        [Latitude, Longitude] = gpsConversionFormats(SpecInfo(1).GPS);
     else
         error('Necessária a informação de GPS.')
     end
@@ -59,58 +58,28 @@ function SM1809(filename, specData)
     Detector    = {};
     TraceMode   = {};
     
-    N = length(specData);
-    if N == 1; Multiscan = 'N';
-    else;      Multiscan = 'Y';
+    NN = numel(SpecInfo);
+    if NN == 1; Multiscan = 'N';
+    else;       Multiscan = 'Y';
     end
     
-    Samples         = min([specData.Samples]);
-    ObservationTime = sprintf('%s - %s', datestr(specData(1).Data{1}(1),       'dd/mm/yyyy HH:MM:SS'), ...
-                                         datestr(specData(1).Data{1}(Samples), 'dd/mm/yyyy HH:MM:SS'));
+    nMinSweeps      = min(arrayfun(@(x) numel(x.Data{1}), SpecInfo));
+    ObservationTime = sprintf('%s - %s', datestr(SpecInfo(1).Data{1}(1),          'dd/mm/yyyy HH:MM:SS'), ...
+                                         datestr(SpecInfo(1).Data{1}(nMinSweeps), 'dd/mm/yyyy HH:MM:SS'));
     
-    for ii = 1:N
-        FreqStart   = [FreqStart   sprintf('%.3f', specData(ii).MetaData.FreqStart  ./ 1e+3)];
-        FreqStop    = [FreqStop    sprintf('%.3f', specData(ii).MetaData.FreqStop   ./ 1e+3)];
-        Resolution  = [Resolution  sprintf('%.3f', specData(ii).MetaData.Resolution ./ 1e+3)];
-        DataPoints  = [DataPoints  sprintf('%.0f', specData(ii).MetaData.DataPoints)];
-        ThreadID    = [ThreadID    sprintf('%.0f', specData(ii).ThreadID)];
-        Description = [Description sprintf('%s',   specData(ii).Description)];
-        SampleTime  = [SampleTime  sprintf('%.6f', sum(specData(ii).RelatedFiles.Samples.*specData(ii).RelatedFiles.RevisitTime)/sum(specData(ii).RelatedFiles.Samples))];
-        
-        switch specData(ii).MetaData.LevelUnit
-            case 1; auxUnit = 'dBm';
-            case 2; auxUnit = 'dBuV';
-            case 3; auxUnit = 'dBuV/m';
-        end
-        LevelUnit = [LevelUnit auxUnit];
-        
-        if ~isempty(specData(ii).MetaData.Detector)
-            switch specData(ii).MetaData.Detector
-                case 1; auxDetector = 'Sample';
-                case 2; auxDetector = 'Average/RMS';
-                case 3; auxDetector = 'Positive Peak';
-                case 4; auxDetector = 'Negative Peak';
-            end
-            Detector = [Detector auxDetector];
-        end
-        
-        if contains(specData(ii).Node, 'RFeye', 'IgnoreCase', true)
-            switch specData(ii).MetaData.TraceMode
-                case 0; auxTraceMode = 'Single Measurement';
-                case 1; auxTraceMode = 'Mean';
-                case 2; auxTraceMode = 'Peak';
-                case 3; auxTraceMode = 'Minimum';
-            end
-        else
-            switch specData(ii).MetaData.TraceMode
-                case 1; auxTraceMode = 'ClearWrite';
-                case 2; auxTraceMode = 'Average';
-                case 3; auxTraceMode = 'MaxHold';
-                case 4; auxTraceMode = 'MinHold';
-            end
-        end
-        TraceMode = [TraceMode auxTraceMode];
+    for ii = 1:NN
+        FreqStart   = [FreqStart   sprintf('%.3f', SpecInfo(ii).MetaData.FreqStart  ./ 1e+3)];
+        FreqStop    = [FreqStop    sprintf('%.3f', SpecInfo(ii).MetaData.FreqStop   ./ 1e+3)];
+        Resolution  = [Resolution  sprintf('%.3f', SpecInfo(ii).MetaData.Resolution ./ 1e+3)];
+        DataPoints  = [DataPoints  sprintf('%.0f', SpecInfo(ii).MetaData.DataPoints)];
+        ThreadID    = [ThreadID    sprintf('%.0f', SpecInfo(ii).RelatedFiles.ID(1))];
+        Description = [Description sprintf('%s',   SpecInfo(ii).RelatedFiles.Description{1})];
+        SampleTime  = [SampleTime  sprintf('%.6f', mean(SpecInfo(ii).RelatedFiles.RevisitTime))];
+        LevelUnit   = [LevelUnit   replace(SpecInfo(ii).MetaData.LevelUnit, 'µ', 'u')];
+        Detector    = [Detector    SpecInfo(ii).MetaData.Detector];
+        TraceMode   = [TraceMode   SpecInfo(ii).MetaData.TraceMode];        
     end
+
     FreqStart   = strjoin(FreqStart,   ';');
     FreqStop    = strjoin(FreqStop,    ';');
     Resolution  = strjoin(Resolution,  ';');
@@ -143,24 +112,25 @@ function SM1809(filename, specData)
                              'LocationName %s\n'     ...
                              'Date %s\n'             ...
                              'ObservationTime %s\n\n'], ...
-                             Multiscan, specData(1).Node, ThreadID, FreqStart, FreqStop, LevelUnit, DataPoints,        ...
-                             Resolution, SampleTime, TraceMode, Detector, specData(1).MetaData.metaString{5}, Samples, ...
-                             specData(1).TaskName, Description, Latitude, Longitude, specData(1).gps.Location,         ...
-                             datestr(specData(1).Data{1}(1), 'yyyy-mm-dd'), ObservationTime));
+                             Multiscan, SpecInfo(1).Receiver, ThreadID, FreqStart, FreqStop, LevelUnit, DataPoints,             ...
+                             Resolution, SampleTime, TraceMode, Detector, jsonencode(SpecInfo(1).MetaData.Antenna), nMinSweeps, ...
+                             SpecInfo(1).RelatedFiles.Task{1}, Description, Latitude, Longitude, SpecInfo(1).GPS.Location,      ...
+                             datestr(SpecInfo(1).Data{1}(1), 'yyyy-mm-dd'), ObservationTime));
         
-    if N == 1
-        for jj = 1:specData(1).Samples
-            writecell([{datestr(specData(1).Data{1}(jj), 'HH:MM:SS')}, {specData(1).Data{2}(:,jj)'}], ...
+    if NN == 1
+        nSweeps = numel(SpecInfo(1).Data{1});
+        for jj = 1:nSweeps
+            writecell([{datestr(SpecInfo(1).Data{1}(jj), 'HH:MM:SS')}, {SpecInfo(1).Data{2}(:,jj)'}], ...
                         filename, 'FileType', 'text', 'Delimiter', ',', 'WriteMode', 'append')
         end
         
     else
-        for jj = 1:Samples
-            strData = sprintf('%.1f,', specData(1).Data{2}(:,jj)');
-            fprintf(fileID, sprintf('%s,%s', datestr(specData(1).Data{1}(jj), 'HH:MM:SS'), strData(1:end-1)));
+        for jj = 1:nMinSweeps
+            strData = sprintf('%.1f,', SpecInfo(1).Data{2}(:,jj)');
+            fprintf(fileID, sprintf('%s,%s', datestr(SpecInfo(1).Data{1}(jj), 'HH:MM:SS'), strData(1:end-1)));
             
-            for kk = 2:length(specData)
-                strData = sprintf('%.1f,', specData(kk).Data{2}(:,jj)');
+            for kk = 2:numel(SpecInfo)
+                strData = sprintf('%.1f,', SpecInfo(kk).Data{2}(:,jj)');
                 fprintf(fileID,'; ,%s', strData(1:end-1));
             end
             fprintf(fileID, newline);
@@ -173,10 +143,8 @@ end
 
 %-------------------------------------------------------------------------%
 function [Latitude, Longitude] = gpsConversionFormats(gps)
-    arguments
-        gps struct
-    end
     
+    % LATITUDE
     if gps.Latitude < 0; auxStr = 'S';
     else               ; auxStr = 'N';
     end

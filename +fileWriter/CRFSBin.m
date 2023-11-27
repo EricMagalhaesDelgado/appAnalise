@@ -5,8 +5,8 @@ function CRFSBin(fileName, SpecInfo)
     % dados 21 (Informações textuais), 40 (GPS), 67 (Espectro) e 69 (Ocupação).
 
     % Author.: Eric Magalhães Delgado
-    % Date...: June 11, 2021
-    % Version: 1.00
+    % Date...: November 26, 2023
+    % Version: 1.01
 
     arguments
         fileName
@@ -52,7 +52,6 @@ function CRFSBin(fileName, SpecInfo)
     end
     
     fclose(fileID);
-    clear global fileID
 end
 
 
@@ -70,7 +69,7 @@ function Write_BlockTrailer(fileID, BytesBlock)
     fseek(fileID, -(12+BytesBlock), 'cof');
     CheckSumAdd = fread(fileID, (12+BytesBlock), 'uint8');
     CheckSumAdd = uint32(sum(CheckSumAdd));
-    fseek(fileID, 0, 'cof');                                    % Artifício que possibilita escrita após leitura.
+    fseek(fileID, 0, 'cof');                                                % Artifício que possibilita escrita após leitura.
     
     fwrite(fileID, CheckSumAdd, 'uint32');
     fwrite(fileID, 'UUUU',      'char*1');    
@@ -80,20 +79,20 @@ end
 %-------------------------------------------------------------------------%
 function Write_DataType21(fileID, SpecInfo)
     
-    Hostname = SpecInfo.Node;
+    Hostname = SpecInfo.Receiver;
     Hostname = [Hostname zeros(1, 16-length(Hostname))];
     
     unitInfo = 'Stationary';
     if mod(length(unitInfo), 4)
         unitInfo = [unitInfo zeros(1, 4-mod(length(unitInfo), 4))];
     end
-    unitInfoLength = length(unitInfo);
+    unitInfoLength = numel(unitInfo);
     
-    method = SpecInfo.TaskName;
+    method = SpecInfo.RelatedFiles.Task{1};
     if mod(length(method), 4)
         method = [method zeros(1, 4-mod(length(method), 4))];
     end    
-    methodLength = length(method);
+    methodLength = numel(method);
     
     FileNumber = 0;
     BytesBlock = 28 + unitInfoLength + methodLength;
@@ -116,45 +115,45 @@ function Write_DataType40(fileID, SpecInfo)
     
     Write_BlockHeader(fileID, 1, 40, 40);
     
-    fwrite(fileID,   day(SpecInfo.Data{1}(1)));                 % Wall Clock Date
+    fwrite(fileID,   day(SpecInfo.Data{1}(1)));                             % Wall Clock Date
     fwrite(fileID, month(SpecInfo.Data{1}(1)));
     fwrite(fileID,  year(SpecInfo.Data{1}(1))-2000);
     fwrite(fileID, 0);
     
-    fwrite(fileID,   hour(SpecInfo.Data{1}(1)));                % Wall Clock Time
+    fwrite(fileID,   hour(SpecInfo.Data{1}(1)));                            % Wall Clock Time
     fwrite(fileID, minute(SpecInfo.Data{1}(1)));
     fwrite(fileID, second(SpecInfo.Data{1}(1)));
     fwrite(fileID, 0);
         
-    fwrite(fileID, 0, 'uint32');                                % Wall Clock Nanoseeconds
+    fwrite(fileID, 0, 'uint32');                                            % Wall Clock Nanoseeconds
     
-    fwrite(fileID,   day(SpecInfo.Data{1}(1)));                 % Wall Clock Date
+    fwrite(fileID,   day(SpecInfo.Data{1}(1)));                             % Wall Clock Date
     fwrite(fileID, month(SpecInfo.Data{1}(1)));
     fwrite(fileID,  year(SpecInfo.Data{1}(1))-2000);
     fwrite(fileID, 0);
     
-    fwrite(fileID,   hour(SpecInfo.Data{1}(1)));                % Wall Clock Time
+    fwrite(fileID,   hour(SpecInfo.Data{1}(1)));                            % Wall Clock Time
     fwrite(fileID, minute(SpecInfo.Data{1}(1)));
     fwrite(fileID, second(SpecInfo.Data{1}(1)));
     fwrite(fileID, 0);
         
-    fwrite(fileID, SpecInfo.GPS.Status);                        % Positional fix and status of first GPS block
-    fwrite(fileID, 0);                                          % Sattelites
-    fwrite(fileID, 0, 'uint16');                                % Heading
-    fwrite(fileID, SpecInfo.GPS.Latitude  .* 1e+6, 'int32');    % Latitude   (mean)
-    fwrite(fileID, SpecInfo.GPS.Longitude .* 1e+6, 'int32');    % Longitude  (mean)
-    fwrite(fileID, 0, 'uint32');                                % Speed
-    fwrite(fileID, 0, 'uint32');                                % Altitude
+    fwrite(fileID, SpecInfo.GPS.Status);                                    % Positional fix and status of first GPS block
+    fwrite(fileID, 0);                                                      % Sattelites
+    fwrite(fileID, 0, 'uint16');                                            % Heading
+    fwrite(fileID, SpecInfo.GPS.Latitude  .* 1e+6, 'int32');                % Latitude   (mean)
+    fwrite(fileID, SpecInfo.GPS.Longitude .* 1e+6, 'int32');                % Longitude  (mean)
+    fwrite(fileID, 0, 'uint32');                                            % Speed
+    fwrite(fileID, 0, 'uint32');                                            % Altitude
         
     Write_BlockTrailer(fileID, 40)
 end
 
 
 %-------------------------------------------------------------------------%
-function Write_DataType67(fileID, SpecInfo, antennaPort, ind)
+function Write_DataType67(fileID, SpecInfo, antennaPort, idx)
     
     % Description
-    Description = SpecInfo.Description;
+    Description = SpecInfo.RelatedFiles.Description{1};
     if mod(length(Description), 4)
         Description = [Description zeros(1,4-mod(length(Description), 4))];
     end
@@ -169,92 +168,88 @@ function Write_DataType67(fileID, SpecInfo, antennaPort, ind)
         BytesBlock = BytesBlock + NPAD;
     end
     
-    Write_BlockHeader(fileID, SpecInfo.ThreadID, BytesBlock, 67);
+    Write_BlockHeader(fileID, SpecInfo.RelatedFiles.ID(1), BytesBlock, 67);
     
-    fwrite(fileID,   day(SpecInfo.Data{1}(ind)));               % WALLDATE
-    fwrite(fileID, month(SpecInfo.Data{1}(ind)));
-    fwrite(fileID,  year(SpecInfo.Data{1}(ind))-2000);
+    fwrite(fileID,   day(SpecInfo.Data{1}(idx)));                           % WALLDATE
+    fwrite(fileID, month(SpecInfo.Data{1}(idx)));
+    fwrite(fileID,  year(SpecInfo.Data{1}(idx))-2000);
     fwrite(fileID, 0);
     
-    fwrite(fileID,   hour(SpecInfo.Data{1}(ind)));              % WALLTIME
-    fwrite(fileID, minute(SpecInfo.Data{1}(ind)));
-    fwrite(fileID, second(SpecInfo.Data{1}(ind)));
+    fwrite(fileID,   hour(SpecInfo.Data{1}(idx)));                          % WALLTIME
+    fwrite(fileID, minute(SpecInfo.Data{1}(idx)));
+    fwrite(fileID, second(SpecInfo.Data{1}(idx)));
     fwrite(fileID, 0);
-    fwrite(fileID, (second(SpecInfo.Data{1}(ind))-fix(second(SpecInfo.Data{1}(ind))))*1e+9, 'uint32');
+    fwrite(fileID, (second(SpecInfo.Data{1}(idx))-fix(second(SpecInfo.Data{1}(idx))))*1e+9, 'uint32');
     
-    fwrite(fileID, zeros(1, 2), 'uint32');                      % Group ID and Dynamic ID
+    fwrite(fileID, zeros(1, 2), 'uint32');                                  % Group ID and Dynamic ID
     
     fwrite(fileID, length(Description), 'uint32');
     fwrite(fileID, Description, 'char*1');
     
-    F0 = SpecInfo.MetaData.FreqStart ./ 1e+6;                   % FreqStart in MHz
+    F0 = SpecInfo.MetaData.FreqStart ./ 1e+6;                               % FreqStart in MHz
     IntegerPart = fix(F0);
     DecimalPart = round((F0 - IntegerPart).*1e+3);
     fwrite(fileID, IntegerPart, 'uint16');
     fwrite(fileID, DecimalPart, 'int32');
     
-    F1 = SpecInfo.MetaData.FreqStop ./ 1e+6;                    % FreqStop in MHz
+    F1 = SpecInfo.MetaData.FreqStop ./ 1e+6;                                % FreqStop in MHz
     IntegerPart = fix(F1);
     DecimalPart = round((F1 - IntegerPart).*1e+3);
     fwrite(fileID, IntegerPart, 'uint16');
     fwrite(fileID, DecimalPart, 'int32');
     
-    if ~isempty(SpecInfo.MetaData.Resolution)                   % Resolution in Hz
+    if ~isempty(SpecInfo.MetaData.Resolution)                               % Resolution in Hz
         fwrite(fileID, SpecInfo.MetaData.Resolution, 'int32');
     else
         fwrite(fileID, -1, 'int32');
     end
     
-    fwrite(fileID, zeros(1, 2), 'uint16');                      % STARTCHAN and STOPCHAN
-    
-    if ~isempty(SpecInfo.MetaData.SampleTime)                   % SAMPLE = Duration of sampling
-        fwrite(fileID, SpecInfo.MetaData.SampleTime*1e+6, 'uint32');
-    else
-        fwrite(fileID, 0, 'uint32');
+    fwrite(fileID, zeros(1, 2), 'uint16');                                  % STARTCHAN and STOPCHAN
+    fwrite(fileID, 0, 'uint32');                                            % SAMPLE = Duration of sampling    
+    fwrite(fileID, 1, 'int32');                                             % NAMAL (Number of loops)    
+    fwrite(fileID, antennaPort);                                            % Antenna number [0-255]
+
+    switch SpecInfo.MetaData.TraceMode
+        case 'SingleMeasurement'; traceID = 0;
+        case 'Mean';              traceID = 1;
+        case 'Peak';              traceID = 2;
+        case 'Minimum';           traceID = 3;
     end
-    
-    fwrite(fileID, 1, 'int32');                                 % NAMAL (Number of loops)
-    
-    fwrite(fileID, antennaPort);                                % Antenna number [0-255]
-    fwrite(fileID, SpecInfo.MetaData.TraceMode);                % Processing (0: single measurement; 1: average; 2: peak; 3: minimum)
-    
-    if ismember(SpecInfo.MetaData.LevelUnit, [1,2])
-        fwrite(fileID, 0);                                      % Data Type (0: dBm; 1: dBµV/m)
-    elseif SpecInfo.MetaData.LevelUnit == 3
-        fwrite(fileID, 1);
+    fwrite(fileID, traceID);                                                % Processing (0: single measurement; 1: average; 2: peak; 3: minimum)
+
+    switch SpecInfo.MetaData.LevelUnit                                      % Data Type (0: dBm; 1: dBµV/m)
+        case 'dBm';    levelID = 0;
+        case 'dBµV/m'; levelID = 1;
     end
+    fwrite(fileID, levelID);
     
-    OFFSET = ceil(max(SpecInfo.Data{2}(:,ind)));
+    OFFSET = ceil(max(SpecInfo.Data{2}(:,idx)));
     if OFFSET < -20
-        OFFSET = -20;                                           % Typical offset value
+        OFFSET = -20;                                                       % Typical offset value
     end
-    fwrite(fileID, OFFSET, 'int8');                             % Offset
+    fwrite(fileID, OFFSET, 'int8');                                         % Offset
     
-    fwrite(fileID, -1, 'int8');                                 % Global Error Code (GERROR)
-    fwrite(fileID, -1, 'int8');                                 % Global Clipping Flags (GFLAGS)
-    fwrite(fileID,  0, 'int8');                                 % Reserved for alignment
+    fwrite(fileID, -1, 'int8');                                             % Global Error Code (GERROR)
+    fwrite(fileID, -1, 'int8');                                             % Global Clipping Flags (GFLAGS)
+    fwrite(fileID,  0, 'int8');                                             % Reserved for alignment
     
-    fwrite(fileID, zeros(1, 2), 'uint16');                      % NTUN and NAGC
-    fwrite(fileID, NPAD);                                       % NPAD (Number of bytes of padding)
-    fwrite(fileID, NDATA, 'uint32');                            % NDATA
+    fwrite(fileID, zeros(1, 2), 'uint16');                                  % NTUN and NAGC
+    fwrite(fileID, NPAD);                                                   % NPAD (Number of bytes of padding)
+    fwrite(fileID, NDATA, 'uint32');                                        % NDATA
     
-    EncodedSpec = 2.*(SpecInfo.Data{2}(:,ind) - OFFSET) + 255;
-    if SpecInfo.MetaData.LevelUnit == 2
-        EncodedSpec = EncodedSpec - 107;                        % dBµV-dBm convertion factor (50Ω)
-    end
-    
+    EncodedSpec = 2.*(SpecInfo.Data{2}(:,idx) - OFFSET) + 255;    
     fwrite(fileID, EncodedSpec, 'uint8');
-    fwrite(fileID, zeros(1,NPAD));                              % Padding
+    fwrite(fileID, zeros(1,NPAD));                                          % Padding
     
     Write_BlockTrailer(fileID, BytesBlock)    
 end
 
 
 %-------------------------------------------------------------------------%
-function Write_DataType69(fileID, SpecInfo, antennaPort, ind)
+function Write_DataType69(fileID, SpecInfo, antennaPort, idx)
     
     % Description
-    Description = SpecInfo.Description;
+    Description = SpecInfo.RelatedFiles.Description{1};
     if mod(length(Description), 4)
         Description = [Description zeros(1,4-mod(length(Description), 4))];
     end
@@ -269,65 +264,65 @@ function Write_DataType69(fileID, SpecInfo, antennaPort, ind)
         BytesBlock = BytesBlock + NPAD;
     end
     
-    Write_BlockHeader(fileID, SpecInfo.ThreadID, BytesBlock, 69);
+    Write_BlockHeader(fileID, SpecInfo.RelatedFiles.ID(1), BytesBlock, 69);
     
-    fwrite(fileID,   day(SpecInfo.Data{1}(ind)));               % WALLDATE
-    fwrite(fileID, month(SpecInfo.Data{1}(ind)));
-    fwrite(fileID,  year(SpecInfo.Data{1}(ind))-2000);
+    fwrite(fileID,   day(SpecInfo.Data{1}(idx)));                           % WALLDATE
+    fwrite(fileID, month(SpecInfo.Data{1}(idx)));
+    fwrite(fileID,  year(SpecInfo.Data{1}(idx))-2000);
     fwrite(fileID, 0);
     
-    fwrite(fileID,   hour(SpecInfo.Data{1}(ind)));              % WALLTIME
-    fwrite(fileID, minute(SpecInfo.Data{1}(ind)));
-    fwrite(fileID, second(SpecInfo.Data{1}(ind)));
+    fwrite(fileID,   hour(SpecInfo.Data{1}(idx)));                          % WALLTIME
+    fwrite(fileID, minute(SpecInfo.Data{1}(idx)));
+    fwrite(fileID, second(SpecInfo.Data{1}(idx)));
     fwrite(fileID, 0);
     
-    fwrite(fileID, zeros(1, 3), 'uint32');                      % WALLNANO, Group ID and Dynamic ID
+    fwrite(fileID, zeros(1, 3), 'uint32');                                  % WALLNANO, Group ID and Dynamic ID
     
     fwrite(fileID, length(Description), 'uint32');
     fwrite(fileID, Description, 'char*1');
     
-    F0 = SpecInfo.MetaData.FreqStart ./ 1e+6;                   % FreqStart in MHz
+    F0 = SpecInfo.MetaData.FreqStart ./ 1e+6;                               % FreqStart in MHz
     IntegerPart = fix(F0);
     DecimalPart = round((F0 - IntegerPart).*1e+3);
     fwrite(fileID, IntegerPart, 'uint16');
     fwrite(fileID, DecimalPart, 'int32');
     
-    F1 = SpecInfo.MetaData.FreqStop ./ 1e+6;                    % FreqStop in MHz
+    F1 = SpecInfo.MetaData.FreqStop ./ 1e+6;                                % FreqStop in MHz
     IntegerPart = fix(F1);
     DecimalPart = round((F1 - IntegerPart).*1e+3);
     fwrite(fileID, IntegerPart, 'uint16');
     fwrite(fileID, DecimalPart, 'int32');
     
-    if ~isempty(SpecInfo.MetaData.Resolution)                   % Resolution in Hz
+    if ~isempty(SpecInfo.MetaData.Resolution)                               % Resolution in Hz
         fwrite(fileID, SpecInfo.MetaData.Resolution, 'int32');
     else
         fwrite(fileID, -1, 'int32');
     end
     
-    fwrite(fileID, zeros(1, 2), 'uint16');                      % STARTCHAN and STOPCHAN
-    fwrite(fileID, 2, 'int32');                                 % Operation type (2: Peak)
-    fwrite(fileID, 1);                                          % Operation count
-    fwrite(fileID, antennaPort);                                % Antenna number [0-255]
+    fwrite(fileID, zeros(1, 2), 'uint16');                                  % STARTCHAN and STOPCHAN
+    fwrite(fileID, 2, 'int32');                                             % Operation type (2: Peak)
+    fwrite(fileID, 1);                                                      % Operation count
+    fwrite(fileID, antennaPort);                                            % Antenna number [0-255]
     
-    if ismember(SpecInfo.MetaData.LevelUnit, [1,2])
-        fwrite(fileID, 0, 'uint16');                            % Data Type (0: dBm; 1: dBµV/m)
-    elseif SpecInfo.MetaData.LevelUnit == 3
-        fwrite(fileID, 1);
+    switch SpecInfo.MetaData.LevelUnit                                      % Data Type (0: dBm; 1: dBµV/m)
+        case 'dBm';    levelID = 0;
+        case 'dBµV/m'; levelID = 1;
     end
+    fwrite(fileID, levelID, 'uint16');
     
-    fwrite(fileID, -1, 'int8');                                 % Global Error Code (GERROR)
-    fwrite(fileID, -1, 'int8');                                 % Global Clipping Flags (GFLAGS)
-    fwrite(fileID,  0, 'int8');                                 % Reserved for alignment
+    fwrite(fileID, -1, 'int8');                                             % Global Error Code (GERROR)
+    fwrite(fileID, -1, 'int8');                                             % Global Clipping Flags (GFLAGS)
+    fwrite(fileID,  0, 'int8');                                             % Reserved for alignment
     
-    fwrite(fileID, NPAD);                                       % NPAD (Number of bytes of padding)
-    fwrite(fileID, SpecInfo.MetaData.Threshold, 'int16');       % Threshold
-    fwrite(fileID, SpecInfo.MetaData.SampleTime, 'uint16');     % Integration time    
+    fwrite(fileID, NPAD);                                                   % NPAD (Number of bytes of padding)
+    fwrite(fileID, SpecInfo.MetaData.Threshold, 'int16');                   % Threshold
+    fwrite(fileID, SpecInfo.RelatedFiles.RevisitTime(1), 'uint16');         % Integration time
     
-    fwrite(fileID, NDATA, 'uint32');                            % NDATA
+    fwrite(fileID, NDATA, 'uint32');                                        % NDATA
     
-    EncodedSpec = 2.*SpecInfo.Data{2}(:,ind);
+    EncodedSpec = 2.*SpecInfo.Data{2}(:,idx);
     fwrite(fileID, EncodedSpec, 'uint8');
-    fwrite(fileID, zeros(1,NPAD));                              % Padding
+    fwrite(fileID, zeros(1,NPAD));                                          % Padding
     
     Write_BlockTrailer(fileID, BytesBlock)    
 end

@@ -1,4 +1,4 @@
-function MAT(fileName, prj_specData, prj_Info)
+function MAT(fileName, fileType, prj_specData, prj_Info)
 
     % Author.: Eric Magalhães Delgado
     % Date...: November 15, 2023
@@ -6,24 +6,27 @@ function MAT(fileName, prj_specData, prj_Info)
 
     % MAT v.1 (INCOMPATÍVEL)
     % Data...: 01/07/2021
-    % Versões: appAnalise v.1.00 a 1.03
-    % Era salva apenas uma única variável "Data" no arquivo .MAT. Essa variável era 
-    % uma estrutura com os campos "Type", "Version", "Source", "specData" e "prjInfo".
+    % Versões: appAnaliseV1 (v.1.00 a 1.03)
+    % Informação organizada em uma única variável "Data". Essa variável era 
+    % uma estrutura com os campos "Type", "Version", "Source", "specData" e 
+    % "prjInfo".
 
     % MAT v.2 (LEGADO)
     % Data...: 15/09/2021
-    % Versões: appAnalise v.1.04 a 1.39
-    % Salva sete variáveis no arquivo .MAT - 'prj_Type', 'prj_Version', 'prj_Source', 
-    % 'prj_RelatedFiles', 'prj_metaData', 'prj_specData' e 'prj_Info'.
-    % 'prj_metaData' e 'prj_specData' são estruturas, seguindo a organização
-    % da variável app.specData.
+    % Versões: appAnaliseV1 (v.1.04 a 1.39)
+    % Informação organizada em 7 variáveis no arquivo .MAT - 'prj_Type', 
+    % 'prj_Version', 'prj_Source', 'prj_RelatedFiles', 'prj_metaData', 
+    % 'prj_specData' e 'prj_Info'.
+    % As variáveis 'prj_metaData' e 'prj_specData' são estruturas, seguindo 
+    % a antiga organização da variável app.specData.
 
     % MAT v.3
     % Data...: 15/11/2023
     % Versões: appAnaliseV2 (v.1.51 em diante...)
-    % Salva as mesmas sete variáveis da v.2 do arquivo .MAT, mas 'prj_metaData' e 
-    % 'prj_specData' são instâncias da classe "class.specData", seguindo a organização
-    % da variável app.specData no appAnaliseV2.
+    % Informação organizada nas mesmas 7 variáveis contempladas na v.2 do 
+    % arquivo .MAT, com a diferença que 'prj_metaData' e 'prj_specData' não 
+    % são estruturas, mas instâncias da classe "class.specData", seguindo a 
+    % nova organização da variável app.specData.
     
     % VARIÁVEIS:
     % (1) prj_Version      {double}                                = 2 | 3
@@ -36,6 +39,7 @@ function MAT(fileName, prj_specData, prj_Info)
     
     arguments
         fileName
+        fileType
         prj_specData
         prj_Info struct = []
     end
@@ -45,14 +49,19 @@ function MAT(fileName, prj_specData, prj_Info)
     
     [prj_RelatedFiles, prj_metaData] = spec2metaData(prj_specData);
     
-    if isempty(prj_Info)
-        prj_Type = {'Spectral data'};
-        prj_specData = copy(prj_specData, {'UserData'});
+    switch fileType
+        case 'SpectralData'
+            prj_Type = {'Spectral data'};
+            prj_specData = copy(prj_specData, {'UserData'});
 
-    else
-        prj_Type = {'Project data'};
+        case 'ProjectData'
+            prj_Type = {'Project data'};
+
+        case 'UserData'
+            prj_Type = {'User data'};
+            prj_specData = copy(prj_specData, {'Data'});
     end
-    save(fileName, 'prj_Type', 'prj_Version', 'prj_Source', 'prj_RelatedFiles', 'prj_metaData', 'prj_specData', 'prj_Info', '-v7.3')    
+    save(fileName, 'prj_Type', 'prj_Version', 'prj_Source', 'prj_RelatedFiles', 'prj_metaData', 'prj_specData', 'prj_Info', '-v7.3')
 end
 
 
