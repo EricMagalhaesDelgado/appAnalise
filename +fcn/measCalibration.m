@@ -30,6 +30,8 @@ function measCalibration(app, OperationType, idx1, idx2, Name)
                 case 'Antenna k-Factor'  
                     oldLevelUnit = app.specData(idx1).MetaData.LevelUnit;
                     newLevelUnit = 'dBµV/m';
+                    app.specData(idx1).MetaData.LevelUnit = newLevelUnit;
+
                 case 'Calibration'
                     if isempty(measCalibration)
                         oldLevelUnit = app.specData(idx1).MetaData.LevelUnit;
@@ -42,7 +44,6 @@ function measCalibration(app, OperationType, idx1, idx2, Name)
             
             app.specData(idx1).Data{2} = app.specData(idx1).Data{2} + kFactorArray;
             app.specData(idx1).Data{3} = app.specData(idx1).Data{3} + kFactorArray;
-            app.specData(idx1).MetaData.LevelUnit = newLevelUnit;
 
             app.specData(idx1).UserData.measCalibration(end+1,:) = {kFactorTable.Name, kFactorTable.Type, oldLevelUnit, newLevelUnit};
             app.specData(idx1).UserData.measCalibration          = sortrows(app.specData(idx1).UserData.measCalibration, 'Type', 'descend');
@@ -53,10 +54,14 @@ function measCalibration(app, OperationType, idx1, idx2, Name)
             for ii = numel(idx2):-1:1
                 kFactorTable = FactorTable(app.RootFolder, Name{ii});                
                 kFactorArray = FactorArray(kFactorTable, FreqStart, FreqStop, DataPoints, oldLevelUnit);
+
+                if strcmp(kFactorTable.Type, 'Antenna k-Factor')
+                    app.specData(idx1).MetaData.LevelUnit = oldLevelUnit;
+                end
                 
                 app.specData(idx1).Data{2} = app.specData(idx1).Data{2} - kFactorArray;
                 app.specData(idx1).Data{3} = app.specData(idx1).Data{3} - kFactorArray;
-                app.specData(idx1).MetaData.LevelUnit = oldLevelUnit;
+                
                 app.specData(idx1).UserData.measCalibration(idx2(ii),:) = [];
             end
     end

@@ -302,7 +302,7 @@ classdef specData < handle
                     idx1 = [];
                     for kk = 1:numel(app.specData)
                         specData_GPS = [app.specData(kk).GPS.Latitude, app.specData(kk).GPS.Longitude];
-                        Distance_GPS = fcn.geoDistance_v1(SpecInfo_GPS, specData_GPS) * 1000;
+                        Distance_GPS = fcn.gpsDistance(SpecInfo_GPS, specData_GPS) * 1000;
         
                         if isequal(specData_MetaData(kk), SpecInfo_MetaData(jj)) && (Distance_GPS <= app.General.Merge.Distance)
                             idx1 = kk;

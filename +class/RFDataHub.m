@@ -45,13 +45,37 @@ classdef (Abstract) RFDataHub
 
         %-----------------------------------------------------------------%
         function RFDataHub = parquet2mat(RFDataHub)
-            RFDataHub.("Entidade") = regexprep(lower(RFDataHub.("Entidade")), '(\<\w)', '${upper($1)}');
-            RFDataHub.("Fistel")   = int64(RFDataHub.("Fistel"));
-            RFDataHub.("Serviço")  = int16(RFDataHub.("Serviço"));
-            RFDataHub.("Estação")  = int32(str2double(RFDataHub.("Estação")));
+            % Em 28/11/2023 o RFDataHub se apresenta como uma tabela formada 
+            % por 979522 linhas e 29 colunas. Todas as colunas são categóricas 
+            % (inclusive as de natureza numérica, como "Frequência", por exemplo).
+
+            % Nomes e tipologia das principais colunas pós-conversões aqui 
+            % realizadas:
+            % Col.  1: "Frequência"           >> "Frequency" {double}
+            % Col.  2: "Entidade"             >> "Name"      {categorical}
+            % Col.  3: "Fistel"               >> "Fistel"    {int64}
+            % Col.  4: "Serviço"              >> "Service"   {int16}
+            % Col.  5: "Estação"              >> "Station"   {int32}
+            % Col.  6: "Latitude"             >> "Latitude"  {single}
+            % Col.  7: "Longitude"            >> "Longitude" {single}
+            % Col. 13: "Largura_Emissão(kHz)" >> "BW"        {single}
+            % Col. 29: "Relatório_Canal"      >> "URL"       {categorical}
+
+            RFDataHub = renamevars(RFDataHub, ["Frequência", "Entidade", "Serviço", "Estação", "Código_Município", "Município", "UF", "Fonte", "Multiplicidade", "Classe", "Classe_Emissão", "Largura_Emissão(kHz)", "Relatório_Canal"], ...
+                                              ["Frequency", "Name", "Service", "Station", "LocationID", "Location", "State", "Source", "MergeCount", "StationClass", "EmissionClass", "BW", "URL"]);
+            RFDataHub = convertvars(RFDataHub, [1:7, 13], 'string');
+
+            RFDataHub.Frequency = str2double(RFDataHub.Frequency);
+            RFDataHub.Name      = categorical(regexprep(lower(RFDataHub.Name), '(\<\w)', '${upper($1)}'));
+            RFDataHub.Fistel    = int64(str2double(RFDataHub.Fistel));
+            RFDataHub.Service   = int16(str2double(RFDataHub.Service));
+            RFDataHub.Station   = int32(str2double(RFDataHub.Station));
+            RFDataHub.Latitude  = single(str2double(RFDataHub.Latitude));
+            RFDataHub.Longitude = single(str2double(RFDataHub.Longitude));
+            RFDataHub.BW        = single(str2double(RFDataHub.BW));
             
-            RFDataHub.("Fistel")(RFDataHub.("Fistel")==0)   = -1;            
-            RFDataHub.("Serviço")(RFDataHub.("Serviço")==0) = -1;
+            RFDataHub.Fistel(RFDataHub.Fistel == 0)   = -1;            
+            RFDataHub.Service(RFDataHub.Service == 0) = -1;
 
             for ii = 1:width(RFDataHub)
                 if isnumeric(RFDataHub{:,ii})
@@ -59,10 +83,6 @@ classdef (Abstract) RFDataHub
                     RFDataHub{idx,ii} = -1;
                 end
             end
-
-            RFDataHub = convertvars(RFDataHub, [2, 8, 17:29], 'categorical');
-            RFDataHub = renamevars(RFDataHub, ["Frequência", "Entidade", "Serviço", "Estação", "Código_Município", "Município", "UF", "Fonte", "Multiplicidade", "Classe", "Classe_Emissão", "Largura_Emissão(kHz)", "Relatório_Canal"], ...
-                                              ["Frequency", "Name", "Service", "Station", "LocationID", "Location", "State", "Source", "MergeCount", "StationClass", "EmissionClass", "BW", "URL"]);
         end
 
 
@@ -116,7 +136,7 @@ classdef (Abstract) RFDataHub
             Station     = RFDataHub.Station(idx(1));
             Description = class.RFDataHub.Description(RFDataHub, idx(1));
                         
-            Distance    = fcn.geoDistance_v1([latNode, longNode], [Latitude, Longitude]);    
+            Distance    = fcn.gpsDistance([latNode, longNode], [Latitude, Longitude]);
             stationInfo = struct('ID', ID, 'Frequency', Frequency, 'Service', Service, 'Station', Station, 'Description', Description, 'Distance', Distance);
         end
     end
