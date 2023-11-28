@@ -109,14 +109,13 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
     LineBreak = report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;')));
     Separator = report.ReportGenerator_HTML(struct('Type', 'Footnote',  'Data', struct('Editable', 'false', 'String', repmat('_', 1, 45))));
 
-    Footnote1 = sprintf('<b>appAnalise</b> v. %s, <b>fiscaliza</b> v. %s, <b>anateldb</b> %s', appVersion.appAnalise.Version, appVersion.fiscaliza, appVersion.anateldb.ReleaseDate);
-    Footnote2 = sprintf('<b>Bases de dados</b>: %s', jsonencode(rmfield(appVersion.anateldb, 'ReleaseDate')));
-    Footnote3 = sprintf('<b>Relatório</b>: %s',      jsonencode(reportInfo.Model.Type));
-    Footnote4 = sprintf('<b>Imagem</b>: %s',         jsonencode(rmfield(reportInfo.General.Image, 'Visibility')));
-    Footnote5 = sprintf('<b>Matlab</b> v. %s, %s',   appVersion.Matlab.Version, appVersion.Matlab.Products);
-    Footnote6 = '';
+    Footnote1 = sprintf('<b>appAnalise</b> v. %s, <b>fiscaliza</b> v. %s, <b>RFDataHub</b> %s', appVersion.appAnalise.Version, appVersion.fiscaliza, appVersion.RFDataHub.ReleaseDate);
+    Footnote2 = sprintf('<b>Relatório</b>: %s',      jsonencode(reportInfo.Model.Type));
+    Footnote3 = sprintf('<b>Imagem</b>: %s',         jsonencode(rmfield(reportInfo.General.Image, 'Visibility')));
+    Footnote4 = sprintf('<b>Matlab</b> v. %s, %s',   appVersion.Matlab.Version, appVersion.Matlab.Products);
+    Footnote5 = '';
     try
-        Footnote6 = sprintf('<b>Python</b> v. %s',   appVersion.Python.Version);
+        Footnote5 = sprintf('<b>Python</b> v. %s',   appVersion.Python.Version);
     catch
     end
     
@@ -125,9 +124,8 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
     Footnote3_html = report.ReportGenerator_HTML(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'String', Footnote3)));
     Footnote4_html = report.ReportGenerator_HTML(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'String', Footnote4)));
     Footnote5_html = report.ReportGenerator_HTML(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'String', Footnote5)));
-    Footnote6_html = report.ReportGenerator_HTML(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'String', Footnote6)));
 
-    htmlReport = sprintf('%s%s%s%s%s%s%s%s%s%s', htmlReport, LineBreak, Separator, Footnote1_html, Footnote2_html, Footnote3_html, Footnote4_html, Footnote5_html, Footnote6_html, LineBreak);
+    htmlReport = sprintf('%s%s%s%s%s%s%s%s%s', htmlReport, LineBreak, Separator, Footnote1_html, Footnote2_html, Footnote3_html, Footnote4_html, Footnote5_html, LineBreak);
 
     % HTML trailer
     if reportInfo.General.Version == "Preliminar"

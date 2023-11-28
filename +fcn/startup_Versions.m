@@ -2,7 +2,7 @@ function appVersion = startup_Versions(ReadType, RootFolder)
 
     appVersion = struct('OS', '', 'Matlab', '', 'OpenGL', '', 'Python', '', ...
                         'appAnalise', struct('Version', class.Constants.appVersion, 'RootFolder', RootFolder), ...
-                        'fiscaliza', '', 'anateldb', '');
+                        'fiscaliza', '', 'RFDataHub', '');
 
     % OS
     [~, WindowsVersion] = system('ver');
@@ -41,13 +41,13 @@ function appVersion = startup_Versions(ReadType, RootFolder)
             end
         end
     end
-    
-    % anateldb
-    global AnatelDB
-    global AnatelDB_info
 
-    if isempty(AnatelDB) || isempty(AnatelDB_info)
-        fcn.anateldb_Read(RootFolder)
+    % RFDataHub
+    global RFDataHub
+    global RFDataHub_info
+
+    if isempty(RFDataHub) || isempty(RFDataHub_info)
+        class.RFDataHub.read(RootFolder)
     end
-    appVersion.anateldb = AnatelDB_info;    
+    appVersion.RFDataHub = RFDataHub_info;   
 end

@@ -52,11 +52,11 @@ function [infoTable, countTable] = ReportGenerator_Table_Summary(peaksTable, exc
             N4_Medio           = sum(tagIdx & strcmp(countTable.RiskLevel,  'Médio'));
             N4_Alto            = sum(tagIdx & strcmp(countTable.RiskLevel,  'Alto'));
 
-            N5_Radcom          = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[SRD\] [RADCOM231]{3,6}', 'match')));
-            N5_ClasseC         = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[MOS\] [FMTV]{2}-C[0-9]{1,2}, C', 'match'))); % '\[MOS\] [FMTV]{2}-C[1-7], C'
-            N5_ClasseB         = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[MOS\] [FMTV]{2}-C[0-9]{1,2}, B', 'match')));
-            N5_ClasseA         = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[MOS\] [FMTV]{2}-C[0-9]{1,2}, A', 'match')));
-            N5_ClasseE         = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[MOS\] [FMTV]{2}-C[0-9]{1,2}, E', 'match')));
+            N5_Radcom          = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[SRD\] RADCOM', 'match')));
+            N5_ClasseC         = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[MOSAICO-SRD\] (FM|TV)-C[0-9]{1,2}, C', 'match')));
+            N5_ClasseB         = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[MOSAICO-SRD\] (FM|TV)-C[0-9]{1,2}, B', 'match')));
+            N5_ClasseA         = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[MOSAICO-SRD\] (FM|TV)-C[0-9]{1,2}, A', 'match')));
+            N5_ClasseE         = sum(tagIdx & cellfun(@(x) ~isempty(x), regexp(countTable.Description, '\[MOSAICO-SRD\] (FM|TV)-C[0-9]{1,2}, E', 'match')));
             
             infoTable(ii,:) = {Bands{ii}, N1_Licenciada, N1_NaoLicenciada, N1_NaoLicenciavel,                                                       ...
                                           N2_Fundamental, N2_Harmonico, N2_Produto, N2_Espuria, N2_NaoIdentificada, N2_NaoManifestada, N2_Pendente, ...

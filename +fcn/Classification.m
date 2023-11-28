@@ -4,7 +4,7 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
     % *anatelDB*.
     % Versão: 29/04/2022
 
-    global AnatelDB
+    global RFDataHub
 
     % Trunca a frequência central da emissão, caso aplicável, possibilitando 
     % a sua classificação.
@@ -71,11 +71,11 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
             Distance    = Inf;
                         
         else
-            idx2        = find(abs(AnatelDB.Frequency-Peaks.Truncated(ii)) <= class.Constants.floatDiffTolerance);
+            idx2        = find(abs(RFDataHub.Frequency-Peaks.Truncated(ii)) <= class.Constants.floatDiffTolerance);
             auxDistance = [];
             
             if ~isempty(idx2)
-                auxDistance = fcn.geoDistance_v2(struct('lat', SpecInfo(idx).GPS.Latitude, 'lon', SpecInfo(idx).GPS.Longitude), AnatelDB(idx2, 3:4));
+                auxDistance = fcn.geoDistance_v2(struct('lat', SpecInfo(idx).GPS.Latitude, 'lon', SpecInfo(idx).GPS.Longitude), RFDataHub(idx2, 6:7));
             end
 
             % Como referência de BW, usa-se a BW da própria emissão. Caso o
@@ -88,12 +88,12 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
                 
                 [Distance, idx3] = min(auxDistance);
                 if ~isempty(idx3)
-                    Service     = AnatelDB.Service(idx2(idx3));
-                    Station     = AnatelDB.Station(idx2(idx3));
-                    Description = char(AnatelDB.Description(idx2(idx3)));
+                    Service     = RFDataHub.Service(idx2(idx3));
+                    Station     = RFDataHub.Station(idx2(idx3));
+                    Description = class.RFDataHub.Description(RFDataHub, idx2(idx3));
 
-                    if AnatelDB.BW(idx2(idx3)) > 0
-                        BW = AnatelDB.BW(idx2(idx3));
+                    if RFDataHub.BW(idx2(idx3)) > 0
+                        BW = RFDataHub.BW(idx2(idx3));
                     end
 
                 else
@@ -113,8 +113,8 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
                                 break
                             end
                             
-                        elseif contains(Description, "[MOS] FM") 
-                            classStation = regexp(Description, '\[MOS\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
+                        elseif contains(Description, "[MOSAICO-SRD] FM") 
+                            classStation = regexp(Description, '\[MOSAICO-SRD\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
                             if ~isempty(classStation)
                                 classContour = FM_classCountour(classStation.class);
                                 break
@@ -130,8 +130,8 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
                     
                     %-----------------------------------------------------%
                     case 'TV'
-                        if contains(Description, "[MOS] TV")
-                            classStation = regexp(Description, '\[MOS\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
+                        if contains(Description, "[MOSAICO-SRD] TV")
+                            classStation = regexp(Description, '\[MOSAICO-SRD\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
                             if ~isempty(classStation)
                                 classContour = TV_classCountour(classStation.class);
                                 break
@@ -181,7 +181,7 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
             end
             Peaks(ii,13:20) = {'Fundamental', Regulatory, Service, Station, Description, sprintf('%.1f', Distance), Irregular, RiskLevel};
         end
-    end    
+    end
 end
 
 
