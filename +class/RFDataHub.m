@@ -61,8 +61,7 @@ classdef (Abstract) RFDataHub
             % Col. 13: "Largura_Emissão(kHz)" >> "BW"        {single}
             % Col. 29: "Relatório_Canal"      >> "URL"       {categorical}
 
-            RFDataHub = renamevars(RFDataHub, ["Frequência", "Entidade", "Serviço", "Estação", "Código_Município", "Município", "UF", "Fonte", "Multiplicidade", "Classe", "Classe_Emissão", "Largura_Emissão(kHz)", "Relatório_Canal"], ...
-                                              ["Frequency", "Name", "Service", "Station", "LocationID", "Location", "State", "Source", "MergeCount", "StationClass", "EmissionClass", "BW", "URL"]);
+            RFDataHub = class.RFDataHub.ColumnNames(RFDataHub, 'port2eng');
             RFDataHub = convertvars(RFDataHub, [1:7, 13], 'string');
 
             RFDataHub.Frequency = str2double(RFDataHub.Frequency);
@@ -73,15 +72,32 @@ classdef (Abstract) RFDataHub
             RFDataHub.Latitude  = single(str2double(RFDataHub.Latitude));
             RFDataHub.Longitude = single(str2double(RFDataHub.Longitude));
             RFDataHub.BW        = single(str2double(RFDataHub.BW));
-            
-            RFDataHub.Fistel(RFDataHub.Fistel == 0)   = -1;            
-            RFDataHub.Service(RFDataHub.Service == 0) = -1;
 
             for ii = 1:width(RFDataHub)
                 if isnumeric(RFDataHub{:,ii})
                     idx = isnan(RFDataHub{:,ii});
                     RFDataHub{idx,ii} = -1;
                 end
+            end
+        end
+
+
+        %-----------------------------------------------------------------%
+        function RFDataHub = ColumnNames(RFDataHub, Type)
+            rawColumnNames    = ["Frequência", "Entidade", "Fistel", "Serviço", "Estação", "Latitude", "Longitude", "Código_Município", "Município", "UF",                                      ... %  1 a 10
+                                 "Classe", "Classe_Emissão", "Largura_Emissão(kHz)", "Validade_RF", "Status", "Fonte", "Multiplicidade","Log", "Cota_Base_Torre(m)", "Potência_Transmissor(W)", ... % 11 a 20
+                                 "Ganho_Antena(dBd)", "Ângulo_Elevação_Antena", "Azimute_Antena", "Altura_Antena(m)", "Atenuação_Linha(db/100m)", "Perdas_Acessórias_Linha(db)",                ... % 21 a 26
+                                 "Padrão_Antena(dBd)", "Comprimento_Linha(m)", "Relatório_Canal"];                                                                                                  % 27 a 29
+
+            editedColumnNames = ["Frequency", "Name", "Fistel", "Service", "Station", "Latitude", "Longitude", "LocationID", "Location", "State",                                               ... %  1 a 10
+                                 "StationClass", "EmissionClass", "BW", "SpectrumActValidity", "Status", "Source", "MergeCount", "Log", "TowerBaseElevation", "TransmitterPower",               ... % 11 a 20
+                                 "AntennaGain", "AntennaElevation", "AntennaAzimuth", "AntennaHeight", "LineAttenuation", "LineAccessoryLosses", "AntennaPattern", "LineLength", "URL"];            % 21 a 29
+
+            switch Type
+                case 'port2eng'
+                    RFDataHub = renamevars(RFDataHub, rawColumnNames, editedColumnNames);
+                case 'eng2port'
+                    RFDataHub = renamevars(RFDataHub, editedColumnNames, rawColumnNames);
             end
         end
 
