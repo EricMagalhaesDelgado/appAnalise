@@ -52,9 +52,10 @@ function Fcn = filterFcn(filterOperation, filterValue, fTolerance)
 
     elseif ischar(filterValue)
         switch filterOperation
-            case '=';  Fcn = @(x)  strcmpi(string(x), filterValue);
-            case '≠';  Fcn = @(x) ~strcmpi(string(x), filterValue);
-            case 'ꓚ';  Fcn = @(x) contains(string(x), filterValue, 'IgnoreCase', true);
+            case '=';  Fcn = @(x)  strcmpi(string(x),  filterValue);
+            case '≠';  Fcn = @(x) ~strcmpi(string(x),  filterValue);
+            case '⊃';  Fcn = @(x)  contains(string(x), filterValue, 'IgnoreCase', true);
+            case '⊅';  Fcn = @(x) ~contains(string(x), filterValue, 'IgnoreCase', true);
         end
 
     else

@@ -27,6 +27,7 @@ function FullFileName = Spectrum(SpecInfo, idx, reportInfo, Layout)
                             SpecInfo(idx).MetaData.FreqStop  / 1e+6, ...
                             SpecInfo(idx).MetaData.DataPoints), 3);
 
+    
     % Criação da figura antiga do Matlab - a "figure".
     mainMonitor = get(0, 'MonitorPositions');
 
@@ -58,10 +59,6 @@ function FullFileName = Spectrum(SpecInfo, idx, reportInfo, Layout)
             Fcn_axes2(axes2, SpecInfo, idx, xArray)
             Fcn_axes3(axes3, SpecInfo, idx, xArray)
             linkaxes([axes1, axes2, axes3], 'x')
-    
-            enableDefaultInteractivity(axes1)
-            enableDefaultInteractivity(axes2)
-            enableDefaultInteractivity(axes3)
             
             axesChildren = [axes1.Children; axes2.Children; axes3.Children];
             
@@ -71,13 +68,12 @@ function FullFileName = Spectrum(SpecInfo, idx, reportInfo, Layout)
             Fcn_axes1(axes1, SpecInfo, idx, xArray)
             Fcn_axes3(axes3, SpecInfo, idx, xArray)
             linkaxes([axes1, axes3], 'x')
-    
-            enableDefaultInteractivity(axes1)
-            enableDefaultInteractivity(axes3)
             
             axesChildren = [axes1.Children; axes3.Children];            
     end
-
+    hAxes = findobj(fig, 'Type', 'axes');
+    arrayfun(@(x) disableDefaultInteractivity(x), hAxes)
+        
 
     % Ajustes finais dos gráficos e linhas.
     for ii = 1:numel(axesChildren)
@@ -103,6 +99,9 @@ function FullFileName = Spectrum(SpecInfo, idx, reportInfo, Layout)
         exportgraphics(fig, FullFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
         drawnow nocallbacks
     end
+    
+
+    arrayfun(@(x) enableDefaultInteractivity(x), hAxes)
 end
 
 

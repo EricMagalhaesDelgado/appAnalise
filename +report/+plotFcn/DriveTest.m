@@ -68,6 +68,7 @@ function Fcn_Route(fig, SpecInfo, idx)
     end
 
     axes1 = geoaxes(fig, 'FontSize', 6, 'Units', 'pixels', 'Basemap', 'darkwater', 'FontName', 'Calibri', 'FontSize', 10, 'ToolBar', []);
+    disableDefaultInteractivity(axes1)
 
     while true
         try

@@ -60,60 +60,116 @@ classdef specData < handle
 
 
         %-----------------------------------------------------------------%
-        function obj = merge(obj, idx)
+        function obj = merge(obj, idx, uiFigure)
 
             if numel(idx) < 2
                 error('Devem ser selecionados ao menos dois fluxos espectrais...')
             end
 
-            mergeTable = table('Size', [0,6],                                                               ...
-                               'VariableTypes', {'double', 'double', 'double', 'double', 'cell', 'double'}, ...
-                               'VariableNames', {'idx', 'DataType', 'FreqStart', 'FreqStop', 'LevelUnit', 'nSweeps'});
+            mergeTable = table('Size',          [0, 7],                                                               ...
+                               'VariableTypes', {'double', 'double', 'double', 'double', 'cell', 'double', 'double'}, ...
+                               'VariableNames', {'idx', 'DataType', 'FreqStart', 'FreqStop', 'LevelUnit', 'Resolution', 'nSweeps'});
 
             for ii = idx
-                mergeTable(end+1,:) = {ii,                         ...
-                                       obj(ii).MetaData.DataType,  ...
-                                       obj(ii).MetaData.FreqStart, ...
-                                       obj(ii).MetaData.FreqStop,  ...
-                                       obj(ii).MetaData.LevelUnit, ...
+                mergeTable(end+1,:) = {ii,                          ...
+                                       obj(ii).MetaData.DataType,   ...
+                                       obj(ii).MetaData.FreqStart,  ...
+                                       obj(ii).MetaData.FreqStop,   ...
+                                       obj(ii).MetaData.LevelUnit,  ...
+                                       obj(ii).MetaData.Resolution, ...
                                        numel(obj(ii).Data{1})};
             end
             mergeTable = sortrows(mergeTable, 'FreqStart');
 
-            if issorted(mergeTable.FreqStart, "strictascend")                                                   && ...
+            % FAIXAS DE FREQUÊNCIA IDÊNTICAS
+            if (numel(unique(mergeTable.FreqStart)) == 1)                                                       && ...
+               (numel(unique(mergeTable.FreqStop))  == 1)                                                       && ...
+               (numel(unique(mergeTable.LevelUnit)) == 1)                                                       && ...
+               (numel(unique(mergeTable.DataType))  == 1)
+                mergeType = 'co-channel';
+
+            % FAIXAS DE FREQUÊNCIA ADJACENTES
+            elseif issorted(mergeTable.FreqStart, "strictascend")                                               && ...
                isequal(mergeTable.FreqStart(2:height(mergeTable)), mergeTable.FreqStop(1:height(mergeTable)-1)) && ...
                (numel(unique(mergeTable.LevelUnit)) == 1)                                                       && ...
                (numel(unique(mergeTable.nSweeps))   == 1)                                                       && ...
                (numel(unique(mergeTable.DataType))  == 1)
-
-                dataMatrix = [];
-                for ii = idx
-                    dataMatrix = [dataMatrix; obj(ii).Data{2}];
-                end
-
-                obj(idx(1)).Data{2} = dataMatrix;
-                obj(idx(1)).Data{3} = class.specData.read_StatsData(dataMatrix);
-
-                obj(idx(1)).MetaData.DataPoints = height(dataMatrix);
-                obj(idx(1)).MetaData.FreqStop   = mergeTable.FreqStop(end);
-
-                obj(idx(2:numel(idx))) = [];
-
-                % Atualizando o mapeamento com os fluxos de ocupação...
-                dataTypesArray = arrayfun(@(x) x.MetaData.DataType, obj);
-                if any(ismember(dataTypesArray, class.Constants.occDataTypes))
-                    for ii = 1:numel(obj)
-                        [relatedIndex, selectedIndex] = class.specData.read_OCCMap(obj, ii);
-    
-                        if ~isempty(relatedIndex)
-                            obj(ii).UserData(1).occMethod.RelatedIndex  = relatedIndex;
-                            obj(ii).UserData(1).occMethod.SelectedIndex = selectedIndex;
-                        end
-                    end
-                end
+                mergeType = 'adjacent-channel';
 
             else
-                error('Os fluxos espectrais a mesclar não podem ter descontinuidade, devendo possuir um mesmo número de varreduras e estar relacionados à uma única unidade de medida.')
+                error(sprintf(['Os fluxos espectrais a mesclar não atendem aos requisitos dos dois tipos de mesclagem implantados no <i>app</i>, quais sejam:\n\n' ...
+                               '• Tipo "co-channel": os fluxos devem possuir os campos "FreqStart", "FreqStop", "LevelUnit" e "DataType" idênticos;\n\n'           ...
+                               '• Tipo "adjacent-channel": os fluxos devem estar relacionados a faixas de frequências adjacentes, além de possuírem os campos "LevelUnit", "nSweeps" e "DataType" idênticos.']))
+            end
+
+            resolutionList = unique(mergeTable.Resolution);
+            if (numel(resolutionList)  > 1)
+                msg = {};
+                for ii = 1:height(mergeTable)
+                    msg{end+1} = sprintf('• %.3f - %.3f MHz (Resolução=%.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.Resolution(ii)/1000);
+                end
+                msg = sprintf(['<font style="font-size:12;">Os fluxos espectrais a mesclar possuem valores diferentes de resolução.\n%s\n\n' ...
+                               'Deseja continuar esse processo de mesclagem, o que resultará em um fluxo que armazenará como metadado a maior ' ...
+                               'resolução (no caso, %.3f kHz)?</font>'], strjoin(msg, '\n'), max(mergeTable.Resolution)/1000);
+                selection = uiconfirm(uiFigure, msg, '', 'Options', {'Sim', 'Não'}, 'DefaultOption', 2, 'CancelOption', 2, 'Icon', 'question', 'Interpreter', 'html');
+
+                if strcmp(selection, 'Não')
+                    return
+                end
+            end            
+
+            switch mergeType
+                case 'co-channel'
+                    timeArray    = [];
+                    dataMatrix   = [];
+                    relatedFiles = [];
+                    for ii = idx
+                        timeArray    = [timeArray,    obj(ii).Data{1}]; 
+                        dataMatrix   = [dataMatrix,   obj(ii).Data{2}];
+                        relatedFiles = [relatedFiles; obj(ii).RelatedFiles];
+                    end
+    
+                    if ~issorted(timeArray)
+                        [timeArray, idxSort] = sort(timeArray);
+                        dataMatrix           = dataMatrix(:,idxSort);
+                    end
+    
+                    obj(idx(1)).GPS = rmfield(fcn.gpsSummary(relatedFiles.GPS), 'Matrix');
+                    obj(idx(1)).RelatedFiles = relatedFiles;     
+
+                case 'adjacent-channel'
+                    timeArray    = obj(idx(1)).Data{1};
+                    dataMatrix   = [];
+                    relatedFiles = obj(idx(1)).RelatedFiles;
+                    for ii = idx
+                        dataMatrix = [dataMatrix; obj(ii).Data{2}];
+                    end                
+    
+                    obj(idx(1)).MetaData.DataPoints = height(dataMatrix);
+                    obj(idx(1)).MetaData.FreqStop   = mergeTable.FreqStop(end);
+            end            
+
+            % Ajustando os valores comuns aos dois tipos de mesclagem...
+            obj(idx(1)).MetaData.Resolution = max(resolutionList);
+
+            obj(idx(1)).Data{1} = timeArray;
+            obj(idx(1)).Data{2} = dataMatrix;
+            obj(idx(1)).Data{3} = class.specData.read_StatsData(dataMatrix);
+
+            % Excluindo os fluxos mesclados (exceto o "fluxo guia")...
+            obj(idx(2:numel(idx))) = [];
+
+            % Atualizando o mapeamento com os fluxos de ocupação...
+            dataTypesArray = arrayfun(@(x) x.MetaData.DataType, obj);
+            if any(ismember(dataTypesArray, class.Constants.occDataTypes))
+                for ii = 1:numel(obj)
+                    [relatedIndex, selectedIndex] = class.specData.read_OCCMap(obj, ii);
+
+                    if ~isempty(relatedIndex)
+                        obj(ii).UserData(1).occMethod.RelatedIndex  = relatedIndex;
+                        obj(ii).UserData(1).occMethod.SelectedIndex = selectedIndex;
+                    end
+                end
             end
         end
     end
