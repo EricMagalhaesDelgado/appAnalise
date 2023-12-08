@@ -26,6 +26,7 @@ classdef (Abstract) Constants
         
         floatDiffTolerance  = 1e-5
         nMaxWaterFallPoints = 1474560
+        ElevationTolerance  = .85
 
         reportOCC            = struct('Method',    'Linear adaptativo',           ...
                                                    'IntegrationTime',     15,     ...
