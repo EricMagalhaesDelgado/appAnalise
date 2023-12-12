@@ -1,4 +1,4 @@
-function auxDistance = gpsDistance(latlong1, latlong2)
+function distance_km = gpsDistance(latlong1, latlong2)
 
     % - latlong1 pode ser uma estrutura com os campos "lat" e "lon" ou um
     %   vetor numérico.
@@ -13,7 +13,7 @@ function auxDistance = gpsDistance(latlong1, latlong2)
         latlong2 = struct('Latitude', latlong2(1), 'Longitude', latlong2(2));
     end
 
-    radius = 6371;
+    radius = 6371; % km
     
     lat = latlong1.lat * pi / 180;
     lon = latlong1.lon * pi / 180;
@@ -28,5 +28,5 @@ function auxDistance = gpsDistance(latlong1, latlong2)
     c = 2*atan2(sqrt(a), sqrt(1-a));
     
     latlong2.Distance = radius*c;    % Haversine distance
-    auxDistance = latlong2.Distance;
+    distance_km = latlong2.Distance;
 end
