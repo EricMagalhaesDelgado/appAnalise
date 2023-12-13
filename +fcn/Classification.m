@@ -67,6 +67,8 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
         idx1 = find((abs(app.channelObj.Exception.FreqCenter - Peaks.Truncated(ii)) <= class.Constants.floatDiffTolerance), 1);
         
         if ~isempty(idx1)
+            Service     = -1;
+            Station     = -1;
             Description = app.channelObj.Exception.Description{idx1};
             Distance    = Inf;
                         
