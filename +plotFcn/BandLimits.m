@@ -15,6 +15,6 @@ function BandLimits(app, idx)
                             Color=[.5 .5 .5], LineWidth=5,           ...
                             PickableParts='none',  Tag='BandLimits')
         end
-        plotFcn.axesStackingOrder(app)
+        plotFcn.axesStackingOrder.execute('winAppAnalise', app.axes1)
     end
 end

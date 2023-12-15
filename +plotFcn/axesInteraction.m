@@ -1,4 +1,4 @@
-classdef axesInteraction
+classdef (Abstract) axesInteraction
 
     methods (Static = true)
         %-----------------------------------------------------------------%
@@ -52,6 +52,18 @@ classdef axesInteraction
 
 
         %-----------------------------------------------------------------%
+        function EnableDefaultInteractions(Axes)
+            arrayfun(@(x) enableDefaultInteractivity(x), Axes)
+        end
+
+
+        %-----------------------------------------------------------------%
+        function DisableDefaultInteractions(Axes)
+            arrayfun(@(x) disableDefaultInteractivity(x), Axes)
+        end
+
+
+        %-----------------------------------------------------------------%
         function InteractionsCallbacks(Interactions, Axes, app)
             for ii = 1:numel(Interactions)
                 h = arrayfun(@(x) findobj(x.Toolbar, 'Tooltip', Interactions{ii}), Axes, "UniformOutput", false);
@@ -62,6 +74,11 @@ classdef axesInteraction
                         case 'Pan'
                             if isprop(h{jj}, 'ValueChangedFcn')
                                 h{jj}.ValueChangedFcn = @(~,evt)plotFcn.axesInteraction.panInteractionFcn(evt, Axes);
+                            end
+
+                        case 'Data Tips'
+                            if isprop(h{jj}, 'ValueChangedFcn')
+                                h{jj}.ValueChangedFcn = @(src,evt)plotFcn.axesInteraction.datatipInteractionFcn(src, evt, Axes);
                             end
         
                         case 'Restore View'
@@ -85,6 +102,11 @@ classdef axesInteraction
                                    if isprop(h{jj}, 'ButtonPushedFcn')
                                         h{jj}.ButtonPushedFcn = @(~,~)plotFcn.axesInteraction.winSignalAnalysis_restoreViewFcn(app);
                                    end
+
+                                case 'auxApp.winGraphicAnalysis'
+                                   if isprop(h{jj}, 'ButtonPushedFcn')
+                                        h{jj}.ButtonPushedFcn = @(~,~)plotFcn.axesInteraction.winGraphicAnalysis_restoreViewFcn(app);
+                                   end
                             end
                     end
                 end
@@ -102,6 +124,15 @@ classdef axesInteraction
                 end
             end
             arrayfun(@(x) enableDefaultInteractivity(x), Axes)
+        end
+
+
+        %-----------------------------------------------------------------%
+        function datatipInteractionFcn(src, evt, Axes)
+            matlab.graphics.controls.internal.interactionsModeCallback('datacursor', src, evt);
+            if ~evt.Value
+                arrayfun(@(x) enableDefaultInteractivity(x), Axes)
+            end
         end
         
         
@@ -154,6 +185,18 @@ classdef axesInteraction
             yLimits = app.restoreView{2};
         
             set(app.UIAxes1, XLim=xLimits, YLim=yLimits)
+        end
+
+
+        %-----------------------------------------------------------------%
+        % Função aplicável apenas ao app auxiliar "auxApp.winGraphicAnalysis".
+        %-----------------------------------------------------------------%
+        function winGraphicAnalysis_restoreViewFcn(app)
+            xLimits = app.restoreView{1};
+            yLimits = app.restoreView{2};
+            zLimits = app.restoreView{3};
+        
+            set(app.UIAxes2, XLim=xLimits, YLim=yLimits, ZLim=zLimits)
         end
     end
 end

@@ -125,18 +125,16 @@ function Fcn_axes1(axes1, SpecInfo, idx, xArray)
 
     % Parameters related to xLim and yLim (Spectrum and Waterfall plots)
     if (xArray(end)-xArray(1) >= 5)
-        auxXLabel1 =   fix(linspace(xArray(1), xArray(end), 5));
-        auxXLabel2 = round(linspace(xArray(1), xArray(end), 5), 3);
+        xTick = fix(linspace(xArray(1), xArray(end), 5));
     else
-        auxXLabel1 = [xArray(1), xArray(end)];
-        auxXLabel2 = [xArray(1), xArray(end)];
+        xTick = [xArray(1), xArray(end)];
     end
 
     hold(axes1, 'on')
     set(axes1, 'FontName', 'Calibri', 'FontSize', 8,                                                                ...
                'XGrid', 'on', 'XMinorGrid', 'on', 'YGrid', 'on', 'YMinorGrid', 'on', 'Box', 'on',                   ...
                'GridColor', [.94,.94,.94], 'MinorGridColor', [.94,.94,.94], 'GridAlpha', .25, 'MinorGridAlpha', .2, ...
-               'XLim' , [xArray(1), xArray(end)],    'XTick', auxXLabel1,                    'XTickLabel', {},                ...
+               'XLim' , [xArray(1), xArray(end)], 'XTick', xTick, 'XTickLabel', {},                                 ...
                'YLim', [downYLim, upYLim], 'YTick', linspace(downYLim, upYLim, 5), 'YTickLabel', fix(linspace(downYLim, upYLim, 5)));
     ylabel(axes1, ['Nível (' SpecInfo(idx).MetaData.LevelUnit ')'], 'FontSize', 8, 'FontWeight', 'bold')
     

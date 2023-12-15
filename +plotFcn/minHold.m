@@ -7,5 +7,5 @@ function minHold(app, idx, newArray, LevelUnit)
     end
 
     plotFcn.DataTipModel(app.line_MinHold, LevelUnit)
-    plotFcn.axesStackingOrder(app)
+    plotFcn.axesStackingOrder.execute('winAppAnalise', app.axes1)
 end

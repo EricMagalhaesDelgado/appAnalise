@@ -70,9 +70,11 @@ end
 function occLineROI(src, event, app)
     switch(event.EventName)
         case 'MovingROI'
+            plotFcn.axesInteraction.DisableDefaultInteractions([app.axes1, app.axes2, app.axes3])
             app.play_OCC_THR.Value = event.CurrentPosition(1,2);
             
         case 'ROIMoved'
+            plotFcn.axesInteraction.EnableDefaultInteractions([app.axes1, app.axes2, app.axes3])
             play_OCCNewPlot(app)
     end
 end

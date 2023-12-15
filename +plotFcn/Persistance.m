@@ -40,8 +40,8 @@ function Persistance(app, idx, Type)
                 yEdges        = linspace(yMin, yMax, yResolution+1);
                 specHist      = zeros(yResolution, xResolution);
 
-                hImg          = image(app.axes1, specHist, 'alphadata', im2double(specHist),'XData', [FreqStart, FreqStop], 'YData', [yMin, yMax], 'Tag', 'Persistance');
-                set(hImg, CDataMapping = "scaled", Interpolation=Interpolation, AlphaData=im2double(specHist), PickableParts='none')
+                hImg          = image(app.axes1, specHist, 'AlphaData', specHist,'XData', [FreqStart, FreqStop], 'YData', [yMin, yMax], ...
+                                                 'CDataMapping', 'scaled', 'Interpolation', Interpolation, 'PickableParts', 'none', 'Tag', 'Persistance');
                 
                 app.obj_Persistance = struct('handle',   hImg,     ...
                                              'ySamples', ySamples, ...

@@ -66,7 +66,7 @@ function Draw(app, idx)
             plotFcn.Datatip(app, idx)
         end
 
-        plotFcn.axesStackingOrder(app)
+        plotFcn.axesStackingOrder.execute('winAppAnalise', app.axes1)
 
     else
         app.line_ClrWrite.YData = newArray;

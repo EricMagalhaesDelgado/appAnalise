@@ -1,14 +1,39 @@
-function axesStackingOrder(app)
+classdef (Abstract) axesStackingOrder
 
-    refStackingOrder = {'mkrLabels', 'occTHR', 'Average', 'ClrWrite', 'MaxHold', 'MinHold', 'mkrROI', 'mkrLine', 'BandLimits', 'Persistance'};
-    
-    StackingOrderTag = arrayfun(@(x) x.Tag, app.axes1.Children, 'UniformOutput', false)';
-    newOrderIndex    = [];
-
-    for ii = 1:numel(refStackingOrder)
-        idx = find(strcmp(StackingOrderTag, refStackingOrder{ii}));
-        newOrderIndex = [newOrderIndex, idx];
+    properties (Constant)
+        %-----------------------------------------------------------------%
+        winAppAnalise   = {'mkrLabels', 'occTHR', 'mkrROI', 'Average', 'ClrWrite', 'MaxHold', 'MinHold', 'mkrLine', 'BandLimits', 'Persistance'}
+        winRFDataHub    = {}
+        winDriveTest    = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'inROI', 'outROI'}
     end
 
-    app.axes1.Children = app.axes1.Children(newOrderIndex);
+
+    methods (Static = true)
+        %-----------------------------------------------------------------%
+        function execute(src, Axes)
+            switch src
+                case 'winAppAnalise'
+                    refStackingOrder = plotFcn.axesStackingOrder.winAppAnalise;
+
+                case 'winRFDataHub'
+                    refStackingOrder = plotFcn.axesStackingOrder.winRFDataHub;
+
+                case 'winDriveTest'
+                    refStackingOrder = plotFcn.axesStackingOrder.winDriveTest;
+
+                otherwise
+                    error('Unexpected option.')
+            end
+            
+            stackingOrderTag = arrayfun(@(x) x.Tag, Axes.Children, 'UniformOutput', false)';
+            newOrderIndex    = [];
+        
+            for ii = 1:numel(refStackingOrder)
+                idx = find(strcmp(stackingOrderTag, refStackingOrder{ii}));
+                newOrderIndex = [newOrderIndex, idx];
+            end
+        
+            Axes.Children = Axes.Children(newOrderIndex);
+        end
+    end
 end

@@ -92,10 +92,8 @@ end
 function mkrLineROI(src, evt, app, idx1)
 
     switch(evt.EventName)
-        case{'MovingROI'}
-            disableDefaultInteractivity(app.axes1)
-            disableDefaultInteractivity(app.axes2)
-            disableDefaultInteractivity(app.axes3)
+        case 'MovingROI'
+            plotFcn.axesInteraction.DisableDefaultInteractions([app.axes1, app.axes2, app.axes3])
 
             FreqCenter = app.mkr_ROI.Position(1) + app.mkr_ROI.Position(3)/2;
             if (FreqCenter*1e+6 < app.specData(idx1).MetaData.FreqStart) || ...
@@ -122,13 +120,10 @@ function mkrLineROI(src, evt, app, idx1)
             set(app.play_FindPeaks_Tree.Children(idx2), 'Text', sprintf("%d: %.3f MHz ⌂ %.3f kHz", idx2, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value), ...
                                                         'NodeData', idx2)
             
-        case{'ROIMoved'}
-            enableDefaultInteractivity(app.axes1)
-            enableDefaultInteractivity(app.axes2)
-            enableDefaultInteractivity(app.axes3)
+        case 'ROIMoved'
+            plotFcn.axesInteraction.EnableDefaultInteractions([app.axes1, app.axes2, app.axes3])
 
-            idx2 = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
-            
+            idx2 = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;            
             newIndex = round((app.play_FindPeaks_PeakCF.Value*1e+6 - app.Band.bCoef)/app.Band.aCoef);
             
             app.specData(idx1).UserData.Emissions(idx2,[1:3, 5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value, jsonencode(struct('Algorithm', 'Manual'))};
