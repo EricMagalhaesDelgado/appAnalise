@@ -18,6 +18,12 @@ classdef (Abstract) axesDataTipTemplate
                     pHandle.DataTipTemplate.DataTipRows(2).Label  = '';
                     pHandle.DataTipTemplate.DataTipRows(2).Format = ['%.0f ' hUnit];
 
+                case 'Frequency+Occupancy'
+                    pHandle.DataTipTemplate.DataTipRows(1).Label  = '';
+                    pHandle.DataTipTemplate.DataTipRows(1).Format = '%.3f MHz';                    
+                    pHandle.DataTipTemplate.DataTipRows(2).Label  = '';
+                    pHandle.DataTipTemplate.DataTipRows(2).Format = ['%.0f' hUnit];
+
                 case 'Frequency+Timestamp+Level'
                     switch class(pHandle)
                         case 'matlab.graphics.chart.primitive.Surface'

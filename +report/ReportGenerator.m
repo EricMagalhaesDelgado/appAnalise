@@ -63,7 +63,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                 % exemplo).
                 Children = Template(ii).Data.Children(kk);
 
-                try
+                % try
                     switch Children.Type
                         case {'Subitem', 'Paragraph', 'List', 'Footnote'}                
                             for ll = 1:numel(Children.Data)
@@ -75,32 +75,41 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                             htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children));
 
                         case {'Image', 'Table'}
-                            switch Children.Type
-                                case 'Image'
-                                    opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children);
-
-                                case 'Table'
-                                    opt1 = Fcn_Table(SpecInfo, jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
-                            end
-
                             opt2 = Children.Data.Intro;
                             opt3 = Children.Data.Error;
                             opt4 = Children.Data.LineBreak;
 
-                            htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
+                            switch Children.Type
+                                case 'Image'
+                                    if strcmp(Children.Data.Source, 'specEmissionImage') && ~isempty(SpecInfo.UserData.Emissions)
+                                        MM = height(SpecInfo.UserData.Emissions);
+                                        for ll = 1:MM
+                                            opt1 = Fcn_Image(SpecInfo, jj, ll, reportInfo, Template(ii).Recurrence, Children);
+                                            htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
+                                        end
+
+                                    else
+                                        opt1 = Fcn_Image(SpecInfo, jj, -1, reportInfo, Template(ii).Recurrence, Children);
+                                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
+                                    end
+
+                                case 'Table'
+                                    opt1 = Fcn_Table(SpecInfo, jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
+                                    htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
+                            end
 
                         otherwise
                             error('Unexpected type "%s"', Children.Type)
                     end
 
-                catch ME
-                    msgError = extractAfter(ME.message, 'Configuration file error message: ');
-
-                    if ~isempty(msgError)
-                        msgError   = jsondecode(msgError);
-                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', msgError.Type, 'Data', struct('Editable', 'false', 'String', msgError.String))));
-                    end
-                end
+                % catch ME
+                %     msgError = extractAfter(ME.message, 'Configuration file error message: ');
+                % 
+                %     if ~isempty(msgError)
+                %         msgError   = jsondecode(msgError);
+                %         htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', msgError.Type, 'Data', struct('Editable', 'false', 'String', msgError.String))));
+                %     end
+                % end
             end
         end
     end
@@ -260,7 +269,7 @@ end
 
 
 %-------------------------------------------------------------------------%
-function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children)
+function Image = Fcn_Image(SpecInfo, idx1, idx2, reportInfo, Recurrence, Children)
 
     global ID_imgExt
 
@@ -271,7 +280,7 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children)
 
     else
         if Recurrence
-            Source    = SpecInfo(idx).UserData.reportAttachments.image;
+            Source    = SpecInfo(idx1).UserData.reportAttachments.image;
         else
             ID_imgExt = ID_imgExt+1;
 
@@ -283,7 +292,7 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children)
         end
     end
 
-    if isempty(Source) || ((Origin == "External") & ~isfile(Source))
+    if isempty(Source) || (strcmp(Origin, "External") && ~isfile(Source))
         error('Configuration file error message: %s', Children.Data.Error)
     end
 
@@ -292,10 +301,16 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children)
         case 'Internal'
             switch Source
                 case 'specImage'
-                    Image = report.plotFcn.Spectrum(SpecInfo, idx, reportInfo, Layout);
+                    reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
+                    Image = report.plotFcn.Spectrum(SpecInfo, idx1, reportInfo, Layout);
+
+                case 'specEmissionImage'
+                    reportInfo.General.Parameters.Plot = struct('Type', 'Emission', 'emissionIndex', idx2);
+                    Image = report.plotFcn.Spectrum(SpecInfo, idx1, idx2, reportInfo, Layout);
 
                 case 'Drive-Test'
-                    Image = report.plotFcn.DriveTest(SpecInfo, idx, reportInfo, Layout);
+                    reportInfo.General.Parameters.Plot = struct('Type', 'Emission', 'emissionIndex', idx2);
+                    Image = report.plotFcn.DriveTest(SpecInfo, idx1, reportInfo, Layout);
 
                 case 'Histogram'
                     % Pendente                    

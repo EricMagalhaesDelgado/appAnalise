@@ -12,6 +12,78 @@
     "Format": "jpeg",
     "Resolution": 120
   },
+  "Parameters": {
+    "Plot": {
+      "Type": "Band",
+      "emissionIndex": -1
+    },
+    "Axes": {
+      "xLabel": true,
+      "yLabel": true,
+      "xTickLabel": true,      
+      "yTickLabel": true,
+      "xGuardBandFactor": 1
+    },
+    "MinHold": {
+      "Fcn": "area",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#005cd1",
+      "FaceColor": "#005cd1"
+    },
+    "Average": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ffff12",
+      "FaceColor": "#ffff12"
+    },
+    "MaxHold": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ff12a6",
+      "FaceColor": "#ff12a6"
+    },
+    "ROI": {
+      "Color": "#66bae0",
+      "FaceAlpha": 0.2,
+      "yPosition": 1,
+      "TextColor": "#000000",
+      "TextFontSize": 8
+    },
+    "Persistance": {
+      "Interpolation": "nearest",
+      "Colormap": "winter"
+    },
+    "Waterfall": {
+      "Fcn": "image",
+      "View": "vertical",
+      "MeshStyle": "both",
+      "Colormap": "winter"
+    },
+    "occMinHold": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ff12a6",
+      "FaceColor": "#ff12a6"
+    },
+    "occAverage": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ff12a6",
+      "FaceColor": "#ff12a6"
+    },
+    "occMaxHold": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ff12a6",
+      "FaceColor": "#ff12a6"
+    }
+  },
   "Colormap": {
     "Persistance": "winter",
     "WaterFall": "winter"

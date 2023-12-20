@@ -492,6 +492,22 @@
           }
         },
         {
+          "Type": "Image",
+          "Data": {
+            "Origin": "Internal",
+            "Source": "specEmissionImage",
+            "Layout": 1,
+            "Caption": "Representação gráfica da monitoração sob análise.",
+            "Settings": {
+              "Width": "90%",
+              "Height": "auto"
+            },
+            "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
+          }
+        },
+        {
           "Type": "Table",
           "Data": {
             "Origin": "Internal",
