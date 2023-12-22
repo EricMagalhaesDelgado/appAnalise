@@ -159,6 +159,7 @@ classdef specData < handle
             obj(idx(1)).Data{3} = class.specData.read_StatsData(dataMatrix);
 
             % Excluindo os fluxos mesclados (exceto o "fluxo guia")...
+            delete(obj(idx(2:numel(idx))))
             obj(idx(2:numel(idx))) = [];
 
             % Atualizando o mapeamento com os fluxos de ocupação...
@@ -251,7 +252,11 @@ classdef specData < handle
 
 
         %-----------------------------------------------------------------%
-        function read(app, d)    
+        function read(app, d)
+            if ~isempty(app.specData)
+                delete(app.specData)
+            end
+
             % Organização dos fluxos de dados.
             class.specData.read_Map(app)
         

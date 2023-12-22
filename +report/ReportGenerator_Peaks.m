@@ -23,12 +23,12 @@ function Peaks = ReportGenerator_Peaks(app, SpecInfo, idx, reportInfo)
 
         if ~isempty(newIndex)
             NN = numel(newIndex);
-            SpecInfo(idx).UserData.Emissions(end+1:end+NN,:) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), Method);
+            SpecInfo(idx).UserData.Emissions(end+1:end+NN,1:5) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), Method);
             fcn.Detection_BandLimits(SpecInfo(idx))
         end
     end
 
-    Peaks = SpecInfo(idx).UserData.Emissions;
+    Peaks = SpecInfo(idx).UserData.Emissions(:,1:5);
 
     % Outros campos...
     if ~isempty(Peaks)

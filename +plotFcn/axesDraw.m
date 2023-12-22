@@ -30,8 +30,8 @@ classdef (Abstract) axesDraw
         end
 
 
-        %-----------------------------------------------------------------%
-        function cartesianAxes__type1(hAxes, SpecInfo, Parameters)
+        %-----------------------------------------------------------------% 
+        function cartesianAxes__type1(hAxes, SpecInfo, Parameters)          % Spectrum
             MinHold  = Parameters.MinHold;
             Average  = Parameters.Average;
             MaxHold  = Parameters.MaxHold;
@@ -58,7 +58,7 @@ classdef (Abstract) axesDraw
 
 
         %-----------------------------------------------------------------%
-        function cartesianAxes__type2(hAxes, SpecInfo, Parameters)
+        function cartesianAxes__type2(hAxes, SpecInfo, Parameters)          % Persistance
             Average     = Parameters.Average;
             ROI         = Parameters.ROI;
             Persistance = Parameters.Persistance;
@@ -83,7 +83,7 @@ classdef (Abstract) axesDraw
 
 
         %-----------------------------------------------------------------%
-        function cartesianAxes__type3(hAxes, SpecInfo, Parameters)
+        function cartesianAxes__type3(hAxes, SpecInfo, Parameters)          % OccupancyPerBin
             occMinHold = Parameters.occMinHold;
             occAverage = Parameters.occAverage;
             occMaxHold = Parameters.occMaxHold;
@@ -104,31 +104,32 @@ classdef (Abstract) axesDraw
 
 
         %-----------------------------------------------------------------%
-        function cartesianAxes__type4(hAxes, SpecInfo, Parameters)
+        function cartesianAxes__type4(hAxes, SpecInfo, Parameters)          % OccupancyPerHour
         end
 
 
         %-----------------------------------------------------------------%
-        function cartesianAxes__type5(hAxes, SpecInfo, Parameters)
+        function cartesianAxes__type5(hAxes, SpecInfo, Parameters)          % OccupancyPerDay
         end
 
 
         %-----------------------------------------------------------------%
-        function cartesianAxes__type6(hAxes, SpecInfo, Parameters)
+        function cartesianAxes__type6(hAxes, SpecInfo, Parameters)          % SamplesPerLevel
         end
 
 
         %-----------------------------------------------------------------%
-        function cartesianAxes__type7(hAxes, SpecInfo, Parameters)
+        function cartesianAxes__type7(hAxes, SpecInfo, Parameters)          % ChannelPower
+
         end
 
 
         %-----------------------------------------------------------------%
-        function cartesianAxes__type8(hAxes, SpecInfo, Parameters)
+        function cartesianAxes__type8(hAxes, SpecInfo, Parameters)          % Waterfall
             Waterfall = Parameters.Waterfall;
             Axes      = Parameters.Axes;
 
-            % PRÉ-PLOT            
+            % PRÉ-PLOT
             switch Waterfall.Fcn
                 case 'mesh';  yUnit = 'time';
                 case 'image'; yUnit = 'timeIndex';
@@ -145,54 +146,50 @@ classdef (Abstract) axesDraw
 
 
         %-----------------------------------------------------------------%
-        function geographicAxes_type1(hAxes, SpecInfo, Parameters)
-        end
+        function geographicAxes_type1(hAxes, Parameters)                    % Drive-test: Route
+            specTable   = Parameters.specTable;
+            filtTable   = Parameters.filtTable;
 
+            outROITable = specTable(~specTable.filtered,:);
+            inROITable  = filtTable;
 
-        %-----------------------------------------------------------------%
-        function geographicAxes_type2(hAxes, SpecInfo, Parameters) % ROUTE
-            Lat  = [];
-            Long = [];
-            for ii = 1:height(SpecInfo(idx).RelatedFiles)
-                Lat  = [Lat;  SpecInfo(idx).RelatedFiles.GPS{ii}.Matrix(:,1)];
-                Long = [Long; SpecInfo(idx).RelatedFiles.GPS{ii}.Matrix(:,2)];
+            switch Parameters.route_LineStyle
+                case 'none'; markerSize = 1;
+                otherwise;   markerSize = 8*Parameters.route_MarkerSize;
             end
-        
-            hAxes = geoaxes(fig, 'FontSize', 6, 'Units', 'pixels', 'Basemap', 'darkwater', 'FontName', 'Calibri', 'FontSize', 10, 'ToolBar', []);
-            disableDefaultInteractivity(hAxes)
-        
-            while true
-                try
-                    hAxes.LatitudeLabel.String  = '';
-                    hAxes.LongitudeLabel.String = '';
-        
-                    colormap(hAxes, Parameters.Colormap)                    
-                    break
-                catch
-                end
+
+            outROILine  = geoplot(hAxes, outROITable.Lat, outROITable.Long, 'Marker', '.', 'Color', Parameters.route_OutROIColor, 'MarkerFaceColor', Parameters.route_OutROIColor, 'MarkerEdgeColor', Parameters.route_OutROIColor, 'MarkerSize', markerSize, 'LineStyle', 'none',                     'Tag', 'outROI');
+            inROILine   = geoplot(hAxes,  inROITable.Lat,  inROITable.Long, 'Marker', '.', 'Color', Parameters.route_InROIColor,  'MarkerFaceColor', Parameters.route_InROIColor,  'MarkerEdgeColor', Parameters.route_InROIColor,  'MarkerSize', markerSize, 'LineStyle', Parameters.route_LineStyle, 'Tag', 'inROI');
+
+            plotFcn.axesDataTipTemplate.execute('Coordinates', outROILine, [], [])
+            plotFcn.axesDataTipTemplate.execute('Coordinates', inROILine,  [], [])
+        end
+
+
+        %-----------------------------------------------------------------%
+        function hScatter = geographicAxes_type2(hAxes, Parameters)         % Drive-test: Distortion
+            switch Parameters.Source
+                case 'Dados brutos'; tempTable = Parameters.filtTable;
+                otherwise;           tempTable = Parameters.binTable;
             end
-        
-            try
-                geobasemap(hAxes, Parameters.GeoBaseMap)
-            catch
-            end
-        
-            geoplot(hAxes, Lat, Long, 'Color', Parameters.Color, 'LineWidth', 5);
+
+            hScatter = geoscatter(hAxes, tempTable{:,1}, tempTable{:,2}, [], tempTable{:,3}, 'filled', 'SizeData', 20*Parameters.MarkerSize, 'Visible', Parameters.Visibility, 'Tag', 'Distortion');
+            plotFcn.axesDataTipTemplate.execute('SweepID+ChannelPower+Coordinates', hScatter, [], [])
         end
 
 
         %-----------------------------------------------------------------%
-        function geographicAxes_type3(hAxes, SpecInfo, Parameters)
+        function geographicAxes_type3(hAxes, SpecInfo, Parameters)          % Drive-test: Heatmap
         end
 
 
         %-----------------------------------------------------------------%
-        function geographicAxes_type4(hAxes, SpecInfo, Parameters)
+        function geographicAxes_type4(hAxes, SpecInfo, Parameters)          % RFDataHub: Stations
         end
 
 
         %-----------------------------------------------------------------%
-        function geographicAxes_type5(hAxes, SpecInfo, Parameters)
+        function geographicAxes_type5(hAxes, SpecInfo, Parameters)          % RFDataHub: Link
         end
 
 

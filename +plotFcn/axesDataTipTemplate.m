@@ -43,38 +43,38 @@ classdef (Abstract) axesDataTipTemplate
                             pHandle.DataTipTemplate.DataTipRows(3)        = [];
                     end
 
-                % case 'Coordinates'
-                %     pHandle.DataTipTemplate.DataTipRows(1).Label = 'Latitude:';
-                %     pHandle.DataTipTemplate.DataTipRows(2).Label = 'Longitude:';
-                %     if numel(pHandle.DataTipTemplate.DataTipRows) > 2
-                %         pHandle.DataTipTemplate.DataTipRows(3:end) = [];
-                %     end
-                % 
-                % case 'Coordinates+Frequency'
-                %     pHandle.DataTipTemplate.DataTipRows(1).Label = 'Latitude:';
-                %     pHandle.DataTipTemplate.DataTipRows(2).Label = 'Longitude:';
-                %     pHandle.DataTipTemplate.DataTipRows(3)       = dataTipTextRow('Frequência:', hTable.Frequency, '%.3f MHz');
-                %     pHandle.DataTipTemplate.DataTipRows(4)       = dataTipTextRow('Entidade:',   hTable.Name);
-                % 
-                %     pHandle.DataTipTemplate.DataTipRows          = pHandle.DataTipTemplate.DataTipRows([3:4,1:2]);
-                % 
-                % case 'SweepID+ChannelPower+Coordinates'
-                %     hTable = table((1:numel(pHandle.LatitudeData))', 'VariableNames', {'ID'});
-                % 
-                %     pHandle.DataTipTemplate.DataTipRows(1).Label = 'Latitude:';
-                %     pHandle.DataTipTemplate.DataTipRows(2).Label = 'Longitude:';
-                %     pHandle.DataTipTemplate.DataTipRows(3)       = dataTipTextRow('ID:', hTable.ID);
-                %     pHandle.DataTipTemplate.DataTipRows(4)       = dataTipTextRow('Potência:', 'CData', '%.1f dBm');
-                % 
-                %     if numel(pHandle.DataTipTemplate.DataTipRows) > 4
-                %         pHandle.DataTipTemplate.DataTipRows(5:end) = [];
-                %     end
-                % 
-                %     pHandle.DataTipTemplate.DataTipRows          = pHandle.DataTipTemplate.DataTipRows([3:4,1:2]);
-                % 
-                % case 'SweepID+ChannelPower'
-                %     pHandle.DataTipTemplate.DataTipRows(1).Label = 'ID:';
-                %     pHandle.DataTipTemplate.DataTipRows(2)       = dataTipTextRow('Potência:', 'YData', '%.1f dBm');
+                case 'Coordinates'
+                    pHandle.DataTipTemplate.DataTipRows(1).Label = 'Latitude:';
+                    pHandle.DataTipTemplate.DataTipRows(2).Label = 'Longitude:';
+                    if numel(pHandle.DataTipTemplate.DataTipRows) > 2
+                        pHandle.DataTipTemplate.DataTipRows(3:end) = [];
+                    end
+
+                case 'Coordinates+Frequency'
+                    pHandle.DataTipTemplate.DataTipRows(1).Label = 'Latitude:';
+                    pHandle.DataTipTemplate.DataTipRows(2).Label = 'Longitude:';
+                    pHandle.DataTipTemplate.DataTipRows(3)       = dataTipTextRow('Frequência:', hTable.Frequency, '%.3f MHz');
+                    pHandle.DataTipTemplate.DataTipRows(4)       = dataTipTextRow('Entidade:',   hTable.Name);
+
+                    pHandle.DataTipTemplate.DataTipRows          = pHandle.DataTipTemplate.DataTipRows([3:4,1:2]);
+
+                case 'SweepID+ChannelPower+Coordinates'
+                    hTable = table((1:numel(pHandle.LatitudeData))', 'VariableNames', {'ID'});
+
+                    pHandle.DataTipTemplate.DataTipRows(1).Label = 'Latitude:';
+                    pHandle.DataTipTemplate.DataTipRows(2).Label = 'Longitude:';
+                    pHandle.DataTipTemplate.DataTipRows(3)       = dataTipTextRow('ID:', hTable.ID);
+                    pHandle.DataTipTemplate.DataTipRows(4)       = dataTipTextRow('Potência:', 'CData', '%.1f dBm');
+
+                    if numel(pHandle.DataTipTemplate.DataTipRows) > 4
+                        pHandle.DataTipTemplate.DataTipRows(5:end) = [];
+                    end
+
+                    pHandle.DataTipTemplate.DataTipRows          = pHandle.DataTipTemplate.DataTipRows([3:4,1:2]);
+
+                case 'SweepID+ChannelPower'
+                    pHandle.DataTipTemplate.DataTipRows(1).Label = 'ID:';
+                    pHandle.DataTipTemplate.DataTipRows(2)       = dataTipTextRow('Potência:', 'YData', ['%.1f ' hUnit]);
             end
 
             if exist('dt', 'var')
