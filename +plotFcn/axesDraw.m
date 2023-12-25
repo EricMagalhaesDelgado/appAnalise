@@ -2,7 +2,7 @@ classdef (Abstract) axesDraw
 
     properties (Constant)
         %-----------------------------------------------------------------%
-        figureSize = [650, 800]
+        figureSize = [1244, 660] % antigo: [650, 800]
     end
 
 
@@ -307,9 +307,9 @@ classdef (Abstract) axesDraw
                     if ischar(ROI.Color)
                         ROI.Color = ccTools.fcn.hex2rgb(ROI.Color);
                     end
-                    drawrectangle(hAxes, 'Position', [pks.Frequency(ii)-pks.BW(ii)/2000, yLim(1)+1, pks.BW(ii)/1000, diff(yLim)-2],        ...
-                                         'Color', ROI.Color, 'FaceAlpha', ROI.FaceAlpha', 'MarkerSize', 5, 'LineWidth', 1, 'Deletable', 0, ...
-                                         'InteractionsAllowed', 'none', 'Tag', 'mkrROI');
+                    drawrectangle(hAxes, 'Position', [pks.Frequency(ii)-pks.BW(ii)/2000, yLim(1)+1, pks.BW(ii)/1000, diff(yLim)-2],                   ...
+                                         'Color', ROI.Color, 'EdgeAlpha', ROI.EdgeAlpha, 'FaceAlpha', ROI.FaceAlpha, 'MarkerSize', 5, 'LineWidth', 1, ...
+                                         'Deletable', 0, 'InteractionsAllowed', 'none', 'Tag', 'mkrROI');
                 end
 
                 NN = height(pks);
@@ -424,7 +424,7 @@ classdef (Abstract) axesDraw
 
                 case 'Geographic'
                     hAxes = geoaxes(axesParent, FontSize=6, Units='pixels', Basemap='darkwater', ...
-                                                Box='off', Interactions=[], ToolBar=[]);
+                                                Box='off', ToolBar=[]);
 
                     hAxes.LatitudeLabel.String  = '';
                     hAxes.LongitudeLabel.String = '';

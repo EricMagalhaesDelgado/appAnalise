@@ -18,8 +18,6 @@ function FullFileName = Spectrum(SpecInfo, idx1, reportInfo, Layout)
         Layout = 1
     end
 
-    global ID_img
-
     RootFolder = reportInfo.General.RootFolder;
     userPath   = reportInfo.General.UserPath;
     idx2       = reportInfo.General.Parameters.Plot.emissionIndex;
@@ -37,8 +35,8 @@ function FullFileName = Spectrum(SpecInfo, idx1, reportInfo, Layout)
 
     f = uifigure('Visible', reportInfo.General.Image.Visibility,                                            ...
                  'WindowState','maximized',                                                                 ...
-                 'Position', [(mainMonitor(1) + round((mainMonitor(3)-650)/2) + 32*ID_img),                 ...
-                              (mainMonitor(2) + round((mainMonitor(4)-800)/2) - 32*ID_img), 650, 800],      ...
+                 'Position', [mainMonitor(1) + round((mainMonitor(3)-1244)/2),                              ...
+                              mainMonitor(2) + round((mainMonitor(4)+48-660-30)/2), 1244, 660],             ...
                  'Name', sprintf('ID %.0f: %.3f - %.3f MHz (%s)', SpecInfo(idx1).RelatedFiles.ID(1),        ...
                                                                   SpecInfo(idx1).MetaData.FreqStart / 1e+6, ...
                                                                   SpecInfo(idx1).MetaData.FreqStop  / 1e+6, ...
@@ -61,14 +59,14 @@ function FullFileName = Spectrum(SpecInfo, idx1, reportInfo, Layout)
             
             reportInfo.General.Parameters.ROI.yPosition = 4;
             reportInfo.General.Parameters.ROI.TextFontSize = 10;
-            plotFcn.axesDraw.execute('Spectrum', axes1, SpecInfo, reportInfo.General.Parameters)
+            plotFcn.axesDraw.execute('Spectrum', axes1, SpecInfo(idx1), reportInfo.General.Parameters)
             axes1.XTickLabel = {};
             xlabel(axes1, '')
 
             Fcn_axes2(axes2, SpecInfo, idx1, xArray)
 
             % Fcn_axes3(axes3, SpecInfo, idx1, xArray)
-            plotFcn.axesDraw.execute('Waterfall', axes3, SpecInfo, reportInfo.General.Parameters)
+            plotFcn.axesDraw.execute('Waterfall', axes3, SpecInfo(idx1), reportInfo.General.Parameters)
 
             linkaxes([axes1, axes2, axes3], 'x')
             axesChildren = [axes1.Children; axes2.Children; axes3.Children];
@@ -84,11 +82,11 @@ function FullFileName = Spectrum(SpecInfo, idx1, reportInfo, Layout)
             axes3.Layout.TileSpan = [2,1];
 
             reportInfo.General.Parameters.ROI.yPosition = 4;
-            plotFcn.axesDraw.execute('Spectrum', axes1, SpecInfo, reportInfo.General.Parameters)
+            plotFcn.axesDraw.execute('Spectrum', axes1, SpecInfo(idx1), reportInfo.General.Parameters)
             axes1.XTickLabel = {};
             xlabel(axes1, '')
             
-            plotFcn.axesDraw.execute('Waterfall', axes3, SpecInfo, reportInfo.General.Parameters)
+            plotFcn.axesDraw.execute('Waterfall', axes3, SpecInfo(idx1), reportInfo.General.Parameters)
             
             linkaxes([axes1, axes3], 'x')
             axesChildren = [axes1.Children; axes3.Children];            

@@ -47,7 +47,8 @@
     },
     "ROI": {
       "Color": "#66bae0",
-      "FaceAlpha": 0.2,
+      "EdgeAlpha": 0,
+      "FaceAlpha": 0.4,
       "yPosition": 1,
       "TextColor": "#000000",
       "TextFontSize": 8
