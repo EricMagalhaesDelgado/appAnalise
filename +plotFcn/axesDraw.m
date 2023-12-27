@@ -8,7 +8,7 @@ classdef (Abstract) axesDraw
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        % CONTROLE
+        % EIXO CARTESIANO: CONTROLE
         %-----------------------------------------------------------------%
         function execute(plotName, hAxes, SpecInfo, Parameters)
             cla(hAxes)
@@ -16,16 +16,14 @@ classdef (Abstract) axesDraw
                 case 'Spectrum';               plotFcn.axesDraw.cartesianAxes__type1(hAxes, SpecInfo, Parameters)
                 case 'Persistance';            plotFcn.axesDraw.cartesianAxes__type2(hAxes, SpecInfo, Parameters)
                 case 'OccupancyPerBin';        plotFcn.axesDraw.cartesianAxes__type3(hAxes, SpecInfo, Parameters)
-                case 'OccupancyPerHour';       plotFcn.axesDraw.cartesianAxes__type4(hAxes, SpecInfo, Parameters)
-                case 'OccupancyPerDay';        plotFcn.axesDraw.cartesianAxes__type5(hAxes, SpecInfo, Parameters)
-                case 'SamplesPerLevel';        plotFcn.axesDraw.cartesianAxes__type6(hAxes, SpecInfo, Parameters)
-                case 'ChannelPower';           plotFcn.axesDraw.cartesianAxes__type7(hAxes, SpecInfo, Parameters)
-                case 'Waterfall';              plotFcn.axesDraw.cartesianAxes__type8(hAxes, SpecInfo, Parameters)
-                case 'Drive-test: Route';      plotFcn.axesDraw.geographicAxes_type1(hAxes, SpecInfo, Parameters)
-                case 'Drive-test: Distortion'; plotFcn.axesDraw.geographicAxes_type2(hAxes, SpecInfo, Parameters)
-                case 'Drive-test: Heatmap';    plotFcn.axesDraw.geographicAxes_type3(hAxes, SpecInfo, Parameters)
-                case 'RFDataHub: Stations';    plotFcn.axesDraw.geographicAxes_type4(hAxes, SpecInfo, Parameters)
-                case 'RFDataHub: Link';        plotFcn.axesDraw.geographicAxes_type5(hAxes, SpecInfo, Parameters)
+                case 'Waterfall';              plotFcn.axesDraw.cartesianAxes__type4(hAxes, SpecInfo, Parameters)
+              % case 'OccupancyPerHour';       plotFcn.axesDraw.cartesianAxes__type5(hAxes, SpecInfo, Parameters)
+              % case 'OccupancyPerDay';        plotFcn.axesDraw.cartesianAxes__type6(hAxes, SpecInfo, Parameters)
+              % case 'SamplesPerLevel';        plotFcn.axesDraw.cartesianAxes__type7(hAxes, SpecInfo, Parameters)
+              % case 'ChannelPower';           plotFcn.axesDraw.cartesianAxes__type8(hAxes, SpecInfo, Parameters)
+                case 'Drive-test';             plotFcn.axesDraw.geographicAxes_type1(hAxes, SpecInfo, Parameters)
+                case 'RFDataHub: Stations';    plotFcn.axesDraw.geographicAxes_type2(hAxes, SpecInfo, Parameters)
+                case 'RFDataHub: Link';        plotFcn.axesDraw.geographicAxes_type3(hAxes, SpecInfo, Parameters)
             end
         end
 
@@ -104,28 +102,7 @@ classdef (Abstract) axesDraw
 
 
         %-----------------------------------------------------------------%
-        function cartesianAxes__type4(hAxes, SpecInfo, Parameters)          % OccupancyPerHour
-        end
-
-
-        %-----------------------------------------------------------------%
-        function cartesianAxes__type5(hAxes, SpecInfo, Parameters)          % OccupancyPerDay
-        end
-
-
-        %-----------------------------------------------------------------%
-        function cartesianAxes__type6(hAxes, SpecInfo, Parameters)          % SamplesPerLevel
-        end
-
-
-        %-----------------------------------------------------------------%
-        function cartesianAxes__type7(hAxes, SpecInfo, Parameters)          % ChannelPower
-
-        end
-
-
-        %-----------------------------------------------------------------%
-        function cartesianAxes__type8(hAxes, SpecInfo, Parameters)          % Waterfall
+        function cartesianAxes__type4(hAxes, SpecInfo, Parameters)          % Waterfall
             Waterfall = Parameters.Waterfall;
             Axes      = Parameters.Axes;
 
@@ -146,55 +123,7 @@ classdef (Abstract) axesDraw
 
 
         %-----------------------------------------------------------------%
-        function geographicAxes_type1(hAxes, Parameters)                    % Drive-test: Route
-            specTable   = Parameters.specTable;
-            filtTable   = Parameters.filtTable;
-
-            outROITable = specTable(~specTable.filtered,:);
-            inROITable  = filtTable;
-
-            switch Parameters.route_LineStyle
-                case 'none'; markerSize = 1;
-                otherwise;   markerSize = 8*Parameters.route_MarkerSize;
-            end
-
-            outROILine  = geoplot(hAxes, outROITable.Lat, outROITable.Long, 'Marker', '.', 'Color', Parameters.route_OutROIColor, 'MarkerFaceColor', Parameters.route_OutROIColor, 'MarkerEdgeColor', Parameters.route_OutROIColor, 'MarkerSize', markerSize, 'LineStyle', 'none',                     'Tag', 'outROI');
-            inROILine   = geoplot(hAxes,  inROITable.Lat,  inROITable.Long, 'Marker', '.', 'Color', Parameters.route_InROIColor,  'MarkerFaceColor', Parameters.route_InROIColor,  'MarkerEdgeColor', Parameters.route_InROIColor,  'MarkerSize', markerSize, 'LineStyle', Parameters.route_LineStyle, 'Tag', 'inROI');
-
-            plotFcn.axesDataTipTemplate.execute('Coordinates', outROILine, [], [])
-            plotFcn.axesDataTipTemplate.execute('Coordinates', inROILine,  [], [])
-        end
-
-
-        %-----------------------------------------------------------------%
-        function hScatter = geographicAxes_type2(hAxes, Parameters)         % Drive-test: Distortion
-            switch Parameters.Source
-                case 'Dados brutos'; tempTable = Parameters.filtTable;
-                otherwise;           tempTable = Parameters.binTable;
-            end
-
-            hScatter = geoscatter(hAxes, tempTable{:,1}, tempTable{:,2}, [], tempTable{:,3}, 'filled', 'SizeData', 20*Parameters.MarkerSize, 'Visible', Parameters.Visibility, 'Tag', 'Distortion');
-            plotFcn.axesDataTipTemplate.execute('SweepID+ChannelPower+Coordinates', hScatter, [], [])
-        end
-
-
-        %-----------------------------------------------------------------%
-        function geographicAxes_type3(hAxes, SpecInfo, Parameters)          % Drive-test: Heatmap
-        end
-
-
-        %-----------------------------------------------------------------%
-        function geographicAxes_type4(hAxes, SpecInfo, Parameters)          % RFDataHub: Stations
-        end
-
-
-        %-----------------------------------------------------------------%
-        function geographicAxes_type5(hAxes, SpecInfo, Parameters)          % RFDataHub: Link
-        end
-
-
-        %-----------------------------------------------------------------%
-        % PLOTS
+        % EIXO CARTESIANO: PLOT
         %-----------------------------------------------------------------%
         function OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, plotMode, TraceMode)
             switch plotMode
@@ -362,6 +291,156 @@ classdef (Abstract) axesDraw
                     line(hAxes, [FreqStart, FreqStop], [yLevel, yLevel], ...
                                 Color=[.5 .5 .5], LineWidth=5,           ...
                                 PickableParts='none',  Tag='BandLimits')
+                end
+            end
+        end
+
+
+        %-----------------------------------------------------------------%
+        % EIXO GEOGRÁFICO: CONTROLE
+        %-----------------------------------------------------------------%
+        function geographicAxes_type1(hAxes, Parameters, srcFcn)
+            if strcmp(srcFcn, 'ReportGenerator')
+                plotFcn.axesDraw.DriveTestFilterPlot(hAxes, Parameters, 'GeographicPlot');
+            end            
+            
+            plotFcn.axesDraw.DriveTestRoutePlot(hAxes, Parameters)
+            plotFcn.axesDraw.DriveTestDistortionlPlot(hAxes, Parameters);
+            plotFcn.axesDraw.DriveTestDensityPlot(hAxes, Parameters);
+            plotFcn.axesDraw.DriveTestPointsPlot(hAxes, Parameters);
+
+            plotFcn.axesStackingOrder.execute('winDriveTest', hAxes)
+        end
+
+
+        %-----------------------------------------------------------------%
+        % EIXO GEOGRÁFICO: PLOT
+        %-----------------------------------------------------------------%
+        function DriveTestFilterPlot(hAxes, Parameters, plotType)
+            delete(findobj(hAxes, 'Tag', 'ROI'))
+
+            filterTable = Parameters.filterTable;
+
+            for ii = 1:height(filterTable)
+                subtype = filterTable.subtype{ii};
+
+                switch subtype
+                    case 'Threshold'
+                        if ~strcmp(plotType, 'CartesianPlot')
+                            continue
+                        end
+
+                        hROI = images.roi.Line(hAxes, 'Color', 'red', 'MarkerSize', 4, 'LineWidth', 1, 'Deletable', 0, 'InteractionsAllowed', 'translate', 'Tag', 'ROI');
+
+                    case {'Circle', 'Rectangle', 'Polygon'}
+                        if ~strcmp(plotType, 'GeographicPlot')
+                            continue
+                        end
+
+                        switch subtype
+                            case 'Circle';    roiFcn = 'Circle';    roiNameArgument = '';
+                            case 'Rectangle'; roiFcn = 'Rectangle'; roiNameArgument = 'Rotatable=true, ';
+                            case 'Polygon';   roiFcn = 'Polygon';   roiNameArgument = '';
+                        end
+                        eval(sprintf('hROI = images.roi.%s(hAxes, LineWidth=1, Deletable=0, FaceSelectable=0, %sTag="ROI");', roiFcn, roiNameArgument))
+                end
+
+                fieldsList = fields(filterTable.roi(ii).specification);
+                for jj = 1:numel(fieldsList)
+                    hROI.(fieldsList{jj}) = filterTable.roi(ii).specification.(fieldsList{jj});
+                end
+            end
+        end
+
+
+        %-----------------------------------------------------------------%
+        function DriveTestRoutePlot(hAxes, Parameters)
+            delete(findobj(hAxes, 'Tag', 'OutRoute', '-or', 'Tag', 'InRoute'))
+
+            specTable   = Parameters.specTable;
+            filtTable   = Parameters.filtTable;
+
+            OutTable    = specTable(~specTable.filtered,:);
+            InTable     = filtTable;
+
+            switch Parameters.route_LineStyle
+                case 'none'; markerSize = 1;
+                otherwise;   markerSize = 8*Parameters.route_MarkerSize;
+            end
+
+            hOutRoute   = geoplot(hAxes, OutTable.Lat, OutTable.Long, 'Marker', '.', 'Color', Parameters.route_OutColor, 'MarkerFaceColor', Parameters.route_OutColor, 'MarkerEdgeColor', Parameters.route_OutColor, 'MarkerSize', markerSize, 'LineStyle', 'none',                     'Tag', 'OutRoute');
+            hInRoute    = geoplot(hAxes,  InTable.Lat,  InTable.Long, 'Marker', '.', 'Color', Parameters.route_InColor,  'MarkerFaceColor', Parameters.route_InColor,  'MarkerEdgeColor', Parameters.route_InColor,  'MarkerSize', markerSize, 'LineStyle', Parameters.route_LineStyle, 'Tag', 'InRoute');
+
+            plotFcn.axesDataTipTemplate.execute('Coordinates', hOutRoute, [], [])
+            plotFcn.axesDataTipTemplate.execute('Coordinates', hInRoute,  [], [])
+        end
+
+
+        %-----------------------------------------------------------------%
+        function DriveTestDistortionlPlot(hAxes, Parameters)
+            delete(findobj(hAxes, 'Tag', 'Distortion'))
+
+            switch Parameters.Source
+                case 'RawData'; tempTable = Parameters.filtTable;
+                case 'BinData'; tempTable = Parameters.binTable;
+            end
+
+            hDistortion = geoscatter(hAxes, tempTable{:,1}, tempTable{:,2}, [], tempTable{:,3},  ...
+                                            'filled', 'SizeData', 20*Parameters.distortion_Size, ...
+                                            'Visible', Parameters.distortion_Visibility, 'Tag', 'Distortion');
+            
+            plotFcn.axesDataTipTemplate.execute('SweepID+ChannelPower+Coordinates', hDistortion, [], [])
+        end
+
+
+        %-----------------------------------------------------------------%
+        function DriveTestDensityPlot(hAxes, Parameters)
+            delete(findobj(hAxes, 'Tag', 'Density'))
+
+            switch Parameters.Source
+                case 'RawData'; tempTable = Parameters.filtTable;
+                case 'BinData'; tempTable = Parameters.binTable;
+            end
+
+            weights = tempTable{:,3};
+            if min(weights) < 0
+                weights = weights+abs(min(weights));
+            end
+
+            geodensityplot(hAxes, tempTable{:,1}, tempTable{:,2}, weights,                     ...
+                                  'FaceColor','interp', 'Radius', 100*Parameters.density_Size, ...
+                                  'PickableParts', 'none', 'Visible', Parameters.density_Visibility, 'Tag', 'Density');
+        end
+
+
+        %-----------------------------------------------------------------%
+        function DriveTestPointsPlot(hAxes, Parameters)
+            delete(findobj(hAxes, 'Tag', 'Points'))
+
+            global RFDataHub
+            pointsTable = Parameters.pointsTable;
+
+            for ii = 1:height(pointsTable)
+                if ~pointsTable.visible(ii)
+                    continue
+                end
+
+                rowIndex    = pointsTable.value(ii).idx;
+                Coordinates = pointsTable.value(ii).Coordinates;
+
+                switch pointsTable.type{ii}
+                    case 'RFDataHub'
+                        hStation = geoplot(hAxes, Coordinates(:,1), Coordinates(:,2),                                                        ...
+                                                  'LineStyle', 'none', 'Color', Parameters.points_Color, 'Marker', Parameters.points_Marker, ...
+                                                  'MarkerSize', Parameters.points_Size, 'MarkerFaceColor', Parameters.points_Color,          ...
+                                                  'MarkerEdgeColor', Parameters.points_Color, 'Tag', 'Points');
+                        plotFcn.axesDataTipTemplate.execute('Coordinates+Frequency', hStation, RFDataHub(rowIndex,1:2), [])
+
+                    case 'FindPeaks'
+                        geoplot(hAxes, Coordinates(:,1), Coordinates(:,2),                                                                          ...
+                                       'LineStyle', 'none', 'Color', Parameters.points_Color, 'Marker', Parameters.points_Marker,                   ...
+                                       'MarkerSize', Parameters.points_Size, 'MarkerFaceColor', 'none', 'MarkerEdgeColor', Parameters.points_Color, ...
+                                       'PickableParts', 'none', 'Tag', 'Points');
                 end
             end
         end

@@ -12,8 +12,8 @@
     "Format": "jpeg",
     "Resolution": 120
   },
-  "Parameters": {
-    "Plot": {
+  "Plot": {
+    "General": {
       "Type": "Band",
       "emissionIndex": -1
     },
@@ -31,10 +31,17 @@
       "EdgeColor": "#005cd1",
       "FaceColor": "#005cd1"
     },
+    "ClearWrite": {
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ffff12",
+      "FaceColor": "#ffff12"
+    },
     "Average": {
       "Fcn": "line",
       "LineStyle": "-",
       "LineWidth": 0.5,
+      "Playback": "#00ff00",
       "EdgeColor": "#ffff12",
       "FaceColor": "#ffff12"
     },
@@ -85,32 +92,6 @@
       "FaceColor": "#ff12a6"
     }
   },
-  "Colormap": {
-    "Persistance": "winter",
-    "WaterFall": "winter"
-  },
-  "Colors": [
-    [
-      1,
-      0.07,
-      0.65
-    ],
-    [
-      0.47,
-      0.67,
-      0.19
-    ],
-    [
-      1,
-      0.07,
-      0.65
-    ],
-    [
-      1,
-      1,
-      0.07
-    ]
-  ],
   "Integration": {
     "Trace": null,
     "SampleTime": 10

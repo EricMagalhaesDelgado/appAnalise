@@ -38,7 +38,7 @@ function OCC(app, idx, Type, LevelUnit, occIndex)
                 % aferida de forma "online". Nessa nova versão do appAnalise, por
                 % outro lado, será apresentada apenas a curva de média.
                 set(app.axes2, XLim=app.axes1.XLim, YLim=[0, 100])
-                hPlotAxes2 = plot(app.axes2, app.Band.xArray, occData{3}(:,2), Color=app.General.Colors(4,:), Tag='occData_Mean');
+                hPlotAxes2 = plot(app.axes2, app.Band.xArray, occData{3}(:,2), Color=app.General.Plot.ClearWrite.EdgeColor, Tag='occData_Mean');
 
                 % DataTip
                 DataTip(hPlotAxes1, LevelUnit)

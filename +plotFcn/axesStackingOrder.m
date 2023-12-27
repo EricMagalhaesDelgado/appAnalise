@@ -2,9 +2,9 @@ classdef (Abstract) axesStackingOrder
 
     properties (Constant)
         %-----------------------------------------------------------------%
-        winAppAnalise   = {'mkrLabels', 'occTHR', 'mkrROI', 'Average', 'ClrWrite', 'MaxHold', 'MinHold', 'mkrLine', 'BandLimits', 'Persistance'}
+        winAppAnalise   = {'mkrLabels', 'occTHR', 'mkrROI', 'Average', 'ClearWrite', 'MaxHold', 'MinHold', 'mkrLine', 'BandLimits', 'Persistance'}
         winRFDataHub    = {}
-        winDriveTest    = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'inROI', 'outROI'}
+        winDriveTest    = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute'}
     end
 
 
