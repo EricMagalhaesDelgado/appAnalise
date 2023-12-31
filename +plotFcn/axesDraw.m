@@ -21,7 +21,7 @@ classdef (Abstract) axesDraw
               % case 'OccupancyPerDay';        plotFcn.axesDraw.cartesianAxes__type6(hAxes, SpecInfo, Parameters)
               % case 'SamplesPerLevel';        plotFcn.axesDraw.cartesianAxes__type7(hAxes, SpecInfo, Parameters)
               % case 'ChannelPower';           plotFcn.axesDraw.cartesianAxes__type8(hAxes, SpecInfo, Parameters)
-                case 'Drive-test';             plotFcn.axesDraw.geographicAxes_type1(hAxes, SpecInfo, Parameters)
+                case 'Drive-test';             plotFcn.axesDraw.geographicAxes_type1(hAxes, Parameters)
                 case 'RFDataHub: Stations';    plotFcn.axesDraw.geographicAxes_type2(hAxes, SpecInfo, Parameters)
                 case 'RFDataHub: Link';        plotFcn.axesDraw.geographicAxes_type3(hAxes, SpecInfo, Parameters)
             end
@@ -37,7 +37,7 @@ classdef (Abstract) axesDraw
             Axes     = Parameters.Axes;
 
             % PRÉ-PLOT
-            [xLim, yLim, ~, xIndexLim, xArray] = plotFcn.axesDraw.Limits(SpecInfo, Parameters, 'ordinary level');            
+            [xLim, yLim, ~, xIndexLim, xArray] = plotFcn.axesDraw.Limits(SpecInfo, Parameters, 'ordinary level');
             plotFcn.axesDraw.PrePlotConfig(hAxes, xLim, yLim, 'linear', '')
         
             % PLOT
@@ -88,13 +88,13 @@ classdef (Abstract) axesDraw
             Axes       = Parameters.Axes;
 
             % PRÉ-PLOT
-            [xLim, yLim, ~, ~, xArray] = plotFcn.axesDraw.Limits(SpecInfo, Parameters, 'occupancy level');            
+            [xLim, yLim, ~, xIndexLim, xArray] = plotFcn.axesDraw.Limits(SpecInfo, Parameters, 'occupancy level');
             plotFcn.axesDraw.PrePlotConfig(hAxes, xLim, yLim, 'log', '')
         
             % PLOT
-            plotFcn.axesDraw.OccupancyPerBinPlot(hAxes, SpecInfo, xArray, 'occMinHold', occMinHold)
-            plotFcn.axesDraw.OccupancyPerBinPlot(hAxes, SpecInfo, xArray, 'occAverage', occAverage)
-            plotFcn.axesDraw.OccupancyPerBinPlot(hAxes, SpecInfo, xArray, 'occMaxHold', occMaxHold)
+            plotFcn.axesDraw.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occMinHold', occMinHold)
+            plotFcn.axesDraw.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occAverage', occAverage)
+            plotFcn.axesDraw.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occMaxHold', occMaxHold)
 
             % PÓS-PLOT
             plotFcn.axesDraw.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', 'Ocupação (%)')
@@ -203,7 +203,7 @@ classdef (Abstract) axesDraw
 
 
         %-----------------------------------------------------------------%
-        function OccupancyPerBinPlot(hAxes, SpecInfo, xArray, plotMode, Occupancy)
+        function OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, plotMode, Occupancy)
             occIndex = SpecInfo.UserData.occMethod.CacheIndex;
             if isempty(occIndex)
                 return
@@ -220,9 +220,9 @@ classdef (Abstract) axesDraw
 
             switch Occupancy.Fcn
                 case 'line'
-                    p = plot(hAxes, xArray, occData, 'Tag', plotMode, 'LineStyle', Occupancy.LineStyle, 'LineWidth', Occupancy.LineWidth, 'Color', Occupancy.EdgeColor);
+                    p = plot(hAxes, xArray, occData(xIndexLim(1):xIndexLim(2)), 'Tag', plotMode, 'LineStyle', Occupancy.LineStyle, 'LineWidth', Occupancy.LineWidth, 'Color', Occupancy.EdgeColor);
                 case 'area'
-                    p = area(hAxes, xArray, occData, 'Tag', plotMode, 'LineStyle', Occupancy.LineStyle, 'LineWidth', Occupancy.LineWidth, 'EdgeColor', Occupancy.EdgeColor, 'FaceColor', Occupancy.FaceColor, 'BaseValue', .1);
+                    p = area(hAxes, xArray, occData(xIndexLim(1):xIndexLim(2)), 'Tag', plotMode, 'LineStyle', Occupancy.LineStyle, 'LineWidth', Occupancy.LineWidth, 'EdgeColor', Occupancy.EdgeColor, 'FaceColor', Occupancy.FaceColor, 'BaseValue', .1);
             end
             plotFcn.axesDataTipTemplate.execute('Frequency+Occupancy', p, [], '%%')
         end
@@ -300,6 +300,10 @@ classdef (Abstract) axesDraw
         % EIXO GEOGRÁFICO: CONTROLE
         %-----------------------------------------------------------------%
         function geographicAxes_type1(hAxes, Parameters, srcFcn)
+            if isempty(Parameters)
+                error('Unexpected parameters value.')
+            end
+
             if strcmp(srcFcn, 'ReportGenerator')
                 plotFcn.axesDraw.DriveTestFilterPlot(hAxes, Parameters, 'GeographicPlot');
             end            
@@ -584,14 +588,14 @@ classdef (Abstract) axesDraw
 
             xArray        = round(linspace(FreqStart, FreqStop, DataPoints), 3);            
 
-            switch Parameters.Plot.Type
+            switch Parameters.General.Type
                 case 'Band'
                     FreqStartView = FreqStart;
                     FreqStopView  = FreqStop;
                     xIndexLim     = [1, DataPoints];
 
                 case 'Emission'
-                    emissionIndex = Parameters.Plot.emissionIndex;
+                    emissionIndex = Parameters.General.emissionIndex;
                     if emissionIndex == -1
                         error('Unexpected value.')
                     end
