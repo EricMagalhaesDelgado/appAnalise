@@ -30,7 +30,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
 
     % HTML body
     for ii = 1:numel(Template)
-        if ~strcmp(Template(ii).Type, 'Item') || isempty(Template(ii).Data.Children)
+        if ~ismember(Template(ii).Type, {'Item', 'ItemN1'}) || isempty(Template(ii).Data.Children)
             continue
         else
             htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Template(ii)));
@@ -65,7 +65,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
 
                 try
                     switch Children.Type
-                        case {'Subitem', 'Paragraph', 'List', 'Footnote'}                
+                        case {'Subitem', 'ItemN2', 'ItemN3', 'Paragraph', 'List', 'Footnote'}
                             for ll = 1:numel(Children.Data)
                                 if ~isempty(Children.Data(ll).Settings)
                                     Children.Data(ll).String = Fcn_FillWords(SpecInfo, jj, reportInfo, Children);
@@ -81,22 +81,45 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
 
                             switch Children.Type
                                 case 'Image'
-                                    switch Children.Data.Source
-                                        case {'Emission Spectrum', 'Emission DriveTest'}
-                                            MM = height(SpecInfo.UserData.Emissions);
-                                            for ll = 1:MM
-                                                opt1 = Fcn_Image(SpecInfo, jj, ll, reportInfo, Template(ii).Recurrence, Children);
-                                                htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
-                                            end
+                                        switch Children.Data.Source
+                                            case {'bandSpectrum', 'specImage'}
+                                                reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
+                                                
+                                                opt1 = Fcn_Image(SpecInfo, jj, -1, reportInfo, Template(ii).Recurrence, Children, Children.Data.Source);
+                                                htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
 
-                                        otherwise
-                                            opt1 = Fcn_Image(SpecInfo, jj, -1, reportInfo, Template(ii).Recurrence, Children);
-                                            htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
-                                    end
+                                            case {'emissionSpectrum+emissionDriveTest', 'emissionSpectrum', 'emissionDriveTest'}
+                                                plotTypes = strsplit(Children.Data.Source, '+');
+                                                MM = height(SpecInfo.UserData.Emissions);
+                                                for ll = 1:MM
+                                                    reportInfo.General.Parameters.General = struct('Type', 'Emission', 'emissionIndex', ll);
+
+                                                    % Cabeçalho da emissão...
+                                                    emissionTitle = struct('Type', 'ItemN3',                                                ...
+                                                                           'Data', struct('Editable', false,                                ...
+                                                                                          'String',   '%s',                                 ...
+                                                                                          'Settings', struct('Source',     'emissionTitle', ...
+                                                                                                             'Precision',  '%s',            ...
+                                                                                                             'Multiplier', 1)));
+                                                    emissionTitle.Data.String = Fcn_FillWords(SpecInfo, jj, reportInfo, emissionTitle);                        
+                                                    htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(emissionTitle));
+
+                                                    for mm = 1:numel(plotTypes)
+                                                        if strcmp(plotTypes{mm}, 'emissionDriveTest')
+                                                            if isempty(SpecInfo(jj).UserData.Emissions.UserData{ll})
+                                                                continue
+                                                            end
+                                                        end
+        
+                                                        opt1 = Fcn_Image(SpecInfo, jj, ll, reportInfo, Template(ii).Recurrence, Children, plotTypes{mm});
+                                                        htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
+                                                    end
+                                                end
+                                        end
 
                                 case 'Table'
                                     opt1 = Fcn_Table(SpecInfo, jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
-                                    htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
+                                    htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                             end
 
                         otherwise
@@ -142,6 +165,12 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
         htmlReport = sprintf('%s</body>\n</html>', htmlReport);
     end
 
+end
+
+
+%-------------------------------------------------------------------------%
+function htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4)
+    htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
 end
 
 
@@ -209,12 +238,15 @@ function value = Fcn_Source(SpecInfo, idx, reportInfo, Children)
                 Resolution = '-';
             end
 
-            value = sprintf('GPS: %.6f, %.6f (%s); Operação: %s; Unidade: %s; %s', SpecInfo(idx).GPS.Latitude,           ...
-                                                                                   SpecInfo(idx).GPS.Longitude,          ...
-                                                                                   SpecInfo(idx).GPS.Location,           ...
-                                                                                   Operation,                            ...
+            value = sprintf('GPS: %.6f, %.6f (%s); Operação: %s; Unidade: %s; %s', SpecInfo(idx).GPS.Latitude,       ...
+                                                                                   SpecInfo(idx).GPS.Longitude,      ...
+                                                                                   SpecInfo(idx).GPS.Location,       ...
+                                                                                   Operation,                        ...
                                                                                    SpecInfo(idx).MetaData.LevelUnit, ...
                                                                                    Resolution);
+        case 'emissionTitle'
+            emissionIndex = reportInfo.General.Parameters.General.emissionIndex;
+            value = sprintf('<b>Emissão %d: %.3f MHz ⌂ %.3f kHz</b>', emissionIndex, SpecInfo(idx).UserData.Emissions{emissionIndex,2}, SpecInfo(idx).UserData.Emissions{emissionIndex,3});
     end
 end
 
@@ -270,13 +302,12 @@ end
 
 
 %-------------------------------------------------------------------------%
-function Image = Fcn_Image(SpecInfo, idx1, idx2, reportInfo, Recurrence, Children)
+function Image = Fcn_Image(SpecInfo, idx1, idx2, reportInfo, Recurrence, Children, Source)
 
     global ID_imgExt
 
     Origin = Children.Data.Origin;    
     if Origin == "Internal"
-        Source = Children.Data.Source;
         Layout = Children.Data.Layout;
 
     else
@@ -301,21 +332,18 @@ function Image = Fcn_Image(SpecInfo, idx1, idx2, reportInfo, Recurrence, Childre
     switch Origin
         case 'Internal'
             switch Source
-                case {'Band Spectrum', 'specImage'}
+                case {'bandSpectrum', 'specImage'}
                     reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
                     Image = report.plotFcn.Spectrum(SpecInfo, idx1, reportInfo, Layout);
 
-                case 'Emission Spectrum'
+                case 'emissionSpectrum'
                     reportInfo.General.Parameters.General = struct('Type', 'Emission', 'emissionIndex', idx2);
                     Image = report.plotFcn.Spectrum(SpecInfo, idx1, reportInfo, Layout);
 
-                case 'Emission DriveTest'
+                case 'emissionDriveTest'
                     reportInfo.General.Parameters.General   = struct('Type', 'Emission', 'emissionIndex', idx2);
                     reportInfo.General.Parameters.DriveTest = SpecInfo(idx1).UserData.Emissions.UserData{idx2};
-                    Image = report.plotFcn.DriveTest(SpecInfo, idx1, reportInfo);
-
-                case 'Histogram'
-                    % Pendente                    
+                    Image = report.plotFcn.DriveTest(SpecInfo, idx1, reportInfo);                
             end
 
         case 'External'
@@ -368,7 +396,7 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                 case 'Peaks'
                     if ~isempty(SpecInfo(idx).UserData.reportPeaksTable)                        
                         Table       = SpecInfo(idx).UserData.reportPeaksTable;
-                        Table.ID(:) = "P" + string(1:height(Table)');
+                        Table.ID(:) = string(1:height(Table)');
                         Table       = movevars(Table, 'ID', 'Before', 1);
                         
                         % FILTRO
@@ -483,7 +511,7 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
             Columns = Children.Data.Columns;
 
             [~, ~, fileExt] = fileparts(Source);
-            switch fileExt
+            switch lower(fileExt)
                 case '.json'
                     Table = struct2table(jsondecode(fileread(Source)));
 
@@ -500,5 +528,4 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                 Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
             end
     end
-
 end

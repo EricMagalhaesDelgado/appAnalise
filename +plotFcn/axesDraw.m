@@ -10,7 +10,7 @@ classdef (Abstract) axesDraw
         %-----------------------------------------------------------------%
         % EIXO CARTESIANO: CONTROLE
         %-----------------------------------------------------------------%
-        function execute(plotName, hAxes, SpecInfo, Parameters)
+        function execute(plotName, hAxes, SpecInfo, Parameters, srcFcn)
             cla(hAxes)
             switch plotName
                 case 'Spectrum';               plotFcn.axesDraw.cartesianAxes__type1(hAxes, SpecInfo, Parameters)
@@ -21,7 +21,7 @@ classdef (Abstract) axesDraw
               % case 'OccupancyPerDay';        plotFcn.axesDraw.cartesianAxes__type6(hAxes, SpecInfo, Parameters)
               % case 'SamplesPerLevel';        plotFcn.axesDraw.cartesianAxes__type7(hAxes, SpecInfo, Parameters)
               % case 'ChannelPower';           plotFcn.axesDraw.cartesianAxes__type8(hAxes, SpecInfo, Parameters)
-                case 'Drive-test';             plotFcn.axesDraw.geographicAxes_type1(hAxes, Parameters)
+                case 'Drive-test';             plotFcn.axesDraw.geographicAxes_type1(hAxes, Parameters, srcFcn)
                 case 'RFDataHub: Stations';    plotFcn.axesDraw.geographicAxes_type2(hAxes, SpecInfo, Parameters)
                 case 'RFDataHub: Link';        plotFcn.axesDraw.geographicAxes_type3(hAxes, SpecInfo, Parameters)
             end
@@ -304,15 +304,20 @@ classdef (Abstract) axesDraw
                 error('Unexpected parameters value.')
             end
 
+            % PRÉ-PLOT
+            colormap(hAxes, Parameters.Colormap)
+            hAxes.Colormap(1,:) = [0,0,0];
+
+            % PLOT
             if strcmp(srcFcn, 'ReportGenerator')
                 plotFcn.axesDraw.DriveTestFilterPlot(hAxes, Parameters, 'GeographicPlot');
             end            
-            
             plotFcn.axesDraw.DriveTestRoutePlot(hAxes, Parameters)
             plotFcn.axesDraw.DriveTestDistortionlPlot(hAxes, Parameters);
             plotFcn.axesDraw.DriveTestDensityPlot(hAxes, Parameters);
             plotFcn.axesDraw.DriveTestPointsPlot(hAxes, Parameters);
 
+            % PÓS-PLOT
             plotFcn.axesStackingOrder.execute('winDriveTest', hAxes)
         end
 

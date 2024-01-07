@@ -35,7 +35,7 @@ function FullFileName = DriveTest(SpecInfo, idx, reportInfo)
     drawnow nocallbacks
 
     geolimits(axes1, 'auto')
-    plotFcn.axesDraw.geographicAxes_type1(axes1, reportInfo.General.Parameters.DriveTest, 'ReportGenerator')
+    plotFcn.axesDraw.execute('Drive-test', axes1, SpecInfo(idx), reportInfo.General.Parameters.DriveTest, 'ReportGenerator')
 
     % Desabilitando interatividade do plot...
     disableDefaultInteractivity(axes1)

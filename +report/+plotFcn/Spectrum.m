@@ -52,9 +52,9 @@ function FullFileName = Spectrum(SpecInfo, idx1, reportInfo, Layout)
     reportInfo.General.Parameters.ROI.yPosition = 4;
     reportInfo.General.Parameters.ROI.TextFontSize = 10;
 
-    plotFcn.axesDraw.execute('Spectrum',        axes1, SpecInfo(idx1), reportInfo.General.Parameters)
-    plotFcn.axesDraw.execute('OccupancyPerBin', axes2, SpecInfo(idx1), reportInfo.General.Parameters)
-    plotFcn.axesDraw.execute('Waterfall',       axes3, SpecInfo(idx1), reportInfo.General.Parameters)
+    plotFcn.axesDraw.execute('Spectrum',        axes1, SpecInfo(idx1), reportInfo.General.Parameters, 'ReportGenerator')
+    plotFcn.axesDraw.execute('OccupancyPerBin', axes2, SpecInfo(idx1), reportInfo.General.Parameters, 'ReportGenerator')
+    plotFcn.axesDraw.execute('Waterfall',       axes3, SpecInfo(idx1), reportInfo.General.Parameters, 'ReportGenerator')
 
     axes1.XTickLabel = {};
     xlabel(axes1, '')

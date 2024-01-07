@@ -14,11 +14,12 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
     htmlContent = '';
     
     switch Type
-        case {'Item', 'Subitem', 'Paragraph'}
+        case {'Item', 'Subitem', 'ItemN1', 'ItemN2', 'ItemN3', 'Paragraph'}
             switch Type
-                case 'Item';      Class = 'Item_Nivel1';
-                case 'Subitem';   Class = 'Item_Nivel2';
-                case 'Paragraph'; Class = 'Texto_Justificado';
+                case {'Item', 'ItemN1'};    Class = 'Item_Nivel1';
+                case {'Subitem', 'ItemN2'}; Class = 'Item_Nivel2';
+                case 'ItemN3';              Class = 'Item_Nivel3';
+                case 'Paragraph';           Class = 'Texto_Justificado';
             end
             htmlContent = sprintf('<p class="%s" contenteditable="%s">%s</p>\n\n', Class, Data.Editable, Data.String);
 

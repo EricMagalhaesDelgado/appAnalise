@@ -310,13 +310,13 @@
     "Recurrence": 1,
     "Data": {
       "Editable": "false",
-      "String": "RESULTADOS - FAIXAS DE FREQUÊNCIAS",
+      "String": "RESULTADOS",
       "Children": [
         {
           "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "<strong>Faixa %.0f: %.3f a %.3f MHz</strong>",
+            "String": "<b>Faixa %.0f: %.3f a %.3f MHz</b>",
             "Settings": [
               {
                 "Source": "idx",
@@ -479,7 +479,7 @@
           "Type": "Image",
           "Data": {
             "Origin": "Internal",
-            "Source": "Band Spectrum",
+            "Source": "bandSpectrum",
             "Layout": 1,
             "Caption": "Representação gráfica da monitoração sob análise.",
             "Settings": {
@@ -622,71 +622,18 @@
                 "Width": "60px"
               }
             ],
-            "LineBreak": 0,
-            "Intro": "{\"Type\":\"Paragraph\",\"String\":\"A seguir são apresentadas informações acerca da(s) emissão(ões) detectada(s).\"}",
+            "LineBreak": 1,
+            "Intro": "{\"Type\":\"Paragraph\",\"String\":\"A seguir são apresentadas informações acerca da(s) emissão(ões) detectada(s), além de representações gráficas dessa(s) emissão(ões).\"}",
             "Error": "{\"Type\":\"Paragraph\",\"String\":\"Não foi detectado sequer um pico que atendesse às condições estabelecidas no supracitado processo de detecção de emissões.\"}"
           }
-        }
-      ]
-    }
-  },
-  {
-    "Type": "Item",
-    "Recurrence": 1,
-    "Data": {
-      "Editable": "false",
-      "String": "RESULTADOS - EMISSÕES",
-      "Children": [
-        {
-          "Type": "Subitem",
-          "Data": {
-            "Editable": "false",
-            "String": "<strong>%.3f MHz ⌂ %.3f kHz</strong>",
-            "Settings": [
-              {
-                "Source": "FreqCenter",
-                "Precision": "%.3f",
-                "Multiplier": 1E-6
-              },
-              {
-                "Source": "BW",
-                "Precision": "%.3f",
-                "Multiplier": 1E-3
-              }
-            ]
-          }
-        },
-        {
-          "Type": "Paragraph",
-          "Data": {
-            "Editable": "false",
-            "String": "As emissões.... bla bla bla...",
-            "Settings": []
-          }
         },
         {
           "Type": "Image",
           "Data": {
             "Origin": "Internal",
-            "Source": "Emission Spectrum",
+            "Source": "emissionSpectrum+emissionDriveTest",
             "Layout": 1,
             "Caption": "Representação gráfica da emissão sob análise.",
-            "Settings": {
-              "Width": "90%",
-              "Height": "auto"
-            },
-            "LineBreak": 1,
-            "Intro": "",
-            "Error": ""
-          }
-        },
-        {
-          "Type": "Image",
-          "Data": {
-            "Origin": "Internal",
-            "Source": "Emission DriveTest",
-            "Layout": 1,
-            "Caption": "Representação gráfica da emissão sob análise em mapa.",
             "Settings": {
               "Width": "90%",
               "Height": "auto"
