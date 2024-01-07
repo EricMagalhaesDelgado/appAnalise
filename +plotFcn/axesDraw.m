@@ -593,14 +593,14 @@ classdef (Abstract) axesDraw
 
             xArray        = round(linspace(FreqStart, FreqStop, DataPoints), 3);            
 
-            switch Parameters.General.Type
+            switch Parameters.Plot.Type
                 case 'Band'
                     FreqStartView = FreqStart;
                     FreqStopView  = FreqStop;
                     xIndexLim     = [1, DataPoints];
 
                 case 'Emission'
-                    emissionIndex = Parameters.General.emissionIndex;
+                    emissionIndex = Parameters.Plot.emissionIndex;
                     if emissionIndex == -1
                         error('Unexpected value.')
                     end

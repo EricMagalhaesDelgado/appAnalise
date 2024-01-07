@@ -57,7 +57,9 @@ function FullFileName = Spectrum(SpecInfo, idx1, reportInfo, Layout)
     plotFcn.axesDraw.execute('Waterfall',       axes3, SpecInfo(idx1), reportInfo.General.Parameters, 'ReportGenerator')
 
     axes1.XTickLabel = {};
+    axes2.XTickLabel = {};
     xlabel(axes1, '')
+    xlabel(axes2, '')
 
     % Desabilitando interatividade do plot...
     hAxes = findobj(f, 'Type', 'axes');

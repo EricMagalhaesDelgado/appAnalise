@@ -63,7 +63,11 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
     specData.MetaData.DataPoints       = double(FileHeaderBlock.Data.DataPoints);
     specData.MetaData.Resolution       = double(FileHeaderBlock.Data.Resolution);
     specData.MetaData.TraceMode        = class.specData.id2str('TraceMode', FileHeaderBlock.Data.TraceMode);
-    specData.MetaData.TraceIntegration = IntegrationFactor;
+
+    if ~strcmp(specData.MetaData.TraceMode, 'ClearWrite')
+        specData.MetaData.TraceIntegration = IntegrationFactor;
+    end
+    
     specData.MetaData.Detector         = class.specData.id2str('Detector', FileHeaderBlock.Data.Detector);
     specData.MetaData.Antenna          = AntennaInfo;
 

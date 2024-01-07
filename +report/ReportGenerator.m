@@ -82,17 +82,11 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                             switch Children.Type
                                 case 'Image'
                                         switch Children.Data.Source
-                                            case {'bandSpectrum', 'specImage'}
-                                                reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
-                                                
-                                                opt1 = Fcn_Image(SpecInfo, jj, -1, reportInfo, Template(ii).Recurrence, Children, Children.Data.Source);
-                                                htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
-
                                             case {'emissionSpectrum+emissionDriveTest', 'emissionSpectrum', 'emissionDriveTest'}
                                                 plotTypes = strsplit(Children.Data.Source, '+');
-                                                MM = height(SpecInfo.UserData.Emissions);
+                                                MM = height(SpecInfo(jj).UserData.Emissions);
                                                 for ll = 1:MM
-                                                    reportInfo.General.Parameters.General = struct('Type', 'Emission', 'emissionIndex', ll);
+                                                    reportInfo.General.Parameters.Plot = struct('Type', 'Emission', 'emissionIndex', ll);
 
                                                     % Cabeçalho da emissão...
                                                     emissionTitle = struct('Type', 'ItemN3',                                                ...
@@ -115,6 +109,12 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                                                         htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                                                     end
                                                 end
+
+                                            otherwise % 'bandSpectrum', 'specImage' e imagens externas...
+                                                reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
+                                                
+                                                opt1 = Fcn_Image(SpecInfo, jj, -1, reportInfo, Template(ii).Recurrence, Children, Children.Data.Source);
+                                                htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                                         end
 
                                 case 'Table'
@@ -222,31 +222,44 @@ function value = Fcn_Source(SpecInfo, idx, reportInfo, Children)
         case 'Location';         value = SpecInfo(idx).GPS.Location;
         case 'RelatedLocations'; value = strjoin(unique(arrayfun(@(x) x.GPS.Location, SpecInfo, 'UniformOutput', false)), ', ');
         case 'Parameters'
-            if ~isempty(SpecInfo(idx).MetaData.TraceMode) && ~isempty(SpecInfo(idx).MetaData.Detector)
-                Operation = sprintf('%s/%s', SpecInfo(idx).MetaData.TraceMode, SpecInfo(idx).MetaData.Detector);
-            elseif ~isempty(SpecInfo(idx).MetaData.TraceMode)
-                Operation = SpecInfo(idx).MetaData.TraceMode;
+            Operation = '-';
+            if ~isempty(SpecInfo(idx).MetaData.TraceMode) 
+                TraceIntegration = '';
+                if SpecInfo(idx).MetaData.TraceIntegration ~= -1
+                    TraceIntegration = sprintf(' (Integração: %d amostras)', SpecInfo(idx).MetaData.TraceIntegration);
+                end
+
+                if ~isempty(SpecInfo(idx).MetaData.Detector)
+                    Operation = sprintf('%s/%s%s', SpecInfo(idx).MetaData.TraceMode, SpecInfo(idx).MetaData.Detector, TraceIntegration);
+                else
+                    Operation = sprintf('%s%s', SpecInfo(idx).MetaData.TraceMode, TraceIntegration);
+                end
+
             elseif ~isempty(SpecInfo(idx).MetaData.Detector)
                 Operation = SpecInfo(idx).MetaData.Detector;
-            else
-                Operation = '-';
             end
 
-            if ~isempty(SpecInfo(idx).MetaData.Resolution)
-                Resolution = sprintf('%.3f kHz', SpecInfo(idx).MetaData.Resolution/1000);
-            else
-                Resolution = '-';
+            Resolution = '';
+            if SpecInfo(idx).MetaData.Resolution ~= -1
+                Resolution = sprintf('; Resolução: %.3f kHz', SpecInfo(idx).MetaData.Resolution/1000);
             end
 
-            value = sprintf('GPS: %.6f, %.6f (%s); Operação: %s; Unidade: %s; %s', SpecInfo(idx).GPS.Latitude,       ...
-                                                                                   SpecInfo(idx).GPS.Longitude,      ...
-                                                                                   SpecInfo(idx).GPS.Location,       ...
-                                                                                   Operation,                        ...
-                                                                                   SpecInfo(idx).MetaData.LevelUnit, ...
-                                                                                   Resolution);
+            VBW = '';
+            if SpecInfo(idx).MetaData.VBW ~= -1
+                VBW = sprintf('; Resolução de vídeo (VBW): %.3f kHz', SpecInfo(idx).MetaData.VBW/1000);
+            end
+
+            value = sprintf('GPS: %.6f, %.6f (%s); Operação: %s; Unidade: %s%s%s', ...
+                            SpecInfo(idx).GPS.Latitude,       ...
+                            SpecInfo(idx).GPS.Longitude,      ...
+                            SpecInfo(idx).GPS.Location,       ...
+                            Operation,                        ...
+                            SpecInfo(idx).MetaData.LevelUnit, ...
+                            Resolution, VBW);
+
         case 'emissionTitle'
-            emissionIndex = reportInfo.General.Parameters.General.emissionIndex;
-            value = sprintf('<b>Emissão %d: %.3f MHz ⌂ %.3f kHz</b>', emissionIndex, SpecInfo(idx).UserData.Emissions{emissionIndex,2}, SpecInfo(idx).UserData.Emissions{emissionIndex,3});
+            emissionIndex = reportInfo.General.Parameters.Plot.emissionIndex;
+            value = sprintf('<b>Emissão %d: %.3f MHz ⌂ %.1f kHz</b>', emissionIndex, SpecInfo(idx).UserData.Emissions{emissionIndex,2}, SpecInfo(idx).UserData.Emissions{emissionIndex,3});
     end
 end
 
@@ -333,15 +346,15 @@ function Image = Fcn_Image(SpecInfo, idx1, idx2, reportInfo, Recurrence, Childre
         case 'Internal'
             switch Source
                 case {'bandSpectrum', 'specImage'}
-                    reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
+                    reportInfo.General.Parameters.Plot      = struct('Type', 'Band',     'emissionIndex', -1);
                     Image = report.plotFcn.Spectrum(SpecInfo, idx1, reportInfo, Layout);
 
                 case 'emissionSpectrum'
-                    reportInfo.General.Parameters.General = struct('Type', 'Emission', 'emissionIndex', idx2);
+                    reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', idx2);
                     Image = report.plotFcn.Spectrum(SpecInfo, idx1, reportInfo, Layout);
 
                 case 'emissionDriveTest'
-                    reportInfo.General.Parameters.General   = struct('Type', 'Emission', 'emissionIndex', idx2);
+                    reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', idx2);
                     reportInfo.General.Parameters.DriveTest = SpecInfo(idx1).UserData.Emissions.UserData{idx2};
                     Image = report.plotFcn.DriveTest(SpecInfo, idx1, reportInfo);                
             end
