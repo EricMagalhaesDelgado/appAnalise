@@ -12,9 +12,8 @@ function [infoTable, countTable] = ReportGenerator_Table_Summary(peaksTable, exc
 
     if ~isempty(peaksTable)
         for ii = 1:height(exceptionList)
-            idx = find(strcmp(countTable.Tag,  exceptionList.Tag(ii)) & (abs(countTable.Frequency - exceptionList.Frequency(ii)) <= 1e-5))';
-            
-            for jj = idx
+            exceptionIndex = find(strcmp(countTable.Tag,  exceptionList.Tag(ii)) & (abs(countTable.Frequency - exceptionList.Frequency(ii)) <= 1e-5))';            
+            for jj = exceptionIndex
                 countTable.Type{jj}        = exceptionList.Type{ii};
                 countTable.Regulatory{jj}  = exceptionList.Regulatory{ii};
                 countTable.Service(jj)     = exceptionList.Service(ii);
@@ -25,6 +24,17 @@ function [infoTable, countTable] = ReportGenerator_Table_Summary(peaksTable, exc
                 countTable.RiskLevel{jj}   = exceptionList.RiskLevel{ii};
             end
         end
+
+        % Itera em relação à lista de emissões, buscando aquelas que foram
+        % incluídas por arquivo.
+        fileDetectionIndex = find(contains(countTable.Detection, '"Algorithm":"ExternalFile"'))';
+        for ii = fileDetectionIndex
+            fileDetectionInfo = jsondecode(countTable.Detection{ii});
+
+            countTable.Detection{ii}   = '{"Algorithm":"ExternalFile"}';
+            countTable.Description{ii} = sprintf('%s (%s)', countTable.Description{ii}, fileDetectionInfo.Description); 
+        end
+
         countTable.Tag = extractAfter(countTable.Tag, ': ');
         
         % Journal table 1:

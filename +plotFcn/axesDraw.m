@@ -545,6 +545,10 @@ classdef (Abstract) axesDraw
                     end
             end
 
+            if ~diff(xLim)
+                xLim = [xLim(1)-.1, xLim(1)+.1];
+            end
+
             set(hAxes, 'XLim', xLim, 'YLim', yLim, 'YScale', yScale, 'ZLimMode', 'auto', 'CLimMode', 'auto', 'View', [0,90])
             try
                 hAxes.XAxis.Exponent = 0;

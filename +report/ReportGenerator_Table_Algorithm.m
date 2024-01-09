@@ -23,8 +23,14 @@ function Table = ReportGenerator_Table_Algorithm(SpecInfo, idx)
         end
         bandLimits = sprintf('Faixa sob análise: %s', strjoin(bandLimits, ', '));
     end
+
+    % Essa operação aqui surgiu por conta da inclusão de emissões através
+    % de arquivos (seja ele gerado pelo ROMES ou outra ferramenta).
+    detectionIndex = contains(SpecInfo(idx).UserData.reportPeaksTable.Detection, '"Algorithm":"ExternalFile"');
+    detectionList  = SpecInfo(idx).UserData.reportPeaksTable.Detection;
+    detectionList(detectionIndex) = {'{"Algorithm":"ExternalFile"}'};
     
-    [DetectionType, ~, DetectionTypeIndex] = unique(SpecInfo(idx).UserData.reportPeaksTable.Detection, 'stable');
+    [DetectionType, ~, DetectionTypeIndex] = unique(detectionList, 'stable');
 
     if SpecInfo(idx).UserData.reportDetection.ManualMode
         Detection = {'Detecção limitada às emissoes identificadas no modo PLAYBACK do appAnalise'; bandLimits};
@@ -41,7 +47,7 @@ function Table = ReportGenerator_Table_Algorithm(SpecInfo, idx)
     for ii =1:numel(DetectionType)
         sDetectionType  = jsondecode(DetectionType{ii});
         sDetectionIndex = find(DetectionTypeIndex == ii);
-        PeaksLabel      = strjoin("P" + string(sDetectionIndex), ', ');
+        PeaksLabel      = strjoin(string(sDetectionIndex), ', ');
 
         if isfield(sDetectionType, 'Parameters')
             Detection(end+1:end+3,1) = {sprintf('Algoritmo: %s',  sDetectionType.Algorithm);                ...

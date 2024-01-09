@@ -234,21 +234,21 @@ function tableStr = ReportGenerator_Aux3(app, idx, countTable)
 
     % occMethod, detection and classification tables
     for ii = 1:numel(occMethod)
-        idx_OCC = find(strcmp(app.peaksTable.occMethod, occMethod(ii)));
+        idx_OCC = find(strcmp(countTable.occMethod, occMethod(ii)));
 
         if ~isempty(idx_OCC); PeakTable.FK2(idx_OCC) = uint16(ii);
         end                
     end
 
     for ii = 1:numel(Detection)
-        idx_Det = find(strcmp(app.peaksTable.Detection, Detection(ii)));
+        idx_Det = find(strcmp(countTable.Detection, Detection(ii)));
 
         if ~isempty(idx_Det); PeakTable.FK3(idx_Det) = uint16(ii);
         end
     end
 
     for ii = 1:numel(Classification)
-        idx_Cla = find(strcmp(app.peaksTable.Classification, Classification(ii)));
+        idx_Cla = find(strcmp(countTable.Classification, Classification(ii)));
 
         if ~isempty(idx_Cla); PeakTable.FK4(idx_Cla) = uint16(ii);
         end

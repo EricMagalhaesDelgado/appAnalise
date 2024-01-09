@@ -288,6 +288,7 @@ end
 function Peaks = Fcn_exceptionList(Peaks, exceptionList)
 
     if ~isempty(Peaks)
+        % Itera em relação à lista de exceções...
         for ii = 1:height(exceptionList)
             Tag       = exceptionList.Tag{ii};
             Frequency = exceptionList.Frequency(ii);
@@ -309,6 +310,14 @@ function Peaks = Fcn_exceptionList(Peaks, exceptionList)
                 Peaks.Description{idx} = Description;
                 Peaks.Distance{idx}    = Distance;
             end
+        end
+
+        % Itera em relação à lista de emissões, buscando aquelas que foram
+        % incluídas por arquivo.
+        fileDetectionIndex = find(contains(Peaks.Detection, '"Algorithm":"ExternalFile"'))';
+        for ii = fileDetectionIndex
+            fileDetectionInfo = jsondecode(Peaks.Detection{ii});
+            Peaks.Description{ii} = sprintf('%s <p class="Tabela_Texto_8" contenteditable="false" style="color: #808080;">(%s)', Peaks.Description{ii}, fileDetectionInfo.Description); 
         end
     end
 end

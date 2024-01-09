@@ -11,9 +11,9 @@ function MAT_UserData(app, fileName)
     end
 
     % Concatena todas as tabelas de emissões...
-    Emissions = table('Size', [0, 5],                                                     ...
-                      'VariableTypes', {'uint16', 'double', 'double', 'logical', 'cell'}, ...
-                      'VariableNames', {'Index', 'Frequency', 'BW', 'isTruncated', 'Detection'});
+    Emissions = table('Size', [0, 6],                                                             ...
+                      'VariableTypes', {'uint16', 'double', 'double', 'logical', 'cell', 'cell'}, ...
+                      'VariableNames', {'Index', 'Frequency', 'BW', 'isTruncated', 'Detection', 'UserData'});
 
     for ii = 1:numel(prj_specData)
         Emissions = [Emissions; prj_specData(ii).UserData.Emissions];
@@ -46,7 +46,7 @@ function MAT_UserData(app, fileName)
             newIndex = round((newFreq*1e+6 - bCoef) / aCoef);
             
             NN = numel(newIndex);
-            app.specData(ii).UserData.Emissions(end+1:end+NN,:) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), Method);
+            app.specData(ii).UserData.Emissions(end+1:end+NN,1:5) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), Method);
 
             updatePlotFlag = false;
             if ii == idx1
