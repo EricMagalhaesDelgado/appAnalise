@@ -18,24 +18,10 @@ function FullFileName = Spectrum(SpecInfo, idx1, reportInfo, Layout)
         Layout = 1
     end
 
-    RootFolder = reportInfo.General.RootFolder;
     userPath   = reportInfo.General.UserPath;
     
-    % Figura
-    mainMonitor = get(0, 'MonitorPositions');
-
-    [~, indMonitor] = max(mainMonitor(:,3));
-    mainMonitor     = mainMonitor(indMonitor,:);
-
-    f = uifigure('Visible', reportInfo.General.Image.Visibility,                                            ...
-                 'WindowState','maximized',                                                                 ...
-                 'Position', [mainMonitor(1) + round((mainMonitor(3)-1244)/2),                              ...
-                              mainMonitor(2) + round((mainMonitor(4)+48-660-30)/2), 1244, 660],             ...
-                 'Name', sprintf('ID %.0f: %.3f - %.3f MHz (%s)', SpecInfo(idx1).RelatedFiles.ID(1),        ...
-                                                                  SpecInfo(idx1).MetaData.FreqStart / 1e+6, ...
-                                                                  SpecInfo(idx1).MetaData.FreqStop  / 1e+6, ...
-                                                                  SpecInfo(idx1).Receiver),                 ...
-                 'Icon', fullfile(RootFolder, 'Icons', 'LR_icon.png'), 'Tag', 'ReportGenerator');
+    % Criação da figura e dos eixos
+    f = FigureCreation(reportInfo);
 
     % Layout...
     t = tiledlayout(f, 3, 1, "Padding", "tight", "TileSpacing", "tight");
@@ -79,4 +65,20 @@ function FullFileName = Spectrum(SpecInfo, idx1, reportInfo, Layout)
     
     % Habilitando interatividade do plot...
     arrayfun(@(x) enableDefaultInteractivity(x), hAxes)
+end
+
+
+%-------------------------------------------------------------------------%
+function f = FigureCreation(reportInfo)
+    mainMonitor     = get(0, 'MonitorPositions');
+    [~, indMonitor] = max(mainMonitor(:,3));
+    mainMonitor     = mainMonitor(indMonitor,:);
+
+    xPixels = class.Constants.windowSize(1);
+    yPixels = class.Constants.windowSize(2);
+
+    f = uifigure('Visible', reportInfo.General.Image.Visibility,                                           ...
+                 'Position', [mainMonitor(1) + round((mainMonitor(3)-xPixels)/2),                          ...
+                              mainMonitor(2) + round((mainMonitor(4)+48-yPixels-30)/2), xPixels, yPixels], ...
+                 'Icon', fullfile(reportInfo.General.RootFolder, 'Icons', 'LR_icon.png'), 'Tag', 'ReportGenerator');
 end

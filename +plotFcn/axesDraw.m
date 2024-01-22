@@ -475,6 +475,21 @@ classdef (Abstract) axesDraw
             % Criação dos eixos e disposição no layout indicado no JSON do
             % modelo do relatório.
             
+            t = tiledlayout(f, 3, 1, "Padding", "tight", "TileSpacing", "tight");
+            
+            axes1 = plotFcn.axesDraw.AxesCreation([], 'Cartesian', t);
+            axes1.Layout.Tile = 1;
+        
+            axes2 = plotFcn.axesDraw.AxesCreation([], 'Cartesian', t);
+            axes2.Layout.Tile = 2;
+        
+            axes3 = plotFcn.axesDraw.AxesCreation([], 'Cartesian', t);
+            axes3.Layout.Tile = 3;
+
+
+            % Desabilitando interatividade do plot...
+            hAxes = findobj(f, 'Type', 'axes');
+            arrayfun(@(x) disableDefaultInteractivity(x), hAxes)            
 
             % Desenho dos plots...
 
@@ -492,6 +507,9 @@ classdef (Abstract) axesDraw
             if ~reportInfo.General.Image.Visibility
                 delete(f)
             end
+
+            % Habilitando interatividade do plot...
+            arrayfun(@(x) enableDefaultInteractivity(x), hAxes)
         end
 
 
