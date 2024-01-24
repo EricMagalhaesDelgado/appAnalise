@@ -8,27 +8,27 @@ classdef (Abstract) axesDraw
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        % EIXO CARTESIANO: CONTROLE
-        %-----------------------------------------------------------------%
         function execute(plotName, hAxes, SpecInfo, Parameters, srcFcn)
             cla(hAxes)
             switch plotName
-                case 'Spectrum';               plotFcn.axesDraw.cartesianAxes__type1(hAxes, SpecInfo, Parameters)
-                case 'Persistance';            plotFcn.axesDraw.cartesianAxes__type2(hAxes, SpecInfo, Parameters)
-                case 'OccupancyPerBin';        plotFcn.axesDraw.cartesianAxes__type3(hAxes, SpecInfo, Parameters)
-                case 'Waterfall';              plotFcn.axesDraw.cartesianAxes__type4(hAxes, SpecInfo, Parameters)
-              % case 'OccupancyPerHour';       plotFcn.axesDraw.cartesianAxes__type5(hAxes, SpecInfo, Parameters)
-              % case 'OccupancyPerDay';        plotFcn.axesDraw.cartesianAxes__type6(hAxes, SpecInfo, Parameters)
-              % case 'SamplesPerLevel';        plotFcn.axesDraw.cartesianAxes__type7(hAxes, SpecInfo, Parameters)
-              % case 'ChannelPower';           plotFcn.axesDraw.cartesianAxes__type8(hAxes, SpecInfo, Parameters)
-                case 'Drive-test';             plotFcn.axesDraw.geographicAxes_type1(hAxes, Parameters, srcFcn)
-                case 'RFDataHub: Stations';    plotFcn.axesDraw.geographicAxes_type2(hAxes, SpecInfo, Parameters)
-                case 'RFDataHub: Link';        plotFcn.axesDraw.geographicAxes_type3(hAxes, SpecInfo, Parameters)
+                case 'Spectrum';         plotFcn.axesDraw.cartesianAxes__type1(hAxes, SpecInfo, Parameters)
+                case 'Persistance';      plotFcn.axesDraw.cartesianAxes__type2(hAxes, SpecInfo, Parameters)
+                case 'OccupancyPerBin';  plotFcn.axesDraw.cartesianAxes__type3(hAxes, SpecInfo, Parameters)
+                case 'Waterfall';        plotFcn.axesDraw.cartesianAxes__type4(hAxes, SpecInfo, Parameters)
+              % case 'OccupancyPerHour'; plotFcn.axesDraw.cartesianAxes__type5(hAxes, SpecInfo, Parameters)
+              % case 'OccupancyPerDay';  plotFcn.axesDraw.cartesianAxes__type6(hAxes, SpecInfo, Parameters)
+              % case 'SamplesPerLevel';  plotFcn.axesDraw.cartesianAxes__type7(hAxes, SpecInfo, Parameters)
+              % case 'ChannelPower';     plotFcn.axesDraw.cartesianAxes__type8(hAxes, SpecInfo, Parameters)
+                case 'DriveTest';        plotFcn.axesDraw.geographicAxes_type1(hAxes, Parameters, srcFcn)
+              % case 'Stations';         plotFcn.axesDraw.geographicAxes_type2(hAxes, SpecInfo, Parameters)
+              % case 'Link';             plotFcn.axesDraw.geographicAxes_type3(hAxes, SpecInfo, Parameters)
             end
         end
 
 
-        %-----------------------------------------------------------------% 
+        %-----------------------------------------------------------------%
+        % EIXO CARTESIANO: CONTROLE
+        %-----------------------------------------------------------------%
         function cartesianAxes__type1(hAxes, SpecInfo, Parameters)          % Spectrum
             MinHold  = Parameters.MinHold;
             Average  = Parameters.Average;
@@ -244,9 +244,9 @@ classdef (Abstract) axesDraw
                 NN = height(pks);
                 pksLabel = string((1:NN)'); % Opcionalmente: "P_" + string((1:NN)')
                 text(hAxes, pks.Frequency, repmat(yLim(1)+ROI.yPosition, NN, 1), pksLabel, ...
-                            'Color', ROI.TextColor, 'BackgroundColor', ROI.Color,          ...
-                            'FontSize', ROI.TextFontSize, 'FontWeight', 'bold',            ...
-                            'HorizontalAlignment', 'center', 'PickableParts', 'none', 'Tag', 'mkrLabels');
+                           'Color', ROI.TextColor, 'BackgroundColor', ROI.Color,           ...
+                           'FontSize', ROI.TextFontSize, 'FontWeight', 'bold',             ...
+                           'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'PickableParts', 'none', 'Tag', 'mkrLabels');
             end
         end
 
@@ -458,44 +458,63 @@ classdef (Abstract) axesDraw
         %-----------------------------------------------------------------%
         % FUNÇÕES AUXILIARES
         %-----------------------------------------------------------------%
-        function imgFileName = plot2report(SpecInfo, reportInfo, imgID)
+        function imgFileName = plot2report(SpecInfo, reportInfo, plotInfo)
             % Criação da figura.
-            figWidth        = plotFcn.axesDraw.figureSize(1);
-            figHeight       = plotFcn.axesDraw.figureSize(2);
-
-            mainMonitor     = get(0, 'MonitorPositions');
-            [~, indMonitor] = max(mainMonitor(:,3));
-            mainMonitor     = mainMonitor(indMonitor,:);
-        
-            f = uifigure('Visible', reportInfo.General.Image.Visibility,                                                       ...
-                         'Position', [(mainMonitor(1) + round((mainMonitor(3)-figWidth)/2) + 32*imgID),                        ...
-                                      (mainMonitor(2) + round((mainMonitor(4)-figHeight)/2) - 32*imgID), figWidth, figHeight], ...
-                         'Name', 'appAnalise: Relatório', 'Icon', fullfile(reportInfo.General.RootFolder, 'Icons', 'LR_icon.png'), 'Tag', 'ReportGenerator');
+            f = plotFcn.axesDraw.FigureCreation(reportInfo);
 
             % Criação dos eixos e disposição no layout indicado no JSON do
             % modelo do relatório.
-            
-            t = tiledlayout(f, 3, 1, "Padding", "tight", "TileSpacing", "tight");
-            
-            axes1 = plotFcn.axesDraw.AxesCreation([], 'Cartesian', t);
-            axes1.Layout.Tile = 1;
-        
-            axes2 = plotFcn.axesDraw.AxesCreation([], 'Cartesian', t);
-            axes2.Layout.Tile = 2;
-        
-            axes3 = plotFcn.axesDraw.AxesCreation([], 'Cartesian', t);
-            axes3.Layout.Tile = 3;
+            if strcmp(reportInfo.General.Parameters.Plot.Type, 'Emission')
+                idxDriveTest = find(strcmp({plotInfo.Name}, 'DriveTest'));
+                idxEmission  = reportInfo.General.Parameters.Plot.emissionIndex;
+                
+                if ~isempty(idxDriveTest) && isempty(SpecInfo.UserData.Emissions.UserData{idxEmission})
+                    plotInfo(idxDriveTest) = [];
+                end
+            end
 
+            tiledPos  = 1;
+            tiledSpan = [plotInfo.Layout];
 
-            % Desabilitando interatividade do plot...
-            hAxes = findobj(f, 'Type', 'axes');
-            arrayfun(@(x) disableDefaultInteractivity(x), hAxes)            
+            t = tiledlayout(f, sum(tiledSpan), 1, "Padding", "tight", "TileSpacing", "tight");
+           
+            axesType = plotFcn.axesDraw.AxesType({plotInfo.Name});
 
-            % Desenho dos plots...
+            for ii = 1:numel(plotInfo)
+                switch plotInfo(ii).Name
+                    case 'DriveTest'; Parameters = reportInfo.General.Parameters.DriveTest;
+                    otherwise;        Parameters = reportInfo.General.Parameters;
+                end
 
+                hAxes     = plotFcn.axesDraw.AxesCreation([], axesType{ii}, t);
+                xTickFlag = true;
+
+                switch axesType{ii}
+                    case 'Geographic'
+                        geolimits(hAxes, 'auto')
+
+                    case 'Cartesian'
+                        if (numel(plotInfo) > 1) && (ii < numel(plotInfo)) && any(strcmp(axesType(2:end), 'Cartesian'))
+                            xTickFlag = false;
+                        end
+                end
+
+                disableDefaultInteractivity(hAxes)
+
+                hAxes.Layout.Tile     = tiledPos;
+                hAxes.Layout.TileSpan = [tiledSpan(ii) 1];
+
+                plotFcn.axesDraw.execute(plotInfo(ii).Name, hAxes, SpecInfo, Parameters, 'ReportGenerator')
+
+                if ~xTickFlag
+                    hAxes.XTickLabel = {};
+                    xlabel(hAxes, '')
+                end
+                tiledPos = tiledPos+tiledSpan(ii);
+            end
 
             % Espera renderizar e salva a imagem...
-            defaultFilename = class.Constants.DefaultFileName(userPath, sprintf('Image_ID%d', SpecInfo.RelatedFiles.ID(1)), -1);
+            defaultFilename = class.Constants.DefaultFileName(reportInfo.General.UserPath, sprintf('Image_ID%d', SpecInfo.RelatedFiles.ID(1)), -1);
             imgFileName     = sprintf('%s.%s', defaultFilename, reportInfo.General.Image.Format);
             if ~strcmp(reportInfo.General.Version, 'Definitiva')
                 imgFileName = replace(imgFileName, 'Image', '~Image');
@@ -506,10 +525,25 @@ classdef (Abstract) axesDraw
 
             if ~reportInfo.General.Image.Visibility
                 delete(f)
+            else
+                arrayfun(@(x) enableDefaultInteractivity(x), findobj(f, 'Type', 'axes', '-or', 'Type', 'geoaxes'))
             end
+        end
 
-            % Habilitando interatividade do plot...
-            arrayfun(@(x) enableDefaultInteractivity(x), hAxes)
+
+        %-----------------------------------------------------------------%
+        function f = FigureCreation(reportInfo)
+            mainMonitor     = get(0, 'MonitorPositions');
+            [~, indMonitor] = max(mainMonitor(:,3));
+            mainMonitor     = mainMonitor(indMonitor,:);
+        
+            xPixels = class.Constants.windowSize(1);
+            yPixels = class.Constants.windowSize(2);
+        
+            f = uifigure('Visible', reportInfo.General.Image.Visibility,                                           ...
+                         'Position', [mainMonitor(1) + round((mainMonitor(3)-xPixels)/2),                          ...
+                                      mainMonitor(2) + round((mainMonitor(4)+48-yPixels-30)/2), xPixels, yPixels], ...
+                         'Icon', fullfile(reportInfo.General.RootFolder, 'Icons', 'LR_icon.png'), 'Tag', 'ReportGenerator');
         end
 
 
@@ -548,6 +582,21 @@ classdef (Abstract) axesDraw
             hold(hAxes, 'on')
         end
 
+
+        %-----------------------------------------------------------------%
+        function axesType = AxesType(plotName)
+            axesType = {};
+            for ii = 1:numel(plotName)
+                switch plotName{ii}
+                    case {'Spectrum', 'Persistance', 'OccupancyPerBin', 'Waterfall', 'OccupancyPerHour', 'OccupancyPerDay', 'SamplesPerLevel', 'ChannelPower', 'Link'}
+                        axesType{ii} = 'Cartesian';
+                    case {'DriveTest', 'Stations'}
+                        axesType{ii} = 'Geographic';
+                    otherwise
+                        error('Unexpected plotName')
+                end
+            end
+        end
 
         %-----------------------------------------------------------------%
         function PrePlotConfig(hAxes, xLim, yLim, yScale, colorMap)

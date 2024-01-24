@@ -74,53 +74,52 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
 
                             htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children));
 
-                        case {'Image', 'Table'}
+                        case 'Image'
                             opt2 = Children.Data.Intro;
                             opt3 = Children.Data.Error;
                             opt4 = Children.Data.LineBreak;
 
-                            switch Children.Type
-                                case 'Image'
-                                        switch Children.Data.Source
-                                            case {'emissionSpectrum+emissionDriveTest', 'emissionSpectrum', 'emissionDriveTest'}
-                                                plotTypes = strsplit(Children.Data.Source, '+');
-                                                MM = height(SpecInfo(jj).UserData.Emissions);
-                                                for ll = 1:MM
-                                                    reportInfo.General.Parameters.Plot = struct('Type', 'Emission', 'emissionIndex', ll);
+                            plotType   = Children.Data.Type;
+                            plotName   = strsplit(Children.Data.Source, '+');
+                            plotLayout = str2double(strsplit(Children.Data.Layout, ':'));
 
-                                                    % Cabeçalho da emissão...
-                                                    emissionTitle = struct('Type', 'ItemN3',                                                ...
-                                                                           'Data', struct('Editable', false,                                ...
-                                                                                          'String',   '%s',                                 ...
-                                                                                          'Settings', struct('Source',     'emissionTitle', ...
-                                                                                                             'Precision',  '%s',            ...
-                                                                                                             'Multiplier', 1)));
-                                                    emissionTitle.Data.String = Fcn_FillWords(SpecInfo, jj, reportInfo, emissionTitle);                        
-                                                    htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(emissionTitle));
+                            plotInfo   = arrayfun(@(x, y) struct('Name', x, 'Layout', y), plotName, plotLayout);                                        
 
-                                                    for mm = 1:numel(plotTypes)
-                                                        if strcmp(plotTypes{mm}, 'emissionDriveTest')
-                                                            if isempty(SpecInfo(jj).UserData.Emissions.UserData{ll})
-                                                                continue
-                                                            end
-                                                        end
-        
-                                                        opt1 = Fcn_Image(SpecInfo, jj, ll, reportInfo, Template(ii).Recurrence, Children, plotTypes{mm});
-                                                        htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
-                                                    end
-                                                end
+                            switch plotType
+                                case 'Emission'
+                                    MM = height(SpecInfo(jj).UserData.Emissions);
+                                    for ll = 1:MM
+                                        reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', ll);
+                                        reportInfo.General.Parameters.DriveTest = SpecInfo(jj).UserData.Emissions.UserData{ll};
 
-                                            otherwise % 'bandSpectrum', 'specImage' e imagens externas...
-                                                reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
-                                                
-                                                opt1 = Fcn_Image(SpecInfo, jj, -1, reportInfo, Template(ii).Recurrence, Children, Children.Data.Source);
-                                                htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
-                                        end
+                                        % Cabeçalho da emissão...
+                                        emissionTitle = struct('Type', 'ItemN3',                                                ...
+                                                               'Data', struct('Editable', false,                                ...
+                                                                              'String',   '%s',                                 ...
+                                                                              'Settings', struct('Source',     'emissionTitle', ...
+                                                                                                 'Precision',  '%s',            ...
+                                                                                                 'Multiplier', 1)));
+                                        emissionTitle.Data.String = Fcn_FillWords(SpecInfo, jj, reportInfo, emissionTitle);                        
+                                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(emissionTitle));
 
-                                case 'Table'
-                                    opt1 = Fcn_Table(SpecInfo, jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
+                                        opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo);
+                                        htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
+                                    end
+
+                                otherwise % 'Band' e imagens externas...
+                                    reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
+                                    
+                                    opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo);
                                     htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                             end
+
+                        case 'Table'
+                            opt1 = Fcn_Table(SpecInfo, jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
+                            opt2 = Children.Data.Intro;
+                            opt3 = Children.Data.Error;
+                            opt4 = Children.Data.LineBreak;
+                            
+                            htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
 
                         otherwise
                             error('Unexpected type "%s"', Children.Type)
@@ -324,52 +323,30 @@ end
 
 
 %-------------------------------------------------------------------------%
-function Image = Fcn_Image(SpecInfo, idx1, idx2, reportInfo, Recurrence, Children, Source)
+function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plotInfo)
 
     global ID_imgExt
 
-    Origin = Children.Data.Origin;    
-    if Origin == "Internal"
-        Layout = Children.Data.Layout;
-
-    else
-        if Recurrence
-            Source    = SpecInfo(idx1).UserData.reportAttachments.image;
-        else
-            ID_imgExt = ID_imgExt+1;
-
-            try
-                Source = reportInfo.Attachments.image{ID_imgExt};
-            catch
-                ID_imgExt = ID_imgExt-1;
-            end
-        end
-    end
-
-    if isempty(Source) || (strcmp(Origin, "External") && ~isfile(Source))
-        error('Configuration file error message: %s', Children.Data.Error)
-    end
-
     Image = '';
-    switch Origin
+    switch Children.Data.Origin
         case 'Internal'
-            switch Source
-                case {'bandSpectrum', 'specImage'}
-                    reportInfo.General.Parameters.Plot      = struct('Type', 'Band',     'emissionIndex', -1);
-                    Image = report.plotFcn.Spectrum(SpecInfo, idx1, reportInfo, Layout);
-
-                case 'emissionSpectrum'
-                    reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', idx2);
-                    Image = report.plotFcn.Spectrum(SpecInfo, idx1, reportInfo, Layout);
-
-                case 'emissionDriveTest'
-                    reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', idx2);
-                    reportInfo.General.Parameters.DriveTest = SpecInfo(idx1).UserData.Emissions.UserData{idx2};
-                    Image = report.plotFcn.DriveTest(SpecInfo, idx1, reportInfo);                
-            end
+            Image = plotFcn.axesDraw.plot2report(SpecInfo(idx), reportInfo, plotInfo);
 
         case 'External'
-            Image = Source;
+            if Recurrence
+                Image     = SpecInfo(idx).UserData.reportAttachments.image;
+            else
+                ID_imgExt = ID_imgExt+1;    
+                try
+                    Image = reportInfo.Attachments.image{ID_imgExt};
+                catch
+                    ID_imgExt = ID_imgExt-1;
+                end
+            end
+    end
+
+    if ~isfile(Image)
+        error('Configuration file error message: %s', Children.Data.Error)
     end
 end
 

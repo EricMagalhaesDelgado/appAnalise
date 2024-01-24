@@ -70,7 +70,7 @@
           "Type": "Subitem",
           "Data": {
             "Editable": "false",
-            "String": "Neste ano de 2023, o PMSAT foi formalizado por meio do <b>Processo nº 53500.009193/2023-94</b>, o qual contempla o Plano de Ação de Fiscalização (SEI nº 9824578).",
+            "String": "Neste ano de 2024, o PMSAT foi formalizado por meio do <b>Processo nº 53500.105181/2023-90</b>.",
             "Settings": []
           }
         }
@@ -229,8 +229,9 @@
           "Type": "Image",
           "Data": {
             "Origin": "Internal",
-            "Source": "bandSpectrum",
-            "Layout": 1,
+            "Type": "Band",
+            "Source": "Persistance+OccupancyPerBin+Waterfall",
+            "Layout": "1:1:2",
             "Caption": "Representação gráfica da monitoração sob análise.",
             "Settings": {
               "Width": "90%",
@@ -381,8 +382,9 @@
           "Type": "Image",
           "Data": {
             "Origin": "Internal",
-            "Source": "emissionSpectrum+emissionDriveTest",
-            "Layout": 1,
+            "Type": "Emission",
+            "Source": "Spectrum",
+            "Layout": "1",
             "Caption": "Representação gráfica da emissão sob análise.",
             "Settings": {
               "Width": "90%",

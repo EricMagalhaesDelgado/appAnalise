@@ -20,7 +20,7 @@
     "Axes": {
       "xLabel": true,
       "yLabel": true,
-      "xTickLabel": true,      
+      "xTickLabel": true,
       "yTickLabel": true,
       "xGuardBandFactor": 1
     },
@@ -74,15 +74,15 @@
       "Fcn": "line",
       "LineStyle": "-",
       "LineWidth": 0.5,
-      "EdgeColor": "#ff12a6",
-      "FaceColor": "#ff12a6"
+      "EdgeColor": "#005cd1",
+      "FaceColor": "#005cd1"
     },
     "occAverage": {
       "Fcn": "line",
       "LineStyle": "-",
       "LineWidth": 0.5,
-      "EdgeColor": "#ff12a6",
-      "FaceColor": "#ff12a6"
+      "EdgeColor": "#ffff12",
+      "FaceColor": "#ffff12"
     },
     "occMaxHold": {
       "Fcn": "line",
