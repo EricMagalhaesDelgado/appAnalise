@@ -1,6 +1,6 @@
 function GeneralSettings(appGeneral, RootFolder)
 
-    appGeneral = rmfield(appGeneral, {'ver', 'Models', 'Report'});
+    appGeneral = rmfield(appGeneral, {'version', 'Models', 'Report'});
     
     if ismember(appGeneral.userPath, class.Constants.userPaths)
         appGeneral.userPath = '';

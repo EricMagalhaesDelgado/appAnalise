@@ -92,6 +92,15 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                                         reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', ll);
                                         reportInfo.General.Parameters.DriveTest = SpecInfo(jj).UserData.Emissions.UserData{ll};
 
+                                        % Verifica se o plot requerido é apenas DriveTest... em sendo,
+                                        % evita a criação do subtítulo da emissão, caso não tenha
+                                        % informação de DriveTest.
+                                        if (numel(plotInfo) == 1) && strcmp(plotInfo.Name, 'DriveTest')
+                                            if isempty(SpecInfo(jj).UserData.Emissions.UserData{ll})
+                                                continue
+                                            end
+                                        end
+
                                         % Cabeçalho da emissão...
                                         emissionTitle = struct('Type', 'ItemN3',                                                ...
                                                                'Data', struct('Editable', false,                                ...

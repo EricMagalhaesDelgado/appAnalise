@@ -13,10 +13,6 @@
     "Resolution": 120
   },
   "Plot": {
-    "General": {
-      "Type": "Band",
-      "emissionIndex": -1
-    },
     "Axes": {
       "xLabel": true,
       "yLabel": true,

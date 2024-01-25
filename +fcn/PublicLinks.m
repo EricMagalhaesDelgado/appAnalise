@@ -1,7 +1,7 @@
-function [versionLink, anateldbLink] = PublicLinks(RootFolder)
+function [versionLink, RFDataHubLink] = PublicLinks(RootFolder)
 
     PublicLinks  = jsondecode(fileread(fullfile(RootFolder, 'Settings', 'PublicLinks.json')));
 
-    versionLink  = PublicLinks.VersionFile;
-    anateldbLink = PublicLinks.anateldb;
+    versionLink   = PublicLinks.VersionFile;
+    RFDataHubLink = PublicLinks.RFDataHub;
 end

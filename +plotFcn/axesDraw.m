@@ -473,6 +473,10 @@ classdef (Abstract) axesDraw
                 end
             end
 
+            if isempty(plotInfo)
+                error('Empty plot list!')
+            end
+
             tiledPos  = 1;
             tiledSpan = [plotInfo.Layout];
 

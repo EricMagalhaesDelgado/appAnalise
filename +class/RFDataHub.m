@@ -13,18 +13,14 @@ classdef (Abstract) RFDataHub
                     load(filename_mat, 'RFDataHub', 'RFDataHub_info', '-mat')
                 
                 else
-                    filename_parquet = fullfile(RootFolder, 'Temp', 'estacoes.parquet.gzip');
+                    filename_parquet   = fullfile(RootFolder, 'Temp', 'estacoes.parquet.gzip');
         
                     try
-                        RFDataHub   = parquetread(filename_parquet, "VariableNamingRule", "preserve");
-                        RFDataHub   = class.RFDataHub.parquet2mat(RFDataHub);
+                        RFDataHub      = parquetread(filename_parquet, "VariableNamingRule", "preserve");
+                        RFDataHub      = class.RFDataHub.parquet2mat(RFDataHub);
 
-                        FileVersion = webread(fcn.PublicLinks(RootFolder));
-                        if isfield(FileVersion, 'RFDataHub')
-                            RFDataHub_info = FileVersion.RFDataHub;
-                        else
-                            RFDataHub_info = jsondecode('{"ReleaseDate": "27/11/2023 08:13:01", "ANATEL": "27/11/2023 08:13:01", "AERONAUTICA": "27/11/2023 08:13:01"}');
-                        end
+                        FileVersion    = webread(fcn.PublicLinks(RootFolder));
+                        RFDataHub_info = FileVersion.rfdatahub;
                                         
                         save(filename_mat, 'RFDataHub', 'RFDataHub_info')
                     
