@@ -1,54 +1,95 @@
 {
-  "openGL": "Hardware Full",
-  "userpath": "C:\\P&D",
+  "userPath": "",
   "pythonPath": "",
-  "layout": {
-    "theme": "cyan",
-    "lightColor": [
-      0.9,
-      0.9,
-      0.9
-    ],
-    "cyanColor": [
-      0.38,
-      0.6,
-      0.73
-    ],
-    "position": "SideBySide"
-  },
+  "openGL": "hardware",
   "Merge": {
-    "OptionalFieldsToRemove": [],
-    "ThreadIDStatus": "keep",
-    "DataTypeStatus": "keep",
-    "AntennaNameStatus": "keep",
-    "DistanceValue": 100
+    "DataType": "keep",
+    "Antenna": "keep",
+    "Distance": 100
   },
   "Image": {
     "Visibility": "on",
     "Format": "jpeg",
     "Resolution": 120
   },
-  "Colors": [
-    [
-      1,
-      0.07,
-      0.65
-    ],
-    [
-      0.47,
-      0.67,
-      0.19
-    ],
-    [
-      1,
-      0.07,
-      0.65
-    ],
-    [
-      1,
-      1,
-      0.07
-    ]
-  ],
-  "Waterfall": "winter"
+  "Plot": {
+    "Axes": {
+      "xLabel": true,
+      "yLabel": true,
+      "xTickLabel": true,
+      "yTickLabel": true,
+      "xGuardBandFactor": 1
+    },
+    "MinHold": {
+      "Fcn": "area",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#005cd1",
+      "FaceColor": "#005cd1"
+    },
+    "ClearWrite": {
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ffff12",
+      "FaceColor": "#ffff12"
+    },
+    "Average": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "Playback": "#00ff00",
+      "EdgeColor": "#ffff12",
+      "FaceColor": "#ffff12"
+    },
+    "MaxHold": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ff12a6",
+      "FaceColor": "#ff12a6"
+    },
+    "ROI": {
+      "Color": "#66bae0",
+      "EdgeAlpha": 0,
+      "FaceAlpha": 0.4,
+      "yPosition": 1,
+      "TextColor": "#000000",
+      "TextFontSize": 8
+    },
+    "Persistance": {
+      "Interpolation": "nearest",
+      "Colormap": "winter"
+    },
+    "Waterfall": {
+      "Fcn": "image",
+      "View": "vertical",
+      "MeshStyle": "both",
+      "Colormap": "winter"
+    },
+    "occMinHold": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#005cd1",
+      "FaceColor": "#005cd1"
+    },
+    "occAverage": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ffff12",
+      "FaceColor": "#ffff12"
+    },
+    "occMaxHold": {
+      "Fcn": "line",
+      "LineStyle": "-",
+      "LineWidth": 0.5,
+      "EdgeColor": "#ff12a6",
+      "FaceColor": "#ff12a6"
+    }
+  },
+  "Integration": {
+    "Trace": null,
+    "SampleTime": 10
+  }
 }

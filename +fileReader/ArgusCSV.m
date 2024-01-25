@@ -1,380 +1,350 @@
-function specData = ArgusCSV(filename, ReadType, metaData)
-%% ARGUSCSV Leitor de arquivo do Argus.
-% Trata-se de leitor dos principais tipos de dados gerados originalmente pela 
-% aplicação Argus
-% 
-% Versão: *10/06/2021*
+function specData = ArgusCSV(fileName, ReadType, metaData)
+
+    % Author.: Eric Magalhães Delgado
+    % Date...: November 09, 2023
+    % Version: 2.00
+
     arguments
-        filename char
+        fileName char
         ReadType char   = 'SingleFile'
         metaData struct = []
     end
     
-    global SpecInfo
-    
-    fileID = fopen(filename, 'rt');
-    if fileID == -1
-        error('Arquivo não encontrado!');
-    end
-    
     switch ReadType
         case {'MetaData', 'SingleFile'}
-            SpecInfo = struct('Node',         '', 'ThreadID',   '', 'MetaData',   [], 'ObservationTime', '', 'Samples',   [],    ...
-                              'Data',         {}, 'statsData',  [], 'FileFormat', '', 'TaskName',        '', 'Description', '',  ...
-                              'RelatedFiles', {}, 'RelatedGPS', {}, 'gps',        [], 'Blocks',          []);
-            
-            Fcn_MetaDataReader(fileID, filename);
+            specData = Fcn_MetaDataReader(fileName);
             
             if strcmp(ReadType, 'SingleFile')
-                Fcn_SpecDataReader(filename)
+                specData = Fcn_SpecDataReader(specData);
             end
             
         case 'SpecData'
-            SpecInfo = metaData(1).Data;
+            specData = copy(metaData(1).Data, {});
+            specData = Fcn_SpecDataReader(specData);
+    end
+end
+
+
+%-------------------------------------------------------------------------%
+function specData = Fcn_MetaDataReader(fileName)
+
+    [~, file, ext] = fileparts(fileName);
+
+    % Criação das variáveis principais (specData e gpsData)
+    specData = class.specData.empty;
+    gpsData  = struct('Status', 0, 'Matrix', []);
+
+    % O Argus gera arquivos com estruturas diferentes - um deles, um arquivo
+    % sem compressão, é do tipo 'Measurement Result' e possui apenas quatro
+    % colunas intituladas "Time", "Frequency (Hz)", "Level (dBm)" e "File Info".
+    %
+    % Já o arquivo comprimido, do tipo 'Compressed Measurement Result', possui 
+    % oito colunas intituladas "Time", "Frequency (Hz)", "Level (dBm)", 
+    % "Level_1 (dBm)", "Level_2 (dBm)", "Level_3 (dBm)", "Value Count" e 
+    % "File Info".
+    [fileFormat, LevelUnit] = text2metadata(fileName);
+
+    rawTable    = csv2table(fileName, fileFormat);
+
+    % Metadados extraídos da coluna "Frequency (Hz)".
+    xArray      = unique(rawTable.Frequency);
+
+    DataPoints  = numel(xArray);
+    FreqStart   = xArray(1);
+    FreqStop    = xArray(end);
+
+    % Índices das linhas da tabela temporária...
+    initialSweepIndex = strfind(rawTable.Frequency', xArray');
+    if isempty(initialSweepIndex)
+        return
+    end
+    nSweeps     = numel(initialSweepIndex);
+
+    % Metadados extraídos da coluna "Time".
+    [BeginTime, InputFormat] = str2datetime(rawTable.Time{initialSweepIndex(1)});
+    EndTime     = str2datetime(rawTable.Time{initialSweepIndex(end)});
+    RevisitTime = seconds(EndTime-BeginTime)/(nSweeps-1);
+
+    BeginTime.Format = 'dd/MM/yyyy HH:mm:ss';
+    EndTime.Format   = 'dd/MM/yyyy HH:mm:ss';
+
+    specData(1).MetaData.FreqStart = FreqStart;
+    specData.MetaData.FreqStop     = FreqStop;
+    specData.MetaData.DataPoints   = DataPoints;
+    specData.MetaData.Detector     = 'Sample';
+    specData.MetaData.LevelUnit    = LevelUnit;
+    specData.RelatedFiles(1,:)     = {[file ext], '-', 1, DefaultDescription(1, FreqStart, FreqStop), BeginTime, EndTime, nSweeps, RevisitTime, [], char(matlab.lang.internal.uuid())};
+
+    switch fileFormat
+        case 'Measurement Result'
+            specData.MetaData.DataType  = 167;
+            specData.MetaData.TraceMode = 'ClearWrite';
+        case 'Compressed Measurement Result'
+            specData.MetaData.DataType  = 168;
+            specData.MetaData.TraceMode = 'Average';
+    end
+
+    if ismember('Integration', rawTable.Properties.VariableNames)
+        specData.MetaData.TraceIntegration = median(rawTable.Integration);
+    end    
+
+    % Metadados extraídos da coluna "FileInfo"
+    fileHeader = rawTable.FileInfo(cellfun(@(x) ~isempty(x), rawTable.FileInfo));
+
+    ii = 1;
+    while ii <= numel(fileHeader)
+        fieldName  = strtrim(extractBefore(fileHeader{ii}, ':'));
+        fieldValue = strtrim(extractAfter( fileHeader{ii}, ':'));
+
+        %-----------------------------------------------------------------%
+        if ~isempty(fieldValue)
+            switch fieldName
+                case 'Meas. Unit'
+                    specData.Receiver = fieldValue;
+    
+                case 'Longitude'
+                    if ~exist('longDegree', 'var')
+                        longDMS    = regexp(fieldValue, '\d+(\.\d+)?', 'match');
+                        longDegree = (str2double(longDMS{1}) + str2double(longDMS{2})/60 + str2double(longDMS{3})/3600);
+                        if contains(fieldValue, 'W')
+                            longDegree = -longDegree;
+                        end               
+                    end
+    
+                case 'Latitude'
+                    if ~exist('latDegree', 'var')
+                        latDMS    = regexp(fieldValue, '\d+(\.\d*)?', 'match');
+                        latDegree = (str2double(latDMS{1}) + str2double(latDMS{2})/60 + str2double(latDMS{3})/3600);
+                        if contains(fieldValue, 'S')
+                            latDegree = -latDegree;
+                        end  
+                    end
+    
+                case 'IF Bandwidth'
+                    res = regexp(fieldValue, '\d+(\.\d*)?', 'match');
+                    specData.MetaData.Resolution = str2double(res{1}) * 1000;
+            end
+
+        %-----------------------------------------------------------------%
+        else
+            if ismember(fieldName, {'Measurement Definition', 'Range Definition', 'Device 1'})
+                switch fieldName
+                    case {'Measurement Definition', 'Range Definition'}
+                        subFieldNameList = {'Name', 'Date', 'Time'};
+
+                    case 'Device 1'
+                        subFieldNameList = {'Name', 'Azimuth', 'Elevation', 'Height'};
+                end
+
+                while true
+                    ii = ii+1;
+    
+                    subFieldName  = strtrim(extractBefore(fileHeader{ii}, ':'));
+                    subFieldValue = strtrim(extractAfter( fileHeader{ii}, ':'));
+    
+                    if ismember(subFieldName, subFieldNameList) && ~isempty(subFieldValue)
+                        switch fieldName
+                            case 'Measurement Definition'
+                                if strcmp(subFieldName, 'Name')
+                                    specData.RelatedFiles.Task{1} = subFieldValue;
+                                end
+    
+                            case 'Range Definition'
+                                if strcmp(subFieldName, 'Name')
+                                    if ~isnan(str2double(subFieldValue))
+                                        specData.RelatedFiles.ID(1)          = str2double(subFieldValue);
+                                        specData.RelatedFiles.Description{1} = DefaultDescription(specData.RelatedFiles.ID(1), specData.MetaData.FreqStart, specData.MetaData.FreqStop);
+                                    else
+                                        specData.RelatedFiles.Description{1} = subFieldValue;
+                                    end
+                                end
+
+                            case 'Device 1'
+                                specData.MetaData.Antenna.(subFieldName) = subFieldValue;
+                        end
+                    else
+                        ii = ii-1;
+                        break
+                    end
+                end
+            end
+        end
+        ii = ii+1;
+    end
+
+    % Informações relacionadas às coordenadas geográficas do local onde
+    % ocorreu a monitoração.    
+    if exist('latDegree', 'var') && exist('longDegree', 'var')
+        gpsData  = struct('Status', 1, 'Matrix', [latDegree longDegree]);
+    end
+    gpsData = fcn.gpsSummary({gpsData});
+
+    specData.GPS = rmfield(gpsData, 'Matrix');
+    specData.RelatedFiles.GPS = {gpsData};
+
+    % Identifica índices da tabela cujos valores não estão relacionadas ao
+    % vetor xArray, apagando-os. E depois salva a informação que será útil
+    % na leitura dos dados de espectro (de certa forma já lida, mas não
+    % mapeada na propriedade "Data").
+    if nSweeps*DataPoints ~= height(rawTable)
+        tableIndex = zeros(height(rawTable), 1, 'logical');
+
+        for kk = initialSweepIndex
+            tableIndex(kk:kk+DataPoints-1) = true;
+        end
+        rawTable(~tableIndex,:) = [];
+    end
+
+    specData.FileMap = struct('rawTable',    rawTable, ...
+                              'InputFormat', InputFormat);
+end
+
+
+%-------------------------------------------------------------------------%
+function specData = Fcn_SpecDataReader(specData)
+    if specData.Enable
+        rawTable    = specData.FileMap.rawTable;
+        InputFormat = specData.FileMap.InputFormat;
+    
+        DataPoints  = specData.MetaData.DataPoints;
+        idxSweeps   = 1:DataPoints:height(rawTable);
+        nSweeps     = specData.RelatedFiles.nSweeps(1);    
+    
+        % E, por fim, preenche o vetor de timestamp e a matriz de níveis...
+        specData              = PreAllocationData(specData);
+    
+        specData.Data{1}(:)   = datetime(DateTimePreProcess(rawTable.Time(idxSweeps)), 'InputFormat', InputFormat)';
+        specData.Data{2}(:,:) = reshape(rawTable{:,3}, [DataPoints, nSweeps]);
+    end
+
+    specData.FileMap      = [];
+end
+
+
+%-------------------------------------------------------------------------%
+function [fileFormat, LevelUnit] = text2metadata(fileName)
+    % Colunas comuns a ambos os tipos de arquivo: "Time", "Frequency (Hz)" 
+    % e "File Info". Alguns metadados (apresentados na última coluna da tabela)
+    % possuem "Time" como subcampo, o que pode inviabilizar a leitura correta
+    % da informação. Por isso, restringe-se apenas à busca pelas colunas 
+    % "Frequency (Hz)" e "File Info".
+
+    % Lembrando que apenas o arquivo do tipo 'Compressed Measurement Result' 
+    % possui coluna intitulada "Value Count". E que a unidade de médida consta
+    % apenas nos títulos das colunas - "Level (dBm)", "Level_1 (dBm)", "Level_2 (dBm)" 
+    % e "Level_3 (dBm)", por exemplo.
+    fileID = fopen(fileName, 'rt');
+
+    while true
+        lineContent = fgetl(fileID);
+
+        % O método fgetl retorna -1 (numérico) quando chega ao final do 
+        % arquivo...
+        if isequal(lineContent, -1)
+            break
+        end
+
+        if contains(lineContent, 'Frequency (Hz)') && contains(lineContent, 'File Info')
+            if contains(lineContent, 'Value Count'); fileFormat = 'Compressed Measurement Result';
+            else;                                    fileFormat = 'Measurement Result';
+            end
             
-            Fcn_SpecDataReader(filename);
+            if contains(lineContent, 'dBm');         LevelUnit = 'dBm';
+            else;                                    LevelUnit = 'dBµV/m';
+            end
+
+            break
+        end
     end
     fclose(fileID);
-    
-    specData = SpecInfo;
-    clear global SpecInfo
-    
-end    
-%% 
-% Leitura de *metadados*.
-function Fcn_MetaDataReader(fileID, filename)
-    global SpecInfo
-    
-    SpecInfo(1).ThreadID = 1;
-    SpecInfo.MetaData = struct('DataType',   [], 'ThreadID',    1, 'FreqStart',  [], 'FreqStop',   [], ...
-                               'LevelUnit',  [], 'DataPoints', [], 'Resolution', [], 'SampleTime', [], ...
-                               'Threshold',  [], 'TraceMode',  [], 'Detector',   [], 'metaString', []);
-    
-    latDegree   = [];
-    longDegree  = [];
-    freqStep    = [];
-    Resolution  = '';
-    TraceMode   = '';
-    Detector    = '';
-    
-    extractedLine = fgetl(fileID);
-    if contains(extractedLine, 'dBm')
-        SpecInfo.MetaData.LevelUnit = 1;
-        Unit  = 'dBm';
-    else
-        SpecInfo.MetaData.LevelUnit = 3;
-        Unit  = 'dBµV/m';
-    end
-    
-    while true
-        extractedLine = fgetl(fileID);
+
+    if ~exist('fileFormat', 'var') || ~exist('LevelUnit', 'var')
+        error('fileReader:ArgusCSV', 'Unsupported file format')
+    end    
+end
+
+
+%-------------------------------------------------------------------------%
+function rawTable = csv2table(fileName, fileFormat)
+    % Para que não seja necessária a leitura do cabeçalho do arquivo, busca-se 
+    % a leitura do arquivo como tabela. Para tanto, considera-se, inicialmente, 
+    % que o arquivo seria do tipo "Compressed Measurement Result".
+    switch fileFormat
+        case 'Compressed Measurement Result'
+            opts = delimitedTextImportOptions(NumVariables       = 8,          ...
+                                              DataLines          = [2, Inf],   ...
+                                              ExtraColumnsRule   = "ignore",   ...
+                                              VariableNamingRule = "preserve", ...
+                                              MissingRule        = "omitrow",  ...
+                                              VariableNames      = ["Time", "Frequency", "Level", "stdLevel", "minLevel", "maxLevel", "Integration", "FileInfo"], ...
+                                              VariableTypes      = ["char", "double", "single", "single", "single", "single", "single", "char"]);
         
-        if isempty(extractedLine)
+            opts = setvaropts(opts, [1,8], "WhitespaceRule", "preserve");
+            opts = setvaropts(opts, [1,8], "EmptyFieldRule", "auto");
+            opts = setvaropts(opts, 2:7,   "TrimNonNumeric", true);
+            opts = setvaropts(opts, 2:7,   "DecimalSeparator", ",");
+
+        case 'Measurement Result'
+            opts = delimitedTextImportOptions(NumVariables       = 4,          ...
+                                              DataLines          = [2, Inf],   ...
+                                              ExtraColumnsRule   = "ignore",   ...
+                                              VariableNamingRule = "preserve", ...
+                                              MissingRule        = "omitrow",  ...
+                                              VariableNames      = ["Time", "Frequency", "Level", "FileInfo"], ...
+                                              VariableTypes      = ["char", "double", "single", "char"]);
+        
+            opts = setvaropts(opts, [1,4], "WhitespaceRule", "preserve");
+            opts = setvaropts(opts, [1,4], "EmptyFieldRule", "auto");
+            opts = setvaropts(opts, 2:3,   "TrimNonNumeric", true);
+            opts = setvaropts(opts, 2:3,   "DecimalSeparator", ",");
+    end
+
+    rawTable = readtable(fileName, opts);
+
+    if ismember('Integration', rawTable.Properties.VariableNames)
+        rawTable(rawTable.Integration == 0, :) = [];
+    end
+end
+
+
+%-------------------------------------------------------------------------%
+function [TimeStamp, InputFormat] = str2datetime(sTimeStamp)
+    % Ao que parece, o Argus usa o formato definido no sistema operacional
+    % (Windows) de hora/data no arquivo CSV. Como são múltiplos formatos,
+    % foi prevista a decodificação dos principais (os mais comuns nas línguas 
+    % portuguesa e inglesa).
+     
+    datetimeFormats      = table('Size', [0,2],                     ...
+                                 'VariableTypes', {'cell', 'cell'}, ...
+                                 'VariableNames', {'Format', 'Expression'});
+
+    datetimeFormats(1,:) = {'yyyy.MM.dd  HH:mm:ss.SSS', '^\d{4}[.]\d{1,2}[.]\d{1,2}\s+\d{1,2}:\d{2}:\d{2}[.]\d{3}$'};
+    datetimeFormats(2,:) = {'dd.MM.yyyy  HH:mm:ss.SSS', '^\d{1,2}[.]\d{1,2}[.]\d{4}\s+\d{1,2}:\d{2}:\d{2}[.]\d{3}$'};
+
+    sTimeStamp = DateTimePreProcess(sTimeStamp);
+    for ii = 1:height(datetimeFormats)
+        tempTime = regexp(sTimeStamp, datetimeFormats.Expression{ii}, 'match');
+
+        if ~isempty(tempTime)
+            InputFormat = datetimeFormats.Format{ii};
+            TimeStamp   = datetime(sTimeStamp, 'InputFormat', InputFormat);
             break
         end
-        
-        value = strsplit(extractedLine, '",');
-        if isempty(value{end})
-            break
-        end
-        str1 = char(extractBetween(value{end}, '"', ':'));
-        str1 = replace(str1, ' ', '');
-        
-        str2 = extractAfter(value{end}, ': ');
-        str2 = replace(str2, '"', '');
-        
-        switch str1
-            case 'Meas.Unit'
-                SpecInfo.Node = str2;
-            case 'Longitude'
-                if isempty(longDegree)
-                    longDMS    = regexp(str2, '\d+(\.\d+)?', 'match');
-                    longDegree = (str2double(longDMS{1}) + str2double(longDMS{2})/60 + str2double(longDMS{3})/3600);
-                    if contains(str2, 'W')
-                        longDegree = -longDegree;
-                    end               
-                end
-            case 'Latitude'
-                if isempty(latDegree)
-                    latDMS    = regexp(str2, '\d+(\.\d*)?','match');
-                    latDegree = (str2double(latDMS{1}) + str2double(latDMS{2})/60 + str2double(latDMS{3})/3600);
-                    if contains(str2, 'S')
-                        latDegree = -latDegree;
-                    end  
-                end
-            case 'MeasurementResultType'
-                SpecInfo.FileFormat = ['R&S Argus ' str2];
-                if strcmp(SpecInfo.FileFormat, 'R&S Argus Measurement Result')
-                    SpecInfo.MetaData.DataType = 167;
-                    SpecInfo.MetaData.TraceMode = 0; 
-                    TraceMode = 'ClearWrite';
-                elseif strcmp(SpecInfo.FileFormat, 'R&S Argus Compressed Measurement Result')
-                    SpecInfo.MetaData.DataType = 168;
-                    SpecInfo.MetaData.TraceMode = 1;
-                    TraceMode = 'Average';
-                else
-                    fclose(fileID);
-                    error('Leitura de formato de arquivo ainda não implementada. Favor acionar Eric (GR08).');
-                end
-            case 'CompressTimeInterval'
-%                 timeInt = str2;
-%                 nTime = regexp(timeInt, '\d+(\.\d*)?', 'match');
-%                 SpecInfo.MetaData.SampleTime = time2seconds(nTime{1});
-            case 'MeasurementDefinition'
-                extractedLine = fgetl(fileID);
-                value = strsplit(extractedLine, '","');
-                str2 = char(extractBetween(value{end}, ': ', '"'));
-                SpecInfo.TaskName = str2;
-            case 'RangeDefinition'
-                extractedLine = fgetl(fileID);
-                value = strsplit(extractedLine, '","');
-                str2 = char(extractBetween(value{end}, ': ', '"'));
-                
-                if ~isnan(str2double(str2))
-                    SpecInfo.ThreadID    = str2double(str2);
-                    SpecInfo.Description = sprintf('ThreadID %.0f: %.3f - %.3f MHz', ...
-                                                   SpecInfo.ThreadID, ...
-                                                   SpecInfo.MetaData.FreqStart ./ 1e+6, ...
-                                                   SpecInfo.MetaData.FreqStop  ./ 1e+6);
-                else
-                    SpecInfo.Description = str2;
-                end                
-            case 'MinimumFrequency'
-                SpecInfo.MetaData.FreqStart = convert2hz(str2);
-            case 'MaximumFrequency'
-                SpecInfo.MetaData.FreqStop  = convert2hz(str2);             
-            case 'StepWidth'
-                freqStep = convert2hz(str2);
-            case 'IFBandwidth'
-                res = regexp(str2, '\d+(\.\d*)?', 'match');
-                SpecInfo.MetaData.Resolution = str2double(res{1}) * 1000;
-                Resolution = sprintf('%.3f kHz', SpecInfo.MetaData.Resolution/1000);
-            case 'Detector'
-                if strcmp(str2, 'Fast')
-                    Detector = 'Sample';
-                    SpecInfo.MetaData.Detector = 1;
-                end
-        end  
     end
-    
-    if isempty(SpecInfo.MetaData.FreqStart) | isempty(SpecInfo.MetaData.FreqStop) | isempty(freqStep)
-        error('Algum metadado obrigatório não foi identificado.')
+
+    if ~exist('TimeStamp', 'var')
+        error('fileReader:ArgusCSV', 'Unsupported date/time format')
     end
-    
-    SpecInfo.MetaData.DataPoints = (SpecInfo.MetaData.FreqStop - SpecInfo.MetaData.FreqStart)/freqStep + 1;
-    
-    if SpecInfo.MetaData.FreqStart < 1e+9
-        antennaName = 'Rohde & Schwarz ADD107';
-    else
-        antennaName = 'Rohde & Schwarz ADD207';
-    end
-    SpecInfo.MetaData.metaString = {Unit, Resolution, TraceMode, Detector, antennaName};
-    
-    if latDegree & longDegree
-        GPS = struct('Latitude',  latDegree,  ...
-                     'Longitude', longDegree);
-        
-        SpecInfo.gps = struct('Status', 1, 'Latitude', latDegree, 'Longitude', longDegree, 'Count', 1, 'Location', geo_FindCity(GPS), 'Matrix', [latDegree, longDegree]);
-    else
-        SpecInfo.gps = struct('Status', 0, 'Latitude', -1, 'Longitude', -1, 'Count', 0, 'Location', '', 'Matrix', []);
-    end
-    SpecInfo.RelatedGPS = {SpecInfo.gps};
-    SpecInfo.gps        = rmfield(SpecInfo.gps, {'Count', 'Matrix'});
-        
 end
-%% 
-% Leitura de informações de *níveis apenas dos dados de blocos espectrais*.
-function Fcn_SpecDataReader(filename)
-    global SpecInfo
-    global freqs
-    inData = csvTable(filename);
-    inData = table2cell(inData(:,1:3));
-    
-    % Eliminação de linhas que estejam faltando a informação de frequência ou nível.
-    indexTrash = find(cellfun(@(x) ismissing(x), inData(:,2:3)));
-    indexTrash(indexTrash > height(inData)) = indexTrash(indexTrash > height(inData)) - height(inData);
-    indexTrash = unique(indexTrash);
-    
-    inData(indexTrash,:) = [];
-    
-    [freqs, ~, ifreqs] = unique(cell2mat(inData(:,2)), "stable");
-    cfreqs             = accumarray(ifreqs, 1);
-    
-    if SpecInfo.MetaData.DataPoints ~= numel(freqs)
-        SpecInfo.MetaData.DataPoints = numel(freqs);
-    end
-    
-    % Eliminação de blocos de dados incompletos, caso existentes.
-    indexF0 = find(ifreqs == 1);
-    if min(cfreqs) ~= max(cfreqs)
-        while true
-            [~, ~, ifreqs] = unique(cell2mat(inData(:,2)), "stable");
-            indexF0 = find(ifreqs == 1);
-            indexF1 = find(ifreqs == SpecInfo.MetaData.DataPoints);
-            
-            auxIndexF0 = indexF0;
-            auxIndexF1 = indexF1;
-            
-            value1 = numel(indexF1) - numel(indexF0);
-            if     value1 > 0; auxIndexF1 = indexF1(1:end-value1);
-            elseif value1 < 0; auxIndexF0 = indexF0(1:end+value1);
-            end
-            
-            indexDiff = find(auxIndexF1-auxIndexF0 ~= (SpecInfo.MetaData.DataPoints-1), 1);
-            if isempty(indexDiff)
-                value1 = numel(indexF1) - numel(indexF0);
-                if value1 == 0
-                    break
-                elseif value1 < 0
-                    inData(indexF0(end):end,:) = [];
-                    indexF0(end)               = [];
-                elseif value1 > 0
-                    inData(indexF1(end):end,:) = [];
-                    indexF1(end)               = [];
-                end
-                
-            else
-                valueDiff = auxIndexF1(indexDiff)-auxIndexF0(indexDiff);
-                if valueDiff > 0
-                    if valueDiff < SpecInfo.MetaData.DataPoints-1
-                        inData(indexF0(indexDiff):indexF1(indexDiff),:) = [];
-                        
-                        indexF0(indexDiff) = [];
-                        indexF1(indexDiff) = [];
-                        
-                    else
-                        downLim = indexF0(indexDiff);
-                        upLim   = indexF0(indexDiff)+valueDiff;
-                                            
-                        if upLim >= height(inData) || indexDiff+1 > numel(indexF0)
-                            inData(downLim:end,:) = [];
-                        else
-                            inData(downLim:indexF0(indexDiff+1)-1,:) = [];
-                        end
-                        indexF0(indexDiff) = [];
-                    end
-                    
-                else
-                    downLim = indexF1(indexDiff-1);
-                    upLim   = indexF1(indexDiff);
-                    
-                    if (indexDiff-1) < 1; inData(1:upLim,:)         = [];
-                    else;                 inData(downLim+1:upLim,:) = [];
-                    end
-                    indexF1(indexDiff) = [];
-                end
-            end
-        end
-    end
-    SpecInfo.Samples = numel(indexF0);
-    
-    dataTime = inData(indexF0, 1);
-    if contains(inData{1,1}, '-')
-        dataFormat = 'yyyy-MM-dd  HH:mm:ss,SSS';
-    elseif contains(inData{1,1}, '/')
-        dataFormat = 'dd/MM/yyyy  HH:mm:ss,SSS';
-    else
-        error(['Formato de data/hora não compatível com àqueles já identificados que são gerados pelo ' ...
-               'Argus - "yyyy-MM-dd  HH:mm:ss,SSS" e "dd/MM/yyyy  HH:mm:ss,SSS". Favor acionar Eric (GR08).']);
-    end
-    
-    SpecInfo.Data{1} = datetime(dataTime', 'InputFormat', dataFormat, 'Format', 'dd/MM/yyyy HH:mm:ss');
-    SpecInfo.Data{2} = single(reshape(cell2mat(inData(:,3)), [length(freqs), SpecInfo.Samples]));  
-    StartTime = SpecInfo.Data{1}(1);
-    StopTime  = SpecInfo.Data{1}(end);
-    ObservationTime = sprintf('%s - %s', datestr(StartTime, 'dd/mm/yyyy HH:MM:SS'), datestr(StopTime, 'dd/mm/yyyy HH:MM:SS'));
-    RevisitTime     = seconds(StopTime-StartTime)/(SpecInfo.Samples-1);
-        
-    SpecInfo.ObservationTime = ObservationTime;
-    
-    [~, file, ext] = fileparts(filename);
-    SpecInfo.RelatedFiles = table({[file ext]}, StartTime, StopTime, SpecInfo.Samples, RevisitTime, ...
-                                  'VariableNames', {'Name', 'BeginTime', 'EndTime', 'Samples', 'RevisitTime'});
-    
-%     if isempty(SpecInfo.MetaData.SampleTime)
-%         SpecInfo.MetaData.SampleTime = mean(seconds(SpecInfo.Data{1}(2:end) - SpecInfo.Data{1}(1:end-1)));
-%     end
-    
+
+
+%-------------------------------------------------------------------------%
+function sTimeStamp = DateTimePreProcess(sTimeStamp)
+    sTimeStamp = replace(sTimeStamp, {',', '/', '-'}, '.');
 end
-%% 
-% Funções auxiliares:
-% 
-% 1. Receives as input a string containing frequency and unit (e.g., "90.1 MHz") 
-% and return the frequency in Hertz (i.e., 90,100,000) as a number.
-function freq = convert2hz(f1)
-    f1 = replace(f1, ',', '.');
-    factor = 1;
-    if contains(f1, 'THz');     factor = 1e+12;
-    elseif contains(f1, 'GHz'); factor = 1e+9;
-    elseif contains(f1, 'MHz'); factor = 1e+6;
-    elseif contains(f1, 'kHz'); factor = 1e+3;
-    end
-    freq = str2double(regexp(f1,'\d+(\.\d*)?','match')) * factor;
-    freq = freq(1);
-    
-end
-%% 
-% 2. Receives as input a string containing time and unit (e.g., "2 min") and 
-% return the time in seconds (i.e., 120) as a number.
-function time = time2seconds(t1)
-   factor = 1;
-   if contains(t1,'min');    factor = 60;
-   elseif contains(t1,'ms'); factor = 0.001;
-   elseif contains(t1,'h');  factor = 3600;
-   end
-   time = str2double(regexp(t1,'\d+(\.\d*)?','match'))*factor;
-   
-end
-%% 
-% 3. Read CSV file as a table
-function csvTable = csvTable(filename)
-    global SpecInfo
-    
-    if strcmp(SpecInfo.FileFormat, 'R&S Argus Compressed Measurement Result')
-        opts = delimitedTextImportOptions("NumVariables", 8);
-        
-        % Specify range and delimiter
-        opts.DataLines = [2, Inf];
-        opts.Delimiter = ",";
-        
-        % Specify column names and types
-        opts.VariableNames         = ["Time", "FrequencyHz", "LeveldBm", "Level_1dBm", "Level_2dBm", "Level_3dBm", "ValueCount", "FileInfo"];
-        opts.VariableTypes         = ["char", "double", "double", "double", "double", "double", "double", "string"];
-        opts.SelectedVariableNames = ["Time", "FrequencyHz", "LeveldBm","ValueCount"];
-        
-        % Specify file level properties
-        opts.ExtraColumnsRule = "ignore";
-        opts.EmptyLineRule    = "read";
-        
-        % Specify variable properties
-        opts = setvaropts(opts, ["Time", "FileInfo"], "WhitespaceRule", "preserve");
-        opts = setvaropts(opts, ["Time", "FileInfo"], "EmptyFieldRule", "auto");
-        opts = setvaropts(opts, ["LeveldBm", "Level_1dBm", "Level_2dBm", "Level_3dBm"], "TrimNonNumeric", true);
-        opts = setvaropts(opts, ["LeveldBm", "Level_1dBm", "Level_2dBm", "Level_3dBm"], "DecimalSeparator", ",");
-        
-        csvTable = readtable(filename, opts);
-        csvTable(find(csvTable.ValueCount == 0),:) = []; 
-    else
-        opts = delimitedTextImportOptions("NumVariables", 4);
-        
-        % Specify range and delimiter
-        opts.DataLines = [2, Inf];
-        opts.Delimiter = ",";
-        
-        % Specify column names and types
-        opts.VariableNames = ["Time", "FrequencyHz", "LeveldBm", "FileInfo"];
-        opts.VariableTypes = ["char", "double", "double", "string"];
-        
-        % Specify file level properties
-        opts.ExtraColumnsRule = "ignore";
-        opts.EmptyLineRule    = "read";
-        
-        % Specify variable properties
-        opts = setvaropts(opts, ["Time", "FileInfo"], "WhitespaceRule", "preserve");
-        opts = setvaropts(opts, ["Time", "FileInfo"], "EmptyFieldRule", "auto");
-        opts = setvaropts(opts, "LeveldBm", "TrimNonNumeric", true);
-        opts = setvaropts(opts, "LeveldBm", "DecimalSeparator", ",");
-        
-        csvTable = readtable(filename, opts);
-    end
+
+
+%-------------------------------------------------------------------------%
+function Description = DefaultDescription(ID, FreqStart, FreqStop)
+    Description = sprintf('ID %.0f: %.3f - %.3f MHz', ID, FreqStart/1e+6, FreqStop/1e+6);
 end

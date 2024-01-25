@@ -1,3 +1,21 @@
+v. 1.39 (14/11/2023)
+- BUGS
+(a) Corrigido BUG no leitor do RFlookBinV2 que impedia a visualização da informação espectral em mapa (Drive-test).
+
+v. 1.38 (12/11/2023)
+- BUGS
+(a) Implementada lógica, na leitura de arquivos binários gerados pelo appColetaV2, que possibilita a interpolação/extrapolação de coordenadas geográficas que não foram devidamente aferidas, possibilitando que a relação de varreduras e coordenadas seja 1:1.
+(b) Limitada abertura de uma única janela do modo Drive-test.
+
+v. 1.37 (31/10/2023)
+- BUGS
+(a) Corrigido BUG na leitura de arquivos binários gerados pelo appColeta.
+(b) Corrigido BUG na abertura de um arquivo de projeto.
+(c) Corrigido BUG na inclusão de uma emissão por ROI, no modo PLAYBACK, decorrente do upgrade do MATLAB (R2021b >> R2023a).
+
+v. 1.36 (01/09/2023)
+- Início de refatoração do app, iniciando a organização dos leitores de arquivos em subpasta "+fileReader". Além disso, foi corrigido bug que se manifestava quando da tentativa de realização de prévia de relatório de informação gerada pela CellPlan.
+
 v. 1.35 (28/06/2023)
 - EVOLUÇÕES
 (a) Possibilidade de editar manualmente a informação da localidade, não alterando as coordenadas geográficas do local da monitoração.

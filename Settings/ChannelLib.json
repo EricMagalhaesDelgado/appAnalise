@@ -1,0 +1,311 @@
+{
+  "Channel": [
+    {
+      "Name": "TV Low VHF (1)",
+      "Band": [
+        54,
+        72
+      ],
+      "FirstChannel": 57,
+      "LastChannel": 69,
+      "StepWidth": 6,
+      "ChannelBW": 6,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+      "FindPeaksName": "TV"
+    },
+    {
+      "Name": "TV Low VHF (2)",
+      "Band": [
+        76,
+        88
+      ],
+      "FirstChannel": 79,
+      "LastChannel": 85,
+      "StepWidth": 6,
+      "ChannelBW": 6,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+      "FindPeaksName": "TV"
+    },
+    {
+      "Name": "FM",
+      "Band": [
+        76,
+        108
+      ],
+      "FirstChannel": 76.1,
+      "LastChannel": 107.9,
+      "StepWidth": 0.2,
+      "ChannelBW": 0.256,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+      "FindPeaksName": "FM"
+    },
+    {
+      "Name": "Aircraft_1",
+      "Band": [
+        108,
+        118
+      ],
+      "FirstChannel": 108,
+      "LastChannel": 117.9,
+      "StepWidth": 0.1,
+      "ChannelBW": 0.01,
+      "FreqList": [],
+      "Reference": "",
+      "FindPeaksName": "Aircraft"
+    },
+    {
+      "Name": "Aircraft_2",
+      "Band": [
+        118,
+        137
+      ],
+      "FirstChannel": 118,
+      "LastChannel": 137,
+      "StepWidth": 0.025,
+      "ChannelBW": 0.01,
+      "FreqList": [],
+      "Reference": "",
+      "FindPeaksName": "Aircraft"
+    },
+    {
+      "Name": "TV High VHF",
+      "Band": [
+        174,
+        216
+      ],
+      "FirstChannel": 177,
+      "LastChannel": 213,
+      "StepWidth": 6,
+      "ChannelBW": 6,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+      "FindPeaksName": "TV"
+    },
+    {
+      "Name": "TV UHF (1)",
+      "Band": [
+        470,
+        608
+      ],
+      "FirstChannel": 473,
+      "LastChannel": 605,
+      "StepWidth": 6,
+      "ChannelBW": 6,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+      "FindPeaksName": "TV"
+    },
+    {
+      "Name": "TV UHF (2)",
+      "Band": [
+        614,
+        698
+      ],
+      "FirstChannel": 617,
+      "LastChannel": 695,
+      "StepWidth": 6,
+      "ChannelBW": 6,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+      "FindPeaksName": "TV"
+    },
+    {
+      "Name": "Cellular 700MHz",
+      "Band": [
+        763,
+        803
+      ],
+      "FirstChannel": 768,
+      "LastChannel": 798,
+      "StepWidth": 10,
+      "ChannelBW": 10,
+      "FreqList": [],
+      "Reference": "",
+      "FindPeaksName": "Cellular"
+    },
+    {
+      "Name": "Cellular 800MHz",
+      "Band": [
+        869,
+        894
+      ],
+      "FirstChannel": 874.5,
+      "LastChannel": 892.75,
+      "StepWidth": -1,
+      "ChannelBW": -1,
+      "FreqList": [
+        874.5,
+        890.75,
+        885,
+        892.75
+      ],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2006/89-resolucao-454",
+      "FindPeaksName": "Cellular"
+    },
+    {
+      "Name": "Cellular 900MHz",
+      "Band": [
+        943.5,
+        960
+      ],
+      "FirstChannel": 944.75,
+      "LastChannel": 958.75,
+      "StepWidth": -1,
+      "ChannelBW": -1,
+      "FreqList": [
+        944.75,
+        951,
+        952.5,
+        953.75,
+        955,
+        956.25,
+        957.5,
+        958.75
+      ],
+      "Reference": "",
+      "FindPeaksName": "Cellular"
+    },
+    {
+      "Name": "Cellular 1.88GHz",
+      "Band": [
+        1805,
+        1880
+      ],
+      "FirstChannel": 1807.5,
+      "LastChannel": 1877.5,
+      "StepWidth": 2.5,
+      "ChannelBW": -1,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2022/1760-resolucao-757",
+      "FindPeaksName": "Cellular"
+    },
+    {
+      "Name": "Cellular 2.1GHz",
+      "Band": [
+        2110,
+        2200
+      ],
+      "FirstChannel": 2112.5,
+      "LastChannel": 2197.5,
+      "StepWidth": 2.5,
+      "ChannelBW": -1,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2022/1760-resolucao-757",
+      "FindPeaksName": "Cellular"
+    },
+    {
+      "Name": "Cellular 2.5GHz",
+      "Band": [
+        2620,
+        2690
+      ],
+      "FirstChannel": 2622.5,
+      "LastChannel": 2687.5,
+      "StepWidth": 2.5,
+      "ChannelBW": -1,
+      "FreqList": [],
+      "Reference": "",
+      "FindPeaksName": "Cellular"
+    },
+    {
+      "Name": "Cellular 3.5GHz",
+      "Band": [
+        3300,
+        3800
+      ],
+      "FirstChannel": 3305,
+      "LastChannel": 3795,
+      "StepWidth": 5,
+      "ChannelBW": -1,
+      "FreqList": [],
+      "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2019/1285-resolucao-711",
+      "FindPeaksName": "Cellular"
+    }
+  ],
+  "Exception": [
+    {
+      "FreqCenter": 123.45,
+      "Description": "[DOC] ICA102-16, Comunicação interpilotos (ar-ar)."
+    },
+    {
+      "FreqCenter": 131.55,
+      "Description": "[DOC] Aircraft Communications Addressing and Reporting System (ACARS)."
+    },
+    {
+      "FreqCenter": 156.3,
+      "Description": "[DOC] CH06 VHF, Segurança/socorro"
+    },
+    {
+      "FreqCenter": 156.525,
+      "Description": "[DOC] CH70 VHF, Segurança/socorro"
+    },
+    {
+      "FreqCenter": 156.65,
+      "Description": "[DOC] CH13 VHF, Segurança/socorro"
+    },
+    {
+      "FreqCenter": 156.8,
+      "Description": "[DOC] CH16 VHF, Segurança/socorro"
+    },
+    {
+      "FreqCenter": 161.975,
+      "Description": "[DOC] AIS1, Segurança/socorro"
+    },
+    {
+      "FreqCenter": 162.025,
+      "Description": "[DOC] AIS2, Segurança/socorro"
+    }
+  ],
+  "DefaultChannelStep": 0.025,
+  "DefaultMinBandSpan": 10,
+  "FindPeaks": [
+    {
+      "Name": "Aircraft",
+      "Distance": 0.025,
+      "BW": 0.010,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 1,
+      "maxOCC": 10
+    },
+    {
+      "Name": "Cellular",
+      "Distance": 2.5,
+      "BW": 2.5,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 10,
+      "maxOCC": 67
+    },
+    {
+      "Name": "FM",
+      "Distance": 0.200,
+      "BW": 0.050,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 10,
+      "maxOCC": 67
+    },
+    {
+      "Name": "TV",
+      "Distance": 4.5,
+      "BW": 0.150,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 10,
+      "maxOCC": 67
+    },
+    {
+      "Name": "Unknown",
+      "Distance": 0.025,
+      "BW": 0.010,
+      "Prominence1": 10,
+      "Prominence2": 30,
+      "meanOCC": 10,
+      "maxOCC": 67
+    }
+  ]
+}

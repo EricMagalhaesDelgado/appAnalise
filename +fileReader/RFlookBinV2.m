@@ -1,8 +1,8 @@
 function specData = RFlookBinV2(fileName, ReadType, metaData)
 
     % Author.: Eric Magalhães Delgado
-    % Date...: July 19, 2023
-    % Version: 1.00
+    % Date...: November 10, 2023
+    % Version: 1.01
 
     arguments
         fileName char
@@ -32,7 +32,7 @@ function specData = RFlookBinV2(fileName, ReadType, metaData)
             end
             
         case 'SpecData'
-            specData = metaData(1).Data;
+            specData = copy(metaData(1).Data, {});
             specData = Fcn_SpecDataReader(specData, rawData);
     end
 end
@@ -42,12 +42,8 @@ end
 function specData = Fcn_MetaDataReader(rawData, filename)
 
     % Criação das variáveis principais (specData e gpsData)
-    % specData = class.specData;
-    specData = struct('Node',         '', 'ThreadID',   '', 'MetaData',   [], 'ObservationTime', '', 'Samples',     [], ...
-                      'Data',         {}, 'statsData',  [], 'FileFormat', '', 'TaskName',        '', 'Description', '', ...
-                      'RelatedFiles', [], 'RelatedGPS', {}, 'gps',        [], 'UserData',        []);
-    gpsData  = struct('Status',     0, 'Latitude',  -1, 'Longitude', -1, ...
-                      'Count',      0, 'Location',  '', 'Matrix',    []);
+    specData = class.specData.empty;
+    gpsData  = struct('Status', 0, 'Matrix', []);
 
     
     % Busca pelas expressões que delimitam os blocos de espectro:
@@ -74,28 +70,27 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     nMetaStruct    = typecast(rawData(19:22), 'uint32');
     MetaStruct     = jsondecode(native2unicode(rawData(23:22+nMetaStruct)));
 
-    specData(1).Node             = MetaStruct.Receiver;
-    specData.ThreadID            = MetaStruct.ID;
-    specData.FileFormat          = 'RFlookBin';
-    specData.TaskName            = MetaStruct.Task;
-    specData.Description         = MetaStruct.Description;
+    specData(1).Receiver          = MetaStruct.Receiver;
     
     specData.MetaData.DataType   = 2;
-    specData.MetaData.ThreadID   = MetaStruct.ID; 
     specData.MetaData.FreqStart  = MetaStruct.FreqStart;
     specData.MetaData.FreqStop   = MetaStruct.FreqStop;
-    specData.MetaData.LevelUnit  = class.specData.str2id('LevelUnit', MetaStruct.Unit);
+    specData.MetaData.LevelUnit  = class.specData.str2str(MetaStruct.Unit);
     specData.MetaData.DataPoints = MetaStruct.DataPoints;
+    
     specData.MetaData.Resolution = str2double(extractBefore(MetaStruct.Resolution, ' kHz'))*1000;
-    specData.MetaData.SampleTime = [];    
-    specData.MetaData.Threshold  = [];
-    specData.MetaData.TraceMode  = class.specData.str2id('TraceMode', MetaStruct.TraceMode);
-    specData.MetaData.Detector   = class.specData.str2id('Detector',  MetaStruct.Detector);
-    specData.MetaData.metaString = {MetaStruct.Unit,       ...
-                                    MetaStruct.Resolution, ...
-                                    MetaStruct.TraceMode,  ...
-                                    MetaStruct.Detector,   ...
-                                    jsonencode(MetaStruct.AntennaInfo)};
+    if isfield(MetaStruct, 'VBW')
+        specData.MetaData.Resolution = str2double(extractBefore(MetaStruct.VBW, ' kHz'))*1000;
+    end
+
+    specData.MetaData.TraceMode  = MetaStruct.TraceMode;
+
+    if ~strcmp(MetaStruct.TraceMode, 'ClearWrite')
+        specData.MetaData.TraceIntegration = MetaStruct.TraceIntegration;
+    end
+    
+    specData.MetaData.Detector   = MetaStruct.Detector;
+    specData.MetaData.Antenna    = MetaStruct.AntennaInfo;
 
     % Número de bytes do cabeçalho dos blocos de espectro:
     % (a) blockOffset1: gps e atenuação
@@ -110,12 +105,11 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     else;                            blockOffset2 =  0;
     end
 
-    specData.Samples  = numel(startIndex);
-    specData.UserData = struct('BitsPerSample', BitsPerSample, ...
-                               'blockOffset1',  blockOffset1,  ...
-                               'blockOffset2',  blockOffset2,  ...
-                               'idxTable',      table(startIndex', stopIndex', 'VariableNames', {'startByte', 'stopByte'}), ...
-                               'attData',       struct('Mode', attMode_ID, 'Array', []));
+    specData.FileMap = struct('BitsPerSample', BitsPerSample, ...
+                              'blockOffset1',  blockOffset1,  ...
+                              'blockOffset2',  blockOffset2,  ...
+                              'idxTable',      table(startIndex', stopIndex', 'VariableNames', {'startByte', 'stopByte'}), ...
+                              'attData',       struct('Mode', attMode_ID, 'Array', []));
 
     % O gpsMode_ID por ser 0 (manual), 1 (Built-in) ou 2 (External).
     % (a) Se gpsMode_ID = 0     >> gpsData.Status = -1
@@ -134,21 +128,12 @@ function specData = Fcn_MetaDataReader(rawData, filename)
             if ii == nSweeps
                 EndTime   = observationTime(blockArray);
             end
-            
+
             gpsArray(ii,:) = [single(blockArray(9)),                 ...    % STATUS
                               typecast(blockArray(10:13), 'single'), ...    % LATITUDE
                               typecast(blockArray(14:17), 'single')];       % LONGITUDE
         end
-        gpsTempData    = fcn.gpsInterpolation(gpsArray);
-
-        gpsData.Status = gpsTempData.Status;
-        gpsData.Matrix = gpsTempData.Matrix;
-
-        if ~isempty(gpsData.Matrix)
-            gpsData.Count     = height(gpsData.Matrix);
-            gpsData.Latitude  = mean(gpsData.Matrix(:,1));
-            gpsData.Longitude = mean(gpsData.Matrix(:,2));
-        end
+        gpsData = fcn.gpsInterpolation(gpsArray);
 
     else
         BeginTime = observationTime(rawData(startIndex(1):stopIndex(1)));
@@ -156,26 +141,17 @@ function specData = Fcn_MetaDataReader(rawData, filename)
 
         if isfield(MetaStruct, 'Latitude') && isfield(MetaStruct, 'Longitude')
             gpsData.Status = -1;
-            gpsData.Count  = 1;
             gpsData.Matrix(end+1,:) = [MetaStruct.Latitude, MetaStruct.Longitude];
         end
     end
-
-    if ~isempty(gpsData.Matrix)
-        gpsData.Latitude  = mean(gpsData.Matrix(:,1));
-        gpsData.Longitude = mean(gpsData.Matrix(:,2));
-        gpsData.Location  = geo_FindCity(gpsData);
-    end
+    gpsData = fcn.gpsSummary({gpsData});
 
     [~, file, ext]  = fileparts(filename);
-    ObservationTime = sprintf('%s - %s', datestr(BeginTime, 'dd/mm/yyyy HH:MM:SS'), datestr(EndTime, 'dd/mm/yyyy HH:MM:SS'));
-    RevisitTime     = seconds(EndTime-BeginTime)/(specData.Samples-1);
+    RevisitTime     = seconds(EndTime-BeginTime)/(nSweeps-1);
 
-    specData.ObservationTime = ObservationTime;
-    specData.gps             = rmfield(gpsData, {'Count', 'Matrix'});
-    specData.RelatedGPS      = {gpsData};
-    specData.RelatedFiles    = table({[file ext]}, BeginTime, EndTime, specData.Samples, RevisitTime, ...
-                                      'VariableNames', {'Name', 'BeginTime', 'EndTime', 'Samples', 'RevisitTime'});    
+    specData.GPS = rmfield(gpsData, 'Matrix');
+    specData.RelatedFiles(end+1,:) = {[file ext], MetaStruct.Task, MetaStruct.ID, MetaStruct.Description, BeginTime, EndTime, nSweeps, RevisitTime, {gpsData}, char(matlab.lang.internal.uuid())};
+    
 end
 
 
@@ -186,61 +162,62 @@ function specData = Fcn_SpecDataReader(specData, rawData)
         return
     end
 
-    % Pré-alocação das variáveis na memória...
-    specData.Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, specData.Samples), ...
-                     zeros(specData.MetaData.DataPoints, specData.Samples, 'single')};
+    if specData.Enable
+        specData = specData.PreAllocationData();
+        nSweeps  = specData.RelatedFiles.nSweeps;
+        
+        if specData.FileMap.attData.Mode
+            specData.FileMap.attData.Array = zeros(nSweeps, 1, 'uint8');
+        end
     
-    if specData.UserData.attData.Mode
-        specData.UserData.attData.Array = zeros(specData.Samples, 1, 'uint8');
-    end
-
-    % Apenas para simplificar a notação...
-    BitsPerSample = specData.UserData.BitsPerSample;    
-    startIndex    = specData.UserData.idxTable.startByte;
-    stopIndex     = specData.UserData.idxTable.stopByte;    
-    blockOffset1  = specData.UserData.blockOffset1;
-    blockOffset2  = specData.UserData.blockOffset2;
-
-    for ii = specData.Samples:-1:1
-        try
-            blockArray = rawData(startIndex(ii):stopIndex(ii));
-            TimeStamp  = observationTime(blockArray);
+        % Apenas para simplificar a notação...
+        BitsPerSample = specData.FileMap.BitsPerSample;    
+        startIndex    = specData.FileMap.idxTable.startByte;
+        stopIndex     = specData.FileMap.idxTable.stopByte;    
+        blockOffset1  = specData.FileMap.blockOffset1;
+        blockOffset2  = specData.FileMap.blockOffset2;
     
-            if BitsPerSample == 8
-                RefLevel = double(typecast(blockArray(blockOffset1+9:blockOffset1+10), 'int16'));
-                OFFSET   = RefLevel - 127.5;
-            end
-    
-            compressedArray = blockArray(blockOffset1+blockOffset2+9:end);
-            processedArray  = class.CompressLib.decompress(compressedArray);
-    
-            switch BitsPerSample
-                case  8; newArray = single(processedArray)./2 + OFFSET;
-                case 16; newArray = single(processedArray)./100;
-                case 32; newArray = processedArray;
-            end
-    
-            if numel(newArray) == specData.MetaData.DataPoints
-                specData.Data{1}(ii)   = TimeStamp;
-                specData.Data{2}(:,ii) = newArray;
-                
-                if ~isempty(specData.UserData.attData.Array)
-                    specData.UserData.attData.Array(ii) = blockArray(blockOffset1+8);
+        for ii = 1:nSweeps
+            try
+                blockArray = rawData(startIndex(ii):stopIndex(ii));
+                TimeStamp  = observationTime(blockArray);
+        
+                if BitsPerSample == 8
+                    RefLevel = double(typecast(blockArray(blockOffset1+9:blockOffset1+10), 'int16'));
+                    OFFSET   = RefLevel - 127.5;
                 end
-            else
-                error('Not expected array length.')
-            end
-
-        catch
-            specData.Data{1}(ii)   = [];
-            specData.Data{2}(:,ii) = [];
-
-            if ~isempty(specData.UserData.attData.Array)
-                specData.UserData.attData.Array(ii) = [];
+        
+                compressedArray = blockArray(blockOffset1+blockOffset2+9:end);
+                processedArray  = matlabCommunity.CompressLib.decompress(compressedArray);
+        
+                switch BitsPerSample
+                    case  8; newArray = single(processedArray)./2 + OFFSET;
+                    case 16; newArray = single(processedArray)./100;
+                    case 32; newArray = processedArray;
+                end
+        
+                if numel(newArray) == specData.MetaData.DataPoints
+                    specData.Data{1}(ii)   = TimeStamp;
+                    specData.Data{2}(:,ii) = newArray;
+                    
+                    if ~isempty(specData.FileMap.attData.Array)
+                        specData.FileMap.attData.Array(ii) = blockArray(blockOffset1+8);
+                    end
+                else
+                    error('Not expected array length.')
+                end    
+            catch
             end
         end
+    
+        BeginTime   = specData.Data{1}(1);
+        EndTime     = specData.Data{1}(end);
+        RevisitTime = seconds(EndTime-BeginTime)/(nSweeps-1);
+    
+        specData.RelatedFiles(1,5:8) = {BeginTime, EndTime, nSweeps, RevisitTime};
     end
-    specData.Samples = numel(specData.Data{1});
+
+    specData.FileMap = [];
 end
 
 
