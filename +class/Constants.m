@@ -2,7 +2,7 @@ classdef (Abstract) Constants
 
     properties (Constant)
         %-----------------------------------------------------------------%
-        appName       = 'appAnalise'
+        appName       = 'appAnaliseV2'
         appRelease    = 'R2024a'
         appVersion    = '1.51'
 
