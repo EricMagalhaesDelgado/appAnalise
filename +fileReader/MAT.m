@@ -44,12 +44,18 @@ function specData = Fcn_MetaDataReader(fileName)
                 specData(ii).MetaData.LevelUnit     = prj_metaData(ii).MetaData.metaString{1};
                 specData(ii).MetaData.DataPoints    = prj_metaData(ii).MetaData.DataPoints;
                 specData(ii).MetaData.Resolution    = prj_metaData(ii).MetaData.Resolution;
+
                 if ~isempty(prj_metaData(ii).MetaData.Threshold)
                     specData(ii).MetaData.Threshold = prj_metaData(ii).MetaData.Threshold;
                 end
+                
                 specData(ii).MetaData.TraceMode     = prj_metaData(ii).MetaData.metaString{3};
                 specData(ii).MetaData.Detector      = prj_metaData(ii).MetaData.metaString{4};
                 specData(ii).MetaData.Antenna       = struct('Name', prj_metaData(ii).MetaData.metaString{5});
+
+                if isfield(prj_metaData(ii).MetaData, 'TraceIntegration') && ~isempty(prj_metaData(ii).MetaData.TraceIntegration)
+                    specData(ii).MetaData.TraceIntegration = prj_metaData(ii).MetaData.TraceIntegration;
+                end
 
                 % RelatedFiles
                 UUID = char(matlab.lang.internal.uuid());

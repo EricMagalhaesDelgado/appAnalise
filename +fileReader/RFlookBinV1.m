@@ -46,13 +46,12 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
     gpsData  = struct('Status', 0, 'Matrix', []);
 
     [FileHeaderBlock, gpsTimestampBlock, SpectralBlock, TextTrailerBlock] = Fcn_FileMemoryMap(rawData, fileName);
-    [TaskName, ID, Description, Receiver, AntennaInfo, IntegrationFactor] = Fcn_TextBlockRead(TextTrailerBlock);
-    
     nSweeps = double(FileHeaderBlock.Data.WritedSamples);
     if ~nSweeps
         return
-    end   
+    end
 
+    [TaskName, ID, Description, Receiver, AntennaInfo, IntegrationFactor] = Fcn_TextBlockRead(TextTrailerBlock);
 
     % Metadados principais.
     specData(1).Receiver               = Receiver;
@@ -207,9 +206,9 @@ function [FileHeaderBlock, gpsTimestampBlock, SpectralBlock, TextTrailerBlock] =
                                                   'Format', {'uint8', [1 TextBlockLength], 'Dictionary'}, ...
                                                   'Repeat', 1);
     else
-        gpsTimestampBlock = [];
-        SpectralBlock     = [];
-        TextTrailerBlock  = [];
+        gpsTimestampBlock  = [];
+        SpectralBlock      = [];
+        TextTrailerBlock   = [];
     end
 end
 
