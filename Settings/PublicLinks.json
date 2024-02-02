@@ -1,4 +1,4 @@
 {
-  "VersionFile": "https://www.anatel.gov.br/dadosabertos/paineis_de_dados/sentinela/VersionFile.json",
+  "VersionFile": "https://raw.githubusercontent.com/InovaFiscaliza/.github/main/releases/VersionFile.json",
   "RFDataHub": "https://www.anatel.gov.br/dadosabertos/paineis_de_dados/sentinela/estacoes.parquet.gzip"
 }

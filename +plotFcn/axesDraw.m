@@ -567,8 +567,7 @@ classdef (Abstract) axesDraw
                     plotFcn.axesInteraction.InteractionsCallbacks({'Restore View'}, hAxes, app)
 
                 case 'Geographic'
-                    hAxes = geoaxes(axesParent, FontSize=6, Units='pixels', Basemap='darkwater', ...
-                                                Box='off', ToolBar=[]);
+                    hAxes = geoaxes(axesParent, FontSize=6, Units='pixels', Basemap='darkwater', Box='off');
 
                     hAxes.LatitudeLabel.String  = '';
                     hAxes.LongitudeLabel.String = '';
