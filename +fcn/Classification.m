@@ -101,55 +101,59 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
                 else
                     break
                 end
-                
-                switch findPeaks.Name{1}
-                    %-----------------------------------------------------%
-                    case 'FM'
-                        if contains(Description, ["[SRD] RADCOM", "[SRD] 231"])
-                            if Distance > classMultiplier * 2.2
-                                idx2(idx3)        = [];
-                                auxDistance(idx3) = [];
-                                continue
-                            else
-                                classContour = 2.2;
-                                break
-                            end
-                            
-                        elseif contains(Description, "[MOSAICO-SRD] FM") 
-                            classStation = regexp(Description, '\[MOSAICO-SRD\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
-                            if ~isempty(classStation)
-                                classContour = FM_classCountour(classStation.class);
-                                break
-                            else
-                                idx2(idx3)        = [];
-                                auxDistance(idx3) = [];
-                                continue
-                            end
 
-                        else
+                if isempty(findPeaks)
+                    break
+                else
+                    switch findPeaks.Name{1}
+                        %-----------------------------------------------------%
+                        case 'FM'
+                            if contains(Description, ["[SRD] RADCOM", "[SRD] 231"])
+                                if Distance > classMultiplier * 2.2
+                                    idx2(idx3)        = [];
+                                    auxDistance(idx3) = [];
+                                    continue
+                                else
+                                    classContour = 2.2;
+                                    break
+                                end
+                                
+                            elseif contains(Description, "[MOSAICO-SRD] FM") 
+                                classStation = regexp(Description, '\[MOSAICO-SRD\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
+                                if ~isempty(classStation)
+                                    classContour = FM_classCountour(classStation.class);
+                                    break
+                                else
+                                    idx2(idx3)        = [];
+                                    auxDistance(idx3) = [];
+                                    continue
+                                end
+    
+                            else
+                                break
+                            end
+                        
+                        %-----------------------------------------------------%
+                        case 'TV'
+                            if contains(Description, "[MOSAICO-SRD] TV")
+                                classStation = regexp(Description, '\[MOSAICO-SRD\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
+                                if ~isempty(classStation)
+                                    classContour = TV_classCountour(classStation.class);
+                                    break
+                                else
+                                    idx2(idx3)        = [];
+                                    auxDistance(idx3) = [];
+                                    continue
+                                end
+    
+                            else
+                                break
+                            end
+    
+                        %-----------------------------------------------------%
+                        otherwise
                             break
-                        end
-                    
-                    %-----------------------------------------------------%
-                    case 'TV'
-                        if contains(Description, "[MOSAICO-SRD] TV")
-                            classStation = regexp(Description, '\[MOSAICO-SRD\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
-                            if ~isempty(classStation)
-                                classContour = TV_classCountour(classStation.class);
-                                break
-                            else
-                                idx2(idx3)        = [];
-                                auxDistance(idx3) = [];
-                                continue
-                            end
-
-                        else
-                            break
-                        end
-
-                    %-----------------------------------------------------%
-                    otherwise
-                        break
+                    end
                 end
             end
                 
