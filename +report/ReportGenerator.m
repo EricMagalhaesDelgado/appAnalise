@@ -151,7 +151,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
     Separator = report.ReportGenerator_HTML(struct('Type', 'Footnote',  'Data', struct('Editable', 'false', 'String', repmat('_', 1, 45))));
 
     Footnote1 = sprintf('<b>appAnalise</b> v. %s, <b>fiscaliza</b> v. %s, <b>RFDataHub</b> %s', appVersion.(class.Constants.appName).Version, appVersion.fiscaliza, appVersion.RFDataHub.ReleaseDate);
-    Footnote2 = sprintf('<b>Relatório</b>: %s',      jsonencode(reportInfo.Model.Type));
+    Footnote2 = sprintf('<b>Relatório</b>: %s',      jsonencode(rmfield(table2struct(reportInfo.Model.Type), 'Description')));
     Footnote3 = sprintf('<b>Imagem</b>: %s',         jsonencode(rmfield(reportInfo.General.Image, 'Visibility')));
     Footnote4 = sprintf('<b>Matlab</b> v. %s, %s',   appVersion.Matlab.Version, appVersion.Matlab.Products);
     Footnote5 = '';
