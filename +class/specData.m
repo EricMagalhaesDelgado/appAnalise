@@ -298,7 +298,7 @@ classdef specData < handle
                 % do app (app.specData).
                 for jj = 1:numel(SpecInfo)
                     for kk = 1:numel(app.specData)
-                        idx1 = find(strcmp(app.specData(kk).RelatedFiles.uuid, unique(SpecInfo(jj).RelatedFiles.uuid)));
+                        idx1 = find(cellfun(@(x) ismember(x, unique(SpecInfo(jj).RelatedFiles.uuid)), app.specData(kk).RelatedFiles.uuid, 'UniformOutput', true));
         
                         if ~isempty(idx1)
                             break
