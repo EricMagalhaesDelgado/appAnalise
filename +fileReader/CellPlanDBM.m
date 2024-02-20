@@ -16,12 +16,6 @@ function specData = CellPlanDBM(fileName, ReadType, metaData, RootFolder)
         error('File not found.');
     end
     fclose(fileID1);
-
-    % Necessário ajustar "RootFolder", caso se trate de uma aplicação
-    % standalone.
-    if isdeployed
-        RootFolder = fullfile(ctfroot, class.Constants.appName);
-    end
     
     % Como a estrutura do arquivo binário gerado pelo CellSpectrum não é
     % conhecida, mas a CellPlan disponibilizou uma API para extração de
@@ -29,7 +23,7 @@ function specData = CellPlanDBM(fileName, ReadType, metaData, RootFolder)
     % gera-se um arquivo temporário (no formato .bin), o qual possui uma
     % estrutura conhecida.
     [~, tempFile] = fileparts(fileName);
-    tempFile = fullfile(RootFolder, 'Temp', sprintf('~%s.bin', tempFile));    
+    tempFile = fullfile(RootFolder, 'Temp', sprintf('~%s.bin', tempFile));
 
     pathToMFILE = fileparts(mfilename('fullpath'));
     cd(fullfile(pathToMFILE, 'CellPlanDBM'))
