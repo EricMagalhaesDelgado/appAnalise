@@ -572,7 +572,6 @@ classdef (Abstract) axesDraw
                     hAxes.LatitudeLabel.String  = '';
                     hAxes.LongitudeLabel.String = '';
 
-                    geolimits(hAxes, [-35 10], [-95, -15])
                     try
                         geobasemap(hAxes, 'streets-light')
                     catch
