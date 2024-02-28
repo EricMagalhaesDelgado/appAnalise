@@ -320,12 +320,12 @@ function Peaks = Fcn_exceptionList(Peaks, exceptionList)
             end
         end
 
-        % Itera em relação à lista de emissões, buscando aquelas que foram
-        % incluídas por arquivo.
-        fileDetectionIndex = find(contains(Peaks.Detection, '"Algorithm":"ExternalFile"'))';
-        for ii = fileDetectionIndex
-            fileDetectionInfo = jsondecode(Peaks.Detection{ii});
-            Peaks.Description{ii} = sprintf('%s <p class="Tabela_Texto_8" contenteditable="false" style="color: #808080;">(%s)', Peaks.Description{ii}, fileDetectionInfo.Description); 
+        % Itera em relação à lista de emissões, buscando aquelas que possuem
+        % informações textuais complementares.
+        emissionIndex = find(cellfun(@(x) isfield(jsondecode(x), 'Description'), Peaks.Detection))';
+        for ii = emissionIndex
+            emissionInfo = jsondecode(Peaks.Detection{ii});
+            Peaks.Description{ii} = sprintf('%s <p class="Tabela_Texto_8" contenteditable="false" style="color: #808080;">(%s)', Peaks.Description{ii}, emissionInfo.Description); 
         end
     end
 end
