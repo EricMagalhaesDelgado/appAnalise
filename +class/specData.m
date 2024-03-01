@@ -3,18 +3,7 @@ classdef specData < handle
     properties
         %-----------------------------------------------------------------%
         Receiver
-        MetaData     = struct('DataType',         [], ...                   % Valor numérico: RFlookBin (1-2), CRFSBin (4, 7-8, 60-65 e 67-69), Argus (167-168), CellPlan (1000) e SM1809 (1809)
-                              'FreqStart',        [], ...                   % Valor numérico (em Hertz)
-                              'FreqStop',         [], ...                   % Valor numérico (em Hertz)
-                              'LevelUnit',        [], ...                   % dBm | dBµV | dBµV/m
-                              'DataPoints',       [], ...
-                              'Resolution',       -1, ...                   % Valor numérico (em Hertz) ou -1 (caso não registrado em arquivo)
-                              'VBW',              -1, ...
-                              'Threshold',        -1, ...
-                              'TraceMode',        '', ...                   % "ClearWrite" | "Average" | "MaxHold" | "MinHold" | "OCC" | "SingleMeasurement" | "Mean" | "Peak" | "Minimum"
-                              'TraceIntegration', -1, ...                   % Aplicável apenas p/ "Average", "MaxHold" ou "MinHold"
-                              'Detector',         '', ...                   % "Sample" | "Average/RMS" | "Positive Peak" | "Negative Peak"
-                              'Antenna',          [])
+        MetaData     = struct(class.MetaDataList)
         Data                                                                % Data{1}: timestamp; Data{2}: matrix; and Data{3}: stats
         GPS
         RelatedFiles = table('Size', [0,10],                                                                                                  ...
@@ -28,15 +17,21 @@ classdef specData < handle
 
     methods
         %-----------------------------------------------------------------%
-        function obj = PreAllocationData(obj, idx)
+        function obj = PreAllocationData(obj, idx, fileType)
 
-            if nargin == 1
-                idx = 1;
+            if nargin < 3
+                idx      = 1;
+                fileType = '';
             end
 
             obj(idx).Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, sum(obj(idx).RelatedFiles.nSweeps)), ...
                              zeros(obj(idx).MetaData.DataPoints, sum(obj(idx).RelatedFiles.nSweeps), 'single'),                       ...
                              zeros(obj(idx).MetaData.DataPoints, 3, 'single')};
+
+            if fileType == "RFlookBin v.2/2"
+                obj(idx).Data{4} = zeros(obj(idx).MetaData.DataPoints, sum(obj(idx).RelatedFiles.nSweeps), 'single');
+                obj(idx).Data{5} = zeros(obj(idx).MetaData.DataPoints, sum(obj(idx).RelatedFiles.nSweeps), 'single');
+            end
         end
 
 
@@ -274,9 +269,9 @@ classdef specData < handle
         
                         if contains(Format, 'CRFS', "IgnoreCase", true)
                             SpecInfo = fileReader.CRFSBin(app.metaData(ii).File, 'SpecData', app.metaData(ii));
-                        elseif contains(Format, 'RFlookBin v.1/1', "IgnoreCase", true)
+                        elseif contains(Format, 'RFlookBin v.1', "IgnoreCase", true)
                             SpecInfo = fileReader.RFlookBinV1(app.metaData(ii).File, 'SpecData', app.metaData(ii));
-                        elseif contains(Format, 'RFlookBin v.2/1', "IgnoreCase", true)
+                        elseif contains(Format, 'RFlookBin v.2', "IgnoreCase", true)
                             SpecInfo = fileReader.RFlookBinV2(app.metaData(ii).File, 'SpecData', app.metaData(ii));
                         end
         
@@ -530,16 +525,57 @@ classdef specData < handle
             % - Threshold
             % - TraceMode, TraceIntegration e Detector
         
-            % Exclui-se, dentre as campos de "MetaData", apenas DataType e Antenna.
-            % O DataType por não estar relacionado à monitoração, mas como ela é
-            % armazenada em arquivo; e a Antenna que é um metadado comumente incluso
-            % manualmente pelo fiscal (exceção à monitoração conduzida na EMSat).
+            % Exclui-se, dentre os campos de "MetaData", DataType, Antenna e Others.
+            % - O DataType por não estar relacionado à monitoração; 
+            % - A Antenna que é um metadado comumente incluso manualmente pelo 
+            %   fiscal (exceção à monitoração conduzida na EMSat);
+            % - E o novo campo Others, que vai armazenar metadados secundários.
         
             for ii = 1:numel(Data)
-                tempStruct = rmfield(Data(ii).MetaData, {'DataType', 'Antenna'});
+                tempStruct = rmfield(Data(ii).MetaData, {'DataType', 'Antenna', 'Others'});
                 tempStruct.Receiver = Data(ii).Receiver;
         
                 comparableData(ii) = tempStruct;
+            end
+        end
+
+
+        %-----------------------------------------------------------------%
+        function secundaryMetaData = SecundaryMetaData(fileFormat, originalMetaData)
+            switch fileFormat
+                case 'RFlookBin v.2'
+                    fieldsList = {'Receiver',         ...
+                                  'AntennaInfo',      ...
+                                  'ID',               ...
+                                  'Description',      ...
+                                  'FreqStart',        ...
+                                  'FreqStop',         ...
+                                  'DataPoints',       ...
+                                  'Resolution',       ...
+                                  'Unit',             ...
+                                  'TraceMode',        ...
+                                  'TraceIntegration', ...
+                                  'Detector'};
+                otherwise
+                    fieldsList = [];
+            end
+
+            secundaryMetaData = rmfield(originalMetaData, fieldsList);
+            secundaryMetaData.FileFormat = fileFormat;
+            secundaryMetaData = class.specData.sortStructByFieldNames(secundaryMetaData);
+            secundaryMetaData = jsonencode(secundaryMetaData);
+        end
+
+
+        %-----------------------------------------------------------------%
+        function sortedStruct = sortStructByFieldNames(originalStruct)
+            fieldNames      = fieldnames(originalStruct);
+            [~,sortedIndex] = sort(lower(fieldNames));
+            fieldNames      = fieldNames(sortedIndex);
+            sortedStruct    = struct();
+
+            for ii = 1:numel(fieldNames)
+                sortedStruct.(fieldNames{ii}) = originalStruct.(fieldNames{ii});
             end
         end
     end

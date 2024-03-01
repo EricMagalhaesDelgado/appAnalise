@@ -79,6 +79,19 @@ function specData = Fcn_MetaDataReader(fileName)
 
 
         case 3
+            currentMetaData     = struct(class.MetaDataList);
+            currentMetaDataList = fields(currentMetaData);
+            ProjectMetaDataList = fields(prj_metaData(1).MetaData);
+
+            checkIndex          = find(cellfun(@(x) ~ismember(x, ProjectMetaDataList), currentMetaDataList))';
+            if ~isempty(checkIndex)
+                for ii = 1:numel(prj_metaData)
+                    for jj = checkIndex
+                        prj_metaData(ii).MetaData.(currentMetaDataList{jj}) = currentMetaData.(currentMetaDataList{jj});
+                    end
+                end
+            end
+
             specData = prj_metaData;
 
 

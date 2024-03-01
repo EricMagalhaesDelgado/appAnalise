@@ -25,10 +25,10 @@ classdef metaData < handle
                     if contains(Format, 'CRFS', "IgnoreCase", true)
                         obj.Data = fileReader.CRFSBin(obj.File, 'MetaData', []);
 
-                    elseif contains(Format, 'RFlookBin v.1/1', "IgnoreCase", true)
+                    elseif contains(Format, 'RFlookBin v.1', "IgnoreCase", true)
                         obj.Data = fileReader.RFlookBinV1(obj.File, 'MetaData');
 
-                    elseif contains(Format, 'RFlookBin v.2/1', "IgnoreCase", true)
+                    elseif contains(Format, 'RFlookBin v.2', "IgnoreCase", true)
                         obj.Data = fileReader.RFlookBinV2(obj.File, 'MetaData');
 
                     else

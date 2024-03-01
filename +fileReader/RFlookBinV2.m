@@ -19,8 +19,8 @@ function specData = RFlookBinV2(fileName, ReadType, metaData)
     fclose(fileID);
 
     fileFormat = char(rawData(1:15));
-    if ~strcmp(fileFormat, 'RFlookBin v.2/1')
-        error('It is not a RFlookBinV2 file! :(')
+    if ~contains(fileFormat, 'RFlookBin v.2')
+        error('It is not a RFlookBin file! :(')
     end
 
     switch ReadType
@@ -28,18 +28,18 @@ function specData = RFlookBinV2(fileName, ReadType, metaData)
             specData = Fcn_MetaDataReader(rawData, fileName);
 
             if strcmp(ReadType, 'SingleFile')
-                specData = Fcn_SpecDataReader(specData, rawData);
+                specData = Fcn_SpecDataReader(specData, rawData, fileFormat);
             end
             
         case 'SpecData'
             specData = copy(metaData(1).Data, {});
-            specData = Fcn_SpecDataReader(specData, rawData);
+            specData = Fcn_SpecDataReader(specData, rawData, fileFormat);
     end
 end
 
 
 %-------------------------------------------------------------------------%
-function specData = Fcn_MetaDataReader(rawData, filename)
+function specData = Fcn_MetaDataReader(rawData, fileName)
 
     % Criação das variáveis principais (specData e gpsData)
     specData = class.specData.empty;
@@ -91,6 +91,7 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     
     specData.MetaData.Detector   = MetaStruct.Detector;
     specData.MetaData.Antenna    = MetaStruct.AntennaInfo;
+    specData.MetaData.Others     = class.specData.SecundaryMetaData('RFlookBin v.2', MetaStruct);
 
     % Número de bytes do cabeçalho dos blocos de espectro:
     % (a) blockOffset1: gps e atenuação
@@ -146,7 +147,7 @@ function specData = Fcn_MetaDataReader(rawData, filename)
     end
     gpsData = fcn.gpsSummary({gpsData});
 
-    [~, file, ext]  = fileparts(filename);
+    [~, file, ext]  = fileparts(fileName);
     RevisitTime     = seconds(EndTime-BeginTime)/(nSweeps-1);
 
     specData.GPS = rmfield(gpsData, 'Matrix');
@@ -156,15 +157,17 @@ end
 
 
 %-------------------------------------------------------------------------%
-function specData = Fcn_SpecDataReader(specData, rawData)
+function specData = Fcn_SpecDataReader(specData, rawData, fileFormat)
 
     if isempty(specData)
         return
     end
 
     if specData.Enable
-        specData = specData.PreAllocationData();
-        nSweeps  = specData.RelatedFiles.nSweeps;
+        specData   = specData.PreAllocationData(1, fileFormat);
+        nSweeps    = specData.RelatedFiles.nSweeps;
+        DataPoints = specData.MetaData.DataPoints;
+        OFFSET     = [];
         
         if specData.FileMap.attData.Mode
             specData.FileMap.attData.Array = zeros(nSweeps, 1, 'uint8');
@@ -189,23 +192,15 @@ function specData = Fcn_SpecDataReader(specData, rawData)
         
                 compressedArray = blockArray(blockOffset1+blockOffset2+9:end);
                 processedArray  = matlabCommunity.CompressLib.decompress(compressedArray);
-        
-                switch BitsPerSample
-                    case  8; newArray = single(processedArray)./2 + OFFSET;
-                    case 16; newArray = single(processedArray)./100;
-                    case 32; newArray = processedArray;
+                newArray        = newArrayParsing(processedArray, BitsPerSample, OFFSET, DataPoints, fileFormat);
+
+                specData.Data{1}(ii)   = TimeStamp;
+                specData.Data{2}(:,ii) = newArray(:,1);
+
+                if fileFormat == "RFlookBin v.2/2"
+                    specData.Data{4}(:,ii) = newArray(:,2);
+                    specData.Data{5}(:,ii) = newArray(:,3);
                 end
-        
-                if numel(newArray) == specData.MetaData.DataPoints
-                    specData.Data{1}(ii)   = TimeStamp;
-                    specData.Data{2}(:,ii) = newArray;
-                    
-                    if ~isempty(specData.FileMap.attData.Array)
-                        specData.FileMap.attData.Array(ii) = blockArray(blockOffset1+8);
-                    end
-                else
-                    error('Not expected array length.')
-                end    
             catch
             end
         end
@@ -218,6 +213,40 @@ function specData = Fcn_SpecDataReader(specData, rawData)
     end
 
     specData.FileMap = [];
+end
+
+
+%-------------------------------------------------------------------------%
+function newArray = newArrayParsing(processedArray, BitsPerSample, OFFSET, DataPoints, fileFormat)
+
+    newArray(:,1) = newArrayDecompress(processedArray(1:DataPoints), BitsPerSample, OFFSET);
+
+    if fileFormat == "RFlookBin v.2/2"
+            switch BitsPerSample
+                case  8; kk = 2;
+                case 16; kk = 1;
+                case 32; kk = 1/2;
+            end
+
+            idx11 = DataPoints+1;
+            idx12 = (kk+1)*DataPoints;
+            idx21 = idx12+1;
+            idx22 = numel(processedArray);
+            
+            newArray(:,2) = newArrayDecompress(typecast(processedArray(idx11:idx12), 'int16'), 16, -1);
+            newArray(:,3) = newArrayDecompress(typecast(processedArray(idx21:idx22), 'int16'), 16, -1);
+    end
+end
+
+
+%-------------------------------------------------------------------------%
+function newArray = newArrayDecompress(processedArray, BitsPerSample, OFFSET)
+
+    switch BitsPerSample
+        case  8; newArray = single(processedArray)./2 + OFFSET;
+        case 16; newArray = single(processedArray)./100;
+        case 32; newArray = processedArray;
+    end
 end
 
 
