@@ -352,10 +352,10 @@ classdef specData < handle
                 end
         
                 % Mapeamento entre os fluxos...
-                SpecInfo_MetaData = class.specData.read_MetaData(SpecInfo);
+                SpecInfo_MetaData = class.specData.read_MetaData(app, SpecInfo);
                 for jj = 1:numel(SpecInfo)
                     SpecInfo_GPS      = [SpecInfo(jj).GPS.Latitude, SpecInfo(jj).GPS.Longitude];
-                    specData_MetaData = class.specData.read_MetaData(app.specData);
+                    specData_MetaData = class.specData.read_MetaData(app, app.specData);
         
                     idx1 = [];
                     for kk = 1:numel(app.specData)
@@ -512,7 +512,7 @@ classdef specData < handle
         
         
         %-----------------------------------------------------------------%
-        function comparableData = read_MetaData(Data)
+        function comparableData = read_MetaData(app, Data)
         
             % Trata-se de função que define as características primárias (listadas 
             % abaixo) que identificam uma monitoração, possibilitando juntar informações 
@@ -525,15 +525,33 @@ classdef specData < handle
             % - Threshold
             % - TraceMode, TraceIntegration e Detector
         
-            % Exclui-se, dentre os campos de "MetaData", DataType, Antenna e Others.
+            % Pode-se excluir, dentre os campos de "MetaData", os campos DataType, 
+            % Antenna e Others.
             % - O DataType por não estar relacionado à monitoração; 
             % - A Antenna que é um metadado comumente incluso manualmente pelo 
             %   fiscal (exceção à monitoração conduzida na EMSat);
             % - E o novo campo Others, que vai armazenar metadados secundários.
-        
+
+            % Lista de metadados a excluir:
+            metaData2Delete = {'Others'};
+            if app.General.Merge.Antenna == "remove"
+                metaData2Delete{end+1} = 'Antenna';
+            end
+            if app.General.Merge.DataType == "remove"
+                metaData2Delete{end+1} = 'DataType';
+            end
+
+            % Estrutura de referência:        
             for ii = 1:numel(Data)
-                tempStruct = rmfield(Data(ii).MetaData, {'DataType', 'Antenna', 'Others'});
+                tempStruct = rmfield(Data(ii).MetaData, metaData2Delete);
                 tempStruct.Receiver = Data(ii).Receiver;
+
+                if isfield(tempStruct, 'Antenna')
+                    antennaFields = fields(tempStruct.Antenna);
+                    antennaFields = antennaFields(~ismember(antennaFields, app.General.Merge.AntennaAttributes));
+                    
+                    tempStruct.Antenna = rmfield(tempStruct.Antenna, antennaFields);
+                end
         
                 comparableData(ii) = tempStruct;
             end

@@ -3,8 +3,17 @@
   "pythonPath": "",
   "openGL": "hardware",
   "Merge": {
-    "DataType": "keep",
-    "Antenna": "keep",
+    "DataType": "remove",
+    "Antenna": "remove",
+    "AntennaAttributes": [
+      "Name",
+      "Azimuth",
+      "Elevation",
+      "Polarization",
+      "Height",
+      "SwitchPort",
+      "LNBChannel"
+    ],
     "Distance": 100
   },
   "Image": {
