@@ -4,31 +4,37 @@ classdef (Abstract) RFDataHub
         %-----------------------------------------------------------------%
         function read(RootFolder)
             global RFDataHub
+            global RFDataHubLog
             global RFDataHub_info
             
-            if isempty(RFDataHub) || isempty(RFDataHub_info)
+            if isempty(RFDataHub) || isempty(RFDataHubLog) || isempty(RFDataHub_info)
                 filename_mat = fullfile(RootFolder, 'DataBase', 'RFDataHub.mat');
         
                 if isfile(filename_mat)
-                    load(filename_mat, 'RFDataHub', 'RFDataHub_info', '-mat')
+                    load(filename_mat, 'RFDataHub', 'RFDataHubLog', 'RFDataHub_info', '-mat')
                 
                 else
-                    filename_parquet   = fullfile(RootFolder, 'Temp', 'estacoes.parquet.gzip');
+                    filename_parquet1  = fullfile(RootFolder, 'Temp', 'estacoes.parquet.gzip');
+                    filename_parquet2  = fullfile(RootFolder, 'Temp', 'log.parquet.gzip');
+                    filename_parquet3  = fullfile(RootFolder, 'Temp', 'Release.json');
         
                     try
-                        RFDataHub      = parquetread(filename_parquet, "VariableNamingRule", "preserve");
+                        RFDataHub      = parquetread(filename_parquet1, "VariableNamingRule", "preserve");
                         RFDataHub      = class.RFDataHub.parquet2mat(RFDataHub);
 
-                        FileVersion    = webread(fcn.PublicLinks(RootFolder));
+                        RFDataHubLog   = parquetread(filename_parquet2, 'VariableNamingRule', 'preserve');
+                        RFDataHubLog   = RFDataHubLog.Log;
+
+                        FileVersion    = jsondecode(fileread(filename_parquet3));
                         RFDataHub_info = FileVersion.rfdatahub;
                                         
-                        save(filename_mat, 'RFDataHub', 'RFDataHub_info')
+                        save(filename_mat, 'RFDataHub', 'RFDataHubLog', 'RFDataHub_info')
                     
                     catch ME
                         filename_mat_old = fullfile(RootFolder, 'DataBase', 'RFDataHub_old.mat');
         
                         if isfile(filename_mat_old)
-                            load(filename_mat_old, 'RFDataHub', 'RFDataHub_info', '-mat')
+                            load(filename_mat_old, 'RFDataHub', 'RFDataHubLog', 'RFDataHub_info', '-mat')
                             error('A base do RFDataHub não foi atualizada pelas razões expostas a seguir, sendo usada a base antiga armazenada no arquivo "RFDataHub_old.mat".\n\n%s', getReport(ME))
                         else
                             error('A base do RFDataHub não foi localizada.')
@@ -41,10 +47,16 @@ classdef (Abstract) RFDataHub
 
         %-----------------------------------------------------------------%
         function RFDataHub = parquet2mat(RFDataHub)
-            % Em 28/11/2023 o RFDataHub se apresenta como uma tabela formada 
-            % por 979522 linhas e 29 colunas. Todas as colunas são categóricas 
+            % Em 28/11/2023 o RFDataHub se apresentava como uma tabela formada 
+            % por 979522 linhas e 29 colunas. Todas as colunas eram categóricas 
             % (inclusive as de natureza numérica, como "Frequência", por exemplo).
 
+            % Em 21/03/2024 o RFDataHub se apresenta como uma tabela formada 
+            % por 1022917 linhas e 29 colunas. 28 das 29 colunas são categóricas 
+            % (inclusive as de natureza numérica, como "Frequência", por exemplo). 
+            % A única coluna não categórica é a "Log", cuja tipo de dado é
+            % "int32".
+            
             % Nomes e tipologia das principais colunas pós-conversões aqui 
             % realizadas:
             % Col.  1: "Frequência"           >> "Frequency" {double}
@@ -68,7 +80,32 @@ classdef (Abstract) RFDataHub
             RFDataHub.Latitude  = single(str2double(RFDataHub.Latitude));
             RFDataHub.Longitude = single(str2double(RFDataHub.Longitude));
             RFDataHub.BW        = single(str2double(RFDataHub.BW));
+            RFDataHub.Log       = RFDataHub.Log + 1;
 
+            % LIMITES DE FREQUÊNCIA, LATITUDE E LONGITUDE
+            msgError = {};
+            if any(RFDataHub.Frequency <= 0)
+                msgError{end+1} = 'Frequency column should only have positive values.';
+            end
+            
+            if any(abs(RFDataHub.Latitude) > 90)
+                msgError{end+1} = 'Latitude column should only have values in the range [-90, 90].';
+            end
+
+            if any(abs(RFDataHub.Longitude) > 180)
+                msgError{end+1} = 'Longitude column should only have values in the range [-180, 180].';
+            end
+
+            stateList = {'-1', 'AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR', 'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO'};
+            if any(~ismember(unique(RFDataHub.State), stateList))
+                msgError{end+1} = sprintf('State column should only have values in the set {%s}.', strjoin(stateList, ', '));
+            end
+
+            if ~isempty(msgError)
+                error(strjoin(msgError, '\n'))
+            end
+
+            % NAN >> -1
             for ii = 1:width(RFDataHub)
                 if isnumeric(RFDataHub{:,ii})
                     idx = isnan(RFDataHub{:,ii});
@@ -150,6 +187,19 @@ classdef (Abstract) RFDataHub
                         
             Distance    = fcn.gpsDistance([latNode, longNode], [Latitude, Longitude]);
             stationInfo = struct('ID', ID, 'Frequency', Frequency, 'Service', Service, 'Station', Station, 'Description', Description, 'Distance', Distance);
+        end
+
+
+        %-----------------------------------------------------------------%
+        function [logInfo, msgError] = queryLog(RFDataHubLog, logIndex)
+            logInfo  = '';
+            msgError = '';
+
+            try
+                logInfo = jsondecode(RFDataHubLog(logIndex));
+            catch ME
+                msgError = ME.identifier;
+            end
         end
     end
 end
