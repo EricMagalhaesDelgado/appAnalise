@@ -323,6 +323,11 @@ classdef specData < handle
                             app.report_ProjectName.Value     = prjInfo.Name;
                             app.report_ProjectFilename.Value = app.metaData(ii).File;
                             app.report_Issue.Value           = prjInfo.reportInfo.Issue;
+
+                            prjModelIndex = find(strcmp(app.report_Type.Items, prjInfo.reportInfo.Model.Name), 1);
+                            if ~isempty(prjModelIndex)
+                                app.report_Type.Value = app.report_Type.Items{prjModelIndex};
+                            end
         
                             if ~isempty(prjInfo.exceptionList)                    
                                 app.exceptionList     = prjInfo.exceptionList;
