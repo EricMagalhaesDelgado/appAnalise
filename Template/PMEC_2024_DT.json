@@ -408,7 +408,7 @@
               "Width": "90%",
               "Height": "auto"
             },
-            "LineBreak": 1,
+            "LineBreak": 0,
             "Intro": "",
             "Error": ""
           }

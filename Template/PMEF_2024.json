@@ -624,7 +624,7 @@
                 "Width": "60px"
               }
             ],
-            "LineBreak": 1,
+            "LineBreak": 0,
             "Intro": "{\"Type\":\"Paragraph\",\"String\":\"A seguir são apresentadas informações acerca da(s) emissão(ões) detectada(s), além de representações gráficas dessa(s) emissão(ões).\"}",
             "Error": "{\"Type\":\"Paragraph\",\"String\":\"Não foi detectado sequer um pico que atendesse às condições estabelecidas no supracitado processo de detecção de emissões.\"}"
           }
@@ -641,7 +641,7 @@
               "Width": "90%",
               "Height": "auto"
             },
-            "LineBreak": 1,
+            "LineBreak": 0,
             "Intro": "",
             "Error": ""
           }

@@ -101,6 +101,10 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                                             end
                                         end
 
+                                        % Insere uma quebra de linha, caso exista recorrência no item
+                                        % (iterando SpecInfo(jj).UserData.Emissions).
+                                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
+
                                         % Cabeçalho da emissão...
                                         emissionTitle = struct('Type', 'ItemN3',                                                ...
                                                                'Data', struct('Editable', 'false',                              ...

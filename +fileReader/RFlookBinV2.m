@@ -1,8 +1,8 @@
 function specData = RFlookBinV2(fileName, ReadType, metaData)
 
     % Author.: Eric Magalhães Delgado
-    % Date...: November 10, 2023
-    % Version: 1.01
+    % Date...: March 28, 2024
+    % Version: 1.02
 
     arguments
         fileName char
@@ -44,15 +44,18 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
     % Criação das variáveis principais (specData e gpsData)
     specData = class.specData.empty;
     gpsData  = struct('Status', 0, 'Matrix', []);
-
     
     % Busca pelas expressões que delimitam os blocos de espectro:
     startIndex = strfind(char(rawData), 'StArT') + 5;
     stopIndex  = strfind(char(rawData), 'StOp')  - 1;
 
-    concIndex  = zeros(1, numel(startIndex)+numel(stopIndex));
-    concIndex(1:2:end) = startIndex;
-    concIndex(2:2:end) = stopIndex;
+    concIndex  = [];
+    try
+        concIndex  = zeros(1, numel(startIndex)+numel(stopIndex));
+        concIndex(1:2:end) = startIndex;
+        concIndex(2:2:end) = stopIndex;
+    catch
+    end
 
     if (numel(startIndex) ~= numel(stopIndex)) || ~issorted(concIndex)
         [startIndex, stopIndex] = fixIndexArrays(startIndex, stopIndex);
@@ -61,7 +64,6 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
     if isempty(startIndex) || isempty(stopIndex)
         return
     end
-
 
     % Leitura dos principais metadados escritos em arquivo:
     BitsPerSample  = rawData(16);                                           % 8 | 16 | 32 (bits)
@@ -151,8 +153,7 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
     RevisitTime     = seconds(EndTime-BeginTime)/(nSweeps-1);
 
     specData.GPS = rmfield(gpsData, 'Matrix');
-    specData.RelatedFiles(end+1,:) = {[file ext], MetaStruct.Task, MetaStruct.ID, MetaStruct.Description, BeginTime, EndTime, nSweeps, RevisitTime, {gpsData}, char(matlab.lang.internal.uuid())};
-    
+    specData.RelatedFiles(end+1,:) = {[file ext], MetaStruct.Task, MetaStruct.ID, MetaStruct.Description, BeginTime, EndTime, nSweeps, RevisitTime, {gpsData}, char(matlab.lang.internal.uuid())};    
 end
 
 
@@ -164,10 +165,10 @@ function specData = Fcn_SpecDataReader(specData, rawData, fileFormat)
     end
 
     if specData.Enable
-        specData   = specData.PreAllocationData(1, fileFormat);
-        nSweeps    = specData.RelatedFiles.nSweeps;
-        DataPoints = specData.MetaData.DataPoints;
-        OFFSET     = [];
+        specData      = specData.PreAllocationData(1, fileFormat);
+        nSweeps       = specData.RelatedFiles.nSweeps;
+        DataPoints    = specData.MetaData.DataPoints;
+        OFFSET        = [];
         
         if specData.FileMap.attData.Mode
             specData.FileMap.attData.Array = zeros(nSweeps, 1, 'uint8');
@@ -179,6 +180,8 @@ function specData = Fcn_SpecDataReader(specData, rawData, fileFormat)
         stopIndex     = specData.FileMap.idxTable.stopByte;    
         blockOffset1  = specData.FileMap.blockOffset1;
         blockOffset2  = specData.FileMap.blockOffset2;
+
+        errorIndex    = [];
     
         for ii = 1:nSweeps
             try
@@ -201,8 +204,24 @@ function specData = Fcn_SpecDataReader(specData, rawData, fileFormat)
                     specData.Data{4}(:,ii) = newArray(:,2);
                     specData.Data{5}(:,ii) = newArray(:,3);
                 end
+
             catch
+                errorIndex = [errorIndex, ii];
             end
+        end
+
+        if ~isempty(errorIndex)
+            switch specData.MetaData.LevelUnit
+                case 'dBm';    noiseLevel = -107;
+                case 'dBµV';   noiseLevel =    0;
+                case 'dBµV/m'; noiseLevel =   13;
+            end
+
+            xTimeIndex = setdiff(1:numel(specData.Data{1}), errorIndex);
+            yTimeStamp = specData.Data{1}(xTimeIndex);
+
+            specData.Data{1}(errorIndex)   = interp1(xTimeIndex, yTimeStamp, errorIndex, 'linear', 'extrap');
+            specData.Data{2}(:,errorIndex) = noiseLevel;
         end
     
         BeginTime   = specData.Data{1}(1);
