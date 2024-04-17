@@ -57,7 +57,7 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
     catch
     end
 
-    if (numel(startIndex) ~= numel(stopIndex)) || ~issorted(concIndex)
+    if (numel(startIndex) ~= numel(stopIndex)) || (~isempty(concIndex) && ~issorted(concIndex))
         [startIndex, stopIndex] = fixIndexArrays(startIndex, stopIndex);
     end
 
