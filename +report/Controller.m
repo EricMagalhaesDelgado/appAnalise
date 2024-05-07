@@ -144,7 +144,7 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
             
             else
                 if ~ismember(app.specData(idx(ii)).GPS.Location, ReportProject.City)
-                    ReportProject.City{end+1,1} = app.specData(idx(ii)).gps.Location;
+                    ReportProject.City{end+1,1} = app.specData(idx(ii)).GPS.Location;
                 end                        
                 
                 ReportProject.F0 = min(ReportProject.F0, app.specData(idx(ii)).MetaData.FreqStart);
