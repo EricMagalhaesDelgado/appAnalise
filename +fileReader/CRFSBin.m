@@ -191,8 +191,8 @@ function specData = Fcn_SpecDataReader(specData, rawData, fileName)
             end
     
             if ismember(specData(ii).MetaData.DataType, [4, 7])
-                fileInfo = dir(fileName);
-                specData(ii).Data{1}(1:end) = linspace(datetime(fileInfo.date)-seconds(nSweeps-1), datetime(fileInfo.date), nSweeps);
+                fileDate = FileDate(fileName);
+                specData(ii).Data{1}(1:end) = linspace(fileDate-seconds(nSweeps-1), fileDate, nSweeps);
             end
         end
 
@@ -312,13 +312,12 @@ end
 
 
 %-------------------------------------------------------------------------%
-function [BeginTime, EndTime, RevisitTime] = Read_ObservationTime(specData, rawData, filename)
+function [BeginTime, EndTime, RevisitTime] = Read_ObservationTime(specData, rawData, fileName)
 
     Samples = height(specData.FileMap);
 
     if ismember(specData.MetaData.DataType, [4, 7])
-        fileInfo  = dir(filename);
-        EndTime   = datetime(fileInfo.date, 'Locale', 'system');
+        EndTime   = FileDate(fileName);
         BeginTime = EndTime - seconds(Samples-1);
         
     else
@@ -352,13 +351,20 @@ function Description = Read_Description(specData, ii, messageTable)
     else
         idx = find(messageTable.ThreadID == specData(ii).RelatedFiles.ID);
         if ~isempty(idx)
-            if numel(idx) == 1
+            if isscalar(idx)
                 Description = messageTable.Message{idx};
             else
                 Description = jsonencode(messageTable(idx,:));
             end
         end
     end
+end
+
+
+%-------------------------------------------------------------------------%
+function fileDate = FileDate(fileName)
+    fileInfo  = dir(fileName);
+    fileDate  = datetime(fileInfo.date, 'Locale', 'system');
 end
 
 
