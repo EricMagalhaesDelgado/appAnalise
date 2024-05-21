@@ -308,6 +308,11 @@ classdef (Abstract) axesDraw
             colormap(hAxes, Parameters.Colormap)
             hAxes.Colormap(1,:) = [0,0,0];
 
+            % AJUSTE DO BASEMAP
+            if isfield(Parameters, 'Basemap')
+                hAxes.Basemap = Parameters.Basemap;
+            end
+
             % PLOT
             if strcmp(srcFcn, 'ReportGenerator')
                 plotFcn.axesDraw.DriveTestFilterPlot(hAxes, Parameters, 'GeographicPlot');
