@@ -20,8 +20,9 @@ classdef (Abstract) axesDraw
               % case 'SamplesPerLevel';  plotFcn.axesDraw.cartesianAxes__type7(hAxes, SpecInfo, Parameters)
               % case 'ChannelPower';     plotFcn.axesDraw.cartesianAxes__type8(hAxes, SpecInfo, Parameters)
                 case 'DriveTest';        plotFcn.axesDraw.geographicAxes_type1(hAxes, Parameters, srcFcn)
-              % case 'Stations';         plotFcn.axesDraw.geographicAxes_type2(hAxes, SpecInfo, Parameters)
-              % case 'Link';             plotFcn.axesDraw.geographicAxes_type3(hAxes, SpecInfo, Parameters)
+                case 'DriveTestRoute';   plotFcn.axesDraw.geographicAxes_type2(hAxes, Parameters)
+              % case 'Stations';         plotFcn.axesDraw.geographicAxes_type3(hAxes, SpecInfo, Parameters)
+              % case 'Link';             plotFcn.axesDraw.geographicAxes_type4(hAxes, SpecInfo, Parameters)
             end
         end
 
@@ -328,6 +329,21 @@ classdef (Abstract) axesDraw
 
 
         %-----------------------------------------------------------------%
+        function geographicAxes_type2(hAxes, Parameters)
+            if isempty(Parameters)
+                error('Unexpected parameters value.')
+            end
+
+            % PLOT
+            specData   = Parameters.specData;
+            gpsPerFile = vertcat(specData.RelatedFiles.GPS{:});
+            gpsMatrix  = vertcat(gpsPerFile.Matrix);
+
+            geoplot(hAxes, gpsMatrix(:,1), gpsMatrix(:,2));
+        end
+        
+        
+        %-----------------------------------------------------------------%
         % EIXO GEOGRÁFICO: PLOT
         %-----------------------------------------------------------------%
         function DriveTestFilterPlot(hAxes, Parameters, plotType)
@@ -597,7 +613,7 @@ classdef (Abstract) axesDraw
                 switch plotName{ii}
                     case {'Spectrum', 'Persistance', 'OccupancyPerBin', 'Waterfall', 'OccupancyPerHour', 'OccupancyPerDay', 'SamplesPerLevel', 'ChannelPower', 'Link'}
                         axesType{ii} = 'Cartesian';
-                    case {'DriveTest', 'Stations'}
+                    case {'DriveTest', 'Stations', 'DriveTestRoute'}
                         axesType{ii} = 'Geographic';
                     otherwise
                         error('Unexpected plotName')

@@ -61,7 +61,7 @@ function MAT(fileName, fileType, prj_specData, prj_Info)
             prj_Type = {'User data'};
             prj_specData = copy(prj_specData, {'Data'});
     end
-    save(fileName, 'prj_Type', 'prj_Version', 'prj_Source', 'prj_RelatedFiles', 'prj_metaData', 'prj_specData', 'prj_Info', '-v7.3')
+    save(fileName, 'prj_Type', 'prj_Version', 'prj_Source', 'prj_RelatedFiles', 'prj_metaData', 'prj_specData', 'prj_Info', '-v7.3', '-nocompression')
 end
 
 

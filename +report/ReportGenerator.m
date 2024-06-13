@@ -122,6 +122,11 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                                 otherwise % 'Band' e imagens externas...
                                     reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
                                     
+                                    % Jeitinho pra plotar a rota fora do loop de recorrência...
+                                    if ismember('DriveTestRoute', {plotInfo.Name})
+                                        reportInfo.General.Parameters.specData = SpecInfo(1);
+                                    end                                    
+                                    
                                     opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo);
                                     htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                             end

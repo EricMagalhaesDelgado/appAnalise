@@ -185,8 +185,25 @@
                 "Width": "auto"
               }
             ],
-            "LineBreak": 0,
+            "LineBreak": 1,
             "Intro": "{\"Type\":\"Subitem\",\"String\":\"Na tabela apresentada a seguir constam informações da monitoração sob análise.\"}",
+            "Error": ""
+          }
+        },
+        {
+          "Type": "Image",
+          "Data": {
+            "Origin": "Internal",
+            "Type": "Band",
+            "Source": "DriveTestRoute",
+            "Layout": "1",
+            "Caption": "Rota percorrida durante a monitoração.",
+            "Settings": {
+              "Width": "90%",
+              "Height": "auto"
+            },
+            "LineBreak": 0,
+            "Intro": "{\"Type\":\"Subitem\",\"String\":\"Na imagem apresentada a seguir consta a rota percorrida durante a monitoração.\"}",
             "Error": ""
           }
         }
