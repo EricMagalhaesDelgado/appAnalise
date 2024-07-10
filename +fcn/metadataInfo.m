@@ -5,13 +5,13 @@ function htmlCode = metadataInfo(MetaDataInfo, InvalidValueStatus)
         InvalidValueStatus = 'print -1'
     end
     
-    htmlCode = '<font style="font-family: Helvetica; font-size: 10px;">';
+    htmlCode = '<p style="font-family: Helvetica; font-size: 10px; text-align: justify;">';
     for ii = 1:numel(MetaDataInfo)
         htmlCode = sprintf('%s<b>%s</b>', htmlCode, MetaDataInfo(ii).group);
         htmlCode = structParser(MetaDataInfo(ii).value, htmlCode, 1, InvalidValueStatus);
         htmlCode = sprintf('%s\n\n', htmlCode);
     end
-    htmlCode = replace(sprintf('%s</font>', strtrim(htmlCode)), newline, '<br>');
+    htmlCode = replace(sprintf('%s</p>', strtrim(htmlCode)), newline, '<br>');
 end
 
 
