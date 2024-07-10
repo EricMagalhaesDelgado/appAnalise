@@ -5,14 +5,14 @@ function Controller(app, Mode)
         
         switch Mode
             case 'Report'
-                d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'on', 'Interpreter', 'html');
-                d.Message = ['<font style="font-size:12;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
-                             'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações...</font>'];
+                d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'off', 'Interpreter', 'html', 'Cancelable', 'on', 'CancelText', 'Cancelar', 'Value', 0);
+                d.Message = ['<p style="font-size: 12px; text-align: justify;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
+                             'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações.</p>'];
 
                 % Verifica se o template e relatório selecionado demanda
                 % arquivos externos (imagens e tabelas).
                 if contains(reportInfo.Model.Template, '"Origin": "External"')
-                    msg = '<font style="font-size:12;">Confirma que foram relacionados os arquivos externos ao appAnalise estabelecidos no modelo?</font>';
+                    msg = '<p style="font-size:12px; text-align: justify;">Confirma que foram relacionados os arquivos externos ao appAnalise estabelecidos no modelo?</p>';
                     selection = uiconfirm(app.UIFigure, msg, '', 'Options', {'OK', 'Cancelar'}, 'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question', 'Interpreter', 'html');
                     
                     if selection == "Cancelar"
@@ -21,7 +21,7 @@ function Controller(app, Mode)
                 end
 
                 % Verifica...
-                [htmlReport, Peaks] = report.ReportGenerator(app, idx, reportInfo);
+                [htmlReport, Peaks] = report.ReportGenerator(app, idx, reportInfo, d);
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
 
                 switch app.report_Version.Value
