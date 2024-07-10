@@ -12,7 +12,7 @@ classdef metaData < handle
 
     methods
         %-----------------------------------------------------------------%
-        function Read_MetaData(obj, RootFolder)
+        function Read_MetaData(obj)
             
             [~, fileName, fileExt] = fileparts(obj.File);
             
@@ -36,7 +36,7 @@ classdef metaData < handle
                     end
                 
                 case '.dbm'
-                    obj.Data = fileReader.CellPlanDBM(obj.File, 'MetaData', [], RootFolder);
+                    obj.Data = fileReader.CellPlanDBM(obj.File, 'MetaData', []);
 
                 case '.sm1809'
                     obj.Data = fileReader.SM1809(obj.File, 'MetaData', []);

@@ -61,49 +61,53 @@ classdef specData < handle
                 error('Devem ser selecionados ao menos dois fluxos espectrais...')
             end
 
-            mergeTable = table('Size',          [0, 8],                                                                         ...
-                               'VariableTypes', {'double', 'double', 'double', 'double', 'cell', 'double', 'double', 'double'}, ...
-                               'VariableNames', {'idx', 'DataType', 'FreqStart', 'FreqStop', 'LevelUnit', 'DataPoints', 'Resolution', 'nSweeps'});
+            mergeTable = table('Size',          [0, 10],                                                                                          ...
+                               'VariableTypes', {'double', 'cell', 'double', 'double', 'double', 'cell', 'double', 'double', 'double', 'double'}, ...
+                               'VariableNames', {'idx', 'Receiver', 'DataType', 'FreqStart', 'FreqStop', 'LevelUnit', 'DataPoints', 'StepWidth', 'Resolution', 'nSweeps'});
 
             for ii = idx
                 mergeTable(end+1,:) = {ii,                          ...
+                                       obj(ii).Receiver,            ...
                                        obj(ii).MetaData.DataType,   ...
                                        obj(ii).MetaData.FreqStart,  ...
                                        obj(ii).MetaData.FreqStop,   ...
                                        obj(ii).MetaData.LevelUnit,  ...
-                                       obj(ii).MetaData.DataPoints,  ...
+                                       obj(ii).MetaData.DataPoints, ...
+                                       (obj(ii).MetaData.FreqStop - obj(ii).MetaData.FreqStart) / (obj(ii).MetaData.DataPoints - 1), ...
                                        obj(ii).MetaData.Resolution, ...
                                        numel(obj(ii).Data{1})};
             end
             mergeTable = sortrows(mergeTable, 'FreqStart');
 
+            % Validação inicial, aplicável a todos os tipos de mesclagem.
+            if ~isscalar(unique(mergeTable.Receiver)) || ...
+               ~isscalar(unique(mergeTable.DataType)) || ...
+               ~isscalar(unique(mergeTable.LevelUnit))
+               
+                error(ErrorMessage(obj, 'merge'))
+            end
+
             % FAIXAS DE FREQUÊNCIA IDÊNTICAS
-            if (numel(unique(mergeTable.FreqStart))  == 1)                                                      && ...
-               (numel(unique(mergeTable.FreqStop))   == 1)                                                      && ...
-               (numel(unique(mergeTable.LevelUnit))  == 1)                                                      && ...
-               (numel(unique(mergeTable.DataPoints)) == 1)                                                      && ...
-               (numel(unique(mergeTable.DataType))   == 1)
+            if isscalar(unique(mergeTable.FreqStart)) && ...
+               isscalar(unique(mergeTable.FreqStop))  && ...
+               isscalar(unique(mergeTable.DataPoints))
                 mergeType = 'co-channel';
 
             % FAIXAS DE FREQUÊNCIA ADJACENTES
-            elseif issorted(mergeTable.FreqStart, "strictascend")                                               && ...
-               isequal(mergeTable.FreqStart(2:height(mergeTable)), mergeTable.FreqStop(1:height(mergeTable)-1)) && ...
-               (numel(unique(mergeTable.LevelUnit))  == 1)                                                      && ...
-               (numel(unique(mergeTable.nSweeps))    == 1)                                                      && ...
-               (numel(unique(mergeTable.DataType))   == 1)
+            elseif issorted(mergeTable.FreqStart, "strictascend")                                             && ...
+               all(mergeTable.FreqStart(2:height(mergeTable)) <= mergeTable.FreqStop(1:height(mergeTable)-1)) && ...
+               isscalar(unique(mergeTable.nSweeps))
                 mergeType = 'adjacent-channel';
-
+            
             else
-                error(sprintf(['Os fluxos espectrais a mesclar não atendem aos requisitos dos dois tipos de mesclagem implantados no <i>app</i>, quais sejam:\n\n' ...
-                               '• Tipo "co-channel": os fluxos devem possuir os campos "FreqStart", "FreqStop", "LevelUnit", "DataPoints" e "DataType" idênticos;\n\n'           ...
-                               '• Tipo "adjacent-channel": os fluxos devem estar relacionados a faixas de frequências adjacentes, além de possuírem os campos "LevelUnit", "nSweeps" e "DataType" idênticos.']))
+                error(ErrorMessage(obj, 'merge'))
             end
 
             resolutionList = unique(mergeTable.Resolution);
             if (numel(resolutionList)  > 1)
                 msg = {};
                 for ii = 1:height(mergeTable)
-                    msg{end+1} = sprintf('• %.3f - %.3f MHz (Resolução=%.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.Resolution(ii)/1000);
+                    msg{end+1} = sprintf('• %.3f - %.3f MHz (Resolução = %.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.Resolution(ii)/1000);
                 end
                 msg = sprintf(['<font style="font-size:12;">Os fluxos espectrais a mesclar possuem valores diferentes de resolução.\n%s\n\n' ...
                                'Deseja continuar esse processo de mesclagem, o que resultará em um fluxo que armazenará como metadado a maior ' ...
@@ -113,13 +117,30 @@ classdef specData < handle
                 if strcmp(selection, 'Não')
                     return
                 end
-            end            
+            end
 
+            stepWidthList = unique(mergeTable.StepWidth);
+            if (numel(stepWidthList)  > 1)
+                msg = {};
+                for ii = 1:height(mergeTable)
+                    msg{end+1} = sprintf('• %.3f - %.3f MHz (Passo da varredura = %.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.StepWidth(ii)/1000);
+                end
+                msg = sprintf(['<font style="font-size:12;">Os fluxos espectrais a mesclar possuem valores diferentes de passos de varredura.\n%s\n\n'   ...
+                               'Deseja continuar esse processo de mesclagem, o que poderá demandar a interpolação da(s) matriz(es) de níveis do(s) fluxo(s), ' ...
+                               'resultando em um único passo de varredura (no caso, %.3f kHz)?</font>'], strjoin(msg, '\n'), mode(mergeTable.StepWidth)/1000);
+                selection = uiconfirm(uiFigure, msg, '', 'Options', {'Sim', 'Não'}, 'DefaultOption', 2, 'CancelOption', 2, 'Icon', 'question', 'Interpreter', 'html');
+
+                if strcmp(selection, 'Não')
+                    return
+                end
+            end
+            
             switch mergeType
                 case 'co-channel'
                     timeArray    = [];
                     dataMatrix   = [];
                     relatedFiles = [];
+                    
                     for ii = idx
                         timeArray    = [timeArray,    obj(ii).Data{1}]; 
                         dataMatrix   = [dataMatrix,   obj(ii).Data{2}];
@@ -132,16 +153,45 @@ classdef specData < handle
                     end
     
                     obj(idx(1)).GPS = rmfield(fcn.gpsSummary(relatedFiles.GPS), 'Matrix');
-                    obj(idx(1)).RelatedFiles = relatedFiles;     
+                    obj(idx(1)).RelatedFiles = relatedFiles;
 
                 case 'adjacent-channel'
                     timeArray    = obj(idx(1)).Data{1};
                     dataMatrix   = [];
                     relatedFiles = obj(idx(1)).RelatedFiles;
-                    for ii = idx
-                        dataMatrix = [dataMatrix; obj(ii).Data{2}];
-                    end                
+
+                    stepWidthRef = mode(mergeTable.StepWidth);
+
+                    for ii = 1:numel(idx)
+                        newDataPoints = round((mergeTable.FreqStop(ii) - mergeTable.FreqStart(ii))/stepWidthRef + 1);
+                        
+                        x  = linspace(mergeTable.FreqStart(ii), mergeTable.FreqStop(ii), mergeTable.DataPoints(ii));
+                        xq = linspace(mergeTable.FreqStart(ii), mergeTable.FreqStop(ii), newDataPoints);
+
+                        if ii > 1
+                            if mergeTable.FreqStart(ii) < mergeTable.FreqStop(ii-1)
+                                newFreqStart = mergeTable.FreqStop(ii-1);
+                                newDataPoints = round((mergeTable.FreqStop(ii) - newFreqStart)/stepWidthRef + 1);
     
+                                xq = linspace(newFreqStart, mergeTable.FreqStop(ii), newDataPoints);
+                            end                            
+                        end
+
+                        if isequal(x, xq)
+                            newDataMatrix = obj(idx(ii)).Data{2};
+
+                        else
+                            nSweeps = mergeTable.nSweeps(ii);
+                            newDataMatrix = zeros(newDataPoints, nSweeps, 'single');
+
+                            for jj = 1:nSweeps
+                                newDataMatrix(:,jj) = interp1(x, obj(idx(ii)).Data{2}(:,jj), xq);
+                            end
+                        end
+
+                        dataMatrix = [dataMatrix; newDataMatrix];
+                    end
+
                     obj(idx(1)).MetaData.DataPoints = height(dataMatrix);
                     obj(idx(1)).MetaData.FreqStop   = mergeTable.FreqStop(end);
             end            
@@ -168,6 +218,21 @@ classdef specData < handle
                         obj(ii).UserData(1).occMethod.SelectedIndex = selectedIndex;
                     end
                 end
+            end
+        end
+    end
+
+
+    methods (Access = protected)
+        %-----------------------------------------------------------------%
+        function errorMessage = ErrorMessage(obj, errorType)
+            switch errorType
+                case 'merge'
+                    errorMessage = sprintf(['Os fluxos espectrais a mesclar não atendem aos requisitos dos dois tipos de mesclagem implantados no <i>app</i>, quais sejam:\n\n'    ...
+                                           '• Tipo "co-channel": os fluxos devem possuir os campos "FreqStart", "FreqStop", "LevelUnit", "DataPoints" e "DataType" idênticos;\n\n' ...
+                                           '• Tipo "adjacent-channel": os fluxos devem estar relacionados a faixas de frequências adjacentes, podendo ter sobreposição espectral entre fluxos, além de possuírem os campos "LevelUnit", "nSweeps" e "DataType" idênticos.']);
+                otherwise
+                    errorMessage = 'Unknown error';
             end
         end
     end
@@ -276,7 +341,7 @@ classdef specData < handle
                         end
         
                     case '.dbm'
-                        SpecInfo = fileReader.CellPlanDBM(app.metaData(ii).File, 'SpecData', app.metaData(ii), app.RootFolder);                        
+                        SpecInfo = fileReader.CellPlanDBM(app.metaData(ii).File, 'SpecData', app.metaData(ii));                        
         
                     case '.sm1809'
                         SpecInfo = fileReader.SM1809(app.metaData(ii).File, 'SpecData', app.metaData(ii));

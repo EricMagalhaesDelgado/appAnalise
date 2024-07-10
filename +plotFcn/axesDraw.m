@@ -547,11 +547,11 @@ classdef (Abstract) axesDraw
             
             exportgraphics(f, imgFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
             drawnow nocallbacks
-
-            if ~reportInfo.General.Image.Visibility
-                delete(f)
-            else
-                arrayfun(@(x) enableDefaultInteractivity(x), findobj(f, 'Type', 'axes', '-or', 'Type', 'geoaxes'))
+            while true
+                if isfile(imgFileName)
+                    delete(f)
+                    break
+                end
             end
         end
 
@@ -565,7 +565,7 @@ classdef (Abstract) axesDraw
             xPixels = class.Constants.windowSize(1);
             yPixels = class.Constants.windowSize(2);
         
-            f = uifigure('Visible', reportInfo.General.Image.Visibility,                                           ...
+            f = uifigure('Visible', false,                                                                         ...
                          'Position', [mainMonitor(1) + round((mainMonitor(3)-xPixels)/2),                          ...
                                       mainMonitor(2) + round((mainMonitor(4)+48-yPixels-30)/2), xPixels, yPixels], ...
                          'Icon', 'LR_icon.png', 'Tag', 'ReportGenerator');

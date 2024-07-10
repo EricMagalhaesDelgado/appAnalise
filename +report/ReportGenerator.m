@@ -1,10 +1,14 @@
-function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
+function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
 
     global ID_img
     global ID_tab
 
     global ID_imgExt
     global ID_tabExt
+
+    if nargin == 3
+        d = [];
+    end
 
     ID_img = 0;
     ID_tab = 0;
@@ -47,6 +51,11 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
         end
 
         for jj = 1:NN
+            if Template(ii).Recurrence && ~isempty(d)
+                d.Message = sprintf(['<p style="font-size: 12px; text-align: justify;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
+                                     'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações.\n\n%d de %d</p>'], jj, NN);
+            end
+
             % Insere uma quebra de linha, caso exista recorrência no item
             % (iterando SpecInfo).
             if jj > 1
@@ -150,6 +159,15 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo)
                         msgError   = jsondecode(msgError);
                         htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', msgError.Type, 'Data', struct('Editable', 'false', 'String', msgError.String))));
                     end
+                end
+            end
+
+            % Atualiza barra de progresso... e cancela operação, caso
+            % requisitado pelo usuário.
+            if Template(ii).Recurrence && ~isempty(d)
+                d.Value = jj/NN;
+                if d.CancelRequested
+                    return
                 end
             end
         end
