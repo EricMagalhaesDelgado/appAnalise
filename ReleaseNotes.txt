@@ -1,11 +1,10 @@
-v. 1.66 (XX/06/2024)
+v. 1.66 (09/07/2024)
 - BUGS
-(a) Corrigido BUG na geração do relatório, quando fluxo sob análise é mesclado (com outro fluxo) após a sua inclusão no projeto.
+(a) Corrigido BUG na geração do relatório, o qual se manifestava quando um fluxo sob análise era mesclado (com outro) posteriormente à sua inclusão no projeto.
 (b) Eliminada a possibilidade de salvar arquivos .MAT comprimidos porque foi evidenciado que arquivos .MAT grandes (alguns gigas) podem ser instáveis no salvamento e carregamento.
 - EVOLUÇÃO
 (a) O relatório apresenta a rota percorrida, case se trate de um drive-test.
-
-(... HOMOLOGAÇÃO DA V2 ...)
+(b) Adaptação do leitor de arquivos gerados pelo CellWireless para atender funcionalidades trazidas pela nova versão de firmware (da CellPlan).
 
 v. 1.39 (14/11/2023)
 - BUGS
