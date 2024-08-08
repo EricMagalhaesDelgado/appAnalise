@@ -13,7 +13,6 @@ classdef (Abstract) Constants
         gps2loc_City  = 'city'
         gps2loc_Unit  = 'principalSubdivisionCode'
 
-        userPaths     = {fullfile(getenv('USERPROFILE'), 'Documents'); fullfile(getenv('USERPROFILE'), 'Downloads')}
         Interactions  = {'datacursor', 'zoomin', 'restoreview'}
 
         yMinLimRange  = 80                                                  % Minimum y-Axis limit range

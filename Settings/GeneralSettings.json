@@ -1,104 +1,157 @@
 {
-  "userPath": "",
-  "pythonPath": "",
-  "openGL": "hardware",
-  "Merge": {
-    "DataType": "remove",
-    "Antenna": "remove",
-    "AntennaAttributes": [
-      "Name",
-      "Azimuth",
-      "Elevation",
-      "Polarization",
-      "Height",
-      "SwitchPort",
-      "LNBChannel"
-    ],
-    "Distance": 100
-  },
-  "Image": {
-    "Visibility": "on",
-    "Format": "jpeg",
-    "Resolution": 120
-  },
-  "Plot": {
-    "Axes": {
-      "xLabel": true,
-      "yLabel": true,
-      "xTickLabel": true,
-      "yTickLabel": true,
-      "xGuardBandFactor": 1
+    "version": 0.02,
+    "computerName": {
+        "deskopApp": "",
+        "webServer": "WIMATLABPDIN01"
     },
-    "MinHold": {
-      "Fcn": "area",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#005cd1",
-      "FaceColor": "#005cd1"
+    "fileFolder": {
+        "userPath": "",
+        "tempPath": "",
+        "pythonPath": "",
+        "DataHub_GET": "",
+        "DataHub_POST": "",
+        "lastVisited": ""
     },
-    "ClearWrite": {
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#ffff12",
-      "FaceColor": "#ffff12"
+    "fiscaliza": {
+        "systemVersion": "HOM",
+        "lastHTMLDocFullPath": "",
+        "lastTableFullPath": "",
+        "defaultValues": {
+            "entidade_com_cadastro_stel": {
+                "value": "Não",
+                "options": [
+                    "Não",
+                    "Sim"
+                    ]
+            },
+            "gerar_plai": {
+                "value": "0",
+                "options": [
+                    "0",
+                    "1"
+                    ]
+            },
+            "tipo_do_processo_plai": {
+                "value": "Gestão da Fiscalização: Lacração, Apreensão e Interrupção",
+                "options": [
+                    "Gestão da Fiscalização: Lacração, Apreensão e Interrupção",
+                    "Gestão da Fiscalização: Processo de Guarda"
+                ]
+            },
+            "motivo_de_lai": {
+                "value": [
+                    "Clandestinidade",
+                    "Necessidade de assegurar o planejamento, o gerenciamento e a coordenação do uso de espectro de radiofrequências (justificar)"
+                ],
+                "options": [
+                    "Risco à vida",
+                    "Clandestinidade",
+                    "Interferência prejudicial",
+                    "Uso de produto não certificado",
+                    "Garantir a segurança (exposição a campos eletromagnéticos)",
+                    "Necessidade de assegurar o planejamento, o gerenciamento e a coordenação do uso de espectro de radiofrequências (justificar)"
+                ]
+            }
+        }
     },
-    "Average": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "Playback": "#00ff00",
-      "EdgeColor": "#ffff12",
-      "FaceColor": "#ffff12"
+    "openGL": "hardware",
+    "Merge": {
+        "DataType": "remove",
+        "Antenna": "remove",
+        "AntennaAttributes": [
+            "Name",
+            "Azimuth",
+            "Elevation",
+            "Polarization",
+            "Height",
+            "SwitchPort",
+            "LNBChannel"
+        ],
+        "Distance": 100
     },
-    "MaxHold": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#ff12a6",
-      "FaceColor": "#ff12a6"
+    "Image": {
+        "Visibility": "on",
+        "Format": "jpeg",
+        "Resolution": 120
     },
-    "ROI": {
-      "Color": "#66bae0",
-      "EdgeAlpha": 0,
-      "FaceAlpha": 0.4,
-      "yPosition": 1,
-      "TextColor": "#000000",
-      "TextFontSize": 8
+    "Plot": {
+        "Axes": {
+            "xLabel": true,
+            "yLabel": true,
+            "xTickLabel": true,
+            "yTickLabel": true,
+            "xGuardBandFactor": 1
+        },
+        "MinHold": {
+            "Fcn": "area",
+            "LineStyle": "-",
+            "LineWidth": 0.5,
+            "EdgeColor": "#005cd1",
+            "FaceColor": "#005cd1"
+        },
+        "ClearWrite": {
+            "LineStyle": "-",
+            "LineWidth": 0.5,
+            "EdgeColor": "#ffff12",
+            "FaceColor": "#ffff12"
+        },
+        "Average": {
+            "Fcn": "line",
+            "LineStyle": "-",
+            "LineWidth": 0.5,
+            "Playback": "#00ff00",
+            "EdgeColor": "#ffff12",
+            "FaceColor": "#ffff12"
+        },
+        "MaxHold": {
+            "Fcn": "line",
+            "LineStyle": "-",
+            "LineWidth": 0.5,
+            "EdgeColor": "#ff12a6",
+            "FaceColor": "#ff12a6"
+        },
+        "ROI": {
+            "Color": "#66bae0",
+            "EdgeAlpha": 0,
+            "FaceAlpha": 0.4,
+            "yPosition": 1,
+            "TextColor": "#000000",
+            "TextFontSize": 8
+        },
+        "Persistance": {
+            "Interpolation": "nearest",
+            "Colormap": "winter"
+        },
+        "Waterfall": {
+            "Fcn": "image",
+            "View": "vertical",
+            "MeshStyle": "both",
+            "Colormap": "winter"
+        },
+        "occMinHold": {
+            "Fcn": "line",
+            "LineStyle": "-",
+            "LineWidth": 0.5,
+            "EdgeColor": "#005cd1",
+            "FaceColor": "#005cd1"
+        },
+        "occAverage": {
+            "Fcn": "line",
+            "LineStyle": "-",
+            "LineWidth": 0.5,
+            "EdgeColor": "#ffff12",
+            "FaceColor": "#ffff12"
+        },
+        "occMaxHold": {
+            "Fcn": "line",
+            "LineStyle": "-",
+            "LineWidth": 0.5,
+            "EdgeColor": "#ff12a6",
+            "FaceColor": "#ff12a6"
+        }
     },
-    "Persistance": {
-      "Interpolation": "nearest",
-      "Colormap": "winter"
-    },
-    "Waterfall": {
-      "Fcn": "image",
-      "View": "vertical",
-      "MeshStyle": "both",
-      "Colormap": "winter"
-    },
-    "occMinHold": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#005cd1",
-      "FaceColor": "#005cd1"
-    },
-    "occAverage": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#ffff12",
-      "FaceColor": "#ffff12"
-    },
-    "occMaxHold": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#ff12a6",
-      "FaceColor": "#ff12a6"
+    "Integration": {
+        "Trace": null,
+        "SampleTime": 10
     }
-  },
-  "Integration": {
-    "Trace": null,
-    "SampleTime": 10
-  }
 }

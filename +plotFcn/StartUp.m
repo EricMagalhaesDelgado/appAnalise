@@ -37,7 +37,7 @@ function StartUp(app, idx)
 
     % Painel de metadados.
     nodeSummary = fcn.SelectedNodeSummary(app, 'app.specData', idx);
-    app.play_Metadata.HTMLSource = fcn.metadataInfo(nodeSummary, 'delete');
+    app.play_Metadata.HTMLSource = textFormatGUI.struct2PrettyPrintList(nodeSummary, 'delete', '11px');
 
 
     % Barra de status.

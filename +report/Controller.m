@@ -80,7 +80,7 @@ function Controller(app, Mode)
         
     catch ME
         fprintf('%s\n', jsonencode(ME))
-        layoutFcn.modalWindow(app.UIFigure, 'ccTools.MessageBox', getReport(ME));
+        appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
     end
 
     if exist('d', 'var')
@@ -93,8 +93,8 @@ end
 function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
     switch Mode
         case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
-            if isempty(app.General.version.fiscaliza)
-                app.General.version = fcn.startup_Versions("Full", app.RootFolder);
+            if isempty(app.General.AppVersion.fiscaliza)
+                app.General.AppVersion = fcn.startup_Versions("Full", app.RootFolder);
             end
         
             reportTemplateIndex = find(strcmp(app.report_Type.Items, app.report_Type.Value), 1);
