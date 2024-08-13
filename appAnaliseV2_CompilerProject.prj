@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration file="C:\InovaFiscaliza\appAnaliseV2\appAnaliseV2_CompilerProject.prj" location="C:\InovaFiscaliza\appAnaliseV2" name="appAnaliseV2_CompilerProject" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration file="D:\InovaFiscaliza\appAnaliseV2\appAnaliseV2_CompilerProject.prj" location="D:\InovaFiscaliza\appAnaliseV2" name="appAnaliseV2_CompilerProject" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>appAnaliseV2</param.appname>
     <param.icon>${PROJECT_ROOT}\appAnaliseV2_CompilerProject_resources\icon.ico</param.icon>
     <param.icons>
@@ -8,9 +8,9 @@
       <file>${PROJECT_ROOT}\appAnaliseV2_CompilerProject_resources\icon_24.png</file>
       <file>${PROJECT_ROOT}\appAnaliseV2_CompilerProject_resources\icon_16.png</file>
     </param.icons>
-    <param.version>1.67</param.version>
-    <param.authnamewatermark>Eric Magalhães Delgado</param.authnamewatermark>
-    <param.email>eric@anatel.gov.br</param.email>
+    <param.version>1.80</param.version>
+    <param.authnamewatermark>Escritório de inovação da SFI</param.authnamewatermark>
+    <param.email />
     <param.company>ANATEL</param.company>
     <param.summary />
     <param.description />
@@ -49,6 +49,7 @@ v. 1.67</param.install.notes>
 	 -?  print help on how to use the application 
 	 input arguments</param.help.text>
     <unset>
+      <param.email />
       <param.summary />
       <param.description />
       <param.screenshot />
@@ -79,6 +80,7 @@ v. 1.67</param.install.notes>
       <file>${PROJECT_ROOT}\winAppAnalise.mlapp</file>
     </fileset.main>
     <fileset.resources>
+      <file>C:\SupportPackages</file>
       <file>${PROJECT_ROOT}\+auxApp</file>
       <file>${PROJECT_ROOT}\+class</file>
       <file>${PROJECT_ROOT}\+fcn</file>
@@ -90,30 +92,24 @@ v. 1.67</param.install.notes>
       <file>${PROJECT_ROOT}\+plotFcn</file>
       <file>${PROJECT_ROOT}\+report</file>
       <file>${PROJECT_ROOT}\Icons</file>
-      <file>C:\SupportPackages\+ccTools</file>
-      <file>C:\SupportPackages\ApplicationMode.m</file>
-      <file>C:\SupportPackages\disablingWarningMessages.m</file>
-      <file>C:\SupportPackages\killingMATLABRuntime.m</file>
     </fileset.resources>
     <fileset.package>
       <file>${PROJECT_ROOT}\DataBase</file>
-      <file>${PROJECT_ROOT}\Debug</file>
       <file>${PROJECT_ROOT}\Icons</file>
       <file>${PROJECT_ROOT}\Settings</file>
-      <file>${PROJECT_ROOT}\Temp</file>
       <file>${PROJECT_ROOT}\Template</file>
     </fileset.package>
     <fileset.depfun>
       <file>${PROJECT_ROOT}\IBGE.mat</file>
     </fileset.depfun>
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\appAnaliseV2_CompilerProject\for_testing" name="readme.txt" optional="true">C:\InovaFiscaliza\appAnaliseV2\appAnaliseV2_CompilerProject\for_testing\readme.txt</file>
-      <file location="${PROJECT_ROOT}\appAnaliseV2_CompilerProject\for_testing" name="appAnaliseV2.exe" optional="false">C:\InovaFiscaliza\appAnaliseV2\appAnaliseV2_CompilerProject\for_testing\appAnaliseV2.exe</file>
-      <file location="${PROJECT_ROOT}\appAnaliseV2_CompilerProject\for_testing" name="splash.png" optional="false">C:\InovaFiscaliza\appAnaliseV2\appAnaliseV2_CompilerProject\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\appAnaliseV2_CompilerProject\for_testing" name="appAnaliseV2.exe" optional="false">D:\InovaFiscaliza\appAnaliseV2\appAnaliseV2_CompilerProject\for_testing\appAnaliseV2.exe</file>
+      <file location="${PROJECT_ROOT}\appAnaliseV2_CompilerProject\for_testing" name="readme.txt" optional="true">D:\InovaFiscaliza\appAnaliseV2\appAnaliseV2_CompilerProject\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\appAnaliseV2_CompilerProject\for_testing" name="splash.png" optional="false">D:\InovaFiscaliza\appAnaliseV2\appAnaliseV2_CompilerProject\for_testing\splash.png</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files\MATLAB\R2023a</root>
+      <root>C:\Program Files\MATLAB\R2024a</root>
       <toolboxes>
         <toolbox name="neuralnetwork" />
       </toolboxes>

@@ -26,11 +26,11 @@ function Controller(app, Mode)
 
                 switch app.report_Version.Value
                     case 'Definitiva'
-                        fileName = [class.Constants.DefaultFileName(app.menu_userPath.Value, 'Report', app.report_Issue.Value) '.html'];
+                        fileName = [class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'Report', app.report_Issue.Value) '.html'];
                         fileID   = fopen(fileName, 'w', 'native', 'ISO-8859-1');
 
                     case 'Preliminar'
-                        fileName = [class.Constants.DefaultFileName(app.menu_userPath.Value, '~Report', app.report_Issue.Value) '.html'];
+                        fileName = [class.Constants.DefaultFileName(app.config_Folder_userPath.Value, '~Report', app.report_Issue.Value) '.html'];
                         fileID   = fopen(fileName, 'w');
                 end
                 
@@ -68,7 +68,7 @@ function Controller(app, Mode)
                 [~, countTable] = report.ReportGenerator_Table_Summary(app.CallingApp.peaksTable, app.CallingApp.exceptionList);
                 tableStr = ReportGenerator_Aux3(app.CallingApp, idx, countTable);
 
-                defaultFilename = class.Constants.DefaultFileName(app.CallingApp.menu_userPath.Value, 'preReport', app.CallingApp.report_Issue.Value);
+                defaultFilename = class.Constants.DefaultFileName(app.CallingApp.config_Folder_userPath.Value, 'preReport', app.CallingApp.report_Issue.Value);
 
                 [fileName, filePath, fileIndex] = uiputfile({'*.json', 'appAnalise (*.json)'}, '', defaultFilename);
                 figure(app.UIFigure)
@@ -79,7 +79,6 @@ function Controller(app, Mode)
         end
         
     catch ME
-        fprintf('%s\n', jsonencode(ME))
         appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
     end
 
@@ -94,7 +93,7 @@ function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
     switch Mode
         case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
             if isempty(app.General.AppVersion.fiscaliza)
-                app.General.AppVersion = fcn.startup_Versions("Full", app.RootFolder);
+                app.General.AppVersion = fcn.startup_Versions("Full", app.rootFolder);
             end
         
             reportTemplateIndex = find(strcmp(app.report_Type.Items, app.report_Type.Value), 1);

@@ -1,7 +1,17 @@
-function [versionLink, RFDataHubLink] = PublicLinks(RootFolder)
+function [version, appAnalise, RFDataHub] = PublicLinks(rootFolder)
 
-    PublicLinks  = jsondecode(fileread(fullfile(RootFolder, 'Settings', 'PublicLinks.json')));
+    [projectFolder, ...
+     programDataFolder] = appUtil.Path(class.Constants.appName, rootFolder);
+    fileName            = 'PublicLinks.json';
 
-    versionLink   = PublicLinks.VersionFile;
-    RFDataHubLink = PublicLinks.RFDataHub;
+    try
+        fileParser = jsondecode(fileread(fullfile(programDataFolder, fileName)));
+    catch
+        fileParser = jsondecode(fileread(fullfile(projectFolder,     fileName)));
+    end
+
+    version    = fileParser.VersionFile;
+    appAnalise = fileParser.appAnalise;
+    RFDataHub  = fileParser.RFDataHub;
+
 end

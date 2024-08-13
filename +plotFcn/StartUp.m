@@ -43,10 +43,6 @@ function StartUp(app, idx)
     % Barra de status.
     FreqStart = app.specData(idx).MetaData.FreqStart / 1e+6;
     FreqStop  = app.specData(idx).MetaData.FreqStop  / 1e+6;
-
-    app.play_SelectedNode.Text   = sprintf('%s\nID %d: %.3f - %.3f MHz', app.specData(idx).Receiver,                  ...
-                                                                         app.specData(idx).RelatedFiles.ID(1),        ...
-                                                                         FreqStart, FreqStop);
     app.play_Timestamp.Text      = sprintf('1 de %d\n%s', nSweeps, app.specData(idx).Data{1}(1));
 
 
