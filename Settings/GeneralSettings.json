@@ -1,5 +1,5 @@
 {
-    "version": 0.05,
+    "version": 0.07,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -192,23 +192,19 @@
         "Resolution": 120
     },
     "Plot": {
-        "Axes": {
-            "xLabel": true,
-            "yLabel": true,
-            "xTickLabel": true,
-            "yTickLabel": true,
-            "xGuardBandFactor": 1
-        },
         "MinHold": {
             "Fcn": "area",
             "LineStyle": "-",
             "LineWidth": 0.5,
+            "Color": "#005cd1",
             "EdgeColor": "#005cd1",
             "FaceColor": "#005cd1"
         },
         "ClearWrite": {
+            "Fcn": "line",
             "LineStyle": "-",
             "LineWidth": 0.5,
+            "Color": "#ffff12",
             "EdgeColor": "#ffff12",
             "FaceColor": "#ffff12"
         },
@@ -216,16 +212,24 @@
             "Fcn": "line",
             "LineStyle": "-",
             "LineWidth": 0.5,
-            "Playback": "#00ff00",
-            "EdgeColor": "#ffff12",
-            "FaceColor": "#ffff12"
+            "Color": "#00ff00",
+            "EdgeColor": "#00ff00",
+            "FaceColor": "#00ff00"
         },
         "MaxHold": {
             "Fcn": "line",
             "LineStyle": "-",
             "LineWidth": 0.5,
+            "Color": "#ff12a6",
             "EdgeColor": "#ff12a6",
             "FaceColor": "#ff12a6"
+        },
+        "Persistance": {
+            "Interpolation": "nearest",
+            "Samples": "full",
+            "Colormap": "winter",
+            "Transparency": 1,
+            "LevelLimits": [0, 0]
         },
         "ROI": {
             "Color": "#66bae0",
@@ -235,15 +239,18 @@
             "TextColor": "#000000",
             "TextFontSize": 8
         },
-        "Persistance": {
-            "Interpolation": "nearest",
-            "Colormap": "winter"
-        },
         "Waterfall": {
             "Fcn": "image",
             "View": "vertical",
             "MeshStyle": "both",
             "Colormap": "winter"
+        },
+        "Axes": {
+            "xLabel": true,
+            "yLabel": true,
+            "xTickLabel": true,
+            "yTickLabel": true,
+            "xGuardBandFactor": 1
         },
         "occMinHold": {
             "Fcn": "line",

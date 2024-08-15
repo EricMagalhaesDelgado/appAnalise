@@ -1,4 +1,4 @@
-classdef (Abstract) axesStackingOrder
+classdef (Abstract) StackingOrder
 
     properties (Constant)
         %-----------------------------------------------------------------%
@@ -10,22 +10,25 @@ classdef (Abstract) axesStackingOrder
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function execute(src, Axes)
-            switch src
-                case 'winAppAnalise'
-                    refStackingOrder = plotFcn.axesStackingOrder.winAppAnalise;
+        function execute(hAxes, clientID)
+            switch clientID
+                case 'winAppAnalise:PLAYBACK'
+                    refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
+
+                case 'winAppAnalise:REPORT'
+                    refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
 
                 case 'winRFDataHub'
-                    refStackingOrder = plotFcn.axesStackingOrder.winRFDataHub;
+                    refStackingOrder = plot.axes.StackingOrder.winRFDataHub;
 
                 case 'winDriveTest'
-                    refStackingOrder = plotFcn.axesStackingOrder.winDriveTest;
+                    refStackingOrder = plot.axes.StackingOrder.winDriveTest;
 
                 otherwise
                     error('Unexpected option.')
             end
             
-            stackingOrderTag = arrayfun(@(x) x.Tag, Axes.Children, 'UniformOutput', false)';
+            stackingOrderTag = arrayfun(@(x) x.Tag, hAxes.Children, 'UniformOutput', false)';
             newOrderIndex    = [];
         
             for ii = 1:numel(refStackingOrder)
@@ -33,7 +36,7 @@ classdef (Abstract) axesStackingOrder
                 newOrderIndex = [newOrderIndex, idx];
             end
         
-            Axes.Children = Axes.Children(newOrderIndex);
+            hAxes.Children = hAxes.Children(newOrderIndex);
         end
     end
 end

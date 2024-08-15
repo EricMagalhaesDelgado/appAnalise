@@ -1,28 +1,25 @@
 function DeleteAll(app)
 
-    cla(app.axes1)
-    cla(app.axes2)
-    cla(app.axes3)
+    cla(app.UIAxes1)
+    cla(app.UIAxes2)
+    cla(app.UIAxes3)
 
-    % Controle do tempo.
+    app.restoreView = struct('ID', {}, 'xLim', {}, 'yLim', {}, 'cLim', {});
     app.timeIndex = 1;
     app.tool_TimestampSlider.Value = 0;
 
-    % Controle dos handles.
-    app.restoreView        = struct('ID', {}, 'xLim', {}, 'yLim', {}, 'cLim', {});
+    app.hClearWrite       = [];
+    app.hMinHold          = [];
+    app.hAverage          = [];
+    app.hMaxHold          = [];
+    app.hPersistanceObj   = [];
 
-    app.line_ClrWrite      = [];
-    app.line_MinHold       = [];
-    app.line_Average       = [];
-    app.line_MaxHold       = [];
-    app.obj_Persistance    = [];
-
-    app.mkr_ROI            = [];
-    app.mkr_Label          = [];
+    app.hSelectedEmission = [];
+    app.hEmissionMarkers  = [];
     
-    app.line_OCC           = [];
-    app.line_OCCLabel      = [];
+    app.hTHR              = [];
+    app.hTHRLabel         = [];
         
-    app.img_WaterFall      = [];
-    app.line_WaterFallTime = [];
+    app.hWaterfall        = [];
+    app.hWaterfallTime    = [];
 end

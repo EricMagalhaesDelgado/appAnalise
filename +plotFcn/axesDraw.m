@@ -126,24 +126,6 @@ classdef (Abstract) axesDraw
         %-----------------------------------------------------------------%
         % EIXO CARTESIANO: PLOT
         %-----------------------------------------------------------------%
-        function OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, plotMode, TraceMode)
-            switch plotMode
-                case 'MinHold'; idx = 1;
-                case 'Average'; idx = 2;
-                case 'MaxHold'; idx = 3;
-            end
-
-            switch TraceMode.Fcn
-                case 'line'
-                    p = plot(hAxes, xArray, SpecInfo.Data{3}(xIndexLim(1):xIndexLim(2),idx), 'Tag', plotMode, 'LineStyle', TraceMode.LineStyle, 'LineWidth', TraceMode.LineWidth, 'Color', TraceMode.EdgeColor);
-                case 'area'
-                    p = area(hAxes, xArray, SpecInfo.Data{3}(xIndexLim(1):xIndexLim(2),idx), 'Tag', plotMode, 'LineStyle', TraceMode.LineStyle, 'LineWidth', TraceMode.LineWidth, 'EdgeColor', TraceMode.EdgeColor, 'FaceColor', TraceMode.FaceColor, 'BaseValue', yLim(1));
-            end
-            plotFcn.axesDataTipTemplate.execute('Frequency+Level', p, [], SpecInfo.MetaData.LevelUnit)
-        end
-
-
-        %-----------------------------------------------------------------%
         function PersistancePlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, Persistance)
             DataPoints  = numel(xArray);
             nSweeps     = numel(SpecInfo.Data{1});
@@ -199,100 +181,6 @@ classdef (Abstract) axesDraw
 
             if strcmp(Waterfall.View, 'horizontal')
                 hAxes.View(1) = 90;
-            end
-        end
-
-
-        %-----------------------------------------------------------------%
-        function OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, plotMode, Occupancy)
-            occIndex = SpecInfo.UserData.occMethod.CacheIndex;
-            if isempty(occIndex)
-                return
-            end
-
-            switch plotMode
-                case 'occMinHold'; idx = 1;
-                case 'occAverage'; idx = 2;
-                case 'occMaxHold'; idx = 3;
-            end
-
-            occData = SpecInfo.UserData.occCache(occIndex).Data{3}(:,idx);
-            occData(occData==0) = .1;
-
-            switch Occupancy.Fcn
-                case 'line'
-                    p = plot(hAxes, xArray, occData(xIndexLim(1):xIndexLim(2)), 'Tag', plotMode, 'LineStyle', Occupancy.LineStyle, 'LineWidth', Occupancy.LineWidth, 'Color', Occupancy.EdgeColor);
-                case 'area'
-                    p = area(hAxes, xArray, occData(xIndexLim(1):xIndexLim(2)), 'Tag', plotMode, 'LineStyle', Occupancy.LineStyle, 'LineWidth', Occupancy.LineWidth, 'EdgeColor', Occupancy.EdgeColor, 'FaceColor', Occupancy.FaceColor, 'BaseValue', .1);
-            end
-            plotFcn.axesDataTipTemplate.execute('Frequency+Occupancy', p, [], '%%')
-        end
-
-
-        %-----------------------------------------------------------------%
-        function EmissionPlot(hAxes, SpecInfo, yLim, ROI)
-            pks = SpecInfo.UserData.Emissions;
-            if ~isempty(pks)
-                for ii = 1:height(pks)
-                    if ischar(ROI.Color)
-                        ROI.Color = ccTools.fcn.hex2rgb(ROI.Color);
-                    end
-                    drawrectangle(hAxes, 'Position', [pks.Frequency(ii)-pks.BW(ii)/2000, yLim(1)+1, pks.BW(ii)/1000, diff(yLim)-2],                   ...
-                                         'Color', ROI.Color, 'EdgeAlpha', ROI.EdgeAlpha, 'FaceAlpha', ROI.FaceAlpha, 'MarkerSize', 5, 'LineWidth', 1, ...
-                                         'Deletable', 0, 'InteractionsAllowed', 'none', 'Tag', 'mkrROI');
-                end
-
-                NN = height(pks);
-                pksLabel = string((1:NN)'); % Opcionalmente: "P_" + string((1:NN)')
-                text(hAxes, pks.Frequency, repmat(yLim(1)+ROI.yPosition, NN, 1), pksLabel, ...
-                           'Color', ROI.TextColor, 'BackgroundColor', ROI.Color,           ...
-                           'FontSize', ROI.TextFontSize, 'FontWeight', 'bold',             ...
-                           'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'PickableParts', 'none', 'Tag', 'mkrLabels');
-            end
-        end
-
-
-        %-----------------------------------------------------------------%
-        function ThresholdPlot(hAxes, SpecInfo, xArray)
-            occIndex = SpecInfo.UserData.occMethod.CacheIndex;
-            if isempty(occIndex)
-                return
-            end
-
-            occMethod = SpecInfo.UserData.occCache(occIndex).Info.Method;
-            occTHR    = SpecInfo.UserData.occCache(occIndex).THR;
-
-            switch occMethod
-                case {'Linear fixo (COLETA)', 'Linear fixo'}
-                    p    = plot(hAxes, [xArray(1), xArray(end)], [occTHR, occTHR]);
-                case 'Linear adaptativo'
-                    [minTHR, maxTHR] = bounds(occTHR);
-                    p(1) = plot(hAxes, [xArray(1), xArray(end)], [minTHR, minTHR]);
-                    p(2) = plot(hAxes, [xArray(1), xArray(end)], [maxTHR, maxTHR]);
-                case 'Envoltória do ruído'
-                    p    = plot(hAxes, xArray, occTHR);
-            end
-            arrayfun(@(x) set(x, Color='red', LineStyle='-.', LineWidth=.5, Marker='o',                                           ...
-                                 MarkerSize=4, MarkerIndices=[1, numel(x.XData)], MarkerFaceColor='red', MarkerEdgeColor='black', ...
-                                 PickableParts='none', Tag='occTHR'), p)
-        end
-
-
-        %-----------------------------------------------------------------%
-        function BandLimitsPlot(hAxes, SpecInfo)
-            if SpecInfo.UserData.bandLimitsStatus
-                yLevel = hAxes.YLim(2)-1;
-            
-                for ii = 1:height(SpecInfo.UserData.bandLimitsTable)
-                    FreqStart = SpecInfo.UserData.bandLimitsTable.FreqStart(ii);
-                    FreqStop  = SpecInfo.UserData.bandLimitsTable.FreqStop(ii);
-                    
-                    % Cria uma linha por subfaixa a analise, posicionando-o na parte 
-                    % inferior do plot.
-                    line(hAxes, [FreqStart, FreqStop], [yLevel, yLevel], ...
-                                Color=[.5 .5 .5], LineWidth=5,           ...
-                                PickableParts='none',  Tag='BandLimits')
-                end
             end
         end
 
@@ -680,65 +568,11 @@ classdef (Abstract) axesDraw
 
 
         %-----------------------------------------------------------------%
-        function [xLim, yLim, zLim, xIndexLim, xArray] = Limits(SpecInfo, Parameters, yUnit)
-            FreqStart     = SpecInfo.MetaData.FreqStart / 1e+6;
-            FreqStop      = SpecInfo.MetaData.FreqStop  / 1e+6;
-            DataPoints    = SpecInfo.MetaData.DataPoints;
 
-            xArray        = round(linspace(FreqStart, FreqStop, DataPoints), 3);            
-
-            switch Parameters.Plot.Type
-                case 'Band'
-                    FreqStartView = FreqStart;
-                    FreqStopView  = FreqStop;
-                    xIndexLim     = [1, DataPoints];
-
-                case 'Emission'
-                    emissionIndex = Parameters.Plot.emissionIndex;
-                    if emissionIndex == -1
-                        error('Unexpected value.')
-                    end
-    
-                    emissionBW    = SpecInfo.UserData.Emissions.BW(emissionIndex)/1000;
-                    xGuardBand    = Parameters.Axes.xGuardBandFactor * emissionBW;
-    
-                    FreqStartView = SpecInfo.UserData.Emissions.Frequency(emissionIndex) - (emissionBW + xGuardBand)/2;
-                    FreqStopView  = SpecInfo.UserData.Emissions.Frequency(emissionIndex) + (emissionBW + xGuardBand)/2;
-                    xIndexLim     = [plotFcn.axesDraw.freq2idx(SpecInfo, FreqStartView*1e+6, 'fix'), plotFcn.axesDraw.freq2idx(SpecInfo, FreqStopView*1e+6, 'ceil')];
-
-                    xArray        = xArray(xIndexLim(1):xIndexLim(2));
-            end
-
-            xLim = [FreqStartView, FreqStopView];
-
-            switch yUnit
-                case {'ordinary level', 'persistance level'}
-                    yLim = plotFcn.axesDraw.yzLimits(SpecInfo, yUnit, xIndexLim);
-                    zLim = [-1, 1];
-                case 'occupancy level'
-                    yLim = [0, 100];
-                    zLim = [-1, 1];
-                case 'time'
-                    yLim = [SpecInfo.Data{1}(1), SpecInfo.Data{1}(end)];
-                    zLim = plotFcn.axesDraw.yzLimits(SpecInfo, yUnit, xIndexLim);
-                case 'timeIndex'
-                    yLim = [1, numel(SpecInfo.Data{1})];
-                    zLim = [-1, 1];
-            end
-        end
 
 
         %-----------------------------------------------------------------%
-        function yzLim = yzLimits(SpecInfo, yUnit, xIndexLim)
-            yzLim  = [min(SpecInfo.Data{3}(xIndexLim(1):xIndexLim(2),1)), max(SpecInfo.Data{3}(xIndexLim(1):xIndexLim(2),end))];
 
-            if ismember(yUnit, {'persistance level', 'time'})
-                yzAmplitude = class.Constants.yMaxLimRange;
-
-                yzLim(2)    = max(yzLim(1)+yzAmplitude, yzLim(2));
-                yzLim(1)    = yzLim(2)-yzAmplitude;
-            end
-        end
 
 
         %-----------------------------------------------------------------%

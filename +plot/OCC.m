@@ -1,4 +1,4 @@
-function OCC(app, idx, Type, LevelUnit, occIndex)
+function OCC(app, idx, Type, occIndex)
 
     switch Type
         case 'Creation'
@@ -41,7 +41,7 @@ function OCC(app, idx, Type, LevelUnit, occIndex)
                 hPlotAxes2 = plot(app.axes2, app.Band.xArray, occData{3}(:,2), Color=app.General.Plot.ClearWrite.EdgeColor, Tag='occData_Mean');
 
                 % DataTip
-                DataTip(hPlotAxes1, LevelUnit)
+                DataTip(hPlotAxes1, app.bandObj.LevelUnit)
                 DataTip(hPlotAxes2, '%%')
             end
 

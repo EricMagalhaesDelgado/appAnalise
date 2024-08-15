@@ -81,7 +81,7 @@ function varargout = customPlayback(controlType, specData, varargin)
 
             if all(isfield(specData.UserData.customPlayback.Parameters.Controls, {'FrequencyLimits', 'LevelLimits'}))
                 varargout{1}.xLim = specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits;
-                varargout{1}.yLim = specData.UserData.customPlayback.Parameters.Controls.LevelLimits;
+                varargout{1}.yLevelLim = specData.UserData.customPlayback.Parameters.Controls.LevelLimits;
             end
     end
 end

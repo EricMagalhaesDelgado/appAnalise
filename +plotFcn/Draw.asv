@@ -27,7 +27,11 @@ function Draw(app, idx)
         ylabel(app.UIAxes1, sprintf('Nível (%s)', app.bandObj.LevelUnit))
 
         % customPlayback
-        customPlayback = app.specData(idx).UserData.customPlayback.Parameters;
+        if app.specData(idx).UserData.customPlayback.Type == "manual"
+            customPlayback = app.specData(idx).UserData.customPlayback.Parameters;
+        else
+            customPlayback = [];
+        end
 
         % UIAXES1
         for plotTag = ["ClearWrite", "MinHold", "Average", "MaxHold"]
@@ -38,11 +42,11 @@ function Draw(app, idx)
             end
 
             eval(sprintf('app.h%s = plot.draw2D.OrdinaryPlot(app.UIAxes1, app.bandObj.xArray, yArray, app.General, customPlayback, "%s");', plotTag, plotTag))
-            plot.datatip.Template(eval(sprintf('app.h%s', plotTag)), "Frequency+Level", app.bandObj.LevelUnit)
+            eval(sprintf('plot.datatip.Template(app.h%s, "Frequency+Level", app.bandObj.LevelUnit)', plotTag))
         end
         
         if plot_ConfigPersistance(app)
-            app.hPersistanceObj = plot.draw3D.Persistance(app.hPersistanceObj, app.UIAxes1, app.specData(idx), app.bandObj, app.General, customPlayback, 'Persistance', 'Creation');
+            plot.draw3D.Persistance.Persistance(app, idx, 'Creation')
         end
         
         plot.BandLimits(app, idx)
@@ -77,14 +81,18 @@ function Draw(app, idx)
         integrationFactor = app.General.Integration.Trace;
 
         for plotTag = ["ClearWrite", "MinHold", "Average", "MaxHold"]
-            if ismember(plotTag, {'MinHold', 'Average', 'MaxHold'})
-                if ~eval(sprintf('app.tool_%s.Value', plotTag)) || isinf(integrationFactor)
-                    continue
-                end
+            
+            
+            if ismember(plotTag, {'MinHold', 'Average', 'MaxHold'}) && ~eval(sprintf('app.tool_%s.Value', plotTag))
+                continue
             end
 
-            eval(sprintf('plot.draw2D.OrdinatyPlotUpdate(app.h%s, yArray, plotTag, integrationFactor);', plotTag))
+            eval(sprintf('OrdinatyPlotUpdate(app.h%s, yArray, plotTag, integrationFactor);', plotTag))
         end
+
+
+
+
 
         for ii = 1:numel(app.hEmissionMarkers)
             app.hEmissionMarkers(ii).Position(2) = app.hClearWrite.YData(app.hClearWrite.MarkerIndices(ii));
@@ -92,6 +100,20 @@ function Draw(app, idx)
 
         if app.tool_Persistance.Value && ~strcmp(app.play_Persistance_Samples.Value, 'full')
             plotFcn.Persistance(app, idx, 'Update')
+        end
+
+        if ~isinf(app.General.Integration.Trace)
+            if ~isempty(app.hMinHold)
+                app.hMinHold.YData = min(app.hMinHold.YData, newArray);
+            end
+    
+            if ~isempty(app.hAverage)
+                app.hAverage.YData = ((app.General.Integration.Trace-1)*app.hAverage.YData + newArray) / app.General.Integration.Trace;
+            end
+    
+            if ~isempty(app.hMaxHold)
+                app.hMaxHold.YData = max(app.hMaxHold.YData, newArray);
+            end
         end
 
         if app.tool_Waterfall.Value && ~isempty(app.hWaterFallTime) && strcmp(app.play_Waterfall_Timestamp.Value, 'on')
