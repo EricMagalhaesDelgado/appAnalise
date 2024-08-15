@@ -4,7 +4,7 @@ function WaterFall(app, idx, Type, LevelUnit)
 
     switch Type
         case 'Creation'
-            if app.play_Waterfall.Value
+            if app.tool_Waterfall.Value
                 set(hComponents, Enable=1)
         
                 if isempty(app.img_WaterFall)
@@ -55,7 +55,7 @@ function WaterFall(app, idx, Type, LevelUnit)
             
                     app.axes3.CLimMode = 'auto';
                     app.img_WaterFall = mesh(app.axes3, X, Y, app.specData(idx).Data{2}(:,1:Decimate:end)', 'MeshStyle', app.play_Waterfall_Interpolation.Value, 'SelectionHighlight', 'off', 'Tag', 'WaterFall');
-                    plotFcn.DataTipModel(app.img_WaterFall, LevelUnit)
+                    plot.datatip.Model(app.img_WaterFall, LevelUnit)
                     view(app.axes3, 0, 90);
                     
                     if strcmp(app.play_Waterfall_Timestamp.Value, 'on')
@@ -73,9 +73,8 @@ function WaterFall(app, idx, Type, LevelUnit)
                     app.axes3.CLim(2)  = round(app.axes3.CLim(2));
                     app.axes3.CLim(1)  = round(app.axes3.CLim(2) - diff(app.axes3.CLim)/2);
 
-                    app.restoreView(3) = {app.axes3.YLim};
-                    app.restoreView(4) = {app.axes3.CLim};
-            
+                    app.restoreView(3).yLim = app.axes3.YLim;
+                    app.restoreView(3).cLim = app.axes3.CLim;            
                     app.play_Waterfall_cLim1.Value = app.axes3.CLim(1);
                     app.play_Waterfall_cLim2.Value = app.axes3.CLim(2);
                 end   

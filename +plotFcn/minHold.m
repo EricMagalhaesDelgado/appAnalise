@@ -6,6 +6,6 @@ function minHold(app, idx, newArray, LevelUnit)
         app.line_MinHold = plot(app.axes1, app.Band.xArray, newArray, Color=app.General.Plot.MinHold.EdgeColor, Tag='MinHold');
     end
 
-    plotFcn.DataTipModel(app.line_MinHold, LevelUnit)
+    plot.datatip.Model(app.line_MinHold, LevelUnit)
     plotFcn.axesStackingOrder.execute('winAppAnalise', app.axes1)
 end

@@ -6,10 +6,10 @@ function DeleteAll(app)
 
     % Controle do tempo.
     app.timeIndex = 1;
-    app.play_PlaybackSlider.Value = 0;
+    app.tool_TimestampSlider.Value = 0;
 
     % Controle dos handles.
-    app.restoreView        = {[0,1], [0,1], [0,1]};
+    app.restoreView        = struct('ID', {}, 'xLim', {}, 'yLim', {}, 'cLim', {});
 
     app.line_ClrWrite      = [];
     app.line_MinHold       = [];

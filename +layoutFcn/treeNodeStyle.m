@@ -18,6 +18,6 @@ function treeNodeStyle(app)
     occIndex    = setdiff(1:numel(app.specData), specIndex);
 
     set(hTree2(setdiff(specIndex, reportIndex)), Icon=fcn.treeNodeIcon('DataType', 'SpectralData'))
-    set(hTree2(reportIndex),                     Icon='LT_report.png')
+    set(hTree2(reportIndex),                     Icon='Report_32.png')
     set(hTree2(occIndex),                        Icon=fcn.treeNodeIcon('DataType', 'Occupancy'))
 end

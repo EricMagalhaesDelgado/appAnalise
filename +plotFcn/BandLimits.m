@@ -3,7 +3,7 @@ function BandLimits(app, idx)
     delete(findobj(app.axes1, 'Tag', 'BandLimits'))
 
     if app.specData(idx).UserData.bandLimitsStatus
-        yLevel = app.restoreView{2}(2)-1;
+        yLevel = app.restoreView(1).yLim(2) - 1;
     
         for ii = 1:height(app.specData(idx).UserData.bandLimitsTable)
             FreqStart = app.specData(idx).UserData.bandLimitsTable.FreqStart(ii);

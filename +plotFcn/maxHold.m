@@ -6,6 +6,6 @@ function maxHold(app, idx, newArray, LevelUnit)
         app.line_MaxHold = plot(app.axes1, app.Band.xArray, newArray, Color=app.General.Plot.MaxHold.EdgeColor, Tag='MaxHold');
     end
 
-    plotFcn.DataTipModel(app.line_MaxHold, LevelUnit)
+    plot.datatip.Model(app.line_MaxHold, LevelUnit)
     plotFcn.axesStackingOrder.execute('winAppAnalise', app.axes1)
 end

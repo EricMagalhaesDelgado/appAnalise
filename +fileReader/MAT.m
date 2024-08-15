@@ -79,21 +79,8 @@ function specData = Fcn_MetaDataReader(fileName)
 
 
         case 3
-            currentMetaData     = struct(class.MetaDataList);
-            currentMetaDataList = fields(currentMetaData);
-            ProjectMetaDataList = fields(prj_metaData(1).MetaData);
-
-            checkIndex          = find(cellfun(@(x) ~ismember(x, ProjectMetaDataList), currentMetaDataList))';
-            if ~isempty(checkIndex)
-                for ii = 1:numel(prj_metaData)
-                    for jj = checkIndex
-                        prj_metaData(ii).MetaData.(currentMetaDataList{jj}) = currentMetaData.(currentMetaDataList{jj});
-                    end
-                end
-            end
-
+            prj_metaData = checkIfMissingMetaData(prj_metaData);
             specData = prj_metaData;
-
 
         otherwise
             error('fileReader:MAT', 'Not expected MAT-file version.')
@@ -181,10 +168,61 @@ function [specData, prjInfo] = Fcn_SpecDataReader(specData, fileName)
 
 
         case 3
+            prj_specData = checkIfMissingMetaData(prj_specData);
+            prj_specData = checkCustomPlaybackFieldNames(prj_specData);
             specData = prj_specData;
-
 
         otherwise
             error('fileReader:MAT', 'Not expected MAT-file version.')
+    end
+end
+
+
+%-------------------------------------------------------------------------%
+function specData = checkIfMissingMetaData(specData)
+    % Recentemente, foi inserido o parâmetro "VBW" dentre os metadados.
+    % Para que não ocorra incompatibilidade com o appAnalise, esse passo 
+    % garante que sejam incluídos os metadados com seus valores padrões
+    % sempre que a informação não estiver no .MAT (salvo numa versão antiga
+    % do app).
+
+    currentMetaData     = struct(class.MetaDataList);
+    currentMetaDataList = fields(currentMetaData);
+    ProjectMetaDataList = fields(specData(1).MetaData);
+
+    checkIndex          = find(cellfun(@(x) ~ismember(x, ProjectMetaDataList), currentMetaDataList))';
+    if ~isempty(checkIndex)
+        for ii = 1:numel(specData)
+            for jj = checkIndex
+                specData(ii).MetaData.(currentMetaDataList{jj}) = currentMetaData.(currentMetaDataList{jj});
+            end
+        end
+    end
+end
+
+
+%-------------------------------------------------------------------------%
+function specData = checkCustomPlaybackFieldNames(specData)
+    % Avalia se a propriedade "customPlayback" está no modo "manual", ajustando 
+    % os nomes dos campos, o que pode ser necessário, caso o .MAT tenha sido 
+    % salvo até a versão 1.67. A partir da v. 1.80, o appAnalise começou a 
+    % trabalhar com os nomes dos campos compactos. "MinHold" ao invés de 
+    % "play_MinHold", por exemplo.
+
+    for ii = 1:numel(specData)
+        if specData(ii).UserData.customPlayback.Type == "manual"
+            allFieldNames   = [fieldnames(specData(ii).UserData.customPlayback.Parameters.Controls);    ...
+                               fieldnames(specData(ii).UserData.customPlayback.Parameters.Persistance); ...
+                               fieldnames(specData(ii).UserData.customPlayback.Parameters.Waterfall)];
+            oldFieldPreffix = {'play_Persistance_', 'play_Waterfall_', 'play_'};
+
+            if any(contains(allFieldNames, oldFieldPreffix))
+                fieldNameMapping = dictionary(string(allFieldNames), string(replace(allFieldNames, oldFieldPreffix, {'', '', ''})));
+
+                specData(ii).UserData.customPlayback.Parameters.Controls    = structUtil.renameFieldNames(specData(ii).UserData.customPlayback.Parameters.Controls,    fieldNameMapping);
+                specData(ii).UserData.customPlayback.Parameters.Persistance = structUtil.renameFieldNames(specData(ii).UserData.customPlayback.Parameters.Persistance, fieldNameMapping);
+                specData(ii).UserData.customPlayback.Parameters.Waterfall   = structUtil.renameFieldNames(specData(ii).UserData.customPlayback.Parameters.Waterfall,   fieldNameMapping);
+            end
+        end
     end
 end

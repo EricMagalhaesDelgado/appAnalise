@@ -1,6 +1,7 @@
 function peaksTable = PreviewGenerator(app, idx, reportInfo)
 
-    SpecInfo   = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
+    %SpecInfo   = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
+    SpecInfo = app.specData(idx);
     peaksTable = [];
 
     for ii = 1:numel(SpecInfo)

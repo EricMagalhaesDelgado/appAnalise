@@ -6,14 +6,14 @@ function StartUp(app, idx)
     % varreduradas.
     nSweeps = sum(app.specData(idx).RelatedFiles.nSweeps);
     if nSweeps > 2
-        app.play_Occupancy.Enable   = 1;
-        app.play_Persistance.Enable = 1;
-        app.play_Waterfall.Enable   = 1;
+        app.tool_Occupancy.Enable   = 1;
+        app.tool_Persistance.Enable = 1;
+        app.tool_Waterfall.Enable   = 1;
 
     else
-        set(app.play_Persistance, Enable=0, Value=0)
-        set(app.play_Occupancy,   Enable=0, Value=0)
-        set(app.play_Waterfall,   Enable=0, Value=0)
+        set(app.tool_Persistance, Enable=0, Value=0)
+        set(app.tool_Occupancy,   Enable=0, Value=0)
+        set(app.tool_Waterfall,   Enable=0, Value=0)
 
         plotFcn.Persistance(app, idx, 'Delete')
         plotFcn.OCC(app, idx, 'Delete', '', [])
@@ -25,7 +25,7 @@ function StartUp(app, idx)
     % espectral. Por exemplo: não tem sentido fazer uma análise de ocupação 
     % de um fluxo espectral de ocupação!
     if ismember(app.specData(idx).MetaData.DataType, class.Constants.occDataTypes)
-        set(app.play_Occupancy, Enable=0, Value=0)
+        set(app.tool_Occupancy, Enable=0, Value=0)
     end
 
 
@@ -43,7 +43,7 @@ function StartUp(app, idx)
     % Barra de status.
     FreqStart = app.specData(idx).MetaData.FreqStart / 1e+6;
     FreqStop  = app.specData(idx).MetaData.FreqStop  / 1e+6;
-    app.play_Timestamp.Text      = sprintf('1 de %d\n%s', nSweeps, app.specData(idx).Data{1}(1));
+    app.tool_TimestampLabel.Text      = sprintf('1 de %d\n%s', nSweeps, app.specData(idx).Data{1}(1));
 
 
     % Painel de ocupação.
@@ -58,7 +58,7 @@ function StartUp(app, idx)
 
         case 'manual'
             app.play_Customization.Value = 1;
-            layoutFcn.customPlayback(app, idx)
+            layoutFcn.customPlayback('updateGUI', app.specData(idx), app)
     end
 
     

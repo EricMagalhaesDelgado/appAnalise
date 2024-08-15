@@ -17,7 +17,7 @@ function measCalibration(app, kFactorTable)
         yArray = kFactorTable(idx).Data(:,2);
 
         kFatorLine = plot(app.axes4, xArray, yArray, Color=app.General.Colors(4,:));
-        plotFcn.DataTipModel(kFatorLine, 'dB')
+        plot.datatip.Model(kFatorLine, 'dB')
         
         drawnow
     end

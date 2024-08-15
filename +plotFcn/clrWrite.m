@@ -13,7 +13,7 @@ function clrWrite(app, idx, plotType, selectedEmission)
                                                                            MarkerSize=14,                          ...
                                                                            Visible=app.play_LineVisibility.Value,  ...
                                                                            Tag='ClearWrite');
-            plotFcn.DataTipModel(app.line_ClrWrite, LevelUnit)
+            plot.datatip.Model(app.line_ClrWrite, LevelUnit)
 
             case 'TreeSelectionChanged'
                 idx2 = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
@@ -40,8 +40,8 @@ function clrWrite(app, idx, plotType, selectedEmission)
     else
         app.line_ClrWrite.MarkerIndices = app.specData(idx).UserData.Emissions.Index;
 
-        yLevel1   = app.restoreView{2}(1)+1;
-        yLevel2   = app.restoreView{2}(2)-app.restoreView{2}(1)-2;
+        yLevel1   = app.restoreView(1).yLim(1) + 1;
+        yLevel2   = diff(app.restoreView(1).yLim) - 2;
 
         mkrLabels = {};
         for ii = 1:height(app.specData(idx).UserData.Emissions)

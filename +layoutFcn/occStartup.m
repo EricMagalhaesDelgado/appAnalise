@@ -20,7 +20,7 @@ function occStartup(app, idx)
     % "layoutFcn.customPlayback".
     % Caso essa funcionalidade não tenha sido habilitada, é necessária
     % atualizadar os valores do painel de Ocupação.
-    if app.play_Occupancy.Enable
+    if app.tool_Occupancy.Enable
         ComponentsUpdate(app, idx)
         layoutFcn.occVisibility(app, app.specData(idx).MetaData.LevelUnit)
 

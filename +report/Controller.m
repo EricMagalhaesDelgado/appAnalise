@@ -96,7 +96,7 @@ function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
                 app.General.AppVersion = fcn.startup_Versions("Full", app.rootFolder);
             end
         
-            reportTemplateIndex = find(strcmp(app.report_Type.Items, app.report_Type.Value), 1);
+            reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
             [idx, reportInfo]   = report.GeneralInfo(app, Mode, reportTemplateIndex);
 
         case 'auxApp.winTemplate'
@@ -104,7 +104,7 @@ function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
             [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
 
         case 'auxApp.winSignalAnalysis'
-            reportTemplateIndex = find(strcmp(app.CallingApp.report_Type.Items, app.CallingApp.report_Type.Value), 1);
+            reportTemplateIndex = find(strcmp(app.Callingapp.report_ModelName.Items, app.Callingapp.report_ModelName.Value), 1);
             [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
     end
 end

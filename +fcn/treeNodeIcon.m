@@ -5,19 +5,19 @@ function icon = treeNodeIcon(Type, Value)
     switch Type
         %-----------------------------------------------------------------%
         case 'Receiver'
-            if     contains(Value, 'rfeye');                            icon = 'Instr_CRFS.png';
-            elseif contains(Value, {'fsl','fsvr','fsw','eb500','etm'}); icon = 'Instr_R&S.png';
-            elseif contains(Value, {'n9344C', 'n9936B'});               icon = 'Instr_KeySight.png';
-            elseif contains(Value, 'ms2720T');                          icon = 'Instr_Anritsu.png';
-            elseif contains(Value, 'sa2500');                           icon = 'Instr_Tektronix.png';
-            elseif contains(Value, 'cwsm2');                            icon = 'Instr_CellPlan.png';
+            if     contains(Value, 'rfeye');                            icon = 'logoCRFS_32.png';
+            elseif contains(Value, {'fsl','fsvr','fsw','eb500','etm'}); icon = 'logoR&S_32.png';
+            elseif contains(Value, {'n9344C', 'n9936B'});               icon = 'logoKeySight_32.png';
+            elseif contains(Value, 'ms2720T');                          icon = 'logoAnritsu_32.png';
+            elseif contains(Value, 'sa2500');                           icon = 'logoTektronix_32.png';
+            elseif contains(Value, 'cwsm2');                            icon = 'logoCellPlan_32.png';
             end
 
         %-----------------------------------------------------------------%
         case 'DataType'
             switch Value
-                case 'spectraldata';                                    icon = 'LT_playback.png';
-                case 'occupancy';                                       icon = 'LT_OCC.png';
+                case 'spectraldata';                                    icon = 'Playback_32.png';
+                case 'occupancy';                                       icon = 'Occupancy_32.png';
             end
     end
 

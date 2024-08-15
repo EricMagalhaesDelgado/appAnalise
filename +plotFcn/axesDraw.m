@@ -568,7 +568,7 @@ classdef (Abstract) axesDraw
             f = uifigure('Visible', false,                                                                         ...
                          'Position', [mainMonitor(1) + round((mainMonitor(3)-xPixels)/2),                          ...
                                       mainMonitor(2) + round((mainMonitor(4)+48-yPixels-30)/2), xPixels, yPixels], ...
-                         'Icon', 'LR_icon.png', 'Tag', 'ReportGenerator');
+                         'Icon', 'icon_48.png', 'Tag', 'ReportGenerator');
         end
 
 
@@ -576,7 +576,7 @@ classdef (Abstract) axesDraw
         function hAxes = AxesCreation(app, axesType, axesParent)
             switch axesType
                 case 'Cartesian'
-                    hAxes = uiaxes(axesParent,  Color=[0,0,0], ColorScale='log', FontName='Helvetica', FontSize=9, FontSmoothing='on',   ...
+                    hAxes = uiaxes(axesParent,  Color=[0,0,0], ColorScale='log', FontName='Helvetica', FontSize=9,                       ...
                                                 XGrid='on', XMinorGrid='on', YGrid='on', YMinorGrid='on',                                ...
                                                 GridAlpha=.25, GridColor=[.94,.94,.94], MinorGridAlpha=.2, MinorGridColor=[.94,.94,.94], ...
                                                 Interactions=[], Toolbar=[]);
@@ -584,8 +584,8 @@ classdef (Abstract) axesDraw
                     % Interactions
                     plotFcn.axesInteraction.CartesianToolbar(hAxes, {'datacursor', 'pan', 'restoreview'});
                     plotFcn.axesInteraction.CartesianDefaultInteractions(hAxes, [dataTipInteraction, regionZoomInteraction])
-                    plotFcn.axesInteraction.InteractionsCallbacks({'Data Tips', 'Pan'}, hAxes, [])
-                    plotFcn.axesInteraction.InteractionsCallbacks({'Restore View'}, hAxes, app)
+                    plotFcn.axesInteraction.InteractionsCallbacks({'Data tips', 'Pan'}, hAxes, [])
+                    plotFcn.axesInteraction.InteractionsCallbacks({'Restore view'}, hAxes, app)
 
                 case 'Geographic'
                     hAxes = geoaxes(axesParent, FontSize=6, Units='pixels', Basemap='darkwater', Box='off');

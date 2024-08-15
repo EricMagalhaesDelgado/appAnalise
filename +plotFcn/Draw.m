@@ -22,48 +22,67 @@ function Draw(app, idx)
         % (existente no toolbar do eixo) não se mostrou adequado porque ao
         % ser acionado, não há troca das propriedades "XLim" e "YLim", logo
         % os controles "uispinner" não são atualizados.
-        xLimits = [FreqStart, FreqStop];
-        yLimits = YLimits(app, idx);
-        app.restoreView(1:2) = {xLimits, yLimits};
+        xytLimits = plotFcn.axesLimits(app.specData(idx));
 
-        set(app.axes1, XLim=xLimits, YLim=yLimits, YScale='linear')
+        % Inicialização de restoreView. O valor "cLim" é atualizado após
+        % plotar as curvas dos tipos "Persistance" e "Waterfall".
+        app.restoreView(1) = struct('ID', 'app.axes1', 'xLim', xytLimits.xLim, 'yLim', xytLimits.yLim, 'cLim', app.axes1.CLim);
+        app.restoreView(2) = struct('ID', 'app.axes2', 'xLim', xytLimits.xLim, 'yLim', [0, 100],       'cLim', app.axes2.CLim);
+        app.restoreView(3) = struct('ID', 'app.axes3', 'xLim', xytLimits.xLim, 'yLim', xytLimits.tLim, 'cLim', app.axes3.CLim);
+
+        set(app.axes1, 'XLim', xytLimits.xLim, 'YLim', xytLimits.yLim, 'YScale', 'linear')
         ylabel(app.axes1, sprintf('Nível (%s)', LevelUnit))
 
         % Curvas a plotar em app.axes1 (na sua ordem correta!).
         % Persistance >> ClearWrite >> MinHold >> Average >> MaxHold        
-        if app.play_Persistance.Value
+        if app.tool_Persistance.Value
             plotFcn.Persistance(app, idx, 'Creation')
         end
 
         plotFcn.clrWrite(app, idx, 'InitialPlot', 1)
         plotFcn.BandLimits(app, idx)
         
-        if app.play_MinHold.Value
+        if app.tool_MinHold.Value
             plotFcn.minHold(app, idx, newArray, LevelUnit)
         end
 
-        if app.play_MaxHold.Value
+        if app.tool_MaxHold.Value
             plotFcn.maxHold(app, idx, newArray, LevelUnit)
         end
 
-        if app.play_Average.Value
+        if app.tool_Average.Value
             plotFcn.Average(app, idx, newArray, LevelUnit)
         end
 
         % Curva a plotar em app.axes1 e app.axes2.
-        if app.play_Occupancy.Value
+        if app.tool_Occupancy.Value
             occIndex = play_OCCIndex(app, idx, 'PLAYBACK');
             plotFcn.OCC(app, idx, 'Creation', LevelUnit, occIndex)
         end
 
         % Curva a plotar em app.axes3.        
-        if app.play_Waterfall.Value
+        if app.tool_Waterfall.Value
             plotFcn.WaterFall(app, idx, 'Creation', LevelUnit)
         end
 
         % Customização do playback:
-        if strcmp(app.specData(idx).UserData.customPlayback.Type, 'manual')
-            plotFcn.Datatip(app, idx)
+        if app.specData(idx).UserData.customPlayback.Type == "manual"
+            % DataTip
+            dtConfig = app.specData(idx).UserData.customPlayback.Parameters.Datatip;
+            dtParent = [app.axes1, app.axes2, app.axes3];
+            plot.datatip.Create('customPlayback', dtConfig, dtParent)
+
+            % Colormap
+            % O MATLAB não tem uma função que retorna o nome do colormap
+            % ("summer" ou "hot", por exemplo). Por conta disso, essa
+            % informação foi armazenada no UserData dos eixos.
+            if ~strcmp(app.axes1.UserData.Colormap, app.play_Persistance_Colormap.Value)
+                plot_Colormap_axes1(app)
+            end
+
+            if ~strcmp(app.axes3.UserData.Colormap, app.play_Waterfall_Colormap.Value)
+                plot_Colormap_axes3(app)
+            end            
         end
 
         plotFcn.axesStackingOrder.execute('winAppAnalise', app.axes1)
@@ -75,7 +94,7 @@ function Draw(app, idx)
             app.mkr_Label(ii).Position(2) = app.line_ClrWrite.YData(app.line_ClrWrite.MarkerIndices(ii));
         end
 
-        if app.play_Persistance.Value && ~strcmp(app.play_Persistance_Samples.Value, 'full')
+        if app.tool_Persistance.Value && ~strcmp(app.play_Persistance_Samples.Value, 'full')
             plotFcn.Persistance(app, idx, 'Update')
         end
 
@@ -93,29 +112,9 @@ function Draw(app, idx)
             end
         end
 
-        if app.play_Waterfall.Value && ~isempty(app.line_WaterFallTime) && strcmp(app.play_Waterfall_Timestamp.Value, 'on')
+        if app.tool_Waterfall.Value && ~isempty(app.line_WaterFallTime) && strcmp(app.play_Waterfall_Timestamp.Value, 'on')
             app.line_WaterFallTime.YData = [app.specData(idx).Data{1}(app.timeIndex), app.specData(idx).Data{1}(app.timeIndex)];
         end
     end
     drawnow
-end
-
-
-%-------------------------------------------------------------------------%
-function yLimits = YLimits(app, idx)
-    if ismember(app.specData(idx).MetaData.DataType, class.Constants.specDataTypes)
-        auxValue = min(app.specData(idx).Data{3}(:,1));
-        downYLim = auxValue - mod(auxValue, 10);
-    
-        auxValue = max(app.specData(idx).Data{3}(:,3));
-        upYLim   = auxValue - mod(auxValue, 10) + 10;
-    else
-        downYLim = 0;
-        upYLim   = 100;
-    end
-    yLimits = [downYLim, upYLim];
-
-    if diff(yLimits) > class.Constants.yMaxLimRange
-        yLimits(1) = yLimits(1) + diff(yLimits) - class.Constants.yMaxLimRange;
-    end
 end

@@ -2,7 +2,7 @@ function OCC(app, idx, Type, LevelUnit, occIndex)
 
     switch Type
         case 'Creation'
-            if app.play_Occupancy.Value
+            if app.tool_Occupancy.Value
                 DeleteLines(app)
 
                 xArray  = app.Band.xArray;
@@ -61,7 +61,7 @@ end
 %-------------------------------------------------------------------------%
 function DataTip(hPlot, LevelUnit)
     for ii = 1:numel(hPlot)
-        plotFcn.DataTipModel(hPlot(ii), LevelUnit)
+        plot.datatip.Model(hPlot(ii), LevelUnit)
     end
 end
 

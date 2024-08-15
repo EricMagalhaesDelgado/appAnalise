@@ -260,10 +260,10 @@ classdef specData < handle
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function str = id2str(Type, id)
+        function str = id2str(Type, ID)
             switch Type
                 case 'TraceMode'
-                    switch id
+                    switch ID
                         case 1; str = 'ClearWrite';
                         case 2; str = 'Average';
                         case 3; str = 'MaxHold';
@@ -278,7 +278,7 @@ classdef specData < handle
                 % v. 1.11 nos quais esse ID estava igual a "0". Foram monitorações 
                 % conduzidas com o R&S EB500.
                 case 'Detector'
-                    switch id
+                    switch ID
                         case 0; str = 'Sample';
                         case 1; str = 'Sample';
                         case 2; str = 'Average/RMS';
@@ -287,7 +287,7 @@ classdef specData < handle
                     end        
 
                 case 'LevelUnit'
-                    switch id
+                    switch ID
                         case 1; str = 'dBm';
                         case 2; str = 'dBµV';
                         case 3; str = 'dBµV/m';
@@ -343,7 +343,7 @@ classdef specData < handle
             prjInfoFlag = true;
             for ii = 1:numel(app.metaData)
                 [~, name, ext] = fileparts(app.metaData(ii).File);
-                d.Message = sprintf('<font style="font-size:12;">Em andamento a leitura dos dados de espectro do arquivo:\n• %s\n\n%d de %d</font>', [name ext], ii, numel(app.metaData));
+                d.Message = textFormatGUI.HTMLParagraph(sprintf('Em andamento a leitura dos dados de espectro do arquivo:\n•&thinsp;%s\n\n%d de %d', [name ext], ii, numel(app.metaData)));
                 
                 prjInfo = [];
                 switch lower(ext)
@@ -405,13 +405,12 @@ classdef specData < handle
                         if prjInfoFlag
                             prjInfoFlag = false;
         
-                            app.report_ProjectName.Value     = prjInfo.Name;
-                            app.report_ProjectFilename.Value = app.metaData(ii).File;
-                            app.report_Issue.Value           = prjInfo.reportInfo.Issue;
+                            app.report_ProjectName.Value  = prjInfo.Name;
+                            app.report_Issue.Value        = prjInfo.reportInfo.Issue;
 
-                            prjModelIndex = find(strcmp(app.report_Type.Items, prjInfo.reportInfo.Model.Name), 1);
+                            prjModelIndex = find(strcmp(app.report_ModelName.Items, prjInfo.reportInfo.Model.Name), 1);
                             if ~isempty(prjModelIndex)
-                                app.report_Type.Value = app.report_Type.Items{prjModelIndex};
+                                app.report_ModelName.Value = app.report_ModelName.Items{prjModelIndex};
                             end
         
                             if ~isempty(prjInfo.exceptionList)                    
@@ -424,7 +423,7 @@ classdef specData < handle
             end
             
             % Manipulações acessórias.
-            d.Message = '<font style="font-size:12;">Em andamento outras manipulações, como aferição de dados estatísticas e identificação do fluxo de ocupação...</font>';
+            d.Message = textFormatGUI.HTMLParagraph('Em andamento outras manipulações, como a aferição de dados estatísticos e a identificação do fluxo de ocupação.');
             class.specData.read_FinalOperation(app)
         end
         
@@ -670,21 +669,8 @@ classdef specData < handle
 
             secundaryMetaData = rmfield(originalMetaData, fieldsList);
             secundaryMetaData.FileFormat = fileFormat;
-            secundaryMetaData = class.specData.sortStructByFieldNames(secundaryMetaData);
+            secundaryMetaData = structUtil.sortByFieldNames(secundaryMetaData);
             secundaryMetaData = jsonencode(secundaryMetaData);
-        end
-
-
-        %-----------------------------------------------------------------%
-        function sortedStruct = sortStructByFieldNames(originalStruct)
-            fieldNames      = fieldnames(originalStruct);
-            [~,sortedIndex] = sort(lower(fieldNames));
-            fieldNames      = fieldNames(sortedIndex);
-            sortedStruct    = struct();
-
-            for ii = 1:numel(fieldNames)
-                sortedStruct.(fieldNames{ii}) = originalStruct.(fieldNames{ii});
-            end
         end
     end
 end

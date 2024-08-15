@@ -1,0 +1,120 @@
+[
+    {
+        "Name": "PMEC 2024",
+        "File": "PMEC_2024.json",
+        "DocumentType": "Relatório de Atividades",
+        "Description": "Plano de Monitoração do Espectro utilizado por Aplicações Críticas",
+        "Author": "Centralizador PMEC 2024",
+        "Version": "1.00",
+        "Release": "24/01/2024",
+        "UserData": {
+            "RelatedServices": [
+                "010",
+                "019",
+                "230",
+                "231",
+                "507"
+            ]
+        }
+    },
+    {
+        "Name": "PMEC 2024 (DT)",
+        "File": "PMEC_2024_DT.json",
+        "DocumentType": "Relatório de Atividades",
+        "Description": "Plano de Monitoração do Espectro utilizado por Aplicações Críticas",
+        "Author": "Centralizador PMEC 2024",
+        "Version": "1.01",
+        "Release": "29/05/2024",
+        "UserData": {
+            "RelatedServices": [
+                "010",
+                "019",
+                "230",
+                "231",
+                "507"
+            ]
+        }
+    },
+    {
+        "Name": "PMEF 2024",
+        "File": "PMEF_2024.json",
+        "DocumentType": "Relatório de Atividades",
+        "Description": "Plano de Monitoração do Espectro na Fronteira",
+        "Author": "Centralizador PMEF 2024",
+        "Version": "1.00",
+        "Release": "24/01/2024",
+        "UserData": {
+            "RelatedServices": [
+                "010",
+                "019",
+                "230",
+                "231",
+                "247",
+                "248",
+                "507",
+                "800",
+                "801"
+            ]
+        }
+    },
+    {
+        "Name": "PMRD 2024",
+        "File": "PMRD_2024.json",
+        "DocumentType": "Relatório de Atividades",
+        "Description": "Plano de Monitoração de Radiodifusão",
+        "Author": "Centralizador PMRD 2024",
+        "Version": "1.00",
+        "Release": "24/01/2024",
+        "UserData": {
+            "RelatedServices": [
+                "230",
+                "231",
+                "247",
+                "248",
+                "800",
+                "801",
+                "805"
+            ]
+        }
+    },
+    {
+        "Name": "PMRD 2024 (DT)",
+        "File": "PMRD_2024_DT.json",
+        "DocumentType": "Relatório de Atividades",
+        "Description": "Plano de Monitoração de Radiodifusão",
+        "Author": "Centralizador PMRD 2024",
+        "Version": "1.01",
+        "Release": "29/05/2024",
+        "UserData": {
+            "RelatedServices": [
+                "230",
+                "231",
+                "247",
+                "248",
+                "800",
+                "801",
+                "805"
+            ]
+        }
+    },
+    {
+        "Name": "PMSAT 2024",
+        "File": "PMSAT_2024.json",
+        "DocumentType": "Relatório de Atividades",
+        "Description": "Plano de Monitoração de Satélites",
+        "Author": "Centralizador PMSAT 2024",
+        "Version": "1.00",
+        "Release": "24/01/2024",
+        "UserData": {
+            "RelatedServices": [
+                "230",
+                "231",
+                "247",
+                "248",
+                "800",
+                "801",
+                "805"
+            ]
+        }
+    }
+]

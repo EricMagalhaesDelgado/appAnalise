@@ -6,6 +6,6 @@ function Average(app, idx, newArray, LevelUnit)
         app.line_Average = plot(app.axes1, app.Band.xArray, newArray, Color=app.General.Plot.Average.Playback, Tag='Average');
     end
 
-    plotFcn.DataTipModel(app.line_Average, LevelUnit)
+    plot.datatip.Model(app.line_Average, LevelUnit)
     plotFcn.axesStackingOrder.execute('winAppAnalise', app.axes1)
 end

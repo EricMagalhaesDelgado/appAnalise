@@ -2,7 +2,7 @@ function Persistance(app, idx, Type)
 
     hComponents = findobj(app.play_PersistanceGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uigrid', '-or', 'Type', 'uipanel'});
 
-    if app.play_Persistance.Value
+    if app.tool_Persistance.Value
         set(hComponents, Enable=1)
 
         if ~strcmp(app.play_Persistance_Samples.Value, 'full')
@@ -41,7 +41,7 @@ function Persistance(app, idx, Type)
                 specHist      = zeros(yResolution, xResolution);
 
                 hImg          = image(app.axes1, specHist, 'AlphaData', specHist,'XData', [FreqStart, FreqStop], 'YData', [yMin, yMax], ...
-                                                 'CDataMapping', 'scaled', 'Interpolation', Interpolation, 'PickableParts', 'none', 'Tag', 'Persistance');
+                                                           'CDataMapping', 'scaled', 'Interpolation', Interpolation, 'PickableParts', 'none', 'Tag', 'Persistance');
                 
                 app.obj_Persistance = struct('handle',   hImg,     ...
                                              'ySamples', ySamples, ...
@@ -49,10 +49,7 @@ function Persistance(app, idx, Type)
                                              'yEdges',   yEdges);
 
                 plotFcn.Persistance(app, idx, 'Update')
-    
-                app.play_Persistance_cLim1.Value = app.axes1.CLim(1);
-                app.play_Persistance_cLim2.Value = app.axes1.CLim(2);
-    
+                restoreViewUpdate(app)
                 uistack(hImg, 'bottom')
 
             case 'Update'
@@ -75,10 +72,9 @@ function Persistance(app, idx, Type)
                                                app.obj_Persistance.yEdges, app.obj_Persistance.xEdges);
 
                         set(app.obj_Persistance.handle, 'CData', (100 * specHist ./ sum(specHist)), ...
-                                                'AlphaData', double(logical(specHist))*app.play_Persistance_Transparency.Value)
+                                                        'AlphaData', double(logical(specHist))*app.play_Persistance_Transparency.Value)
 
-                        app.play_Persistance_cLim1.Value = app.axes1.CLim(1);
-                        app.play_Persistance_cLim2.Value = app.axes1.CLim(2);
+                        restoreViewUpdate(app)                     
                 end
         end
         
@@ -90,4 +86,13 @@ function Persistance(app, idx, Type)
             app.obj_Persistance = [];
         end
     end
+end
+
+
+%-------------------------------------------------------------------------%
+function restoreViewUpdate(app)
+    app.restoreView(1).cLim = app.axes1.CLim;
+
+    app.play_Persistance_cLim1.Value = app.axes1.CLim(1);
+    app.play_Persistance_cLim2.Value = app.axes1.CLim(2);  
 end

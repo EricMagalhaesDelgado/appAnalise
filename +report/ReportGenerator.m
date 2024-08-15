@@ -22,7 +22,8 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
     RootFolder    = reportInfo.General.RootFolder;
     Template      = jsondecode(reportInfo.Model.Template);
     
-    SpecInfo      = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
+  % SpecInfo      = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
+    SpecInfo      = app.specData(idx);
     exceptionList = app.exceptionList;
     peaksTable    = Fcn_Peaks(app, SpecInfo, reportInfo, exceptionList);    
     

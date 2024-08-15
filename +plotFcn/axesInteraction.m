@@ -64,12 +64,12 @@ classdef (Abstract) axesInteraction
                                 h{jj}.ValueChangedFcn = @(~,evt)plotFcn.axesInteraction.panInteractionFcn(evt, Axes);
                             end
 
-                        case 'Data Tips'
+                        case 'Data tips'
                             if isprop(h{jj}, 'ValueChangedFcn')
                                 h{jj}.ValueChangedFcn = @(src,evt)plotFcn.axesInteraction.datatipInteractionFcn(src, evt, Axes);
                             end
         
-                        case 'Restore View'
+                        case 'Restore view'
                             switch class(app)
                                 case 'winAppAnalise'
                                     if isprop(h{jj}, 'ButtonPushedFcn')
