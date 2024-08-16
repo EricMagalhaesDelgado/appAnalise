@@ -6,12 +6,12 @@ function report_ToolbarStatus(app)
     % terá um único filho - a imagem do Redmine (placeholder).
     
     if numel(app.report_FiscalizaGrid.Children) <= 1
-        app.report_FiscalizaAutoFillImage.Enable = 0;
-        app.report_FiscalizaUpdateImage.Enable   = 0;
+        app.tool_FiscalizaAutoFill.Enable    = 0;
+        app.tool_FiscalizaUpdateImage.Enable = 0;
         
     else
-        app.report_FiscalizaAutoFillImage.Enable = 1;
-        app.report_FiscalizaUpdateImage.Enable   = 1;
+        app.tool_FiscalizaAutoFill.Enable    = 1;
+        app.tool_FiscalizaUpdateImage.Enable = 1;
     end
 
 end

@@ -367,7 +367,7 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plot
     Image = '';
     switch Children.Data.Origin
         case 'Internal'
-            Image = plotFcn.axesDraw.plot2report(SpecInfo(idx), reportInfo, plotInfo);
+            Image = plot.axesDraw_old.plot2report(SpecInfo(idx), reportInfo, plotInfo);
 
         case 'External'
             if Recurrence

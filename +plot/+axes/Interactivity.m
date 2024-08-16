@@ -93,7 +93,7 @@ classdef (Abstract) Interactivity
         function ToolbarCreation(hAxes, interaction2Add, interaction2Remove)
             arguments
                 hAxes
-                interaction2Add
+                interaction2Add         = {'pan', 'restoreview'}
                 interaction2Remove cell = {}
             end
 
@@ -191,6 +191,24 @@ classdef (Abstract) Interactivity
             
             for ii = 1:numel(hAllAxes)
                 set(hAllAxes(ii), 'XLim', callingApp.restoreView(ii).xLim, 'YLim', callingApp.restoreView(ii).yLim)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function DeleteListeners(hObject)
+            % Foi evidenciado que após a exclusão de ROIs o eixo poderia perder a sua
+            % interatividade. Identificado que os listeners automáticos do ROI estavam
+            % causando o problema. Foi criado um listener "ObjectBeingDestroyed",
+            % apontando esta função, para resolver o problema, forçando a exclusão
+            % dos objetos.
+        
+            % addlistener(hROI, 'MovingROI', @ROICallback);
+            % addlistener(hROI, 'ROIMoved',  @ROICallback);
+            % addlistener(hROI, 'ObjectBeingDestroyed', @(src, ~)plot.axes.Interactivity.DeleteListeners(src));        
+            try
+                listenersList = struct(hObject).AutoListeners__;
+                cellfun(@(x) delete(x), listenersList)
+            catch
             end
         end
     end

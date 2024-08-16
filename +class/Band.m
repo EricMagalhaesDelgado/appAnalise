@@ -3,6 +3,7 @@ classdef Band < handle
     properties
         %-----------------------------------------------------------------%
         Context
+        callingApp
 
         DataPoints
         FreqStart   % in MHz
@@ -13,13 +14,7 @@ classdef Band < handle
 
 %       xFreq = aCoef * xIndex + bCoef
         aCoef
-        bCoef
-    end
-
-
-    properties (Access = private)
-        %-----------------------------------------------------------------%
-        callingApp
+        bCoef        
     end
 
 
@@ -68,6 +63,7 @@ classdef Band < handle
 
                 case 'appAnalise:REPORT'
                     axesLimits = reportLimits(obj, idx);
+                    error('PENDENTE AJUSTAR IMPLEMENTAÇÃO')
             end
         end
 
@@ -114,15 +110,22 @@ classdef Band < handle
         end
 
         %-----------------------------------------------------------------%
-        function [idx, invalidIndex] = freq2idx(obj, FrequencyInHertz, validationType)
+        function [idx, invalidIndex] = freq2idx(obj, FrequencyInHertz, validationType, roundType)
             arguments
                 obj
                 FrequencyInHertz
                 validationType {mustBeMember(validationType, {'CheckAndRound', 'OnlyCheck'})} = 'CheckAndRound'
+                roundType      {mustBeMember(roundType,      {'round', 'fix', 'ceil'})} = 'round'
             end
 
-            idx = round((FrequencyInHertz - obj.bCoef) / obj.aCoef);
-            invalidIndex = (idx < 1) || (idx > obj.DataPoints);
+            idx = (FrequencyInHertz - obj.bCoef) / obj.aCoef;
+            switch roundType
+                case 'round'; idx = round(idx);
+                case 'fix';   idx = fix(idx);
+                case 'ceil';  idx = ceil(idx);
+            end
+
+            invalidIndex = (idx < 1) | (idx > obj.DataPoints);
 
             if validationType == "CheckAndRound"
                 idx(idx < 1) = 1;
@@ -184,15 +187,14 @@ classdef Band < handle
         end
 
         %-----------------------------------------------------------------%
-        function axesLimits = reportLimits(obj, specData, Parameters, yUnit)
-            axesLimits     = [];
-            specData       = obj.callingApp.specData(idx);
+        function [xLim, yLim, zLim, xIndexLim, xLimitedArray] = reportLimits(obj, idx, Parameters, yUnit)
+            specData = obj.callingApp.specData(idx);
 
             switch Parameters.Plot.Type
                 case 'Band'
-                    FreqStartView = FreqStart;
-                    FreqStopView  = FreqStop;
-                    xIndexLim     = [1, DataPoints];
+                    FreqStartView = obj.FreqStart;
+                    FreqStopView  = obj.FreqStop;
+                    xIndexLim     = [1, obj.DataPoints];
 
                 case 'Emission'
                     emissionIndex = Parameters.Plot.emissionIndex;
@@ -200,37 +202,38 @@ classdef Band < handle
                         error('Unexpected value.')
                     end
     
-                    emissionBW    = SpecInfo.UserData.Emissions.BW(emissionIndex)/1000;
+                    emissionBW    = specData.UserData.Emissions.BW(emissionIndex)/1000;
                     xGuardBand    = Parameters.Axes.xGuardBandFactor * emissionBW;
     
-                    FreqStartView = SpecInfo.UserData.Emissions.Frequency(emissionIndex) - (emissionBW + xGuardBand)/2;
-                    FreqStopView  = SpecInfo.UserData.Emissions.Frequency(emissionIndex) + (emissionBW + xGuardBand)/2;
-                    xIndexLim     = [plotFcn.axesDraw.freq2idx(SpecInfo, FreqStartView*1e+6, 'fix'), plotFcn.axesDraw.freq2idx(SpecInfo, FreqStopView*1e+6, 'ceil')];
+                    FreqStartView = specData.UserData.Emissions.Frequency(emissionIndex) - (emissionBW + xGuardBand)/2;
+                    FreqStopView  = specData.UserData.Emissions.Frequency(emissionIndex) + (emissionBW + xGuardBand)/2;
+                    xIndexLim     = [freq2idx(obj, FreqStartView*1e+6, 'fix'), freq2idx(obj, FreqStopView*1e+6, 'ceil')];
 
-                    xArray        = xArray(xIndexLim(1):xIndexLim(2));
+                    xLimitedArray = obj.xArray(xIndexLim(1):xIndexLim(2));
             end
 
             xLim = [FreqStartView, FreqStopView];
 
             switch yUnit
                 case {'ordinary level', 'persistance level'}
-                    yLim = plotFcn.axesDraw.yzLimits(SpecInfo, yUnit, xIndexLim);
+                    yLim = yzLimits(obj, specData, yUnit, xIndexLim);
                     zLim = [-1, 1];
                 case 'occupancy level'
                     yLim = [0, 100];
                     zLim = [-1, 1];
                 case 'time'
                     yLim = [SpecInfo.Data{1}(1), SpecInfo.Data{1}(end)];
-                    zLim = plotFcn.axesDraw.yzLimits(SpecInfo, yUnit, xIndexLim);
+                    zLim = yzLimits(obj, specData, yUnit, xIndexLim);
                 case 'timeIndex'
                     yLim = [1, numel(SpecInfo.Data{1})];
                     zLim = [-1, 1];
             end
         end
 
-
-        function yzLim = yzLimits(SpecInfo, yUnit, xIndexLim)
-            yzLim  = [min(SpecInfo.Data{3}(xIndexLim(1):xIndexLim(2),1)), max(SpecInfo.Data{3}(xIndexLim(1):xIndexLim(2),end))];
+        %-----------------------------------------------------------------%
+        function yzLim = yzLimits(obj, specData, yUnit, xIndexLim)
+            yzLim  = [min(specData.Data{3}(xIndexLim(1):xIndexLim(2),1)), ...
+                      max(specData.Data{3}(xIndexLim(1):xIndexLim(2),end))];
 
             if ismember(yUnit, {'persistance level', 'time'})
                 yzAmplitude = class.Constants.yMaxLimRange;

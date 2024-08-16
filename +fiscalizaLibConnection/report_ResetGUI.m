@@ -6,7 +6,7 @@ function report_ResetGUI(app)
     end
     set(app.report_FiscalizaIcon, 'Parent', app.report_FiscalizaGrid, 'Visible', 1)
 
-    app.report_FiscalizaAutoFillImage.Enable = 0;
-    app.report_FiscalizaUpdateImage.Enable   = 0;
+    app.tool_FiscalizaAutoFill.Enable = 0;
+    app.tool_FiscalizaUpdate.Enable   = 0;
     
 end

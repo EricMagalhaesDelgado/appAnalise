@@ -2,7 +2,7 @@ classdef (Abstract) StackingOrder
 
     properties (Constant)
         %-----------------------------------------------------------------%
-        winAppAnalise   = {'mkrLabels', 'occTHR', 'mkrROI', 'Average', 'ClearWrite', 'MaxHold', 'MinHold', 'mkrLine', 'BandLimits', 'Persistance'}
+        winAppAnalise   = {'mkrLabels', 'occTHR', 'mkrROI', 'Average', 'ClearWrite', 'MaxHold', 'mkrLine', 'BandLimits', 'Persistance', 'MinHold'}
         winRFDataHub    = {}
         winDriveTest    = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute'}
     end
@@ -12,17 +12,25 @@ classdef (Abstract) StackingOrder
         %-----------------------------------------------------------------%
         function execute(hAxes, clientID)
             switch clientID
-                case 'winAppAnalise:PLAYBACK'
+                case 'appAnalise:PLAYBACK'
                     refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
 
-                case 'winAppAnalise:REPORT'
+                case 'appAnalise:REPORT'
                     refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
 
-                case 'winRFDataHub'
+                case 'appAnalise:RFDataHub'
                     refStackingOrder = plot.axes.StackingOrder.winRFDataHub;
 
-                case 'winDriveTest'
+                case 'appAnalise:DriveTest'
                     refStackingOrder = plot.axes.StackingOrder.winDriveTest;
+
+                case 'appAnalise:SignalAnalysis'
+
+                case 'appColeta:TASK'
+
+                case 'webapp RFDataHub'
+
+                case 'webapp SCH'
 
                 otherwise
                     error('Unexpected option.')

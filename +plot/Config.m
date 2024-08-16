@@ -11,11 +11,6 @@ function varargout = Config(plotTag, defaultProperties, customProperties)
 
     switch plotTag
         case 'Persistance'
-
-%                                                               'Transparency',     app.play_Persistance_Transparency.Value, ...
-%                                                               'LevelLimits'
-
-
         plotConfig = {'CDataMapping', 'scaled', 'PickableParts', 'none', 'Interpolation', tempPlotConfig.Interpolation, 'Tag', plotTag};
         varargout  = {plotConfig, tempPlotConfig.Samples, tempPlotConfig.Colormap, tempPlotConfig.Transparency, tempPlotConfig.LevelLimits};        
 
@@ -51,10 +46,6 @@ function selectedProperties = customPropertiesParser(plotTag, defaultProperties,
             
             case 'Waterfall'
                 selectedProperties.Plot.(plotTag) = customProperties.Waterfall;
-            
-            case {'ClearWrite', 'Average', 'MinHold', 'MaxHold'}
-                selectedProperties.Plot.(plotTag).XLim = customProperties.Controls.FrequencyLimits;
-                selectedProperties.Plot.(plotTag).YLim = customProperties.Controls.LevelLimits;
 
             otherwise
                 % ...

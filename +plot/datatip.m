@@ -67,7 +67,12 @@ classdef (Abstract) datatip
             if isempty(dtParent)
                 return
             elseif ~isprop(dtParent, 'DataTipTemplate')
-                dt = datatip(dtParent, Visible = 'off');
+                % 'images.roi.line' não aceita DataTip.
+                try
+                    dt = datatip(dtParent, Visible = 'off');
+                catch
+                    return
+                end
             end
 
             set(dtParent.DataTipTemplate, FontName='Calibri', FontSize=10)

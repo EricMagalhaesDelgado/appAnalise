@@ -33,10 +33,10 @@ function report_StaticButtonPushed(app, event)
                 fiscalizaLibConnection.report_Connect(app, [], 'RefreshIssue')
             end
 
-        case app.report_FiscalizaAutoFillImage
+        case app.tool_FiscalizaAutoFillImage
             fiscalizaLibConnection.report_AutoFill(app)
 
-        case app.report_FiscalizaUpdateImage
+        case app.tool_FiscalizaUpdateImage
             fiscalizaLibConnection.report_Update(app)
     end
 end
