@@ -24,7 +24,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
     
   % SpecInfo      = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
     SpecInfo      = app.specData(idx);
-    exceptionList = app.exceptionList;
+    exceptionList = app.projectData.exceptionList;
     peaksTable    = Fcn_Peaks(app, SpecInfo, reportInfo, exceptionList);    
     
     % HTML header (style)    

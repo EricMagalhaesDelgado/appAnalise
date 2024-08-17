@@ -190,7 +190,10 @@ classdef (Abstract) Interactivity
             hAllAxes = [hAxes, relatedAxes];
             
             for ii = 1:numel(hAllAxes)
-                set(hAllAxes(ii), 'XLim', callingApp.restoreView(ii).xLim, 'YLim', callingApp.restoreView(ii).yLim)
+                try
+                    set(hAllAxes(ii), 'XLim', callingApp.restoreView(ii).xLim, 'YLim', callingApp.restoreView(ii).yLim)
+                catch
+                end
             end
         end
 

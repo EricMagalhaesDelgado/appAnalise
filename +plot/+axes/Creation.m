@@ -1,8 +1,9 @@
-function hAxes = Creation(hParent, axesType, varargin)
+function hAxes = Creation(hParent, axesType, colorMode, varargin)
 
     arguments
         hParent
-        axesType char {mustBeMember(axesType, {'Cartesian', 'Geographic'})}
+        axesType  char {mustBeMember(axesType,  {'Cartesian', 'Geographic'})}
+        colorMode char {mustBeMember(colorMode, {'dark-mode', 'light-mode'})} = 'dark-mode'
     end
 
     arguments (Repeating)
@@ -14,7 +15,18 @@ function hAxes = Creation(hParent, axesType, varargin)
             hAxes = uiaxes(hParent, Color=varargin{1}, ColorScale='log', FontName='Helvetica', FontSize=9,                   ...
                                     XGrid='on', XMinorGrid='on', YGrid='on', YMinorGrid='on', YScale='linear',               ...
                                     GridAlpha=.25, GridColor=[.94,.94,.94], MinorGridAlpha=.2, MinorGridColor=[.94,.94,.94], ...
-                                    Interactions=[], Toolbar=[]);
+                                    TickDir='both', Interactions=[], Toolbar=[]);
+
+            switch colorMode
+                case 'dark-mode'
+                    set(hAxes, 'XColor', 'white', 'YColor', 'white', 'ZColor', 'white')
+                    hAxes.XLabel.Color = 'white';
+                    hAxes.YLabel.Color = 'white';
+                    hAxes.ZLabel.Color = 'white';
+
+                case 'light-mode'
+                    % Pendente
+            end
 
         case 'Geographic'
             hAxes = geoaxes(hParent, FontSize=6, Units='pixels', Basemap='darkwater', Box='off');

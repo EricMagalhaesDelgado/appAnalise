@@ -69,38 +69,46 @@ classdef Band < handle
 
 
         %-----------------------------------------------------------------%
-        function yArray = YArray(obj, idx, plotTag, varargin)
+        function [XArray, YArray] = XYArray(obj, idx, plotTag)
+
             arguments
                 obj
                 idx
-                plotTag {mustBeMember(plotTag, {'ClearWrite', 'MinHold', 'Average', 'MaxHold'})}
+                plotTag {mustBeMember(plotTag, {'ClearWrite', 'MinHold', 'Average', 'MaxHold', 'WaterfallTime'})}
             end
 
-            arguments (Repeating)
-                varargin
-            end
-
-            yArray   = [];
             specData = obj.callingApp.specData(idx);
+            idxTime  = obj.callingApp.idxTime;
 
             switch plotTag
-                case 'MinHold'; idxFcn = 1;
-                case 'Average'; idxFcn = 2;
-                case 'MaxHold'; idxFcn = 3;
-            end
+                case 'ClearWrite'
+                    XArray = obj.xArray;
+                    YArray = specData.Data{2}(:,idxTime)';                    
 
-            switch obj.Context
-                case 'appAnalise:PLAYBACK'
-                    if ismember(plotTag, {'MinHold', 'Average', 'MaxHold'}) && isinf(str2double(obj.callingApp.play_TraceIntegration.Value))
-                        yArray  = specData.Data{3}(:,idxFcn)';
+                case {'MinHold', 'Average', 'MaxHold'}
+                    XArray = obj.xArray;
 
-                    else
-                        idxTime = varargin{1};
-                        yArray  = specData.Data{2}(:,idxTime)';
+                    switch plotTag
+                        case 'MinHold'; idxFcn = 1;
+                        case 'Average'; idxFcn = 2;
+                        case 'MaxHold'; idxFcn = 3;
+                    end
+        
+                    switch obj.Context
+                        case 'appAnalise:PLAYBACK'
+                            if ismember(plotTag, {'MinHold', 'Average', 'MaxHold'}) && isinf(str2double(obj.callingApp.play_TraceIntegration.Value))
+                                YArray  = specData.Data{3}(:,idxFcn)';        
+                            else
+                                YArray  = specData.Data{2}(:,idxTime)';
+                            end
+        
+                        case 'appAnalise:REPORT'
+                            YArray = specData.Data{3}(:,idxFcn)';
                     end
 
-                case 'appAnalise:REPORT'
-                    yArray = specData.Data{3}(:,idxFcn)';
+                case 'WaterfallTime'
+                     XArray = [obj.xArray(1), obj.xArray(end)];
+                     YArray = [specData(idx).Data{1}(idxTime), specData(idx).Data{1}(idxTime)];
             end
         end
 

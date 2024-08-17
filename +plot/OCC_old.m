@@ -61,7 +61,7 @@ end
 %-------------------------------------------------------------------------%
 function DataTip(hPlot, LevelUnit)
     for ii = 1:numel(hPlot)
-        plot.datatip.Template(hPlot(ii), 'Frequency+Level', LevelUnit)
+        plot.datatip.Template(hPlot(ii), 'Frequency+Occupancy', LevelUnit)
     end
 end
 

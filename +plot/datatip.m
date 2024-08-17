@@ -92,7 +92,7 @@ classdef (Abstract) datatip
                     dtParent.DataTipTemplate.DataTipRows(1).Label  = '';
                     dtParent.DataTipTemplate.DataTipRows(1).Format = '%.3f MHz';                    
                     dtParent.DataTipTemplate.DataTipRows(2).Label  = '';
-                    dtParent.DataTipTemplate.DataTipRows(2).Format = ['%.0f' hUnit];
+                    dtParent.DataTipTemplate.DataTipRows(2).Format = ['%.1f' hUnit];
 
                 case 'Frequency+Timestamp+Level'
                     hUnit = varargin{1};

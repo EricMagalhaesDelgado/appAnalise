@@ -54,13 +54,13 @@ function Waterfall_old(app, idx, Type, LevelUnit)
                     [X, Y] = meshgrid(app.bandObj.xArray, t);
             
                     app.UIAxes3.CLimMode = 'auto';
-                    app.hWaterfall = mesh(app.UIAxes3, X, Y, app.specData(idx).Data{2}(:,1:Decimate:end)', 'MeshStyle', app.play_Waterfall_Interpolation.Value, 'SelectionHighlight', 'off', 'Tag', 'WaterFall');
+                    app.hWaterfall = mesh(app.UIAxes3, X, Y, app.specData(idx).Data{2}(:,1:Decimate:end)', 'MeshStyle', app.play_Waterfall_Interpolation.Value, 'SelectionHighlight', 'off', 'Tag', 'Waterfall');
                     plot.datatip.Template(app.hWaterfall, 'Frequency+Timestamp+Level', LevelUnit)
-                    view(app.UIAxes3, 0, 90);
+                    % view(app.UIAxes3, 0, 90);
                     
                     if strcmp(app.play_Waterfall_Timestamp.Value, 'on')
-                        app.hWaterfallTime = line(app.UIAxes3, [app.bandObj.xArray(1), app.bandObj.xArray(end)], [app.specData(idx).Data{1}(app.timeIndex), app.specData(idx).Data{1}(app.timeIndex)], [app.UIAxes1.YLim(2) app.UIAxes1.YLim(2)], ...
-                                                                'Color', 'red', 'LineWidth', 1, 'PickableParts', 'none', 'Tag', 'WaterFall_time');
+                        app.hWaterfallTime = line(app.UIAxes3, [app.bandObj.xArray(1), app.bandObj.xArray(end)], [app.specData(idx).Data{1}(app.idxTime), app.specData(idx).Data{1}(app.idxTime)], [app.UIAxes1.YLim(2) app.UIAxes1.YLim(2)], ...
+                                                                'Color', 'red', 'LineWidth', 1, 'PickableParts', 'none', 'Tag', 'WaterfallTime');
                     end
                     
                     tTickLabel    = linspace(t(1), t(end), 3);

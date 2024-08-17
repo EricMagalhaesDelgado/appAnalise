@@ -1,5 +1,5 @@
 {
-    "version": 0.08,
+    "version": 0.11,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -232,10 +232,20 @@
         },
         "Persistance": {
             "Interpolation": "nearest",
-            "Samples": "full",
-            "Colormap": "winter",
+            "WindowSize": "full",
             "Transparency": 1,
-            "LevelLimits": [0, 0]
+            "Colormap": "winter",
+            "LevelLimits": [-1, -1]
+        },
+        "Waterfall": {
+            "Fcn": "image",
+            "Decimation": "auto",
+            "MeshStyle": "both",
+            "Colormap": "winter",            
+            "LevelLimits": [-1, -1]
+        },
+        "WaterfallTime": {
+            "Visible": "on"
         },
         "ROI": {
             "Color": "#66bae0",
@@ -244,12 +254,6 @@
             "yPosition": 1,
             "TextColor": "#000000",
             "TextFontSize": 8
-        },
-        "Waterfall": {
-            "Fcn": "image",
-            "View": "vertical",
-            "MeshStyle": "both",
-            "Colormap": "winter"
         },
         "Axes": {
             "xLabel": true,

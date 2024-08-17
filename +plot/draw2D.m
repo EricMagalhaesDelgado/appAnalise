@@ -2,43 +2,50 @@ classdef (Abstract) draw2D
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function hLine = OrdinaryPlot(hAxes, bandObj, idx, plotTag)
-            xArray       = bandObj.xArray;
-            timeIndex    = bandObj.callingApp.timeIndex;
-            yArray       = YArray(bandObj, idx, plotTag, timeIndex);
+        function hLine = OrdinaryLine(hAxes, bandObj, idx, plotTag)
             defaultProp  = bandObj.callingApp.General;
             customProp   = bandObj.callingApp.specData(idx).UserData.customPlayback.Parameters;
-            Context      = bandObj.Context;
 
-            [plotType, ...
-             plotConfig] = plot.Config(plotTag, defaultProp, customProp);
+            [plotConfig, ...
+             plotType]   = plot.Config(plotTag, defaultProp, customProp);
             
+            [XArray, ...
+             YArray]     = XYArray(bandObj, idx, plotTag);
+
             switch plotType
                 case 'line'
-                    hLine = plot(hAxes, xArray, yArray, plotConfig{:});
+                    hLine = line(hAxes, XArray, YArray, plotConfig{:});
                 case 'area'
-                    hLine = area(hAxes, xArray, yArray, 'BaseValue', hAxes.YLim(1), plotConfig{:});
+                    hLine = area(hAxes, XArray, YArray, 'BaseValue', hAxes.YLim(1), plotConfig{:});
             end
 
-            plot.axes.StackingOrder.execute(hAxes, Context)
+            plot.axes.StackingOrder.execute(hAxes, bandObj.Context)
         end
 
 
         %-----------------------------------------------------------------%
-        function OrdinaryPlotUpdate(hLine, bandObj, idx, plotTag)
-            timeIndex = bandObj.callingApp.timeIndex;
-            yArray    = bandObj.callingApp.specData(idx).Data{2}(:,timeIndex)';
+        function OrdinaryLineUpdate(hLine, bandObj, idx, plotTag)
+            idxTime = bandObj.callingApp.idxTime;
 
             switch plotTag
-                case 'ClearWrite'
-                    hLine.YData = yArray;
-                case 'MinHold'
-                    hLine.YData = min(hLine.YData, yArray);
-                case 'Average'
-                    integrationFactor = bandObj.callingApp.General.Integration.Trace;
-                    hLine.YData = ((integrationFactor-1)*hLine.YData + yArray) / integrationFactor;
-                case 'MaxHold'
-                    hLine.YData = max(hLine.YData, yArray);
+                case {'ClearWrite', 'MinHold', 'Average', 'MaxHold'}
+                    yArray = bandObj.callingApp.specData(idx).Data{2}(:,idxTime)';
+
+                    switch plotTag                
+                        case 'ClearWrite'
+                            hLine.YData = yArray;
+                        case 'MinHold'
+                            hLine.YData = min(hLine.YData, yArray);
+                        case 'Average'
+                            integrationFactor = bandObj.callingApp.General.Integration.Trace;
+                            hLine.YData = ((integrationFactor-1)*hLine.YData + yArray) / integrationFactor;
+                        case 'MaxHold'
+                            hLine.YData = max(hLine.YData, yArray);
+                    end
+
+                case 'WaterfallTime'
+                    tInstant = bandObj.callingApp.specData(idx).Data{2}(:,idxTime);
+                    hLine.YData = [tInstant, tInstant];
             end
         end
 
@@ -114,7 +121,7 @@ classdef (Abstract) draw2D
                     end
                 end
         
-                app.hEmissionMarkers = text(app.UIAxes1, app.specData(idx).UserData.Emissions.Frequency, double(app.specData(idx).Data{2}(app.specData(idx).UserData.Emissions.Index, app.timeIndex)), mkrLabels, ...
+                app.hEmissionMarkers = text(app.UIAxes1, app.specData(idx).UserData.Emissions.Frequency, double(app.specData(idx).Data{2}(app.specData(idx).UserData.Emissions.Index, app.idxTime)), mkrLabels, ...
                                                          Color=[0.40,0.73,0.88], FontSize=11, FontWeight='bold', FontName='Helvetica', FontSmoothing='on', Tag='mkrLabels', Visible=app.play_LineVisibility.Value);
             end
         end
