@@ -19,8 +19,8 @@ function OCC_old(app, idx, Type, occIndex)
                     case 'Linear fixo'
                         hPlotAxes1    = images.roi.Line(app.UIAxes1,'Position',[xArray(1) occTHR; xArray(end) occTHR], 'Color', 'red', 'MarkerSize', 4, 'Deletable', 0, 'LineWidth', 1, 'InteractionsAllowed', 'translate', 'Tag', 'occTHR');
                         
-                        addlistener(hPlotAxes1, 'MovingROI', @(src,evt)occLineROI(src,evt,app));
-                        addlistener(hPlotAxes1, 'ROIMoved',  @(src,evt)occLineROI(src,evt,app));
+                        addlistener(hPlotAxes1, 'MovingROI', @(~,evt)occLineROI(evt, app));
+                        addlistener(hPlotAxes1, 'ROIMoved',  @(~,evt)occLineROI(evt, app));
     
                     case 'Linear adaptativo'                        
                         [minTHR, maxTHR] = bounds(occTHR);
@@ -67,7 +67,7 @@ end
 
 
 %-------------------------------------------------------------------------%
-function occLineROI(src, event, app)
+function occLineROI(event, app)
     switch(event.EventName)
         case 'MovingROI'
             plot.axes.Interactivity.DefaultDisable([app.UIAxes1, app.UIAxes2, app.UIAxes3])

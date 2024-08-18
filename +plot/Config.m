@@ -13,7 +13,11 @@ function varargout = Config(plotTag, defaultProperties, customProperties)
         case 'Persistance'
             plotConfig  = {'CDataMapping', 'scaled', 'PickableParts', 'none', 'Interpolation', tempPlotConfig.Interpolation};
 
-            if ~issorted(tempPlotConfig.LevelLimits, 'strictascend')
+            % Aspectos relacionados ao cLim da curva de persistência:
+            % (a) O arquivo "GeneralSettings.json" tem como padrão o vetor [-1,-1]. 
+            % (b) A customização desse parâmetro é possível apenas quando o tamanho 
+            %     da janela da persistência é "full". 
+            if ~issorted(tempPlotConfig.LevelLimits, 'strictascend') || ~strcmp(tempPlotConfig.WindowSize, 'full')
                 tempPlotConfig.LevelLimits = [];
             end
 
@@ -59,19 +63,10 @@ end
 
 %-------------------------------------------------------------------------%
 function selectedProperties = customPropertiesParser(plotTag, defaultProperties, customProperties)
-    if isempty(customProperties)
-        selectedProperties = defaultProperties;
-
-    else
-        switch plotTag
-            case 'Persistance'
-                selectedProperties.Plot.(plotTag) = customProperties.Persistance;
-            
-            case 'Waterfall'
-                selectedProperties.Plot.(plotTag) = customProperties.Waterfall;
-
-            otherwise
-                % ...
+    selectedProperties = defaultProperties;
+    if ~isempty(customProperties)
+        if ismember(plotTag, {'Persistance', 'Waterfall', 'WaterfallTime'})
+            selectedProperties.Plot.(plotTag) = customProperties.(plotTag);
         end
     end
 end

@@ -39,7 +39,7 @@ classdef (Abstract) axesDraw_old
 
             % PRÉ-PLOT
             [xLim, yLim, ~, xIndexLim, xArray] = plot.axesDraw_old.Limits(SpecInfo, Parameters, 'ordinary level');
-            plot.axesDraw_old.PrePlotConfig(hAxes, xLim, yLim, 'linear', '')
+            plot.axes.prePlotConfiguration(hAxes, xLim, yLim, 'linear')
         
             % PLOT
             plot.axesDraw_old.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'MinHold', MinHold)
@@ -49,7 +49,7 @@ classdef (Abstract) axesDraw_old
             plot.axesDraw_old.EmissionPlot(hAxes, SpecInfo, yLim, ROI)            
             plot.axesDraw_old.ThresholdPlot(hAxes, SpecInfo, xArray)
 
-            plotFcn.axesStackingOrder.execute('winAppAnalise', hAxes)
+            plot.axes.StackingOrder.execute(hAxes, 'appAnalise:REPORT')
 
             % PÓS-PLOT
             plot.axesDraw_old.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', ['Nível (' SpecInfo.MetaData.LevelUnit ')'])
@@ -65,7 +65,7 @@ classdef (Abstract) axesDraw_old
             
             % PRÉ-PLOT
             [xLim, yLim, ~, xIndexLim, xArray] = plot.axesDraw_old.Limits(SpecInfo, Parameters, 'persistance level');
-            plot.axesDraw_old.PrePlotConfig(hAxes, xLim, yLim, 'linear', Persistance.Colormap)
+            plot.axes.prePlotConfiguration(hAxes, xLim, yLim, 'linear', Persistance.Colormap)
             
             % PLOT        
             plot.axesDraw_old.PersistancePlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, Persistance)
@@ -74,7 +74,7 @@ classdef (Abstract) axesDraw_old
             plot.axesDraw_old.EmissionPlot(hAxes, SpecInfo, yLim, ROI);            
             plot.axesDraw_old.ThresholdPlot(hAxes, SpecInfo, xArray)
 
-            plotFcn.axesStackingOrder.execute('winAppAnalise', hAxes)
+            plot.axes.StackingOrder.execute(hAxes, 'appAnalise:REPORT')
 
             % PÓS-PLOT
             plot.axesDraw_old.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', ['Nível (' SpecInfo.MetaData.LevelUnit ')'])
@@ -90,7 +90,7 @@ classdef (Abstract) axesDraw_old
 
             % PRÉ-PLOT
             [xLim, yLim, ~, xIndexLim, xArray] = plot.axesDraw_old.Limits(SpecInfo, Parameters, 'occupancy level');
-            plot.axesDraw_old.PrePlotConfig(hAxes, xLim, yLim, 'log', '')
+            plot.axes.prePlotConfiguration(hAxes, xLim, yLim, 'log')
         
             % PLOT
             plot.axesDraw_old.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occMinHold', occMinHold)
@@ -113,7 +113,7 @@ classdef (Abstract) axesDraw_old
                 case 'image'; yUnit = 'timeIndex';
             end
             [xLim, yLim, ~, xIndexLim, xArray] = plot.axesDraw_old.Limits(SpecInfo, Parameters, yUnit);
-            plot.axesDraw_old.PrePlotConfig(hAxes, xLim, yLim, 'linear', Waterfall.Colormap)
+            plot.axes.prePlotConfiguration(hAxes, xLim, yLim, 'linear', Waterfall.Colormap)
 
             % PLOT
             plot.axesDraw_old.WaterfallPlot(hAxes, SpecInfo, xIndexLim, xArray, Waterfall)
@@ -187,19 +187,15 @@ classdef (Abstract) axesDraw_old
                     end
         
                     [X, Y] = meshgrid(xArray, tArray);
-                    p = mesh(hAxes, X, Y, SpecInfo.Data{2}(xIndexLim(1):xIndexLim(2),1:Decimate:end)', 'MeshStyle', Waterfall.MeshStyle, 'SelectionHighlight', 'off', 'Tag', 'WaterFall');                    
+                    p = mesh(hAxes, X, Y, SpecInfo.Data{2}(xIndexLim(1):xIndexLim(2),1:Decimate:end)', 'MeshStyle', Waterfall.MeshStyle, 'SelectionHighlight', 'off', 'Tag', 'Waterfall');                    
 
                 case 'image'
                     p = image(hAxes, xArray, 1:nSweeps, SpecInfo.Data{2}(xIndexLim(1):xIndexLim(2),:)', 'CDataMapping', 'scaled', 'Tag', 'Waterfall');                    
             end
-            plot.datatip.Template(p, 'Frequency+Level', SpecInfo.MetaData.LevelUnit)
+            plot.datatip.Template(p, 'Frequency+Timestamp+Level', SpecInfo.MetaData.LevelUnit)
 
             hAxes.CLim(2) = round(hAxes.CLim(2));
             hAxes.CLim(1) = round(hAxes.CLim(2) - diff(hAxes.CLim)/2);
-
-            if strcmp(Waterfall.View, 'horizontal')
-                hAxes.View(1) = 90;
-            end
         end
 
 
@@ -324,7 +320,7 @@ classdef (Abstract) axesDraw_old
             plot.axesDraw_old.DriveTestPointsPlot(hAxes, Parameters);
 
             % PÓS-PLOT
-            plotFcn.axesStackingOrder.execute('winDriveTest', hAxes)
+            plot.axes.StackingOrder.execute(hAxes, 'appAnalise:DriveTest')
         end
 
 
@@ -480,7 +476,7 @@ classdef (Abstract) axesDraw_old
         %-----------------------------------------------------------------%
         function imgFileName = plot2report(SpecInfo, reportInfo, plotInfo)
             % Criação da figura.
-            f = plot.axesDraw_old.FigureCreation(reportInfo);
+            f = plot.axesDraw_old.FigureCreation();
 
             % Criação dos eixos e disposição no layout indicado no JSON do
             % modelo do relatório.
@@ -502,7 +498,7 @@ classdef (Abstract) axesDraw_old
 
             t = tiledlayout(f, sum(tiledSpan), 1, "Padding", "tight", "TileSpacing", "tight");
            
-            axesType = plot.axesDraw_old.AxesType({plotInfo.Name});
+            axesType = plot.axes.DataAxesTypeMapping({plotInfo.Name});
 
             for ii = 1:numel(plotInfo)
                 switch plotInfo(ii).Name
@@ -510,7 +506,7 @@ classdef (Abstract) axesDraw_old
                     otherwise;        Parameters = reportInfo.General.Parameters;
                 end
 
-                hAxes     = plot.axesDraw_old.AxesCreation([], axesType{ii}, t);
+                hAxes     = plot.axes.Creation(t, axesType{ii});
                 xTickFlag = true;
 
                 switch axesType{ii}
@@ -556,7 +552,7 @@ classdef (Abstract) axesDraw_old
 
 
         %-----------------------------------------------------------------%
-        function f = FigureCreation(reportInfo)
+        function f = FigureCreation()
             mainMonitor     = get(0, 'MonitorPositions');
             [~, indMonitor] = max(mainMonitor(:,3));
             mainMonitor     = mainMonitor(indMonitor,:);
@@ -568,87 +564,6 @@ classdef (Abstract) axesDraw_old
                          'Position', [mainMonitor(1) + round((mainMonitor(3)-xPixels)/2),                          ...
                                       mainMonitor(2) + round((mainMonitor(4)+48-yPixels-30)/2), xPixels, yPixels], ...
                          'Icon', 'icon_48.png', 'Tag', 'ReportGenerator');
-        end
-
-
-        %-----------------------------------------------------------------%
-        function hAxes = AxesCreation(app, axesType, axesParent)
-            switch axesType
-                case 'Cartesian'
-                    hAxes = uiaxes(axesParent,  Color=[0,0,0], ColorScale='log', FontName='Helvetica', FontSize=9,                       ...
-                                                XGrid='on', XMinorGrid='on', YGrid='on', YMinorGrid='on',                                ...
-                                                GridAlpha=.25, GridColor=[.94,.94,.94], MinorGridAlpha=.2, MinorGridColor=[.94,.94,.94], ...
-                                                Interactions=[], Toolbar=[]);
-
-                    % Interactions
-                    plot.axes.Interactivity.DefaultCreation(hAxes)
-                    plot.axes.Interactivity.ToolbarCreation(hAxes)
-                    plot.axes.Interactivity.CustomCallbacks(hAxes)
-
-                case 'Geographic'
-                    hAxes = geoaxes(axesParent, FontSize=6, Units='pixels', Basemap='darkwater', Box='off');
-
-                    hAxes.LatitudeLabel.String  = '';
-                    hAxes.LongitudeLabel.String = '';
-
-                    try
-                        geobasemap(hAxes, 'streets-light')
-                    catch
-                    end
-
-                    % Interactions
-                    plot.axes.Interactivity.ToolbarCreation(hAxes, 'default', {'export'})
-            end
-
-            hold(hAxes, 'on')
-        end
-
-
-        %-----------------------------------------------------------------%
-        function axesType = AxesType(plotName)
-            axesType = {};
-            for ii = 1:numel(plotName)
-                switch plotName{ii}
-                    case {'Spectrum', 'Persistance', 'OccupancyPerBin', 'Waterfall', 'OccupancyPerHour', 'OccupancyPerDay', 'SamplesPerLevel', 'ChannelPower', 'Link'}
-                        axesType{ii} = 'Cartesian';
-                    case {'DriveTest', 'Stations', 'DriveTestRoute'}
-                        axesType{ii} = 'Geographic';
-                    otherwise
-                        error('Unexpected plotName')
-                end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function PrePlotConfig(hAxes, xLim, yLim, yScale, colorMap)
-            switch class(yLim)
-                case 'datetime'
-                    if ~isa(hAxes.YAxis, 'matlab.graphics.axis.decorator.DatetimeRuler')
-                        matlab.graphics.internal.configureAxes(hAxes, xLim, yLim)
-                    end
-
-                otherwise
-                    if ~isa(hAxes.YAxis, 'matlab.graphics.axis.decorator.NumericRuler')
-                        matlab.graphics.internal.configureAxes(hAxes, xLim, yLim)
-                    end
-            end
-
-            if ~diff(xLim)
-                xLim = [xLim(1)-.1, xLim(1)+.1];
-            end
-
-            set(hAxes, 'XLim', xLim, 'YLim', yLim, 'YScale', yScale, 'ZLimMode', 'auto', 'CLimMode', 'auto', 'View', [0,90])
-            try
-                hAxes.XAxis.Exponent = 0;
-                hAxes.YAxis.Exponent = 0;
-                hAxes.ZAxis.Exponent = 0;
-            catch
-            end
-
-            if ~isempty(colorMap)
-                colormap(hAxes, colorMap)
-                hAxes.Colormap(1,:) = [0,0,0];
-            end
         end
 
 

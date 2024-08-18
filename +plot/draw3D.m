@@ -36,7 +36,7 @@ classdef (Abstract) draw3D
                             end
                 
                             while true
-                                tArray = SpecInfo.Data{1}(1:nDecimation:end);
+                                tArray = specData.Data{1}(1:nDecimation:end);
                                 if numel(tArray) > 1; break
                                 else;                 nDecimation = round(nDecimation/2);
                                 end
@@ -50,9 +50,11 @@ classdef (Abstract) draw3D
         
                             hAxes.CLimMode = 'auto';
                             hWaterfall = mesh(hAxes, X, Y, specData.Data{2}(:,1:nDecimation:end)', plotConfig{:});
+                            hAxes.YLim = [tArray(1), tArray(end)];
         
                         case 'image'
                             hWaterfall = image(hAxes, xArray, 1:nSweeps, specData.Data{2}', plotConfig{:});
+                            hAxes.YLim = [1, nSweeps];
                     end
                     
                     if isempty(cLimits)
@@ -120,14 +122,12 @@ classdef (Abstract) draw3D
                                                      'xEdges',   xEdges,       ...
                                                      'yEdges',   yEdges);
             
+                            hAxes.CLimMode  = 'auto';
                             hPersistanceObj = plot.draw3D.Persistance('Update', hPersistanceObj, hAxes, bandObj, idx);
-                            % 
-                            % if isempty(cLimits)
-                            %     hAxes.CLim(2) = round(hAxes.CLim(2));
-                            %     hAxes.CLim(1) = round(hAxes.CLim(2) - diff(hAxes.CLim)/2);
-                            % else
-                            %     hAxes.CLim    = cLimits;
-                            % end
+                            
+                            if ~isempty(cLimits)
+                                hAxes.CLim  = cLimits;
+                            end
         
                             plot.axes.Colormap(hAxes, colormapName)
                             plot.axes.StackingOrder.execute(hAxes, bandObj.Context)

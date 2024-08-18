@@ -5,6 +5,7 @@ classdef Band < handle
         Context
         callingApp
 
+        nSweeps
         DataPoints
         FreqStart   % in MHz
         FreqStop    % in MHz
@@ -30,6 +31,7 @@ classdef Band < handle
         function axesLimits = update(obj, idx)
             specData       = obj.callingApp.specData(idx);
 
+            obj.nSweeps    = numel(specData.Data{1});
             obj.DataPoints = specData.MetaData.DataPoints;
             obj.FreqStart  = specData.MetaData.FreqStart / 1e+6;
             obj.FreqStop   = specData.MetaData.FreqStop  / 1e+6;
@@ -37,16 +39,13 @@ classdef Band < handle
             DataType       = specData.MetaData.DataType;
             if ismember(DataType, class.Constants.specDataTypes)
                 obj.LevelUnit = specData.MetaData.LevelUnit;
-
             elseif ismember(DataType, class.Constants.occDataTypes)
                 obj.LevelUnit = '%';
-
             else
                 error('Band:update:UnexpectedDataType', 'UnexpectedDataType')                
             end
 
             obj.xArray     = round(linspace(obj.FreqStart, obj.FreqStop, obj.DataPoints), class.Constants.xDecimals);
-
             obj.aCoef      = (obj.FreqStop - obj.FreqStart)*1e+6 ./ (obj.DataPoints - 1);
             obj.bCoef      = obj.FreqStart*1e+6 - obj.aCoef;       
 
@@ -154,7 +153,8 @@ classdef Band < handle
             % não possuir esses atributos. Dessa forma, axesLimits retornará vazia.
 
             if specData.UserData.customPlayback.Type == "manual"
-                axesLimits = playback.customPlayback('updateXYLimits', specData);
+                axesLimits = struct('xLim',      specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits, ...
+                                    'yLevelLim', specData.UserData.customPlayback.Parameters.Controls.LevelLimits);
             end
         
             if isempty(axesLimits)

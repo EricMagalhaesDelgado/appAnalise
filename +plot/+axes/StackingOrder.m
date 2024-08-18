@@ -2,7 +2,7 @@ classdef (Abstract) StackingOrder
 
     properties (Constant)
         %-----------------------------------------------------------------%
-        winAppAnalise   = {'mkrLabels', 'occTHR', 'mkrROI', 'Average', 'ClearWrite', 'MaxHold', 'mkrLine', 'BandLimits', 'Persistance', 'MinHold', 'WaterfallTime', 'Waterfall'}
+        winAppAnalise   = {'mkrLabels', 'occTHR', 'mkrROI', 'ROI', 'Average', 'ClearWrite', 'MaxHold', 'mkrLine', 'BandLimits', 'Persistance', 'MinHold', 'WaterfallTime', 'Waterfall'}
         winRFDataHub    = {}
         winDriveTest    = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute'}
     end

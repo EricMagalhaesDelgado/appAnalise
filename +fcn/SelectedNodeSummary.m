@@ -9,7 +9,7 @@ function nodeSummary = SelectedNodeSummary(app, Type, idx)
             idx2 = idx{2};
 
             Data = app.metaData(idx1).Data(idx2);
-            if numel(idx2) == 1
+            if isscalar(idx2)
                 Flag = true;
             end
 
@@ -21,7 +21,7 @@ function nodeSummary = SelectedNodeSummary(app, Type, idx)
 
         case 'app.specData'
             Data = app.specData(idx);
-            if numel(idx) == 1
+            if isscalar(idx)
                 Flag = true;
             end
     end

@@ -84,7 +84,11 @@ classdef (Abstract) datatip
                     dtParent.DataTipTemplate.DataTipRows(1).Label  = '';
                     dtParent.DataTipTemplate.DataTipRows(1).Format = '%.3f MHz';                    
                     dtParent.DataTipTemplate.DataTipRows(2).Label  = '';
-                    dtParent.DataTipTemplate.DataTipRows(2).Format = ['%.0f ' hUnit];
+                    try
+                    dtParent.DataTipTemplate.DataTipRows(2).Format = ['%.1f ' hUnit];
+                    catch ME
+                        ME
+                    end
 
                 case 'Frequency+Occupancy'
                     hUnit = varargin{1};
@@ -105,13 +109,14 @@ classdef (Abstract) datatip
                                             
                             dtParent.DataTipTemplate.DataTipRows(1).Format = '%.3f MHz';
                             dtParent.DataTipTemplate.DataTipRows(2).Format =  'dd/MM/yyyy HH:mm:ss';
-                            dtParent.DataTipTemplate.DataTipRows(3).Format =  ['%.0f ' hUnit];
+                            dtParent.DataTipTemplate.DataTipRows(3).Format =  ['%.1f ' hUnit];
 
                         case 'matlab.graphics.primitive.Image'
                             dtParent.DataTipTemplate.DataTipRows(1).Label  = '';
                             dtParent.DataTipTemplate.DataTipRows(2).Label  = '';
 
-                            dtParent.DataTipTemplate.DataTipRows(2).Format = ['%.0f ' hUnit];                            
+                            dtParent.DataTipTemplate.DataTipRows(1).Format = '%.3f';
+                            dtParent.DataTipTemplate.DataTipRows(2).Format = ['%.1f ' hUnit];
                             dtParent.DataTipTemplate.DataTipRows(3)        = [];
                     end
 

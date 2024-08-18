@@ -1,5 +1,5 @@
 {
-    "version": 0.11,
+    "version": 0.12,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -238,7 +238,7 @@
             "LevelLimits": [-1, -1]
         },
         "Waterfall": {
-            "Fcn": "image",
+            "Fcn": "mesh",
             "Decimation": "auto",
             "MeshStyle": "both",
             "Colormap": "winter",            
