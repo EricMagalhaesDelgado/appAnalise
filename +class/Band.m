@@ -42,7 +42,7 @@ classdef Band < handle
             elseif ismember(DataType, class.Constants.occDataTypes)
                 obj.LevelUnit = '%';
             else
-                error('Band:update:UnexpectedDataType', 'UnexpectedDataType')                
+                error('Band:update:UnexpectedDataType', 'UnexpectedDataType')
             end
 
             obj.xArray     = round(linspace(obj.FreqStart, obj.FreqStop, obj.DataPoints), class.Constants.xDecimals);
@@ -113,7 +113,20 @@ classdef Band < handle
 
                 case 'WaterfallTime'
                      XArray = [obj.xArray(1), obj.xArray(end)];
-                     YArray = [specData(idx).Data{1}(idxTime), specData(idx).Data{1}(idxTime)];
+
+                    switch obj.Context
+                        case 'appAnalise:PLAYBACK'
+                            hAxes = obj.callingApp.UIAxes3;
+                            switch class(hAxes.YAxis)
+                                case 'matlab.graphics.axis.decorator.DatetimeRuler'
+                                    YArray = [specData.Data{1}(idxTime), specData.Data{1}(idxTime)];
+                                otherwise
+                                    YArray = [idxTime, idxTime];
+                            end
+
+                        case 'appAnalise:REPORT'
+                            error('Band:XYArray:UnexpectedPlotTag', 'UnexpectedPlotTag')
+                    end
             end
         end
 

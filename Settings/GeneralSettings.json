@@ -1,5 +1,5 @@
 {
-    "version": 0.17,
+    "version": 0.21,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -241,11 +241,13 @@
             "Fcn": "mesh",
             "Decimation": "auto",
             "MeshStyle": "both",
-            "Colormap": "winter",            
+            "Colormap": "winter",
+            "Colorbar": "east",
             "LevelLimits": [0, 0]
         },
         "WaterfallTime": {
-            "Visible": "on"
+            "Visible": "on",
+            "ZData": [1000, 1000]
         },
         "ROI": {
             "Color": "#66bae0",

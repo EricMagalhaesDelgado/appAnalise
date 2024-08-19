@@ -83,8 +83,8 @@ classdef (Abstract) draw3D
                     hWaterfall = varargin{1};
                     Decimation = 'auto';
                     
-                    if ~isempty(hWaterfall)
-                        delete(hWaterfall)
+                    if ~isempty(hWaterfall) && isvalid(hWaterfall)
+                        cla(hWaterfall.Parent)
                         hWaterfall = [];
                     end
             end

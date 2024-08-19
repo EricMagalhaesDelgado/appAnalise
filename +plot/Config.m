@@ -39,7 +39,7 @@ function varargout = Config(plotTag, defaultProperties, customProperties)
 
         case 'WaterfallTime'
             plotType    = 'line';
-            plotConfig  = {'Color', 'red', 'LineWidth', 1, 'PickableParts', 'none', 'Visible', tempPlotConfig.Visible};
+            plotConfig  = {'Color', 'red', 'LineWidth', 1, 'PickableParts', 'none', 'Visible', tempPlotConfig.Visible, 'ZData', tempPlotConfig.ZData};
             varargout   = {plotConfig, plotType};
 
         case {'ClearWrite', 'Average', 'MinHold', 'MaxHold'}

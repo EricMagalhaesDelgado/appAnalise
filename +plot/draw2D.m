@@ -44,8 +44,13 @@ classdef (Abstract) draw2D
                     end
 
                 case 'WaterfallTime'
-                    tInstant = bandObj.callingApp.specData(idx).Data{2}(:,idxTime);
-                    hLine.YData = [tInstant, tInstant];
+                    switch class(hLine.YData)
+                        case 'datetime'
+                            tInstant = bandObj.callingApp.specData(idx).Data{1}(idxTime);
+                            hLine.YData = [tInstant, tInstant];
+                        otherwise
+                            hLine.YData = [idxTime, idxTime];
+                    end
             end
         end
 

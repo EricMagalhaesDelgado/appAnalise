@@ -2,7 +2,7 @@ classdef (Abstract) Layout
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function XYLabel(hAxes, occVisibility, waterfallVisibility, Context)
+        function XLabel(hAxes, occVisibility, waterfallVisibility, Context)
             arguments
                 hAxes               (1,3) matlab.ui.control.UIAxes
                 occVisibility       (1,1) logical
@@ -34,6 +34,26 @@ classdef (Abstract) Layout
                 xlabel(UIAxes1, 'Frequência (MHz)')
                 UIAxes1.XTickLabelMode = 'auto';
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function YLabel(hWaterfall, waterfallVisibility, Context)
+            arguments
+                hWaterfall            (1,1)
+                waterfallVisibility (1,1) logical
+                Context             (1,:) char {mustBeMember(Context, {'appAnalise:PLAYBACK'})} = 'appAnalise:PLAYBACK'
+            end
+
+            if waterfallVisibility
+                hAxes = hWaterfall.Parent;
+                switch class(hAxes.YAxis)
+                    case 'matlab.graphics.axis.decorator.DatetimeRuler'
+                        ylabel(hAxes, 'Instante')
+                    otherwise
+                        ylabel(hAxes, 'Amostra')
+                end
+            end
+
         end
         
         %-----------------------------------------------------------------%
@@ -75,24 +95,25 @@ classdef (Abstract) Layout
 
             tiledSpan = str2double(strsplit(ratioAspect, ':'));
             tiledSpan = (4/sum(tiledSpan)) * tiledSpan;
+            
+            tiledPos  = 1;
+            for kk = 1:3
+                UIAxes = hAxes(kk);
 
-            tiledPos = 1;
-            ii = 0;
-            for UIAxes = hAxes
-                ii = ii+1;
-                if tiledSpan(ii) == 0
-                    UIAxes.Visible = 0;
-                    set(UIAxes.Children, Visible=0)
-
-                else
-                    UIAxes.Visible = 1;
-                    set(findobj(UIAxes.Children, '-not', {'Tag', 'ClearWrite', '-or', 'Tag', 'mkrLabels'}), Visible=1)
-
+                if tiledSpan(kk)
+                    axVisibility = 1;        
                     UIAxes.Layout.Tile = tiledPos;
-                    UIAxes.Layout.TileSpan = [tiledSpan(ii) 1];
+                    UIAxes.Layout.TileSpan = [tiledSpan(kk) 1];
+                else
+                    axVisibility = 0;
                 end
 
-                tiledPos = tiledPos+tiledSpan(ii);
+                set(findobj(UIAxes, '-not', {'Tag', 'ClearWrite', '-or', 'Tag', 'mkrLabels'}), 'Visible', axVisibility)
+                if kk == 3
+                    set(findobj(UIAxes.Parent.Children, 'Type', 'colorbar'), 'Visible', axVisibility)
+                end
+
+                tiledPos = tiledPos+tiledSpan(kk);
             end
         end
     end
