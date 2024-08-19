@@ -1,4 +1,4 @@
-function BandLimits_old(app, idx)
+function old_BandLimits(app, idx)
 
     delete(findobj(app.UIAxes1, 'Tag', 'BandLimits'))
 

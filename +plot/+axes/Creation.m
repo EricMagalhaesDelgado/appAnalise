@@ -26,9 +26,9 @@ function hAxes = Creation(hParent, axesType, varargin)
             hAxes.LatitudeLabel.String  = '';
             hAxes.LongitudeLabel.String = '';
 
-            try
-                geobasemap(hAxes, varargin{1})
-            catch
+            if nargin == 3
+                othersParameters = varargin{1};
+                set(hAxes, othersParameters{:})
             end
     end
 

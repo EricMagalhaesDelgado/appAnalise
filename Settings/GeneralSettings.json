@@ -1,5 +1,5 @@
 {
-    "version": 0.12,
+    "version": 0.17,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -235,14 +235,14 @@
             "WindowSize": "full",
             "Transparency": 1,
             "Colormap": "winter",
-            "LevelLimits": [-1, -1]
+            "LevelLimits": [0, 0]
         },
         "Waterfall": {
             "Fcn": "mesh",
             "Decimation": "auto",
             "MeshStyle": "both",
             "Colormap": "winter",            
-            "LevelLimits": [-1, -1]
+            "LevelLimits": [0, 0]
         },
         "WaterfallTime": {
             "Visible": "on"

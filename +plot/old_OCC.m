@@ -1,4 +1,4 @@
-function OCC_old(app, idx, Type, occIndex)
+function old_OCC(app, idx, Type, occIndex)
 
     switch Type
         case 'Creation'

@@ -1,4 +1,4 @@
-function axesType = DataAxesTypeMapping(plotName)
+function axesType = old_DataAxesTypeMapping(plotName)
 
     axesType = {};
 

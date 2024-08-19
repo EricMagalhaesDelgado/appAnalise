@@ -1,4 +1,4 @@
-classdef (Abstract) axesDraw_old
+classdef (Abstract) old_axesDraw
 
     properties (Constant)
         %-----------------------------------------------------------------%
@@ -11,18 +11,18 @@ classdef (Abstract) axesDraw_old
         function execute(plotName, hAxes, SpecInfo, Parameters, srcFcn)
             cla(hAxes)
             switch plotName
-                case 'Spectrum';         plot.axesDraw_old.cartesianAxes__type1(hAxes, SpecInfo, Parameters)
-                case 'Persistance';      plot.axesDraw_old.cartesianAxes__type2(hAxes, SpecInfo, Parameters)
-                case 'OccupancyPerBin';  plot.axesDraw_old.cartesianAxes__type3(hAxes, SpecInfo, Parameters)
-                case 'Waterfall';        plot.axesDraw_old.cartesianAxes__type4(hAxes, SpecInfo, Parameters)
-              % case 'OccupancyPerHour'; plot.axesDraw_old.cartesianAxes__type5(hAxes, SpecInfo, Parameters)
-              % case 'OccupancyPerDay';  plot.axesDraw_old.cartesianAxes__type6(hAxes, SpecInfo, Parameters)
-              % case 'SamplesPerLevel';  plot.axesDraw_old.cartesianAxes__type7(hAxes, SpecInfo, Parameters)
-              % case 'ChannelPower';     plot.axesDraw_old.cartesianAxes__type8(hAxes, SpecInfo, Parameters)
-                case 'DriveTest';        plot.axesDraw_old.geographicAxes_type1(hAxes, Parameters, srcFcn)
-                case 'DriveTestRoute';   plot.axesDraw_old.geographicAxes_type2(hAxes, Parameters)
-              % case 'Stations';         plot.axesDraw_old.geographicAxes_type3(hAxes, SpecInfo, Parameters)
-              % case 'Link';             plot.axesDraw_old.geographicAxes_type4(hAxes, SpecInfo, Parameters)
+                case 'Spectrum';         plot.old_axesDraw.cartesianAxes__type1(hAxes, SpecInfo, Parameters)
+                case 'Persistance';      plot.old_axesDraw.cartesianAxes__type2(hAxes, SpecInfo, Parameters)
+                case 'OccupancyPerBin';  plot.old_axesDraw.cartesianAxes__type3(hAxes, SpecInfo, Parameters)
+                case 'Waterfall';        plot.old_axesDraw.cartesianAxes__type4(hAxes, SpecInfo, Parameters)
+              % case 'OccupancyPerHour'; plot.old_axesDraw.cartesianAxes__type5(hAxes, SpecInfo, Parameters)
+              % case 'OccupancyPerDay';  plot.old_axesDraw.cartesianAxes__type6(hAxes, SpecInfo, Parameters)
+              % case 'SamplesPerLevel';  plot.old_axesDraw.cartesianAxes__type7(hAxes, SpecInfo, Parameters)
+              % case 'ChannelPower';     plot.old_axesDraw.cartesianAxes__type8(hAxes, SpecInfo, Parameters)
+                case 'DriveTest';        plot.old_axesDraw.geographicAxes_type1(hAxes, Parameters, srcFcn)
+                case 'DriveTestRoute';   plot.old_axesDraw.geographicAxes_type2(hAxes, Parameters)
+              % case 'Stations';         plot.old_axesDraw.geographicAxes_type3(hAxes, SpecInfo, Parameters)
+              % case 'Link';             plot.old_axesDraw.geographicAxes_type4(hAxes, SpecInfo, Parameters)
             end
         end
 
@@ -38,21 +38,21 @@ classdef (Abstract) axesDraw_old
             Axes     = Parameters.Axes;
 
             % PRÉ-PLOT
-            [xLim, yLim, ~, xIndexLim, xArray] = plot.axesDraw_old.Limits(SpecInfo, Parameters, 'ordinary level');
-            plot.axes.prePlotConfiguration(hAxes, xLim, yLim, 'linear')
+            [xLim, yLim, ~, xIndexLim, xArray] = plot.old_axesDraw.Limits(SpecInfo, Parameters, 'ordinary level');
+            plot.old_prePlotConfiguration(hAxes, xLim, yLim, 'linear')
         
             % PLOT
-            plot.axesDraw_old.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'MinHold', MinHold)
-            plot.axesDraw_old.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'Average', Average)
-            plot.axesDraw_old.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'MaxHold', MaxHold)            
-            plot.axesDraw_old.BandLimitsPlot(hAxes, SpecInfo)
-            plot.axesDraw_old.EmissionPlot(hAxes, SpecInfo, yLim, ROI)            
-            plot.axesDraw_old.ThresholdPlot(hAxes, SpecInfo, xArray)
+            plot.old_axesDraw.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'MinHold', MinHold)
+            plot.old_axesDraw.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'Average', Average)
+            plot.old_axesDraw.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'MaxHold', MaxHold)            
+            plot.old_axesDraw.BandLimitsPlot(hAxes, SpecInfo)
+            plot.old_axesDraw.EmissionPlot(hAxes, SpecInfo, yLim, ROI)            
+            plot.old_axesDraw.ThresholdPlot(hAxes, SpecInfo, xArray)
 
             plot.axes.StackingOrder.execute(hAxes, 'appAnalise:REPORT')
 
             % PÓS-PLOT
-            plot.axesDraw_old.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', ['Nível (' SpecInfo.MetaData.LevelUnit ')'])
+            plot.old_axesDraw.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', ['Nível (' SpecInfo.MetaData.LevelUnit ')'])
         end
 
 
@@ -64,20 +64,20 @@ classdef (Abstract) axesDraw_old
             Axes        = Parameters.Axes;
             
             % PRÉ-PLOT
-            [xLim, yLim, ~, xIndexLim, xArray] = plot.axesDraw_old.Limits(SpecInfo, Parameters, 'persistance level');
-            plot.axes.prePlotConfiguration(hAxes, xLim, yLim, 'linear', Persistance.Colormap)
+            [xLim, yLim, ~, xIndexLim, xArray] = plot.old_axesDraw.Limits(SpecInfo, Parameters, 'persistance level');
+            plot.old_prePlotConfiguration(hAxes, xLim, yLim, 'linear', Persistance.Colormap)
             
             % PLOT        
-            plot.axesDraw_old.PersistancePlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, Persistance)
-            plot.axesDraw_old.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'Average', Average)
-            plot.axesDraw_old.BandLimitsPlot(hAxes, SpecInfo)
-            plot.axesDraw_old.EmissionPlot(hAxes, SpecInfo, yLim, ROI);            
-            plot.axesDraw_old.ThresholdPlot(hAxes, SpecInfo, xArray)
+            plot.old_axesDraw.PersistancePlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, Persistance)
+            plot.old_axesDraw.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'Average', Average)
+            plot.old_axesDraw.BandLimitsPlot(hAxes, SpecInfo)
+            plot.old_axesDraw.EmissionPlot(hAxes, SpecInfo, yLim, ROI);            
+            plot.old_axesDraw.ThresholdPlot(hAxes, SpecInfo, xArray)
 
             plot.axes.StackingOrder.execute(hAxes, 'appAnalise:REPORT')
 
             % PÓS-PLOT
-            plot.axesDraw_old.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', ['Nível (' SpecInfo.MetaData.LevelUnit ')'])
+            plot.old_axesDraw.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', ['Nível (' SpecInfo.MetaData.LevelUnit ')'])
         end
 
 
@@ -89,16 +89,16 @@ classdef (Abstract) axesDraw_old
             Axes       = Parameters.Axes;
 
             % PRÉ-PLOT
-            [xLim, yLim, ~, xIndexLim, xArray] = plot.axesDraw_old.Limits(SpecInfo, Parameters, 'occupancy level');
-            plot.axes.prePlotConfiguration(hAxes, xLim, yLim, 'log')
+            [xLim, yLim, ~, xIndexLim, xArray] = plot.old_axesDraw.Limits(SpecInfo, Parameters, 'occupancy level');
+            plot.old_prePlotConfiguration(hAxes, xLim, yLim, 'log')
         
             % PLOT
-            plot.axesDraw_old.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occMinHold', occMinHold)
-            plot.axesDraw_old.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occAverage', occAverage)
-            plot.axesDraw_old.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occMaxHold', occMaxHold)
+            plot.old_axesDraw.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occMinHold', occMinHold)
+            plot.old_axesDraw.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occAverage', occAverage)
+            plot.old_axesDraw.OccupancyPerBinPlot(hAxes, SpecInfo, xIndexLim, xArray, 'occMaxHold', occMaxHold)
 
             % PÓS-PLOT
-            plot.axesDraw_old.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', 'Ocupação (%)')
+            plot.old_axesDraw.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', 'Ocupação (%)')
         end
 
 
@@ -112,14 +112,14 @@ classdef (Abstract) axesDraw_old
                 case 'mesh';  yUnit = 'time';
                 case 'image'; yUnit = 'timeIndex';
             end
-            [xLim, yLim, ~, xIndexLim, xArray] = plot.axesDraw_old.Limits(SpecInfo, Parameters, yUnit);
-            plot.axes.prePlotConfiguration(hAxes, xLim, yLim, 'linear', Waterfall.Colormap)
+            [xLim, yLim, ~, xIndexLim, xArray] = plot.old_axesDraw.Limits(SpecInfo, Parameters, yUnit);
+            plot.old_prePlotConfiguration(hAxes, xLim, yLim, 'linear', Waterfall.Colormap)
 
             % PLOT
-            plot.axesDraw_old.WaterfallPlot(hAxes, SpecInfo, xIndexLim, xArray, Waterfall)
+            plot.old_axesDraw.WaterfallPlot(hAxes, SpecInfo, xIndexLim, xArray, Waterfall)
 
             % PÓS-PLOT
-            plot.axesDraw_old.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', 'Amostras')
+            plot.old_axesDraw.PostPlotConfig(hAxes, SpecInfo, Axes, 'Frequência (MHz)', 'Amostras')
         end
 
 
@@ -312,12 +312,12 @@ classdef (Abstract) axesDraw_old
 
             % PLOT
             if strcmp(srcFcn, 'ReportGenerator')
-                plot.axesDraw_old.DriveTestFilterPlot(hAxes, Parameters, 'GeographicPlot');
+                plot.old_axesDraw.DriveTestFilterPlot(hAxes, Parameters, 'GeographicPlot');
             end            
-            plot.axesDraw_old.DriveTestRoutePlot(hAxes, Parameters)
-            plot.axesDraw_old.DriveTestDistortionlPlot(hAxes, Parameters);
-            plot.axesDraw_old.DriveTestDensityPlot(hAxes, Parameters);
-            plot.axesDraw_old.DriveTestPointsPlot(hAxes, Parameters);
+            plot.old_axesDraw.DriveTestRoutePlot(hAxes, Parameters)
+            plot.old_axesDraw.DriveTestDistortionlPlot(hAxes, Parameters);
+            plot.old_axesDraw.DriveTestDensityPlot(hAxes, Parameters);
+            plot.old_axesDraw.DriveTestPointsPlot(hAxes, Parameters);
 
             % PÓS-PLOT
             plot.axes.StackingOrder.execute(hAxes, 'appAnalise:DriveTest')
@@ -476,7 +476,7 @@ classdef (Abstract) axesDraw_old
         %-----------------------------------------------------------------%
         function imgFileName = plot2report(SpecInfo, reportInfo, plotInfo)
             % Criação da figura.
-            f = plot.axesDraw_old.FigureCreation();
+            f = plot.old_axesDraw.FigureCreation();
 
             % Criação dos eixos e disposição no layout indicado no JSON do
             % modelo do relatório.
@@ -498,7 +498,7 @@ classdef (Abstract) axesDraw_old
 
             t = tiledlayout(f, sum(tiledSpan), 1, "Padding", "tight", "TileSpacing", "tight");
            
-            axesType = plot.axes.DataAxesTypeMapping({plotInfo.Name});
+            axesType = plot.old_DataAxesTypeMapping({plotInfo.Name});
 
             for ii = 1:numel(plotInfo)
                 switch plotInfo(ii).Name
@@ -524,7 +524,7 @@ classdef (Abstract) axesDraw_old
                 hAxes.Layout.Tile     = tiledPos;
                 hAxes.Layout.TileSpan = [tiledSpan(ii) 1];
 
-                plot.axesDraw_old.execute(plotInfo(ii).Name, hAxes, SpecInfo, Parameters, 'ReportGenerator')
+                plot.old_axesDraw.execute(plotInfo(ii).Name, hAxes, SpecInfo, Parameters, 'ReportGenerator')
 
                 if ~xTickFlag
                     hAxes.XTickLabel = {};
@@ -579,7 +579,7 @@ classdef (Abstract) axesDraw_old
             end
 
             % xyTicks
-            [xTick, xTickLabel, yTick, yTickLabel] = plot.axesDraw_old.Tick(hAxes, SpecInfo);
+            [xTick, xTickLabel, yTick, yTickLabel] = plot.old_axesDraw.Tick(hAxes, SpecInfo);
             set(hAxes, 'XTick', xTick, 'YTick', yTick);
 
             if Axes.xTickLabel; hAxes.XTickLabel = xTickLabel;
@@ -617,7 +617,7 @@ classdef (Abstract) axesDraw_old
     
                     FreqStartView = SpecInfo.UserData.Emissions.Frequency(emissionIndex) - (emissionBW + xGuardBand)/2;
                     FreqStopView  = SpecInfo.UserData.Emissions.Frequency(emissionIndex) + (emissionBW + xGuardBand)/2;
-                    xIndexLim     = [plot.axesDraw_old.freq2idx(SpecInfo, FreqStartView*1e+6, 'fix'), plot.axesDraw_old.freq2idx(SpecInfo, FreqStopView*1e+6, 'ceil')];
+                    xIndexLim     = [plot.old_axesDraw.freq2idx(SpecInfo, FreqStartView*1e+6, 'fix'), plot.old_axesDraw.freq2idx(SpecInfo, FreqStopView*1e+6, 'ceil')];
 
                     xArray        = xArray(xIndexLim(1):xIndexLim(2));
             end
@@ -626,14 +626,14 @@ classdef (Abstract) axesDraw_old
 
             switch yUnit
                 case {'ordinary level', 'persistance level'}
-                    yLim = plot.axesDraw_old.yzLimits(SpecInfo, yUnit, xIndexLim);
+                    yLim = plot.old_axesDraw.yzLimits(SpecInfo, yUnit, xIndexLim);
                     zLim = [-1, 1];
                 case 'occupancy level'
                     yLim = [0, 100];
                     zLim = [-1, 1];
                 case 'time'
                     yLim = [SpecInfo.Data{1}(1), SpecInfo.Data{1}(end)];
-                    zLim = plot.axesDraw_old.yzLimits(SpecInfo, yUnit, xIndexLim);
+                    zLim = plot.old_axesDraw.yzLimits(SpecInfo, yUnit, xIndexLim);
                 case 'timeIndex'
                     yLim = [1, numel(SpecInfo.Data{1})];
                     zLim = [-1, 1];

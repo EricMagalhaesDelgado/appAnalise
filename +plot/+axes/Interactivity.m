@@ -55,7 +55,24 @@ classdef (Abstract) Interactivity
     %     • hAxes.Interactions = ...
     %     • hAxes.Toolbar = ...
 
+    % Notas: 
+    %     • O dataTipInteraction não está operacional para todo tipo de plot, como 
+    %       o gerado pela função image, por exemplo. Nesse caso, a alternativa
+    %       seria criar um Toolbar com 'datacursor' e clicar nesse botão, quando
+    %       então a interação fica operacional. Ou habilitar o datacursormode da
+    %       figura.
+    %
+    %       hFig  = uifigure; 
+    %       hAxes = uiaxes(hFig, 'Interactions', [], 'Toolbar', []);
+    %       datacursormode(hFig, 'on')
+    %       hImg  = imshow(img, 'Parent', ax);
+
     methods (Static = true)
+        %-----------------------------------------------------------------%
+        function DataCursorMode(hFig)
+            datacursormode(hFig, 'on')
+        end
+
         %-----------------------------------------------------------------%
         % DEFAULT
         %-----------------------------------------------------------------%
@@ -172,13 +189,34 @@ classdef (Abstract) Interactivity
             hAllAxes = [hAxes, relatedAxes];
 
             for ii = 1:numel(hAllAxes)
-                if evt.Value
-                    idx = plot.axes.Interactivity.FindInteractionObject(hAllAxes(ii), 'Interaction', 'matlab.graphics.interaction.interactions.RegionZoomInteraction');
-                    hAllAxes(ii).Interactions(idx) = panInteraction;
-
-                else
-                    idx = plot.axes.Interactivity.FindInteractionObject(hAllAxes(ii), 'Interaction', 'matlab.graphics.interaction.interactions.PanInteraction');
-                    hAllAxes(ii).Interactions(idx) = regionZoomInteraction;
+                % Erro quando o eixo está com uma imagem...
+                try
+                    if evt.Value
+                        idx = plot.axes.Interactivity.FindInteractionObject(hAllAxes(ii), 'Interaction', 'matlab.graphics.interaction.interactions.RegionZoomInteraction');
+                        if ~isempty(idx)
+                            hAllAxes(ii).Interactions(idx) = panInteraction;
+                        else
+                            if isempty(hAllAxes(ii).Interactions)
+                                hAllAxes(ii).Interactions = panInteraction;
+                            else
+                                hAllAxes(ii).Interactions(end+1) = panInteraction;
+                            end
+                        end
+    
+                    else
+                        idx = plot.axes.Interactivity.FindInteractionObject(hAllAxes(ii), 'Interaction', 'matlab.graphics.interaction.interactions.PanInteraction');
+                        if ~isempty(idx)
+                            hAllAxes(ii).Interactions(idx) = regionZoomInteraction;
+                        else
+                            if isempty(hAllAxes(ii).Interactions)
+                                hAllAxes(ii).Interactions = regionZoomInteraction;
+                            else
+                                hAllAxes(ii).Interactions(end+1) = regionZoomInteraction;
+                            end
+                        end
+                    end
+                catch ME
+                    ME.message
                 end
             end
 

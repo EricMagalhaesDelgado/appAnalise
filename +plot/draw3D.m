@@ -2,26 +2,28 @@ classdef (Abstract) draw3D
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function hWaterfall = Waterfall(operationType, varargin)
+        function [hWaterfall, Decimation] = Waterfall(operationType, varargin)
             switch operationType
                 case 'Creation'
                     hAxes   = varargin{1};
                     bandObj = varargin{2};
                     idx     = varargin{3};
 
-                    defaultProp  = bandObj.callingApp.General;
-                    customProp   = bandObj.callingApp.specData(idx).UserData.customPlayback.Parameters;
+                    defaultProp = bandObj.callingApp.General;
+                    customProp  = bandObj.callingApp.specData(idx).UserData.customPlayback.Parameters;
         
                     [plotConfig,   ...
                      Fcn,          ...
                      Decimation,   ...
                      colormapName, ...
-                     cLimits] = plot.Config('Waterfall', defaultProp, customProp);
+                     cLimits]   = plot.Config('Waterfall', defaultProp, customProp);
         
-                    xArray        = bandObj.xArray';
-                    specData      = bandObj.callingApp.specData(idx);
-                    nSweeps       = numel(specData.Data{1});
+                    xArray      = bandObj.xArray';
+                    xLim        = [xArray(1), xArray(end)];
+                    specData    = bandObj.callingApp.specData(idx);
+                    nSweeps     = numel(specData.Data{1});
         
+                    set(hAxes, 'CLimMode', 'auto')
                     switch Fcn
                         case 'mesh'
                             switch Decimation
@@ -45,24 +47,33 @@ classdef (Abstract) draw3D
                             if tArray(1) == tArray(end)
                                 tArray(end) = tArray(1)+seconds(1);
                             end
+                            yLim = [tArray(1), tArray(end)];
+                            plot.axes.Ruler(hAxes, xLim, yLim)
                 
                             [X, Y] = meshgrid(xArray, tArray);
-        
-                            hAxes.CLimMode = 'auto';
                             hWaterfall = mesh(hAxes, X, Y, specData.Data{2}(:,1:nDecimation:end)', plotConfig{:});
-                            hAxes.YLim = [tArray(1), tArray(end)];
-        
+                            Decimation = num2str(nDecimation);
+
                         case 'image'
+                            yLim = [1, nSweeps];
+                            plot.axes.Ruler(hAxes, xLim, yLim)
+
                             hWaterfall = image(hAxes, xArray, 1:nSweeps, specData.Data{2}', plotConfig{:});
-                            hAxes.YLim = [1, nSweeps];
+                            Decimation = 'auto';
                     end
                     
                     if isempty(cLimits)
-                        hAxes.CLim(2) = round(hAxes.CLim(2));
-                        hAxes.CLim(1) = round(hAxes.CLim(2) - diff(hAxes.CLim)/2);
-                    else
-                        hAxes.CLim    = cLimits;
+                        cLimits    = hAxes.CLim;
+                        cLimits(2) = round(cLimits(2));
+                        cLimits(1) = round(cLimits(2) - diff(cLimits)/2);
+
+                        hAxes.UserData.CLimMode = 'auto';
+                    else                        
+                        hAxes.UserData.CLimMode = 'manual';
                     end
+                    
+                    postPlotConfig = {'YLim', yLim, 'CLim', cLimits};
+                    set(hAxes, postPlotConfig{:})
         
                     plot.axes.Colormap(hAxes, colormapName)
                     plot.datatip.Template(hWaterfall, 'Frequency+Timestamp+Level', bandObj.LevelUnit)
@@ -70,6 +81,7 @@ classdef (Abstract) draw3D
 
                 case 'Delete'
                     hWaterfall = varargin{1};
+                    Decimation = 'auto';
                     
                     if ~isempty(hWaterfall)
                         delete(hWaterfall)
@@ -122,11 +134,14 @@ classdef (Abstract) draw3D
                                                      'xEdges',   xEdges,       ...
                                                      'yEdges',   yEdges);
             
-                            hAxes.CLimMode  = 'auto';
+                            set(hAxes, 'CLimMode', 'auto')
                             hPersistanceObj = plot.draw3D.Persistance('Update', hPersistanceObj, hAxes, bandObj, idx);
                             
-                            if ~isempty(cLimits)
+                            if isempty(cLimits)
+                                hAxes.UserData.CLimMode = 'auto';
+                            else
                                 hAxes.CLim  = cLimits;
+                                hAxes.UserData.CLimMode = 'manual';
                             end
         
                             plot.axes.Colormap(hAxes, colormapName)

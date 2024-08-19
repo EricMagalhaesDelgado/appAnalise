@@ -68,6 +68,12 @@ classdef Band < handle
 
 
         %-----------------------------------------------------------------%
+        function axesLimits = ReloadLimits(obj, idx)
+            axesLimits = playbackAutomaticLimits(obj, idx);
+        end
+
+
+        %-----------------------------------------------------------------%
         function [XArray, YArray] = XYArray(obj, idx, plotTag)
 
             arguments
@@ -144,49 +150,56 @@ classdef Band < handle
     methods(Access = private)
         %-----------------------------------------------------------------%
         function axesLimits = playbackLimits(obj, idx)
-            axesLimits = [];
+            specData = obj.callingApp.specData(idx);
+
+            switch specData.UserData.customPlayback.Type 
+                case 'manual'
+                    axesLimits = struct('xLim',      specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits, ...
+                                        'yLevelLim', specData.UserData.customPlayback.Parameters.Controls.LevelLimits);
+    
+                    % yTimeLimits
+                    axesLimits.yTimeLim = [specData.Data{1}(1), specData.Data{1}(end)];
+                    if specData.Data{1}(1) == specData.Data{1}(end)
+                        axesLimits.yTimeLim(2) = axesLimits.yTimeLim(2) + seconds(1);
+                    end
+
+            otherwise
+                axesLimits = playbackAutomaticLimits(obj, idx);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function axesLimits = playbackAutomaticLimits(obj, idx)
             specData   = obj.callingApp.specData(idx);
-        
-            % Inicialmente, avalia se o objeto possui a propriedade "customPlayback" 
-            % configurada para "manual". Lembrando que o controle desses atributos
-            % é recente, então um .MAT antigo pode registrar controle "manual", mas
-            % não possuir esses atributos. Dessa forma, axesLimits retornará vazia.
 
-            if specData.UserData.customPlayback.Type == "manual"
-                axesLimits = struct('xLim',      specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits, ...
-                                    'yLevelLim', specData.UserData.customPlayback.Parameters.Controls.LevelLimits);
-            end
+            % xLimits
+            xLimits    = [obj.FreqStart, obj.FreqStop];
         
-            if isempty(axesLimits)
-                % xLimits
-                xLimits    = [obj.FreqStart, obj.FreqStop];
+            % yLevelLimits
+            DataType     = specData.MetaData.DataType;
+            if ismember(DataType, class.Constants.specDataTypes)
+                auxValue = min(specData.Data{3}(:,1));
+                downYLim = auxValue - mod(auxValue, 10);
             
-                % yLevelLimits
-                DataType     = specData.MetaData.DataType;
-                if ismember(DataType, class.Constants.specDataTypes)
-                    auxValue = min(specData.Data{3}(:,1));
-                    downYLim = auxValue - mod(auxValue, 10);
-                
-                    auxValue = max(specData.Data{3}(:,3));
-                    upYLim   = auxValue - mod(auxValue, 10) + 10;
+                auxValue = max(specData.Data{3}(:,3));
+                upYLim   = auxValue - mod(auxValue, 10) + 10;
 
-                elseif ismember(DataType, class.Constants.occDataTypes)
-                    downYLim = 0;
-                    upYLim   = 100;
+            elseif ismember(DataType, class.Constants.occDataTypes)
+                downYLim = 0;
+                upYLim   = 100;
 
-                else
-                    error('Band:Limits:UnexpectedDataType', 'UnexpectedDataType')
-                end
-                yLevelLimits = [downYLim, upYLim];
-            
-                if diff(yLevelLimits) > class.Constants.yMaxLimRange
-                    yLevelLimits(1) = yLevelLimits(1) + diff(yLevelLimits) - class.Constants.yMaxLimRange;
-                end
-        
-                axesLimits.xLim = xLimits;
-                axesLimits.yLevelLim = yLevelLimits;
+            else
+                error('Band:Limits:UnexpectedDataType', 'UnexpectedDataType')
             end
+            yLevelLimits = [downYLim, upYLim];
         
+            if diff(yLevelLimits) > class.Constants.yMaxLimRange
+                yLevelLimits(1) = yLevelLimits(1) + diff(yLevelLimits) - class.Constants.yMaxLimRange;
+            end
+
+            axesLimits.xLim = xLimits;
+            axesLimits.yLevelLim = yLevelLimits;
+
             % yTimeLimits
             axesLimits.yTimeLim = [specData.Data{1}(1), specData.Data{1}(end)];
             if specData.Data{1}(1) == specData.Data{1}(end)
