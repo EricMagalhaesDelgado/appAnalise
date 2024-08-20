@@ -158,6 +158,16 @@ classdef Band < handle
                 idx(idx > obj.DataPoints) = obj.DataPoints;
             end
         end
+
+        %-----------------------------------------------------------------%
+        function idxTime = Timestamp2idxTime(obj, idx, Timestamp)
+            [~, idxTime] = min(abs(obj.callingApp.specData(idx).Data{1}-Timestamp));
+        end
+
+        %-----------------------------------------------------------------%
+        function Timestamp = idxTime2Timestamp(obj, idx, idxTime)
+            Timestamp = obj.callingApp.specData(idx).Data{1}(idxTime);
+        end
     end
 
     methods(Access = private)
@@ -167,13 +177,20 @@ classdef Band < handle
 
             switch specData.UserData.customPlayback.Type 
                 case 'manual'
-                    axesLimits = struct('xLim',      specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits, ...
-                                        'yLevelLim', specData.UserData.customPlayback.Parameters.Controls.LevelLimits);
-    
-                    % yTimeLimits
-                    axesLimits.yTimeLim = [specData.Data{1}(1), specData.Data{1}(end)];
-                    if specData.Data{1}(1) == specData.Data{1}(end)
-                        axesLimits.yTimeLim(2) = axesLimits.yTimeLim(2) + seconds(1);
+                    FrequencyLimits = specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits;
+                    LevelLimits     = specData.UserData.customPlayback.Parameters.Controls.LevelLimits;
+
+                    if issorted(FrequencyLimits, 'strictascend') && issorted(LevelLimits, 'strictascend')
+                        axesLimits = struct('xLim',      FrequencyLimits, ...
+                                            'yLevelLim', LevelLimits);
+
+                        axesLimits.yTimeLim = [specData.Data{1}(1), specData.Data{1}(end)];
+                        if specData.Data{1}(1) == specData.Data{1}(end)
+                            axesLimits.yTimeLim(2) = axesLimits.yTimeLim(2) + seconds(1);
+                        end
+
+                    else
+                        axesLimits = playbackAutomaticLimits(obj, idx);
                     end
 
             otherwise

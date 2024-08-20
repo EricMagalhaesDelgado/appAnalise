@@ -17,7 +17,7 @@ classdef (Abstract) datatip
         %-----------------------------------------------------------------%
         function Create(callingFcn, dtConfig, dtParent)
             arguments
-                callingFcn char {mustBeMember(callingFcn, {'customPlayback', 'WaterfallDecimationChanged'})}
+                callingFcn char {mustBeMember(callingFcn, {'customPlayback', 'redrawWaterfall'})}
                 dtConfig   struct
                 dtParent
             end
@@ -33,7 +33,7 @@ classdef (Abstract) datatip
                         end
                     end
 
-                case 'WaterfallDecimationChanged'
+                case 'redrawWaterfall'
                     % dtConfig = struct('XData', {}, 'YData', {})
                     for ii = 1:numel(dtConfig)
                         datatip(dtParent, dtConfig(ii).XData, dtConfig(ii).YData);

@@ -540,6 +540,13 @@ classdef specData < handle
                     % aplicáveis à cada faixa.
                     app.specData(ii).UserData(1).channelLibIndex = app.channelObj.FindRelatedBands(app.specData(ii));
                 end
+
+                % Avaliando informações customizadas do playback, caso
+                % existentes.
+                [status, customPlayback] = fcn.checkCustomPlaybackFieldNames(app.specData(ii), app.General);
+                if status
+                    app.specData(ii).UserData.customPlayback = customPlayback;
+                end
             end
         
             idx3 = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));

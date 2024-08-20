@@ -169,7 +169,6 @@ function [specData, prjInfo] = Fcn_SpecDataReader(specData, fileName)
 
         case 3
             prj_specData = checkIfMissingMetaData(prj_specData);
-            prj_specData = checkCustomPlaybackFieldNames(prj_specData);
             specData = prj_specData;
 
         otherwise
@@ -195,33 +194,6 @@ function specData = checkIfMissingMetaData(specData)
         for ii = 1:numel(specData)
             for jj = checkIndex
                 specData(ii).MetaData.(currentMetaDataList{jj}) = currentMetaData.(currentMetaDataList{jj});
-            end
-        end
-    end
-end
-
-
-%-------------------------------------------------------------------------%
-function specData = checkCustomPlaybackFieldNames(specData)
-    % Avalia se a propriedade "customPlayback" está no modo "manual", ajustando 
-    % os nomes dos campos, o que pode ser necessário, caso o .MAT tenha sido 
-    % salvo até a versão 1.67. A partir da v. 1.80, o appAnalise começou a 
-    % trabalhar com os nomes dos campos compactos. "MinHold" ao invés de 
-    % "play_MinHold", por exemplo.
-
-    for ii = 1:numel(specData)
-        if specData(ii).UserData.customPlayback.Type == "manual"
-            allFieldNames   = [fieldnames(specData(ii).UserData.customPlayback.Parameters.Controls);    ...
-                               fieldnames(specData(ii).UserData.customPlayback.Parameters.Persistance); ...
-                               fieldnames(specData(ii).UserData.customPlayback.Parameters.Waterfall)];
-            oldFieldPreffix = {'play_Persistance_', 'play_Waterfall_', 'play_'};
-
-            if any(contains(allFieldNames, oldFieldPreffix))
-                fieldNameMapping = dictionary(string(allFieldNames), string(replace(allFieldNames, oldFieldPreffix, {'', '', ''})));
-
-                specData(ii).UserData.customPlayback.Parameters.Controls    = structUtil.renameFieldNames(specData(ii).UserData.customPlayback.Parameters.Controls,    fieldNameMapping);
-                specData(ii).UserData.customPlayback.Parameters.Persistance = structUtil.renameFieldNames(specData(ii).UserData.customPlayback.Parameters.Persistance, fieldNameMapping);
-                specData(ii).UserData.customPlayback.Parameters.Waterfall   = structUtil.renameFieldNames(specData(ii).UserData.customPlayback.Parameters.Waterfall,   fieldNameMapping);
             end
         end
     end

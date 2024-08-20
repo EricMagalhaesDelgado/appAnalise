@@ -69,8 +69,9 @@ classdef (Abstract) Interactivity
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function DataCursorMode(hFig)
-            datacursormode(hFig, 'on')
+        function DataCursorMode(hFig, dataTipInteractionStatus)
+            d = dictionary([true, false], ["on", "off"]);
+            datacursormode(hFig, d(dataTipInteractionStatus))
         end
 
         %-----------------------------------------------------------------%
