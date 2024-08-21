@@ -12,9 +12,14 @@ classdef ChannelLib < handle
 
     methods
         %-----------------------------------------------------------------%
-        function obj = ChannelLib(RootFolder)
-
-            channelTempLib = jsondecode(fileread(fullfile(RootFolder, 'Settings', 'ChannelLib.json')));
+        function obj = ChannelLib(appName, rootFolder)
+            [projectFolder, ...
+             programDataFolder] = appUtil.Path(appName, rootFolder);
+            try
+                channelTempLib  = jsondecode(fileread(fullfile(programDataFolder, 'ChannelLib.json')));
+            catch
+                channelTempLib  = jsondecode(fileread(fullfile(projectFolder,     'ChannelLib.json')));
+            end
 
             obj.Channel    = struct2table(channelTempLib.Channel);
             obj.Exception  = struct2table(channelTempLib.Exception);
@@ -24,10 +29,21 @@ classdef ChannelLib < handle
             obj.DefaultMinBandSpan = channelTempLib.DefaultMinBandSpan;
         end
 
+        %-----------------------------------------------------------------%
+        function Save(obj, appName, rootFolder)
+            [~, ...
+             programDataFolder] = appUtil.Path(appName, rootFolder);
+            programDataFilePath = fullfile(programDataFolder, 'ChannelLib.json');
+
+            try
+                channelTempLib = struct(obj);
+                writematrix(jsonencode(channelTempLib, 'PrettyPrint', true), programDataFilePath, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite")
+            catch
+            end
+        end
 
         %-----------------------------------------------------------------%
-        function bandsIndex = FindRelatedBands(obj, specData)
-        
+        function bandsIndex = FindRelatedBands(obj, specData)        
             FreqStart  = specData.MetaData.FreqStart/1e+6;
             FreqStop   = specData.MetaData.FreqStop /1e+6;
 
@@ -38,10 +54,8 @@ classdef ChannelLib < handle
                               ((FreqStart <= BandLimits(:,1)) & (FreqStop  > BandLimits(:,1))));
         end
 
-
         %-----------------------------------------------------------------%
         function findPeaks = FindPeaksOfPrimaryBand(obj, specData)
-
             findPeaks = [];
 
             % Concatena as canalizações - a automática, incluída automaticamente
@@ -71,7 +85,6 @@ classdef ChannelLib < handle
             end
         end
 
-
         %-----------------------------------------------------------------%
         function Truncated = TruncatedFrequency(obj, specData, idxEmission)
 
@@ -100,10 +113,29 @@ classdef ChannelLib < handle
             Truncated    = Channels(idxFind);
         end
 
+        %-----------------------------------------------------------------%
+        function channels2Add = openExternalFile(obj, fileFullPath)
+            refFieldNames = obj.Channel.Properties.VariableNames';
 
+            channels2Add  = jsondecode(fileread(fileFullPath));
+            fieldNames    = fieldnames(channels2Add);
+            if ~isequal(fieldNames, refFieldNames)
+                error('ChannelLib:openExternalFile', 'O arquivo deve ser uma estrutura com os campos %s, dispostos nesta ordem.', textFormatGUI.cellstr2ListWithQuotes(refFieldNames))
+            end
+
+            for ii = 1:numel(channels2Add)
+                channels2AddCell = struct2cell(channels2Add(ii));
+                checkExternalFileData(obj, channels2AddCell{:})
+            end
+
+            channels2Add = struct2table(channels2Add);
+        end
+    end
+
+
+    methods (Access = private)
         %-----------------------------------------------------------------%
         function Channels = ChannelList(obj, specData, truncatedType, Channels, idxEmission)
-
             emission_downLim = specData.UserData.Emissions.Frequency(idxEmission) - specData.UserData.Emissions.BW(idxEmission)/2000;
             emission_upLim   = specData.UserData.Emissions.Frequency(idxEmission) + specData.UserData.Emissions.BW(idxEmission)/2000;
 
@@ -138,6 +170,40 @@ classdef ChannelLib < handle
     
                         Channels = [Channels, FreqStart:StepWidth:FreqStop];
                     end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function checkExternalFileData(obj, Name, Band, FirstChannel, LastChannel, StepWidth, ChannelBW, FreqList, Reference, FindPeaksName)
+            arguments
+                obj
+                Name           (1,:) char   {mustBeTextScalar}
+                Band           (1,2) double {mustBeFinite, mustBeGreaterThanOrEqual(Band,         -1)}
+                FirstChannel   (1,1) double {mustBeFinite, mustBeGreaterThanOrEqual(FirstChannel, -1)}
+                LastChannel    (1,1) double {mustBeFinite, mustBeGreaterThanOrEqual(LastChannel,  -1)}
+                StepWidth      (1,1) double {mustBeFinite, mustBeGreaterThanOrEqual(StepWidth,    -1)}
+                ChannelBW      (1,1) double {mustBeFinite, mustBeGreaterThanOrEqual(ChannelBW,    -1)}
+                FreqList             double {mustBeFinite, mustBeGreaterThanOrEqual(FreqList,     -1)}
+                Reference      (1,:) char   {mustBeTextScalar}
+                FindPeaksName  (1,:) char   {mustBeTextScalar}
+            end
+
+            refNames = obj.Channel.Name;
+            if ismember(Name, refNames)
+                error('ChannelLib:checkExternalFileData', 'O nome "%s" já consta na lista de canais de referência %s.', Name, textFormatGUI.cellstr2ListWithQuotes(refNames))
+            end
+            
+            if ~issorted(Band, 'strictascend')
+                error('ChannelLib:checkExternalFileData', 'Campo "Band" deve ser um vetor numérico 1x2 em que o segundo elemento é maior do que o primeiro.')
+            end
+
+            if isequal([FirstChannel, LastChannel], [-1,-1]) && isempty(FreqList)
+                error('ChannelLib:checkExternalFileData', 'Campo "FreqList" deve ser um vetor numérico 1xn com a lista de frequências centrais dos canais, caso se trate de faixa cujos canais não sejam regularmente espaçados.')
+            end
+
+            refFindPeaksName = unique(obj.Channel.FindPeaksName);
+            if ~ismember(FindPeaksName, refFindPeaksName)
+                error('ChannelLib:checkExternalFileData', 'Campo "FindPeaksName" deve ser membro da lista %s.', textFormatGUI.cellstr2ListWithQuotes(refFindPeaksName))
             end
         end
     end

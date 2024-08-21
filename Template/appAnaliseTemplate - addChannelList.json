@@ -1,0 +1,63 @@
+[
+    {
+        "Name": "FM",
+        "Band": [
+            76,
+            108
+        ],
+        "FirstChannel": 76.1,
+        "LastChannel": 107.9,
+        "StepWidth": 0.2,
+        "ChannelBW": 0.256,
+        "FreqList": [],
+        "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+        "FindPeaksName": "FM"
+    },
+    {
+        "Name": "TV UHF",
+        "Band": [
+            470,
+            698
+        ],
+        "FirstChannel": 473,
+        "LastChannel": 695,
+        "StepWidth": 6,
+        "ChannelBW": 6,
+        "FreqList": [],
+        "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2020/1383-resolucao-721",
+        "FindPeaksName": "TV"
+    },
+    {
+        "Name": "Cellular 700MHz",
+        "Band": [
+            763,
+            803
+        ],
+        "FirstChannel": 768,
+        "LastChannel": 798,
+        "StepWidth": 10,
+        "ChannelBW": 10,
+        "FreqList": [],
+        "Reference": "",
+        "FindPeaksName": "Cellular"
+    },
+    {
+        "Name": "Cellular 800MHz",
+        "Band": [
+            869,
+            894
+        ],
+        "FirstChannel": 874.5,
+        "LastChannel": 892.75,
+        "StepWidth": -1,
+        "ChannelBW": -1,
+        "FreqList": [
+            874.5,
+            890.75,
+            885,
+            892.75
+        ],
+        "Reference": "https://informacoes.anatel.gov.br/legislacao/resolucoes/2006/89-resolucao-454",
+        "FindPeaksName": "Cellular"
+    }
+]
