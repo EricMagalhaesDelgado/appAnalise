@@ -1,19 +1,17 @@
-function gpsProperty(app, idx)
-
+function gpsProperty(specData, idxThreads)
     arguments
-        app
-        idx (1,:) {mustBeVector}
+        specData   class.specData
+        idxThreads (1,:) {mustBeVector}
     end
 
-    for ii = idx
+    for ii = idxThreads
         gpsData   = struct('Status', 0, 'Matrix', []);
-
-        gpsStatus = max(cellfun(@(x) x.Status, app.specData(ii).RelatedFiles.GPS));
+        gpsStatus = max(cellfun(@(x) x.Status, specData(ii).RelatedFiles.GPS));
         if gpsStatus
             gpsData.Status = gpsStatus;
-            gpsData.Matrix = cell2mat(cellfun(@(x) x.Matrix, app.specData(ii).RelatedFiles.GPS, 'UniformOutput', false));
+            gpsData.Matrix = cell2mat(cellfun(@(x) x.Matrix, specData(ii).RelatedFiles.GPS, 'UniformOutput', false));
         end
     
-        app.specData(ii).GPS = rmfield(fcn.gpsSummary({gpsData}), 'Matrix');
+        specData(ii).GPS = rmfield(fcn.gpsSummary({gpsData}), 'Matrix');
     end
 end

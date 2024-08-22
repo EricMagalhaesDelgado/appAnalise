@@ -68,12 +68,6 @@ classdef Band < handle
 
 
         %-----------------------------------------------------------------%
-        function axesLimits = ReloadLimits(obj, idx)
-            axesLimits = playbackAutomaticLimits(obj, idx);
-        end
-
-
-        %-----------------------------------------------------------------%
         function [XArray, YArray] = XYArray(obj, idx, plotTag)
 
             arguments
@@ -175,14 +169,16 @@ classdef Band < handle
         function axesLimits = playbackLimits(obj, idx)
             specData = obj.callingApp.specData(idx);
 
-            switch specData.UserData.customPlayback.Type 
+            switch specData.UserData.customPlayback.Type
                 case 'manual'
-                    FrequencyLimits = specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits;
-                    LevelLimits     = specData.UserData.customPlayback.Parameters.Controls.LevelLimits;
+                    xLim      = specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits;
+                    yLevelLim = specData.UserData.customPlayback.Parameters.Controls.LevelLimits;
+                    cLim      = specData.UserData.customPlayback.Parameters.Waterfall.LevelLimits;
 
-                    if issorted(FrequencyLimits, 'strictascend') && issorted(LevelLimits, 'strictascend')
-                        axesLimits = struct('xLim',      FrequencyLimits, ...
-                                            'yLevelLim', LevelLimits);
+                    if issorted(xLim, 'strictascend') && issorted(yLevelLim, 'strictascend') && issorted(cLim, 'strictascend')
+                        axesLimits = struct('xLim',      xLim,      ...
+                                            'yLevelLim', yLevelLim, ...
+                                            'cLim',      cLim);
 
                         axesLimits.yTimeLim = [specData.Data{1}(1), specData.Data{1}(end)];
                         if specData.Data{1}(1) == specData.Data{1}(end)
@@ -208,15 +204,34 @@ classdef Band < handle
             % yLevelLimits
             DataType     = specData.MetaData.DataType;
             if ismember(DataType, class.Constants.specDataTypes)
-                auxValue = min(specData.Data{3}(:,1));
-                downYLim = auxValue - mod(auxValue, 10);
-            
-                auxValue = max(specData.Data{3}(:,3));
-                upYLim   = auxValue - mod(auxValue, 10) + 10;
+                % yLimits
+                minArray = sort(specData.Data{3}(:,1));
+                maxArray = sort(specData.Data{3}(:,3), 'descend');
+
+                nSamples = ceil(.01*numel(minArray));
+                minValue = median(minArray(1:nSamples));
+                maxValue = median(maxArray(1:nSamples));
+
+                downYLim = minValue - mod(minValue, 5);
+                upYLim   = maxValue - mod(maxValue, 10) + 10;
+
+                % cLimits
+                downCLim = fcn.noiseEstimation(specData, .05, .15, 3);
+                upCLim   = upYLim - 10;
+                downCLim = max(downCLim, upCLim-30);
+
+                diffCLim = upCLim-downCLim;
+                if diffCLim < 15
+                    downCLim = downCLim - (15-diffCLim)/2;
+                    upCLim   = upCLim   + (15-diffCLim)/2;
+                end
 
             elseif ismember(DataType, class.Constants.occDataTypes)
                 downYLim = 0;
                 upYLim   = 100;
+
+                downCLim = 0;
+                upCLim   = 1;
 
             else
                 error('Band:Limits:UnexpectedDataType', 'UnexpectedDataType')
@@ -227,11 +242,12 @@ classdef Band < handle
                 yLevelLimits(1) = yLevelLimits(1) + diff(yLevelLimits) - class.Constants.yMaxLimRange;
             end
 
-            axesLimits.xLim = xLimits;
+            axesLimits.xLim      = xLimits;
             axesLimits.yLevelLim = yLevelLimits;
+            axesLimits.cLim      = [downCLim, upCLim];
 
             % yTimeLimits
-            axesLimits.yTimeLim = [specData.Data{1}(1), specData.Data{1}(end)];
+            axesLimits.yTimeLim  = [specData.Data{1}(1), specData.Data{1}(end)];
             if specData.Data{1}(1) == specData.Data{1}(end)
                 axesLimits.yTimeLim(2) = axesLimits.yTimeLim(2) + seconds(1);
             end

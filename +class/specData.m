@@ -4,13 +4,13 @@ classdef specData < handle
         %-----------------------------------------------------------------%
         Receiver
         MetaData     = struct(class.MetaDataList)
-        Data                                                                % Data{1}: timestamp; Data{2}: matrix; and Data{3}: stats
+        Data
         GPS
         RelatedFiles = table('Size', [0,10],                                                                                                  ...
                              'VariableTypes', {'cell', 'cell', 'double', 'cell', 'datetime', 'datetime', 'double', 'double', 'cell', 'cell'}, ...
                              'VariableNames', {'File', 'Task', 'ID', 'Description', 'BeginTime', 'EndTime', 'nSweeps', 'RevisitTime', 'GPS', 'uuid'})
         UserData     = class.userData.empty
-        FileMap                                                             % Auxilia o processo de leitura dos dados de espectro
+        FileMap
         Enable       = true
     end
 
@@ -18,22 +18,43 @@ classdef specData < handle
     methods
         %-----------------------------------------------------------------%
         function obj = PreAllocationData(obj, idx, fileType)
-
-            if nargin < 3
-                idx      = 1;
-                fileType = '';
+            arguments
+                obj
+                idx = 1
+                fileType = ''
             end
 
-            obj(idx).Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, sum(obj(idx).RelatedFiles.nSweeps)), ...
-                             zeros(obj(idx).MetaData.DataPoints, sum(obj(idx).RelatedFiles.nSweeps), 'single'),                       ...
-                             zeros(obj(idx).MetaData.DataPoints, 3, 'single')};
+            DataPoints    = obj(idx).MetaData.DataPoints;
+            nSweeps       = sum(obj(idx).RelatedFiles.nSweeps);
+
+            obj(idx).Data = {repmat(datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss'), 1, nSweeps), ...
+                             zeros(DataPoints, nSweeps, 'single'),                                         ...
+                             zeros(DataPoints, 3, 'single')};
 
             if fileType == "RFlookBin v.2/2"
                 obj(idx).Data{4} = zeros(obj(idx).MetaData.DataPoints, sum(obj(idx).RelatedFiles.nSweeps), 'single');
                 obj(idx).Data{5} = zeros(obj(idx).MetaData.DataPoints, sum(obj(idx).RelatedFiles.nSweeps), 'single');
             end
         end
+        
+        %-----------------------------------------------------------------%
+        function obj = sort(obj, sortType)
+            arguments 
+                obj
+                sortType char {mustBeMember(sortType, {'Receiver+ID', 'Receiver+Frequency'})} = 'Receiver+ID'
+            end
 
+            idx = 1:numel(obj);
+            switch sortType
+                case 'Receiver+ID'
+                    [~, sortIndex] = createSortableTable(obj, idx, {'Receiver', 'ID', 'FreqStart', 'FreqStop', 'DataType'});
+                case 'Receiver+Frequency'
+                    [~, sortIndex] = createSortableTable(obj, idx, {'FreqStart', 'FreqStop', 'DataType'});
+            end
+
+            obj = obj(sortIndex);
+            OccupancyMapping(obj)
+        end
 
         %-----------------------------------------------------------------%
         function copyObj = copy(obj, fields2remove)            
@@ -47,67 +68,66 @@ classdef specData < handle
             end
         end
 
-
         %-----------------------------------------------------------------%
-        function IDs = IDList(obj)
-            IDs = arrayfun(@(x) x.RelatedFiles.ID(1), obj);
-        end
-
-
-        %-----------------------------------------------------------------%
-        function obj = merge(obj, idx, uiFigure)
-            NN = numel(idx);
-            if NN < 2
-                error('Devem ser selecionados ao menos dois fluxos espectrais...')
+        function obj = merge(obj, idxThreads, hFigure)
+            arguments 
+                obj
+                idxThreads  double {mustBeGreaterThanOrEqual(idxThreads, 2)}
+                hFigure    (1,1) matlab.ui.Figure
             end
+            
+            % VALIDAÇÕES
+            mergeTable = createSortableTable(obj, idxThreads, {'FreqStart', 'FreqStop'});
 
-            mergeTable = createMergeTable(obj, idx);
-            validateMerge(obj, mergeTable)
-            mergeType  = identifyMergeType(obj, mergeTable);
+            if ~isscalar(unique(mergeTable.Receiver)) || ~isscalar(unique(mergeTable.DataType)) || ~isscalar(unique(mergeTable.LevelUnit))               
+                error(ErrorMessage(obj, 'merge'))
+            end
 
             resolutionList = unique(mergeTable.Resolution);
             if ~isscalar(resolutionList)
-                msg = {};
+                msgQuestion = {};
                 for ii = 1:height(mergeTable)
-                    msg{end+1} = sprintf('• %.3f - %.3f MHz (Resolução = %.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.Resolution(ii)/1000);
+                    msgQuestion{end+1} = sprintf('• %.3f - %.3f MHz (Resolução = %.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.Resolution(ii)/1000);
                 end
-                msg = sprintf(['<font style="font-size:12;">Os fluxos espectrais a mesclar possuem valores diferentes de resolução.\n%s\n\n'    ...
-                               'Deseja continuar esse processo de mesclagem, o que resultará em um fluxo que armazenará como metadado a maior ' ...
-                               'resolução (no caso, %.3f kHz)?</font>'], strjoin(msg, '\n'), max(mergeTable.Resolution)/1000);
-                selection = uiconfirm(uiFigure, msg, '', 'Options', {'Sim', 'Não'}, 'DefaultOption', 2, 'CancelOption', 2, 'Icon', 'question', 'Interpreter', 'html');
-
-                if strcmp(selection, 'Não')
+                msgQuestion   = sprintf(['Os fluxos espectrais a mesclar possuem valores diferentes de resolução.\n%s\n\n'                                ...
+                                         'Deseja continuar esse processo de mesclagem, o que resultará em um fluxo que armazenará como metadado a maior ' ...
+                                         'resolução (no caso, %.3f kHz)?'], strjoin(msgQuestion, '\n'), max(mergeTable.Resolution)/1000);
+                userSelection = appUtil.modalWindow(hFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+                if userSelection == "Não"
                     return
                 end
             end
 
             stepWidthList = unique(mergeTable.StepWidth);
             if ~isscalar(stepWidthList)
-                msg = {};
+                msgQuestion = {};
                 for ii = 1:height(mergeTable)
-                    msg{end+1} = sprintf('• %.3f - %.3f MHz (Passo da varredura = %.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.StepWidth(ii)/1000);
+                    msgQuestion{end+1} = sprintf('• %.3f - %.3f MHz (Passo da varredura = %.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.StepWidth(ii)/1000);
                 end
-                msg = sprintf(['<font style="font-size:12;">Os fluxos espectrais a mesclar possuem valores diferentes de passos de varredura.\n%s\n\n'         ...
-                               'Deseja continuar esse processo de mesclagem, o que poderá demandar a interpolação da(s) matriz(es) de níveis do(s) fluxo(s), ' ...
-                               'resultando em um único passo de varredura (no caso, %.3f kHz)?</font>'], strjoin(msg, '\n'), mode(mergeTable.StepWidth)/1000);
-                selection = uiconfirm(uiFigure, msg, '', 'Options', {'Sim', 'Não'}, 'DefaultOption', 2, 'CancelOption', 2, 'Icon', 'question', 'Interpreter', 'html');
-
-                if strcmp(selection, 'Não')
+                msgQuestion   = sprintf(['Os fluxos espectrais a mesclar possuem valores diferentes de passos de varredura.\n%s\n\n'             ...
+                                         'Deseja continuar esse processo de mesclagem, o que poderá demandar a interpolação da(s) '              ...
+                                         'matriz(es) de níveis do(s) fluxo(s), resultando em um único passo de varredura (no caso, %.3f kHz)?'], ...
+                                         strjoin(msgQuestion, '\n'), mode(mergeTable.StepWidth)/1000);
+                userSelection = appUtil.modalWindow(hFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+                if userSelection == "Não"
                     return
                 end
             end
             
-            % A mesclagem se inicia...
+            % MESCLAGEM
+            mergeType = identifyMergeType(obj, mergeTable);
+            nThreads  = numel(idxThreads);
+
             switch mergeType
                 case 'co-channel'
                     timeArray    = [];
                     dataMatrix   = [];
                     relatedFiles = [];
                     
-                    for ii = 1:NN
-                        timeArray    = [timeArray,    obj(idx(ii)).Data{1}]; 
-                        dataMatrix   = [dataMatrix,   obj(idx(ii)).Data{2}];
-                        relatedFiles = [relatedFiles; obj(idx(ii)).RelatedFiles];
+                    for ii = 1:nThreads
+                        timeArray    = [timeArray,    obj(idxThreads(ii)).Data{1}]; 
+                        dataMatrix   = [dataMatrix,   obj(idxThreads(ii)).Data{2}];
+                        relatedFiles = [relatedFiles; obj(idxThreads(ii)).RelatedFiles];
                     end
     
                     if ~issorted(timeArray)
@@ -115,15 +135,15 @@ classdef specData < handle
                         dataMatrix           = dataMatrix(:,idxSort);
                     end
     
-                    obj(idx(1)).GPS = rmfield(fcn.gpsSummary(relatedFiles.GPS), 'Matrix');
-                    obj(idx(1)).RelatedFiles = relatedFiles;
+                    obj(idxThreads(1)).GPS = rmfield(fcn.gpsSummary(relatedFiles.GPS), 'Matrix');
+                    obj(idxThreads(1)).RelatedFiles = relatedFiles;
 
                 case 'adjacent-channel'
-                    timeArray    = obj(idx(1)).Data{1};
+                    timeArray    = obj(idxThreads(1)).Data{1};
                     dataMatrix   = [];
                     stepWidthRef = mode(mergeTable.StepWidth);
 
-                    for ii = 1:NN
+                    for ii = 1:nThreads
                         newDataPoints = round((mergeTable.FreqStop(ii) - mergeTable.FreqStart(ii))/stepWidthRef + 1);
                         
                         x  = linspace(mergeTable.FreqStart(ii), mergeTable.FreqStop(ii), mergeTable.DataPoints(ii));
@@ -139,14 +159,13 @@ classdef specData < handle
                         end
 
                         if isequal(x, xq)
-                            newDataMatrix = obj(idx(ii)).Data{2};
-
+                            newDataMatrix = obj(idxThreads(ii)).Data{2};
                         else
                             nSweeps = mergeTable.nSweeps(ii);
                             newDataMatrix = zeros(newDataPoints, nSweeps, 'single');
 
                             for jj = 1:nSweeps
-                                newDataMatrix(:,jj) = interp1(x, obj(idx(ii)).Data{2}(:,jj), xq);
+                                newDataMatrix(:,jj) = interp1(x, obj(idxThreads(ii)).Data{2}(:,jj), xq);
                             end
                         end
 
@@ -160,71 +179,92 @@ classdef specData < handle
                         dataMatrix = [dataMatrix; newDataMatrix];
                     end
 
-                    obj(idx(1)).MetaData.DataPoints = height(dataMatrix);
-                    obj(idx(1)).MetaData.FreqStop   = mergeTable.FreqStop(end);
-            end            
-
-            % Ajustando os valores comuns aos dois tipos de mesclagem...
-            obj(idx(1)).MetaData.Resolution = max(resolutionList);
-
-            obj(idx(1)).Data{1} = timeArray;
-            obj(idx(1)).Data{2} = dataMatrix;
-            obj(idx(1)).Data{3} = class.specData.read_StatsData(dataMatrix);
-
-            % Excluindo os fluxos mesclados (exceto o "fluxo guia")...
-            delete(obj(idx(2:NN)))
-            obj(idx(2:NN)) = [];
-
-            % Atualizando o mapeamento com os fluxos de ocupação...
-            dataTypesArray = arrayfun(@(x) x.MetaData.DataType, obj);
-            if any(ismember(dataTypesArray, class.Constants.occDataTypes))
-                for ii = 1:numel(obj)
-                    [relatedIndex, selectedIndex] = class.specData.read_OCCMap(obj, ii);
-
-                    if ~isempty(relatedIndex)
-                        obj(ii).UserData(1).occMethod.RelatedIndex  = relatedIndex;
-                        obj(ii).UserData(1).occMethod.SelectedIndex = selectedIndex;
-                    end
-                end
+                    obj(idxThreads(1)).MetaData.DataPoints = height(dataMatrix);
+                    obj(idxThreads(1)).MetaData.FreqStop   = mergeTable.FreqStop(end);
             end
+
+            obj(idxThreads(1)).MetaData.Resolution = max(resolutionList);
+            obj(idxThreads(1)).Data{1} = timeArray;
+            obj(idxThreads(1)).Data{2} = dataMatrix;
+            basicStats(obj, idxThreads(1))
+
+            % PÓS-MESCLAGEM
+            delete(obj(idxThreads(2:nThreads)))
+            obj(idxThreads(2:nThreads)) = [];
+
+            OccupancyMapping(obj)
+        end
+
+        %-----------------------------------------------------------------%
+        function IDs = IDList(obj)
+            IDs = arrayfun(@(x) x.RelatedFiles.ID(1), obj);
         end
     end
 
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function mergeTable = createMergeTable(obj, idx)
-            NN = numel(idx);
-            mergeTable = table('Size',          [NN, 10],                                                                                         ...
-                               'VariableTypes', {'double', 'cell', 'double', 'double', 'double', 'cell', 'double', 'double', 'double', 'double'}, ...
-                               'VariableNames', {'idx', 'Receiver', 'DataType', 'FreqStart', 'FreqStop', 'LevelUnit', 'DataPoints', 'StepWidth', 'Resolution', 'nSweeps'});
-
-            for ii = 1:NN
-                mergeTable(ii,:) = {idx(ii),                          ...
-                                    obj(idx(ii)).Receiver,            ...
-                                    obj(idx(ii)).MetaData.DataType,   ...
-                                    obj(idx(ii)).MetaData.FreqStart,  ...
-                                    obj(idx(ii)).MetaData.FreqStop,   ...
-                                    obj(idx(ii)).MetaData.LevelUnit,  ...
-                                    obj(idx(ii)).MetaData.DataPoints, ...
-                                    (obj(idx(ii)).MetaData.FreqStop - obj(idx(ii)).MetaData.FreqStart) / (obj(idx(ii)).MetaData.DataPoints - 1), ...
-                                    obj(idx(ii)).MetaData.Resolution, ...
-                                    numel(obj(idx(ii)).Data{1})};
-            end
-            mergeTable = sortrows(mergeTable, 'FreqStart');
+        function status = checkIfSameMetaData(obj, idx1, idx2)
+            status = strcmp(obj(idx1).Receiver, obj(idx2).Receiver)                && ...
+                     obj(idx1).MetaData.FreqStart  == obj(idx2).MetaData.FreqStart && ...
+                     obj(idx1).MetaData.FreqStop   == obj(idx2).MetaData.FreqStop  && ...
+                     obj(idx1).MetaData.DataPoints == obj(idx2).MetaData.DataPoints;
         end
-
 
         %-----------------------------------------------------------------%
-        function validateMerge(obj, mergeTable)
-            if ~isscalar(unique(mergeTable.Receiver)) || ...
-               ~isscalar(unique(mergeTable.DataType)) || ...
-               ~isscalar(unique(mergeTable.LevelUnit))
-               
-                error(ErrorMessage(obj, 'merge'))
+        function OccupancyMapping(obj)
+            dataTypesArray = arrayfun(@(x) x.MetaData.DataType, obj);
+            idxOCCThreads  = find(ismember(dataTypesArray, class.Constants.occDataTypes));
+
+            if ~isempty(idxOCCThreads)
+                for ii = 1:numel(obj)                         
+                    relatedIndex  = [];
+                    for jj = idxOCCThreads
+                        if checkIfSameMetaData(obj, ii, jj)
+                            relatedIndex = [relatedIndex, jj];
+                        end
+                    end
+                    
+                    if ~isempty(relatedIndex)
+                        obj(ii).UserData(1).occMethod.RelatedIndex  = relatedIndex;
+                        obj(ii).UserData(1).occMethod.SelectedIndex = relatedIndex(1);
+                    end
+                end
             end
         end
 
+        %-----------------------------------------------------------------%
+        function [sortTable, sortIndex] = createSortableTable(obj, idxThreads, columnNames)
+            NN = numel(idxThreads);
+            sortTable = table('Size',          [NN, 11],                                                                                                   ...
+                              'VariableTypes', {'double', 'cell', 'double', 'double', 'double', 'double', 'cell', 'double', 'double', 'double', 'double'}, ...
+                              'VariableNames', {'idx', 'Receiver', 'ID', 'DataType', 'FreqStart', 'FreqStop', 'LevelUnit', 'DataPoints', 'StepWidth', 'Resolution', 'nSweeps'});
+
+            for ii = 1:NN
+                idx = idxThreads(ii);
+                sortTable(ii,:) = {idx,                          ...
+                                   obj(idx).Receiver,            ...
+                                   obj(idx).RelatedFiles.ID(1),  ...
+                                   obj(idx).MetaData.DataType,   ...
+                                   obj(idx).MetaData.FreqStart,  ...
+                                   obj(idx).MetaData.FreqStop,   ...
+                                   obj(idx).MetaData.LevelUnit,  ...
+                                   obj(idx).MetaData.DataPoints, ...
+                                   (obj(idx).MetaData.FreqStop - obj(idx).MetaData.FreqStart) / (obj(idx).MetaData.DataPoints - 1), ...
+                                   obj(idx).MetaData.Resolution, ...
+                                   numel(obj(idx).Data{1})};
+            end
+            
+            sortTable = sortrows(sortTable, columnNames);
+            sortIndex = sortTable.idx;
+        end
+
+        %-----------------------------------------------------------------%
+        function basicStats(obj, idx)
+            obj(idx).Data{3} = [ min(obj(idx).Data{2}, [], 2), ...
+                                mean(obj(idx).Data{2},     2), ...
+                                 max(obj(idx).Data{2}, [], 2)];
+        end
 
         %-----------------------------------------------------------------%
         function mergeType = identifyMergeType(obj, mergeTable)
@@ -242,7 +282,6 @@ classdef specData < handle
                 error(ErrorMessage(obj, 'merge'))
             end
         end
-
 
         %-----------------------------------------------------------------%
         function errorMessage = ErrorMessage(obj, errorType)
@@ -295,7 +334,6 @@ classdef specData < handle
             end        
         end
 
-
         %-----------------------------------------------------------------%
         function ID = str2id(Type, Value)
             switch Type
@@ -324,17 +362,16 @@ classdef specData < handle
             end        
         end
 
-
         %-----------------------------------------------------------------%
         function Value = str2str(Value)
             Value = replace(Value, 'μ', 'µ');
         end
 
-
         %-----------------------------------------------------------------%
         function read(app, d)
             if ~isempty(app.specData)
                 delete(app.specData)
+                app.specData = [];
             end
 
             % Organização dos fluxos de dados.
@@ -425,14 +462,12 @@ classdef specData < handle
             % Manipulações acessórias.
             d.Message = textFormatGUI.HTMLParagraph('Em andamento outras manipulações, como a aferição de dados estatísticos e a identificação do fluxo de ocupação.');
             class.specData.read_FinalOperation(app)
-        end
-        
+        end        
         
         %-----------------------------------------------------------------%
-        function read_Map(app)
-        
+        function read_Map(app)        
             for ii = 1:numel(app.metaData)
-                SpecInfo  = copy(app.metaData(ii).Data, {'RelatedFiles', 'FileMap'});
+                SpecInfo = copy(app.metaData(ii).Data, {'RelatedFiles', 'FileMap'});
         
                 if ii == 1
                     app.specData = SpecInfo;
@@ -474,15 +509,14 @@ classdef specData < handle
             
             % Pré-alocação
             class.specData.read_PreAllocationData(app, fileIndexMap);
-        end
-        
+        end        
         
         %-----------------------------------------------------------------%
-        function read_PreAllocationData(app, fileIndexMap)
-        
+        function read_PreAllocationData(app, fileIndexMap)        
             for ii = numel(app.specData):-1:1
                 % Elimina fluxos filtrados...
                 if ~app.specData(ii).Enable
+                    delete(app.specData(ii))
                     app.specData(ii)   = [];
                     fileIndexMap(ii,:) = [];
         
@@ -498,17 +532,11 @@ classdef specData < handle
                 end
                 app.specData(ii) = PreAllocationData(app.specData(ii));
             end
-        end
-        
+        end        
         
         %-----------------------------------------------------------------%
         function read_FinalOperation(app)
-        
-            % Ordenação dos fluxos dos dados:
-            % - Primário:   Receiver
-            % - Secundário: ID
-            idx1 = class.specData.read_SortData(app.specData);
-            app.specData = app.specData(idx1);
+            app.specData = sort(app.specData);
             
             for ii = 1:numel(app.specData)
                 % Ordenando os dados...
@@ -519,26 +547,16 @@ classdef specData < handle
         
                 % GPS
                 if height(app.specData(ii).RelatedFiles) > 1
-                    fcn.gpsProperty(app, ii)
+                    fcn.gpsProperty(app.specData, ii)
                 end
         
                 % Estatística básica dos dados:
-                app.specData(ii).Data{3}(:) = class.specData.read_StatsData(app.specData(ii).Data{2});
+                basicStats(app.specData, ii)
 
-                app.specData(ii).UserData(1).occMethod.RelatedIndex = [];
-                if ismember(app.specData(ii).MetaData.DataType, class.Constants.specDataTypes)
-                    % Mapeamento entre os fluxos de espectro e os de ocupação
-                    % (eventualmente gerados pelo Logger):
-                    [relatedIndex, selectedIndex] = class.specData.read_OCCMap(app.specData, ii);
-
-                    if ~isempty(relatedIndex)
-                        app.specData(ii).UserData(1).occMethod.RelatedIndex  = relatedIndex;
-                        app.specData(ii).UserData(1).occMethod.SelectedIndex = selectedIndex;
-                    end
-        
+                if ismember(app.specData(ii).MetaData.DataType, class.Constants.specDataTypes)        
                     % Mapeamento entre os fluxos de espectro e as canalizações
                     % aplicáveis à cada faixa.
-                    app.specData(ii).UserData(1).channelLibIndex = app.channelObj.FindRelatedBands(app.specData(ii));
+                    app.specData(ii).UserData(1).channelLibIndex = FindRelatedBands(app.channelObj, app.specData(ii));
                 end
 
                 % Avaliando informações customizadas do playback, caso
@@ -552,60 +570,6 @@ classdef specData < handle
             idx3 = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
             class.userData.reportProperties_DefaultValues(app, idx3)
         end
-
-
-        %-----------------------------------------------------------------%
-        function [relatedIndex, selectedIndex] = read_OCCMap(Data, ii)
-
-            relatedIndex  = [];
-            selectedIndex = [];
-
-            idx = [];
-            for jj = 1:numel(Data)
-                if ismember(Data(jj).MetaData.DataType, class.Constants.occDataTypes)
-                    idx = [idx, jj];
-                end
-            end
-
-            for kk = idx
-                logEvaluation = strcmp(Data(ii).Receiver, Data(kk).Receiver)                 & ...
-                                Data(ii).MetaData.FreqStart  == Data(kk).MetaData.FreqStart  & ...
-                                Data(ii).MetaData.FreqStop   == Data(kk).MetaData.FreqStop   & ...
-                                Data(ii).MetaData.DataPoints == Data(kk).MetaData.DataPoints;
-    
-                if logEvaluation
-                    relatedIndex = [relatedIndex, kk];
-                end
-            end
-            
-            if ~isempty(relatedIndex)
-                selectedIndex = relatedIndex(1);
-            end
-        end
-
-
-        %-----------------------------------------------------------------%
-        function sortIndex = read_SortData(Data)
-
-            % Ordenação dos fluxos dos dados:
-            % - Primário:   Receiver
-            % - Secundário: ID
-            ID = [];
-            for ii = 1:numel(Data)
-                ID = [ID; Data(ii).RelatedFiles.ID(1)];
-            end
-            [~, sortIndex] = sortrows(table({Data.Receiver}', ID));
-        end
-
-
-        %-----------------------------------------------------------------%
-        function statsData = read_StatsData(Data)
-
-            statsData = [ min(Data, [], 2), ...
-                         mean(Data,     2), ...
-                          max(Data, [], 2)];
-        end
-        
         
         %-----------------------------------------------------------------%
         function comparableData = read_MetaData(app, Data)
@@ -652,7 +616,6 @@ classdef specData < handle
                 comparableData(ii) = tempStruct;
             end
         end
-
 
         %-----------------------------------------------------------------%
         function secundaryMetaData = SecundaryMetaData(fileFormat, originalMetaData)

@@ -531,7 +531,7 @@ function [specData, ID, OffsetByte, OffsetLevel, NDATA] = Read_DataType60(specDa
     NDATA          = typecast(rawArray(49:52), 'uint32');                              % (37:40) (4 bytes)
 
     Description    = '';
-    Resolution     = [];
+    Resolution     = -1;
     Threshold      = [];
     UnitID         = 0;
 
@@ -565,7 +565,7 @@ function [specData, ID, OffsetByte, OffsetLevel, NCDATA] = Read_DataType61(specD
     NDATA          = typecast(rawArray(57:60), 'uint32');                              % (45:48) (4 bytes)
 
     Description    = '';
-    Resolution     = [];
+    Resolution     = -1;
     UnitID         = 0;
 
     [specData, ID] = Fcn_BinInfo(specData, ThreadID, DataType, Description, FreqStart, FreqStop, Resolution, Threshold, AntennaID, TraceID, UnitID, NDATA);

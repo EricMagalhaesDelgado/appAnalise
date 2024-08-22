@@ -63,10 +63,7 @@ classdef (Abstract) draw3D
                     end
                     
                     if isempty(cLimits)
-                        cLimits    = hAxes.CLim;
-                        cLimits(2) = round(cLimits(2));
-                        cLimits(1) = round(cLimits(2) - diff(cLimits)/2);
-
+                        cLimits = bandObj.callingApp.restoreView(3).cLim;
                         hAxes.UserData.CLimMode = 'auto';
                     else                        
                         hAxes.UserData.CLimMode = 'manual';
