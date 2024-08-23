@@ -179,7 +179,7 @@ function specData = Fcn_SpecDataReader(specData, rawData)
     
     for ii = 1:numel(specData)
         if specData(ii).Enable
-            specData(ii) = PreAllocationData(specData(ii));
+            PreAllocationData(specData(ii))
             nSweeps  = specData(ii).RelatedFiles.nSweeps;
             
             for jj = 1:nSweeps

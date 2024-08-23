@@ -1,5 +1,5 @@
 {
-    "version": 0.23,
+    "version": 0.26,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -248,6 +248,20 @@
         "WaterfallTime": {
             "Visible": "on",
             "ZData": [1000, 1000]
+        },
+        "BandLimits": {
+            "Color": "#808080",
+            "LineWidth": 5,
+            "YLimOffsetMode": "top",
+            "YLimOffset": 1,
+            "StepEffect": false
+        },
+        "Channels": {
+            "Color": "#b746ff",
+            "LineWidth": 5,
+            "YLimOffsetMode": "top",
+            "YLimOffset": 3,
+            "StepEffect": true
         },
         "ROI": {
             "Color": "#66bae0",

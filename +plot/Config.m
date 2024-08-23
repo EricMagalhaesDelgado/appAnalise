@@ -42,6 +42,10 @@ function varargout = Config(plotTag, defaultProperties, customProperties)
             plotConfig  = {'Color', 'red', 'LineWidth', 1, 'PickableParts', 'none', 'Visible', tempPlotConfig.Visible, 'ZData', tempPlotConfig.ZData};
             varargout   = {plotConfig, plotType};
 
+        case {'BandLimits', 'Channels'}
+            plotConfig  = {'Color', tempPlotConfig.Color, 'LineWidth', tempPlotConfig.LineWidth, 'PickableParts', 'none'};
+            varargout   = {plotConfig, tempPlotConfig.YLimOffsetMode, tempPlotConfig.YLimOffset, tempPlotConfig.StepEffect};
+
         case {'ClearWrite', 'Average', 'MinHold', 'MaxHold'}
             switch tempPlotConfig.Fcn
                 case 'line'

@@ -16,32 +16,23 @@ classdef metaData < handle
             [~, fileName, fileExt] = fileparts(obj.File);
             
             switch lower(fileExt)
-                % O formato .BIN é muito comum, sendo gerado pelo Logger, appColeta
-                % e outras tantas aplicações. Essencial, portanto, ler os primeiros
-                % bytes do arquivo, identificando no cabeçalho do arquivo o formato.
                 case '.bin'
-                    fileID = fopen(obj.File);
-                    Format = fread(fileID, [1 36], '*char');
-                    fclose(fileID);
-    
-                    if contains(Format, 'CRFS', 'IgnoreCase', true)
-                        obj.Data = fileReader.CRFSBin(obj.File, 'MetaData', []);
-                    elseif contains(Format, 'RFlookBin v.1', 'IgnoreCase', true)
-                        obj.Data = fileReader.RFlookBinV1(obj.File, 'MetaData');
-                    elseif contains(Format, 'RFlookBin v.2', 'IgnoreCase', true)
-                        obj.Data = fileReader.RFlookBinV2(obj.File, 'MetaData');
-                    else
-                        Error(obj, 'metaData:Read:NotImplementedReader', fileName, fileExt)
-                    end
-                
+                    switch checkBINFormat(obj)
+                        case 'CRFS'
+                            obj.Data = fileReader.CRFSBin(obj.File,     'MetaData', []);
+                        case 'RFlookBin v.1'
+                            obj.Data = fileReader.RFlookBinV1(obj.File, 'MetaData');
+                        case 'RFlookBin v.2'
+                            obj.Data = fileReader.RFlookBinV2(obj.File, 'MetaData');
+                    end                
                 case '.dbm'
-                    obj.Data = fileReader.CellPlanDBM(obj.File, 'MetaData', []);
+                    obj.Data = fileReader.CellPlanDBM(obj.File,         'MetaData', []);
                 case '.sm1809'
-                    obj.Data = fileReader.SM1809(obj.File,      'MetaData', []);
+                    obj.Data = fileReader.SM1809(obj.File,              'MetaData', []);
                 case '.csv'
-                    obj.Data = fileReader.ArgusCSV(obj.File,    'MetaData', []);
+                    obj.Data = fileReader.ArgusCSV(obj.File,            'MetaData', []);
                 case '.mat'
-                    obj.Data = fileReader.MAT(obj.File,         'MetaData', []);
+                    obj.Data = fileReader.MAT(obj.File,                 'MetaData', []);
                 otherwise
                     Error(obj, 'metaData:Read:UnexpectedFileFormat', fileName, fileExt)
             end
@@ -54,6 +45,27 @@ classdef metaData < handle
             end
         end
 
+        %-----------------------------------------------------------------%
+        function fileFormatName = checkBINFormat(obj)
+            % O formato .BIN é muito comum, sendo gerado pelo Logger, appColeta
+            % e outras tantas aplicações. Essencial, portanto, ler os primeiros
+            % bytes do arquivo, identificando no cabeçalho do arquivo o formato.
+
+            fileID = fopen(obj.File);
+            Format = fread(fileID, [1 36], '*char');
+            fclose(fileID);
+
+            if     contains(Format, 'CRFS',          'IgnoreCase', true)
+                fileFormatName = 'CRFS';
+            elseif contains(Format, 'RFlookBin v.1', 'IgnoreCase', true)
+                fileFormatName = 'RFlookBin v.1';
+            elseif contains(Format, 'RFlookBin v.2', 'IgnoreCase', true)
+                fileFormatName = 'RFlookBin v.2';
+            else
+                [~, fileName, fileExt] = fileparts(obj.File);
+                Error(obj, 'metaData:Read:NotImplementedReader', fileName, fileExt)
+            end
+        end
 
         %-----------------------------------------------------------------%
         function relatedFiles = RelatedFiles(obj)        
@@ -65,7 +77,6 @@ classdef metaData < handle
             end
             relatedFiles = unique(relatedFiles);
         end
-
 
         %-----------------------------------------------------------------%
         function estimatedMemory = EstimatedMemory(obj, idx)
@@ -90,7 +101,6 @@ classdef metaData < handle
             end
             error(errorID, [errorMsg '\n• %s'], [fileName fileExt])
         end
-
 
         %-----------------------------------------------------------------%
         function samplesArray = SamplesArray(obj, idx)

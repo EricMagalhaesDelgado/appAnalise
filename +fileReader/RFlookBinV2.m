@@ -165,7 +165,7 @@ function specData = Fcn_SpecDataReader(specData, rawData, fileFormat)
     end
 
     if specData.Enable
-        specData      = specData.PreAllocationData(1, fileFormat);
+        PreAllocationData(specData, 1, fileFormat)
         nSweeps       = specData.RelatedFiles.nSweeps;
         DataPoints    = specData.MetaData.DataPoints;
         OFFSET        = [];

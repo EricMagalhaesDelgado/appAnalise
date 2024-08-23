@@ -22,7 +22,6 @@ classdef (Abstract) draw2D
             plot.axes.StackingOrder.execute(hAxes, bandObj.Context)
         end
 
-
         %-----------------------------------------------------------------%
         function OrdinaryLineUpdate(hLine, bandObj, idx, plotTag)
             idxTime = bandObj.callingApp.idxTime;
@@ -51,6 +50,54 @@ classdef (Abstract) draw2D
                         otherwise
                             hLine.YData = [idxTime, idxTime];
                     end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function horizontalSetOfLines(hAxes, bandObj, idx, plotTag, varargin)
+            specData = bandObj.callingApp.specData(idx);
+            switch plotTag
+                case 'BandLimits'
+                    srcInfo  = specData.UserData.bandLimitsTable;
+                    plotFlag = specData.UserData.bandLimitsStatus;                    
+                    
+                case 'Channels'
+                    srcInfo  = varargin{1};
+                    if isempty(srcInfo)
+                        plotFlag = false;
+                    else
+                        plotFlag = true;
+                    end
+            end
+
+            if plotFlag && ~isempty(srcInfo)
+                defaultProp  = bandObj.callingApp.General;
+
+                [plotConfig,     ...
+                 YLimOffsetMode, ...
+                 YLimOffset,     ...
+                 StepEffect] = plot.Config(plotTag, defaultProp, []);
+
+                switch YLimOffsetMode
+                    case 'bottom'
+                        yLevel = hAxes.YLim(1)+YLimOffset;
+                    otherwise % 'top'
+                        yLevel = hAxes.YLim(2)-YLimOffset;                        
+                end
+            
+                for ii = 1:height(srcInfo)
+                    FreqStart   = srcInfo.FreqStart(ii);
+                    FreqStop    = srcInfo.FreqStop(ii);
+
+                    if StepEffect
+                        yLevel2Plot = yLevel + mod(ii,2);
+                    else
+                        yLevel2Plot = yLevel;
+                    end
+                    
+                    line(hAxes, [FreqStart, FreqStop], [yLevel2Plot, yLevel2Plot], plotConfig{:})
+                end
+                plot.axes.StackingOrder.execute(hAxes, bandObj.Context)
             end
         end
 
@@ -129,8 +176,7 @@ classdef (Abstract) draw2D
                 app.hEmissionMarkers = text(app.UIAxes1, app.specData(idx).UserData.Emissions.Frequency, double(app.specData(idx).Data{2}(app.specData(idx).UserData.Emissions.Index, app.idxTime)), mkrLabels, ...
                                                          Color=[0.40,0.73,0.88], FontSize=11, FontWeight='bold', FontName='Helvetica', FontSmoothing='on', Tag='mkrLabels', Visible=app.play_LineVisibility.Value);
             end
-        end
-        
+        end        
         
         %-------------------------------------------------------------------------%
         function mkrLineROI_old(evt, app, idx1)

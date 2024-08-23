@@ -183,7 +183,7 @@ function specData = Fcn_SpecDataReader(specData, rawData, fileName)
 
     for ii = 1:numel(specData)
         if specData(ii).Enable
-            specData(ii) = PreAllocationData(specData(ii));
+            PreAllocationData(specData(ii))
             nSweeps = specData(ii).RelatedFiles.nSweeps;
             
             for jj = 1:nSweeps
@@ -204,10 +204,11 @@ end
 %-------------------------------------------------------------------------%
 % AUXILIAR FUNCTIONS
 %-------------------------------------------------------------------------%
-function specData = Fcn_DataOrganization(specData, gpsData, fileName, rawData, BlocksTable, Hostname, Taskname, messageTable)
+function specData = Fcn_DataOrganization(specData, gpsData, fileFullPath, rawData, BlocksTable, Hostname, Taskname, messageTable)
 
-    messageTable(~ismember(messageTable{:,1}, specData.IDList), :) = [];
-    [~, file, ext] = fileparts(fileName);
+    listOfIDs = IDList(specData);
+    messageTable(~ismember(messageTable{:,1}, listOfIDs), :) = [];
+    [~, fileName, fileExt] = fileparts(fileFullPath);
 
     for ii = 1:numel(specData)
         specData(ii).Receiver = Hostname;
@@ -240,8 +241,8 @@ function specData = Fcn_DataOrganization(specData, gpsData, fileName, rawData, B
         specData(ii).GPS = rmfield(gpsData, 'Matrix');
         specData(ii).FileMap = BlocksTable(BlocksTable.ID == ii, 2:6);
 
-        [BeginTime, EndTime, RevisitTime] = Read_ObservationTime(specData(ii), rawData, fileName);
-        specData(ii).RelatedFiles(1,[1:2 5:10]) = {[file ext], Taskname, BeginTime, EndTime, height(specData(ii).FileMap), RevisitTime, {gpsData}, char(matlab.lang.internal.uuid())};
+        [BeginTime, EndTime, RevisitTime] = Read_ObservationTime(specData(ii), rawData, fileFullPath);
+        specData(ii).RelatedFiles(1,[1:2 5:10]) = {[fileName fileExt], Taskname, BeginTime, EndTime, height(specData(ii).FileMap), RevisitTime, {gpsData}, char(matlab.lang.internal.uuid())};
         
         
         if ~isempty(messageTable)
@@ -250,9 +251,8 @@ function specData = Fcn_DataOrganization(specData, gpsData, fileName, rawData, B
     end
 
     % Ordena os fluxos pelo ID:
-    IDList = specData.IDList;
-    if ~issorted(IDList)
-        [~, idx] = sort(IDList);
+    if ~issorted(listOfIDs)
+        [~, idx] = sort(listOfIDs);
         specData = specData(idx);
     end
 end

@@ -133,9 +133,7 @@ function specData = Fcn_SpecDataReader(specData, fileID)
 
     fseek(fileID, specData(1).FileMap.ByteOffset, 'bof');
     
-    for ii = 1:numel(specData)
-        specData(ii) = PreAllocationData(specData(ii));
-    end
+    arrayfun(@(x) PreAllocationData(x), specData)
     
     startDate = specData(1).FileMap.ReferenceDate;
     TimeStamp = datetime([0 0 0 0 0 0], 'Format', 'dd/MM/yyyy HH:mm:ss');
