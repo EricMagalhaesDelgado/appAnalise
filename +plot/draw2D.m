@@ -98,6 +98,9 @@ classdef (Abstract) draw2D
                     line(hAxes, [FreqStart, FreqStop], [yLevel2Plot, yLevel2Plot], plotConfig{:})
                 end
                 plot.axes.StackingOrder.execute(hAxes, bandObj.Context)
+
+            else
+                delete(findobj(hAxes, 'Tag', plotTag))
             end
         end
 

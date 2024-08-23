@@ -32,7 +32,7 @@ classdef (Abstract) draw3D
                                     nMaxWaterFallPoints = class.Constants.nMaxWaterFallPoints;
                                     if nWaterFallPoints > nMaxWaterFallPoints; nDecimation = ceil(nWaterFallPoints/nMaxWaterFallPoints);
                                     else;                                      nDecimation = 1;
-                                    end        
+                                    end
                                 otherwise
                                     nDecimation = str2double(Decimation);
                             end

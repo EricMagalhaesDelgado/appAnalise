@@ -23,9 +23,10 @@ classdef (Abstract) Constants
 
         xDecimals     = 5
         
-        floatDiffTolerance  = 1e-5
-        nMaxWaterFallPoints = 1474560
-        ElevationTolerance  = .85
+        floatDiffTolerance    = 1e-5
+        nMaxWaterFallPoints   = 1474560
+        nMaxPersistancePoints = 51200512                                    % nMaxPointsFSW * nMaxPersistanceOption (GUI) = 100001 * 512
+        ElevationTolerance    = .85
 
         reportOCC            = struct('Method',    'Linear adaptativo',           ...
                                                    'IntegrationTime',     15,     ...

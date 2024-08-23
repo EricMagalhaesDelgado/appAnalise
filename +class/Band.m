@@ -5,6 +5,7 @@ classdef Band < handle
         Context
         callingApp
 
+        Receiver
         nSweeps
         DataPoints
         FreqStart   % in MHz
@@ -31,6 +32,7 @@ classdef Band < handle
         function axesLimits = update(obj, idx)
             specData       = obj.callingApp.specData(idx);
 
+            obj.Receiver   = fcn.treeReceiverName(specData.Receiver, 'class.Band.update');
             obj.nSweeps    = numel(specData.Data{1});
             obj.DataPoints = specData.MetaData.DataPoints;
             obj.FreqStart  = specData.MetaData.FreqStart / 1e+6;
