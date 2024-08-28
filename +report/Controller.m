@@ -52,18 +52,6 @@ function Controller(app, Mode)
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
 
 
-            case 'auxApp.winTemplate'
-                d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'on', 'Interpreter', 'html');
-                d.Message = ['<font style="font-size:12;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
-                             'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações...</font>'];
-
-                reportInfo.General.Version          = 'Preliminar';
-                reportInfo.General.Image.Visibility = 'off';
-
-                htmlReport = report.ReportGenerator(app.CallingApp, idx, reportInfo);
-                app.HTML.HTMLSource = htmlReport;
-
-
             case 'auxApp.winSignalAnalysis'
                 [~, countTable] = report.ReportGenerator_Table_Summary(app.CallingApp.peaksTable, app.CallingApp.exceptionList);
                 tableStr = ReportGenerator_Aux3(app.CallingApp, idx, countTable);
@@ -96,15 +84,11 @@ function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
                 app.General.AppVersion = fcn.startup_Versions("Full", app.rootFolder);
             end
         
-            reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
+            reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
             [idx, reportInfo]   = report.GeneralInfo(app, Mode, reportTemplateIndex);
 
-        case 'auxApp.winTemplate'
-            reportTemplateIndex = app.Tree1.SelectedNodes.NodeData;
-            [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
-
         case 'auxApp.winSignalAnalysis'
-            reportTemplateIndex = find(strcmp(app.Callingapp.report_ModelName.Items, app.Callingapp.report_ModelName.Value), 1);
+            reportTemplateIndex = find(strcmp(app.CallingApp.report_ModelName.Items, app.CallingApp.report_ModelName.Value), 1) - 1;
             [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
     end
 end
@@ -155,7 +139,7 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
     % Juntar numa mesma variável a informação gerada pelo algoritmo
     % embarcado no appAnálise (app.peaksTable) com a informação
     % gerada pelo fiscal (app.exceptionList).
-    [infoTable, countTable] = report.ReportGenerator_Table_Summary(app.peaksTable, app.exceptionList);
+    [infoTable, countTable] = report.ReportGenerator_Table_Summary(app.projectData.peaksTable, app.projectData.exceptionList);
 
     ReportProject.emissionsValue1 = sum(infoTable{:,2:4}, 'all');                               % Qtd. emissões
     ReportProject.emissionsValue2 = sum(infoTable{:,2});                                        % Qtd. emissões licenciadas
@@ -224,7 +208,7 @@ function tableStr = ReportGenerator_Aux3(app, idx, countTable)
                                                         app.specData(ii).MetaData.FreqStart / 1e+6, ...
                                                         app.specData(ii).MetaData.FreqStop  / 1e+6);
             
-            idx1 = find(strcmp(app.peaksTable.Tag, Tag));
+            idx1 = find(strcmp(app.projectData.peaksTable.Tag, Tag));
             if ~isempty(idx1)
                 PeakTable.FK1(idx1) = uint16(jj);
             end

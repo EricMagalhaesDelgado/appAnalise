@@ -1,7 +1,7 @@
 function [idx, reportInfo] = GeneralInfo(app, Mode, reportTemplateIndex)
 
     switch Mode
-        case {'Report', 'auxApp.winTemplate'}
+        case 'Report'
             idx = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
             detectionMode = 'Automatic+Manual';
 

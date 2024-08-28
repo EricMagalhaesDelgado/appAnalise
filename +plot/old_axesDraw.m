@@ -474,9 +474,13 @@ classdef (Abstract) old_axesDraw
         %-----------------------------------------------------------------%
         % FUNÇÕES AUXILIARES
         %-----------------------------------------------------------------%
-        function imgFileName = plot2report(SpecInfo, reportInfo, plotInfo)
+        function [imgFileName, hFig] = plot2report(hFig, SpecInfo, reportInfo, plotInfo)
             % Criação da figura.
-            f = plot.old_axesDraw.FigureCreation();
+            if isempty(hFig)
+                hFig = plot.old_axesDraw.FigureCreation();
+            else
+                delete(hFig.Children)
+            end
 
             % Criação dos eixos e disposição no layout indicado no JSON do
             % modelo do relatório.
@@ -496,7 +500,7 @@ classdef (Abstract) old_axesDraw
             tiledPos  = 1;
             tiledSpan = [plotInfo.Layout];
 
-            t = tiledlayout(f, sum(tiledSpan), 1, "Padding", "tight", "TileSpacing", "tight");
+            t = tiledlayout(hFig, sum(tiledSpan), 1, "Padding", "tight", "TileSpacing", "tight");
            
             axesType = plot.old_DataAxesTypeMapping({plotInfo.Name});
 
@@ -506,7 +510,14 @@ classdef (Abstract) old_axesDraw
                     otherwise;        Parameters = reportInfo.General.Parameters;
                 end
 
-                hAxes     = plot.axes.Creation(t, axesType{ii});
+                % Customizações do eixo
+                switch axesType{ii}
+                    case 'Cartesian'
+                        customAxesProperties = {'XColor', [0,0,0], 'YColor', [0,0,0]};
+                    case 'Geographic'
+                        customAxesProperties = {};
+                end
+                hAxes     = plot.axes.Creation(t, axesType{ii}, customAxesProperties);
                 xTickFlag = true;
 
                 switch axesType{ii}
@@ -540,11 +551,11 @@ classdef (Abstract) old_axesDraw
                 imgFileName = replace(imgFileName, 'Image', '~Image');
             end
             
-            exportgraphics(f, imgFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
+            exportgraphics(hFig, imgFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
             drawnow nocallbacks
             while true
+                pause(.100)
                 if isfile(imgFileName)
-                    delete(f)
                     break
                 end
             end

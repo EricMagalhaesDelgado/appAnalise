@@ -23,24 +23,20 @@ classdef userData
                                      'VariableTypes', {'cell', 'cell', 'cell', 'cell'}, ...
                                      'VariableNames', {'Name', 'Type', 'oldUnitLevel', 'newUnitLevel'})
 
-        reportFlag           = false
-        
+        reportFlag           = false        
         reportOCC            = []
         reportDetection      = [] % struct('ManualMode', 0, 'Algorithm', {}, 'Parameters', {})
         reportClassification = [] % struct('Algorithm', {}, 'Parameters', {})
-
         reportPeaksTable     = []
-        reportAttachments    = struct('image', '', 'table', struct('Source', '', 'SheetID', 1))
+        reportExternalFiles  = table('Size', [0, 3],                             ...
+                                     'VariableTypes', {'uint8', 'cell', 'cell'}, ...
+                                     'VariableNames', {'ID', 'Tag', 'Filename'});
     end
 
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function reportProperties_DefaultValues(specData, idxThreads, callingApp)
-            
-            % Criação dos campos "reportDetection" e "reportClassification", caso 
-            % aplicável.
-        
+        function reportProperties_DefaultValues(specData, idxThreads, callingApp)        
             for ii = idxThreads
                 specData(ii).UserData.reportFlag = true;
         
@@ -54,9 +50,9 @@ classdef userData
                             specData(ii).UserData.reportOCC = class.Constants.reportOCC;
                         else
                             idx2 = specData(ii).UserData.occMethod.SelectedIndex;
-                            specData(ii).UserData.reportOCC = struct('Method',                  'Linear fixo (COLETA)', ...
-                                                                         'IntegrationTimeCaptured', mean(specData(idx2).RelatedFiles.RevisitTime)/60, ...
-                                                                         'THRCaptured',             specData(idx2).MetaData.Threshold);
+                            specData(ii).UserData.reportOCC = struct('Method',                  'Linear fixo (COLETA)',                           ...
+                                                                     'IntegrationTimeCaptured', mean(specData(idx2).RelatedFiles.RevisitTime)/60, ...
+                                                                     'THRCaptured',             specData(idx2).MetaData.Threshold);
                         end
                         occIndex = play_OCCIndex(callingApp, ii, 'REPORT');
         
@@ -73,13 +69,13 @@ classdef userData
                         specData(ii).UserData.reportDetection = class.Constants.reportDetection;
                     else
                         specData(ii).UserData.reportDetection = struct('ManualMode', 0,                                               ...
-                                                                           'Algorithm', 'FindPeaks+OCC',                                  ...
-                                                                           'Parameters', struct('Distance',    1000 * findPeaks.Distance, ... % MHz >> kHz
-                                                                                                'BW',          1000 * findPeaks.BW,       ... % MHz >> kHz
-                                                                                                'Prominence1', findPeaks.Prominence1,     ...
-                                                                                                'Prominence2', findPeaks.Prominence2,     ...
-                                                                                                'meanOCC',     findPeaks.meanOCC,         ...
-                                                                                                'maxOCC',      findPeaks.maxOCC));
+                                                                       'Algorithm', 'FindPeaks+OCC',                                  ...
+                                                                       'Parameters', struct('Distance',    1000 * findPeaks.Distance, ... % MHz >> kHz
+                                                                                            'BW',          1000 * findPeaks.BW,       ... % MHz >> kHz
+                                                                                            'Prominence1', findPeaks.Prominence1,     ...
+                                                                                            'Prominence2', findPeaks.Prominence2,     ...
+                                                                                            'meanOCC',     findPeaks.meanOCC,         ...
+                                                                                            'maxOCC',      findPeaks.maxOCC));
                     end
                 end
 

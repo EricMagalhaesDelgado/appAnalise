@@ -1,5 +1,7 @@
 function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
 
+    global hFig
+
     global ID_img
     global ID_tab
 
@@ -154,6 +156,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
                     end
 
                 catch ME
+                    struct2table(ME.stack)
                     msgError = extractAfter(ME.message, 'Configuration file error message: ');
 
                     if ~isempty(msgError)
@@ -200,6 +203,9 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
     if reportInfo.General.Version == "Preliminar"
         htmlReport = sprintf('%s</body>\n</html>', htmlReport);
     end
+
+    delete(hFig)
+    clear global hFig
 
 end
 
@@ -333,7 +339,7 @@ function Peaks = Fcn_exceptionList(Peaks, exceptionList)
             % - que possuem a mesma "Tag" e a mesma "Frequency".    
             idx = find(strcmp(Peaks.Tag, Tag) & (abs(Peaks.Frequency-Frequency) <= class.Constants.floatDiffTolerance));
 
-            if numel(idx) == 1
+            if isscalar(idx)
                 if Peaks.Description{idx} == "-"
                     Description = sprintf('<font style="color: #ff0000;">%s</font>', exceptionList.Description{ii});
                     Distance    = sprintf('<font style="color: #ff0000;">%s</font>', exceptionList.Distance{ii});
@@ -361,13 +367,13 @@ end
 
 %-------------------------------------------------------------------------%
 function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plotInfo)
-
     global ID_imgExt
+    global hFig
 
     Image = '';
     switch Children.Data.Origin
         case 'Internal'
-            Image = plot.old_axesDraw.plot2report(SpecInfo(idx), reportInfo, plotInfo);
+            [Image, hFig] = plot.old_axesDraw.plot2report(hFig, SpecInfo(idx), reportInfo, plotInfo);
 
         case 'External'
             if Recurrence
