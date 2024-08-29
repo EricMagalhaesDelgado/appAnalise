@@ -29,7 +29,7 @@ classdef Band < handle
 
 
         %-----------------------------------------------------------------%
-        function axesLimits = update(obj, idx)
+        function axesLimits = update(obj, idx, varargin)
             specData       = obj.callingApp.specData(idx);
 
             obj.Receiver   = fcn.treeReceiverName(specData.Receiver, 'class.Band.update');
@@ -51,12 +51,12 @@ classdef Band < handle
             obj.aCoef      = (obj.FreqStop - obj.FreqStart)*1e+6 ./ (obj.DataPoints - 1);
             obj.bCoef      = obj.FreqStart*1e+6 - obj.aCoef;       
 
-            axesLimits     = Limits(obj, idx);
+            axesLimits     = Limits(obj, idx, varargin{:});
         end
 
 
         %-----------------------------------------------------------------%
-        function axesLimits = Limits(obj, idx)
+        function axesLimits = Limits(obj, idx, varargin)
             switch obj.Context
                 case 'appAnalise:PLAYBACK'
                   % axesLimits = struct('xLim', {}, 'yLevelLim', {}, 'yTimeLim', {})
@@ -65,6 +65,10 @@ classdef Band < handle
                 case 'appAnalise:REPORT'
                     axesLimits = reportLimits(obj, idx);
                     error('PENDENTE AJUSTAR IMPLEMENTAÇÃO')
+
+                case 'appAnalise:SIGNALANALYSIS'
+                    idxEmission = varargin{1};
+                    axesLimits = playbackAutomaticLimits(obj, idx, idxEmission);
             end
         end
 
@@ -79,7 +83,9 @@ classdef Band < handle
             end
 
             specData = obj.callingApp.specData(idx);
-            idxTime  = obj.callingApp.idxTime;
+            if isprop(obj.callingApp, 'idxTime')
+                idxTime = obj.callingApp.idxTime;
+            end
 
             switch plotTag
                 case 'ClearWrite'
@@ -103,7 +109,7 @@ classdef Band < handle
                                 YArray  = specData.Data{2}(:,idxTime)';
                             end
         
-                        case 'appAnalise:REPORT'
+                        case 'appAnalise:SIGNALANALYSIS'
                             YArray = specData.Data{3}(:,idxFcn)';
                     end
 
@@ -120,7 +126,7 @@ classdef Band < handle
                                     YArray = [idxTime, idxTime];
                             end
 
-                        case 'appAnalise:REPORT'
+                        case {'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS'}
                             error('Band:XYArray:UnexpectedPlotTag', 'UnexpectedPlotTag')
                     end
             end
@@ -197,11 +203,32 @@ classdef Band < handle
         end
 
         %-----------------------------------------------------------------%
-        function axesLimits = playbackAutomaticLimits(obj, idx)
+        function axesLimits = playbackAutomaticLimits(obj, idx, idxEmission)
+            arguments
+                obj
+                idx
+                idxEmission = -1
+            end
             specData   = obj.callingApp.specData(idx);
 
             % xLimits
-            xLimits    = [obj.FreqStart, obj.FreqStop];
+            switch obj.Context
+                case {'appAnalise:PLAYBACK', 'appAnalise:REPORT:BAND'}
+                    xLimits = [obj.FreqStart, obj.FreqStop];
+
+                case {'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS'}
+                    projectData = obj.callingApp.projectData;
+
+                    if obj.callingApp.projectData.peaksTable.BW(idxEmission) ~= 0
+                        F0_axes = projectData.peaksTable.Frequency(idxEmission) - 2.5*projectData.peaksTable.BW(idxEmission)/1000;
+                        F1_axes = projectData.peaksTable.Frequency(idxEmission) + 2.5*projectData.peaksTable.BW(idxEmission)/1000;
+                    else
+                        F0_axes = projectData.peaksTable.Frequency(idxEmission) - .5;
+                        F1_axes = projectData.peaksTable.Frequency(idxEmission) + .5;
+                    end
+
+                    xLimits = [F0_axes, F1_axes];
+            end
         
             % yLevelLimits
             DataType     = specData.MetaData.DataType;
@@ -236,7 +263,7 @@ classdef Band < handle
                 upCLim   = 1;
 
             else
-                error('Band:Limits:UnexpectedDataType', 'UnexpectedDataType')
+                error('Band:playbackAutomaticLimits:UnexpectedDataType', 'UnexpectedDataType')
             end
             yLevelLimits = [downYLim, upYLim];
         

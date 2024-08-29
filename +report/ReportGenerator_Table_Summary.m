@@ -28,11 +28,13 @@ function [infoTable, countTable] = ReportGenerator_Table_Summary(peaksTable, exc
         % Itera em relação à lista de emissões, buscando aquelas que foram
         % incluídas por arquivo.
         fileDetectionIndex = find(contains(countTable.Detection, '"Algorithm":"ExternalFile"'))';
-        for ii = fileDetectionIndex
+        for ii = 1:height(countTable)
             fileDetectionInfo = jsondecode(countTable.Detection{ii});
 
-            countTable.Detection{ii}   = '{"Algorithm":"ExternalFile"}';
-            countTable.Description{ii} = sprintf('%s (%s)', countTable.Description{ii}, fileDetectionInfo.Description); 
+            if isfield(fileDetectionInfo, 'Description')
+                countTable.Detection{ii}   = jsonencode(rmfield(fileDetectionInfo, 'Description'));
+                countTable.Description{ii} = sprintf('%s (%s)', countTable.Description{ii}, strjoin(fileDetectionInfo.Description, ' ')); 
+            end
         end
 
         countTable.Tag = extractAfter(countTable.Tag, ': ');

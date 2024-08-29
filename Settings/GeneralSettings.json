@@ -1,5 +1,5 @@
 {
-    "version": 0.26,
+    "version": 0.29,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -265,11 +265,14 @@
         },
         "ROI": {
             "Color": "#66bae0",
+            "MarkerSize": 5,
+            "LineWidth": 1,
             "EdgeAlpha": 0,
             "FaceAlpha": 0.4,
-            "yPosition": 1,
-            "TextColor": "#000000",
-            "TextFontSize": 8
+            "LabelOffsetMode": "bottom",
+            "LabelOffset": 1,
+            "LabelColor": "#000000",
+            "LabelFontSize": 8
         },
         "Axes": {
             "xLabel": true,

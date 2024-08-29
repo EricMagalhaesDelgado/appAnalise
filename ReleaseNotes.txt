@@ -1,10 +1,18 @@
-v. 1.66 (09/07/2024)
+v. 1.80 (XX/09/2029)
+- EVOLUÇÃO
+(a) Migração para o MATLAB R2024a.
+(b) Conexão com as novas libs reportLib e fiscalizaLib, modularizando as operações de geração de relatório e do seu relato.
+(c) Refatoração da GUI.
 - BUGS
-(a) Corrigido BUG na geração do relatório, o qual se manifestava quando um fluxo sob análise era mesclado (com outro) posteriormente à sua inclusão no projeto.
-(b) Eliminada a possibilidade de salvar arquivos .MAT comprimidos porque foi evidenciado que arquivos .MAT grandes (alguns gigas) podem ser instáveis no salvamento e carregamento.
+(a) Corrigido BUG na leitura de arquivo gerado pelo appColeta, quando identificado VBW dentre os parâmetros de metadados.
+
+v. 1.66 (09/07/2024)
 - EVOLUÇÃO
 (a) O relatório apresenta a rota percorrida, case se trate de um drive-test.
 (b) Adaptação do leitor de arquivos gerados pelo CellWireless para atender funcionalidades trazidas pela nova versão de firmware (da CellPlan).
+- BUGS
+(a) Corrigido BUG na geração do relatório, o qual se manifestava quando um fluxo sob análise era mesclado (com outro) posteriormente à sua inclusão no projeto.
+(b) Eliminada a possibilidade de salvar arquivos .MAT comprimidos porque foi evidenciado que arquivos .MAT grandes (alguns gigas) podem ser instáveis no salvamento e carregamento.
 
 v. 1.39 (14/11/2023)
 - BUGS

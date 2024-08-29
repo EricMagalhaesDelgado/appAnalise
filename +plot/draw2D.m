@@ -4,7 +4,12 @@ classdef (Abstract) draw2D
         %-----------------------------------------------------------------%
         function hLine = OrdinaryLine(hAxes, bandObj, idx, plotTag)
             defaultProp  = bandObj.callingApp.General;
-            customProp   = bandObj.callingApp.specData(idx).UserData.customPlayback.Parameters;
+            switch bandObj.Context
+                case 'appAnalise:PLAYBACK'
+                    customProp = bandObj.callingApp.specData(idx).UserData.customPlayback.Parameters;
+                otherwise
+                    customProp = [];
+            end
 
             [plotConfig, ...
              plotType]   = plot.Config(plotTag, defaultProp, customProp);
@@ -70,6 +75,8 @@ classdef (Abstract) draw2D
                     end
             end
 
+            delete(findobj(hAxes, 'Tag', plotTag))
+            
             if plotFlag && ~isempty(srcInfo)
                 defaultProp  = bandObj.callingApp.General;
 
@@ -98,9 +105,57 @@ classdef (Abstract) draw2D
                     line(hAxes, [FreqStart, FreqStop], [yLevel2Plot, yLevel2Plot], plotConfig{:})
                 end
                 plot.axes.StackingOrder.execute(hAxes, bandObj.Context)
+            end
+        end
 
-            else
-                delete(findobj(hAxes, 'Tag', plotTag))
+        %-----------------------------------------------------------------%
+        function rectangularROI(hAxes, bandObj, idx, plotTag, idxEmission, postPlotConfig)
+            arguments
+                hAxes
+                bandObj
+                idx
+                plotTag
+                idxEmission    = []
+                postPlotConfig = {}
+            end
+
+            listEmission = bandObj.callingApp.specData(idx).UserData.Emissions;
+            if isempty(idxEmission)
+                idxEmission = 1:height(listEmission);
+            end
+            
+            if ~isempty(listEmission)                
+                defaultProp  = bandObj.callingApp.General;
+                customProp   = [];
+
+                [plotConfigROI,   ...
+                 plotConfigText,  ...
+                 LabelOffsetMode, ...
+                 LabelOffset] = plot.Config(plotTag, defaultProp, customProp);
+
+                yLimits = double(hAxes.YLim);
+                for ii = idxEmission
+                    hROI = drawrectangle(hAxes, 'Position', [listEmission.Frequency(ii)-listEmission.BW(ii)/2000, yLimits(1)+1, listEmission.BW(ii)/1000, diff(yLimits)-2], plotConfigROI{:});
+
+                    if ~isempty(postPlotConfig)
+                        set(hROI, postPlotConfig{:})
+                    end
+                end
+
+                switch bandObj.Context
+                    case {'appAnalise:PLAYBACK', 'appAnalise:SIGNALANALYSIS'}
+                        % ...
+
+                    case 'appAnalise:REPORT:BAND'
+                        switch LabelOffsetMode
+                            case 'bottom'
+                                yTextPosition = yLimits(1)+LabelOffset;
+                            otherwise % 'top'
+                                yTextPosition = yLimits(2)-LabelOffset;                        
+                        end
+
+                        text(hAxes, listEmission.Frequency(idxEmission), repmat(yLimits(1)+yTextPosition, numel(idxEmission), 1), string((idxEmission)'), plotConfigText{:});
+                end
             end
         end
 

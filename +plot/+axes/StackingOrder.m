@@ -2,9 +2,10 @@ classdef (Abstract) StackingOrder
 
     properties (Constant)
         %-----------------------------------------------------------------%
-        winAppAnalise   = {'mkrLabels', 'occTHR', 'mkrROI', 'ROI', 'Average', 'ClearWrite', 'MaxHold', 'mkrLine', 'Channels', 'BandLimits', 'Persistance', 'MinHold', 'WaterfallTime', 'Waterfall'}
-        winRFDataHub    = {}
-        winDriveTest    = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute'}
+        winAppAnalise     = {'mkrLabels', 'occTHR', 'mkrROI', 'ROI', 'Average', 'ClearWrite', 'MaxHold', 'mkrLine', 'Channels', 'BandLimits', 'Persistance', 'MinHold', 'WaterfallTime', 'Waterfall'}
+        winSignalAnalysis = {'ROI', 'Average', 'MaxHold', 'MinHold'}
+        winRFDataHub      = {}
+        winDriveTest      = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute'}
     end
 
 
@@ -24,7 +25,8 @@ classdef (Abstract) StackingOrder
                 case 'appAnalise:DriveTest'
                     refStackingOrder = plot.axes.StackingOrder.winDriveTest;
 
-                case 'appAnalise:SignalAnalysis'
+                case 'appAnalise:SIGNALANALYSIS'
+                    refStackingOrder = plot.axes.StackingOrder.winSignalAnalysis;
 
                 case 'appColeta:TASK'
 

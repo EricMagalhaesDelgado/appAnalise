@@ -46,6 +46,15 @@ function varargout = Config(plotTag, defaultProperties, customProperties)
             plotConfig  = {'Color', tempPlotConfig.Color, 'LineWidth', tempPlotConfig.LineWidth, 'PickableParts', 'none'};
             varargout   = {plotConfig, tempPlotConfig.YLimOffsetMode, tempPlotConfig.YLimOffset, tempPlotConfig.StepEffect};
 
+        case 'ROI'
+            if ischar(tempPlotConfig.Color)
+                tempPlotConfig.Color = hex2rgb(tempPlotConfig.Color);
+            end
+
+            plotConfig     = {'Color', tempPlotConfig.Color, 'MarkerSize', tempPlotConfig.MarkerSize, 'LineWidth', tempPlotConfig.LineWidth, 'EdgeAlpha', tempPlotConfig.EdgeAlpha, 'FaceAlpha', tempPlotConfig.FaceAlpha, 'Deletable', 0, 'FaceSelectable', 0, 'InteractionsAllowed', 'all'};
+            plotConfigText = {'Color', tempPlotConfig.LabelColor, 'BackgroundColor', tempPlotConfig.Color, 'FontSize', tempPlotConfig.LabelFontSize, 'FontWeight', 'bold', 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'PickableParts', 'none', 'Tag', 'ROI'};
+            varargout      = {plotConfig, plotConfigText, tempPlotConfig.LabelOffsetMode, tempPlotConfig.LabelOffset};
+
         case {'ClearWrite', 'Average', 'MinHold', 'MaxHold'}
             switch tempPlotConfig.Fcn
                 case 'line'

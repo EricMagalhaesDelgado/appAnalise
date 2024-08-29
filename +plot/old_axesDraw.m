@@ -231,7 +231,7 @@ classdef (Abstract) old_axesDraw
             if ~isempty(pks)
                 for ii = 1:height(pks)
                     if ischar(ROI.Color)
-                        ROI.Color = ccTools.fcn.hex2rgb(ROI.Color);
+                        ROI.Color = hex2rgb(ROI.Color);
                     end
                     drawrectangle(hAxes, 'Position', [pks.Frequency(ii)-pks.BW(ii)/2000, yLim(1)+1, pks.BW(ii)/1000, diff(yLim)-2],                   ...
                                          'Color', ROI.Color, 'EdgeAlpha', ROI.EdgeAlpha, 'FaceAlpha', ROI.FaceAlpha, 'MarkerSize', 5, 'LineWidth', 1, ...

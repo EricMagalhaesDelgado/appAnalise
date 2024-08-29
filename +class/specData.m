@@ -269,6 +269,52 @@ classdef specData < handle
         end
 
         %-----------------------------------------------------------------%
+        function filter(obj, timeStampFilter)
+            for ii = 1:numel(obj)
+                % FILTRAGEM
+                nSweeps = numel(obj(ii).Data{1});
+                originalTimeStamp = obj(ii).Data{1};
+
+                idxFilter = false(1, nSweeps);
+                for jj = 1:height(timeStampFilter)
+                    idxFilter = idxFilter | (originalTimeStamp < timeStampFilter.Observation(jj)) | (originalTimeStamp > timeStampFilter.Observation(jj));
+                end
+
+                if any(idxFilter)
+                    originalTimeStamp(idxFilter) = [];
+                end
+                
+                if numel(originalTimeStamp) <= 1
+                    error('specData:filter', 'Após aplicação do filtro de tempo deve restar ao menos duas amostras.')
+                end
+
+                obj(ii).Data{1}(idxFilter)   = [];
+                obj(ii).Data{2}(:,idxFilter) = [];
+                
+                % ESTATÍSTICA BÁSICA
+                basicStats(obj, ii)
+    
+                % Ajusta a informação da propriedade "RelatedFiles", que armazena
+                % o período de observação de cada arquivo, o número de amostras
+                % e uma estimativa do tempo de revisita.
+                HH = height(obj(ii).RelatedFiles);
+                for kk = HH:-1:1
+                    idxSweepsInFile = find((obj(ii).Data{1} >= obj(ii).RelatedFiles.BeginTime(kk)) & (obj(ii).Data{1} <= obj(ii).RelatedFiles.EndTime(kk)));
+                    if isempty(idxSweepsInFile)
+                        obj(ii).RelatedFiles(kk,:) = [];
+
+                    else
+                        BeginTime = obj(ii).Data{1}(idxSweepsInFile(1));
+                        EndTime   = obj(ii).Data{1}(idxSweepsInFile(end));
+                        nSweeps   = numel(idxSweepsInFile);
+    
+                        obj(ii).RelatedFiles(kk,5:8) = {BeginTime, EndTime, nSweeps, seconds(EndTime-BeginTime)/(nSweeps-1)};
+                    end
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
         function PreAllocationData(obj, idx, fileType)
             arguments
                 obj

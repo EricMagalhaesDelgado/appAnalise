@@ -28,7 +28,7 @@ function Controller(app, Mode)
                     case 'Definitiva'
                         fileName = [class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'Report', app.report_Issue.Value) '.html'];
                         fileID   = fopen(fileName, 'w', 'native', 'ISO-8859-1');
-
+ 
                     case 'Preliminar'
                         fileName = [class.Constants.DefaultFileName(app.config_Folder_userPath.Value, '~Report', app.report_Issue.Value) '.html'];
                         fileID   = fopen(fileName, 'w');
@@ -46,14 +46,14 @@ function Controller(app, Mode)
                 end
                 web(fileName, '-new')
 
-
+            
             case {'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
-                Peaks = report.PreviewGenerator(app, idx, reportInfo);
+                Peaks = report.PreviewGenerator(app, idx, reportInfo.DetectionMode);
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
 
 
             case 'auxApp.winSignalAnalysis'
-                [~, countTable] = report.ReportGenerator_Table_Summary(app.CallingApp.peaksTable, app.CallingApp.exceptionList);
+                [~, countTable] = report.ReportGenerator_Table_Summary(app.projectData.peaksTable, app.projectData.exceptionList);
                 tableStr = ReportGenerator_Aux3(app.CallingApp, idx, countTable);
 
                 defaultFilename = class.Constants.DefaultFileName(app.CallingApp.config_Folder_userPath.Value, 'preReport', app.CallingApp.report_Issue.Value);
@@ -80,7 +80,7 @@ end
 function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
     switch Mode
         case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
-            if isempty(app.General.AppVersion.fiscaliza)
+            if isempty(app.General.AppVersion.fiscaliza) && strcmp(Mode, 'Report')
                 app.General.AppVersion = fcn.startup_Versions("Full", app.rootFolder);
             end
         
@@ -203,10 +203,9 @@ function tableStr = ReportGenerator_Aux3(app, idx, countTable)
                                   app.specData(ii).RelatedFiles.Description{1}, ...
                                   strjoin(app.specData(ii).RelatedFiles.File, ', ')};
             
-            Tag = sprintf('%s\nID %d: %.3f - %.3f MHz', app.specData(ii).Receiver,                  ...
-                                                        app.specData(ii).RelatedFiles.ID(1),        ...
-                                                        app.specData(ii).MetaData.FreqStart / 1e+6, ...
-                                                        app.specData(ii).MetaData.FreqStop  / 1e+6);
+            Tag = sprintf('%s\n%.3f - %.3f MHz', app.specData(ii).Receiver,                  ...
+                                                 app.specData(ii).MetaData.FreqStart / 1e+6, ...
+                                                 app.specData(ii).MetaData.FreqStop  / 1e+6);
             
             idx1 = find(strcmp(app.projectData.peaksTable.Tag, Tag));
             if ~isempty(idx1)

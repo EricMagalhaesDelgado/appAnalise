@@ -24,10 +24,9 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
     RootFolder    = reportInfo.General.RootFolder;
     Template      = jsondecode(reportInfo.Model.Template);
     
-  % SpecInfo      = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
     SpecInfo      = app.specData(idx);
     exceptionList = app.projectData.exceptionList;
-    peaksTable    = Fcn_Peaks(app, SpecInfo, reportInfo, exceptionList);    
+    peaksTable    = Fcn_Peaks(app, SpecInfo, reportInfo.DetectionMode, exceptionList);    
     
     % HTML header (style)    
     if strcmp(reportInfo.General.Version, 'Preliminar')
@@ -307,12 +306,12 @@ end
 
 
 %-------------------------------------------------------------------------%
-function peaksTable = Fcn_Peaks(app, SpecInfo, reportInfo, exceptionList)
+function peaksTable = Fcn_Peaks(app, SpecInfo, DetectionMode, exceptionList)
 
     peaksTable = [];
 
     for ii = 1:numel(SpecInfo)
-        Peaks = report.ReportGenerator_Peaks(app, SpecInfo, ii, reportInfo);
+        Peaks = report.ReportGenerator_Peaks(app, SpecInfo, ii, DetectionMode);
 
         if ~isempty(Peaks)
             if isempty(peaksTable); peaksTable = Peaks;
@@ -359,7 +358,12 @@ function Peaks = Fcn_exceptionList(Peaks, exceptionList)
         emissionIndex = find(cellfun(@(x) isfield(jsondecode(x), 'Description'), Peaks.Detection))';
         for ii = emissionIndex
             emissionInfo = jsondecode(Peaks.Detection{ii});
-            Peaks.Description{ii} = sprintf('%s <p class="Tabela_Texto_8" contenteditable="false" style="color: #808080;">(%s)', Peaks.Description{ii}, emissionInfo.Description); 
+            switch Peaks.Description{ii}
+                case '-'
+                    Peaks.Description{ii} = sprintf('<p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', strjoin(emissionInfo.Description, '<br>')); 
+                otherwise
+                    Peaks.Description{ii} = sprintf('%s <p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', Peaks.Description{ii}, strjoin(emissionInfo.Description, '<br>')); 
+            end
         end
     end
 end

@@ -67,7 +67,7 @@ classdef (Abstract) datatip
             if isempty(dtParent)
                 return
             elseif ~isprop(dtParent, 'DataTipTemplate')
-                % 'images.roi.line' não aceita DataTip.
+                % 'images.roi.line' e 'images.roi.Rectangle' não suportam DataTip
                 try
                     dt = datatip(dtParent, Visible = 'off');
                 catch
