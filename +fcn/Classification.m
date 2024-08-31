@@ -31,7 +31,7 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
     
 
     % Valores iniciais da classificação de cada emissão...
-    Peaks.Type(:)           = {'Pendente de identificação'};
+    Peaks.Type(:)           = {'Pendente identificação'};
     Peaks.Regulatory(:)     = {'Não licenciada'};
     Peaks.Service(:)        = int16(-1);
     Peaks.Station(:)        = int32(-1);

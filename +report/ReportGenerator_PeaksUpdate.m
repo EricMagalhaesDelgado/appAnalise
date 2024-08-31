@@ -34,4 +34,6 @@ function ReportGenerator_PeaksUpdate(app, idxThreads, Peaks)
             end
         end
     end
+
+    app.projectData.peaksTable = sortrows(app.projectData.peaksTable, 'Frequency');
 end
