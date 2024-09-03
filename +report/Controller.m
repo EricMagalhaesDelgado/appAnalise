@@ -47,12 +47,12 @@ function Controller(app, Mode)
                 web(fileName, '-new')
 
             
-            case {'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
+            case {'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission'}
                 Peaks = report.PreviewGenerator(app, idx, reportInfo.DetectionMode);
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
 
 
-            case 'auxApp.winSignalAnalysis'
+            case 'signalAnalysis.externalJSON'
                 [~, countTable] = report.ReportGenerator_Table_Summary(app.projectData.peaksTable, app.projectData.exceptionList);
                 tableStr = ReportGenerator_Aux3(app.CallingApp, idx, countTable);
 
@@ -79,7 +79,7 @@ end
 %-------------------------------------------------------------------------%
 function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
     switch Mode
-        case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
+        case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission'}
             if isempty(app.General.AppVersion.fiscaliza) && strcmp(Mode, 'Report')
                 app.General.AppVersion = fcn.startup_Versions("Full", app.rootFolder);
             end
@@ -87,7 +87,7 @@ function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
             reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
             [idx, reportInfo]   = report.GeneralInfo(app, Mode, reportTemplateIndex);
 
-        case 'auxApp.winSignalAnalysis'
+        case 'signalAnalysis.externalJSON'
             reportTemplateIndex = find(strcmp(app.CallingApp.report_ModelName.Items, app.CallingApp.report_ModelName.Value), 1) - 1;
             [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
     end

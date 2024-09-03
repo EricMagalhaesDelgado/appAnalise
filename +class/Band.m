@@ -245,7 +245,7 @@ classdef Band < handle
                 upYLim   = maxValue - mod(maxValue, 10) + 10;
 
                 % cLimits
-                downCLim = fcn.noiseEstimation(specData, .05, .15, 3);
+                downCLim = RF.noiseEstimation(specData, .05, .15, 3);
                 upCLim   = upYLim - 10;
                 downCLim = max(downCLim, upCLim-30);
 

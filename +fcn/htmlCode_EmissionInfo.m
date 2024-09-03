@@ -1,4 +1,4 @@
-function [htmlContent, emissionTag, userDescription] = htmlCode_EmissionInfo(specData, idx, projectData, idxPeak, idxException)
+function [htmlContent, emissionTag, userDescription, stationInfo] = htmlCode_EmissionInfo(specData, idx, projectData, idxPeak, idxException)
 
     peaksTable      = projectData.peaksTable(idxPeak, :);
     exceptionList   = projectData.exceptionList(idxException, :);
@@ -9,21 +9,38 @@ function [htmlContent, emissionTag, userDescription] = htmlCode_EmissionInfo(spe
         peaksTable.Regulatory{1} = sprintf('<font style="color: #c94756;">%s</font>', peaksTable.Regulatory{1});
     end
 
-    if ~isempty(exceptionList) && ~strcmp(exceptionList.Regulatory{1}, 'Licenciada')
-        exceptionList.Regulatory{1} = sprintf('<font style="color: #c94756;">%s</font>', exceptionList.Regulatory{1});
+    if ~isempty(exceptionList) 
+        if ~strcmp(exceptionList.Regulatory{1}, 'Licenciada')
+            exceptionList.Regulatory{1} = sprintf('<font style="color: #c94756;">%s</font>', exceptionList.Regulatory{1});
+        end
     end
 
     % Identificando registros que foram editados pelo usuário:
     columns2Compare = {'Regulatory', 'Service', 'Station', 'Description', 'Distance', 'Type', 'Irregular', 'RiskLevel'};
+    stationInfo = [];
     for ii = 1:numel(columns2Compare)
         columnName = columns2Compare{ii};
         if isempty(exceptionList) || isequal(peaksTable.(columnName), exceptionList.(columnName))
             columnsDiff.(columnName) = string(peaksTable.(columnName));
+            stationInfo.(columnName) = peaksTable.(columnName);
         else
             columnsDiff.(columnName) = sprintf('<del>%s</del> → <font style="color: #c94756;">%s</font>', string(peaksTable.(columnName)), string(exceptionList.(columnName)));
+            stationInfo.(columnName) = exceptionList.(columnName);
         end
     end
 
+    % stationInfo 
+    regexpTokens = regexp(stationInfo.Description, 'Fistel=(\d+),.*ID=#(\d+), Latitude=(-?\d+\.\d+)º, Longitude=(-?\d+\.\d+)º', 'tokens');
+    if ~isempty(regexpTokens{1})
+        stationInfo.Fistel    = int64(str2double(regexpTokens{1}{1}{1}));
+        stationInfo.ID        = int32(str2double(regexpTokens{1}{1}{2}));
+        stationInfo.Latitude  = str2double(regexpTokens{1}{1}{3});
+        stationInfo.Longitude = str2double(regexpTokens{1}{1}{4});
+    else
+        stationInfo.ID        = [];
+    end
+
+    % HTML
     userDescription = '';
     detectionInfo   = jsondecode(peaksTable.Detection{1});    
     if isfield(detectionInfo, 'Description')

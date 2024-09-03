@@ -21,7 +21,7 @@ classdef (Abstract) draw2D
                 case 'line'
                     hLine = line(hAxes, XArray, YArray, plotConfig{:});
                 case 'area'
-                    hLine = area(hAxes, XArray, YArray, 'BaseValue', hAxes.YLim(1), plotConfig{:});
+                    hLine = area(hAxes, XArray, YArray, 'BaseValue', hAxes.YLim(1), 'FaceAlpha', 0.25, plotConfig{:});
             end
 
             plot.axes.StackingOrder.execute(hAxes, bandObj.Context)

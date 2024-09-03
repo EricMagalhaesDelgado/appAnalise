@@ -57,7 +57,8 @@ classdef (Abstract) datatip
                                                    'winRFDataHub.SelectedNode' ...
                                                    'winRFDataHub.Histogram1' ...
                                                    'winRFDataHub.Histogram2' ...
-                                                   'winRFDataHub.SimulationLink'})}
+                                                   'RFLink.LOS', ...
+                                                   'RFLink.Terrain'})}
             end
 
             arguments (Repeating)
@@ -84,11 +85,7 @@ classdef (Abstract) datatip
                     dtParent.DataTipTemplate.DataTipRows(1).Label  = '';
                     dtParent.DataTipTemplate.DataTipRows(1).Format = '%.3f MHz';                    
                     dtParent.DataTipTemplate.DataTipRows(2).Label  = '';
-                    try
                     dtParent.DataTipTemplate.DataTipRows(2).Format = ['%.1f ' hUnit];
-                    catch ME
-                        ME
-                    end
 
                 case 'Frequency+Occupancy'
                     hUnit = varargin{1};
@@ -196,11 +193,19 @@ classdef (Abstract) datatip
                     dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Serviço:';
                     dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Registros:';
 
-                case 'winRFDataHub.SimulationLink'
-                    dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Distância:';
-                    dtParent.DataTipTemplate.DataTipRows(1).Format = '%.1f km';
-                    dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Elevação:';
-                    dtParent.DataTipTemplate.DataTipRows(2).Format = '%.1f m';
+                case 'RFLink.LOS'
+                    hTable = varargin{1};
+
+                    dtParent.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Distância:',    hTable.Distance, '%.1f km');
+                    dtParent.DataTipTemplate.DataTipRows(2) = dataTipTextRow('Altura:',       hTable.Height,   '%.1f m');
+                    dtParent.DataTipTemplate.DataTipRows(3) = dataTipTextRow('Espaço livre:', hTable.PathLoss, '%.1f dB');
+
+                case 'RFLink.Terrain'
+                    hTable = varargin{1};
+
+                    dtParent.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Latitude:',  hTable.Latitude,  '%.6fº');
+                    dtParent.DataTipTemplate.DataTipRows(2) = dataTipTextRow('Longitude:', hTable.Longitude, '%.6fº');
+                    dtParent.DataTipTemplate.DataTipRows(3) = dataTipTextRow('Elevação:',  hTable.Elevation, '%.1f m');
             end
 
             if exist('dt', 'var')

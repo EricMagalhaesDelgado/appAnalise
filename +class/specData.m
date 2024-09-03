@@ -339,6 +339,25 @@ classdef specData < handle
         function IDs = IDList(obj)
             IDs = arrayfun(@(x) x.RelatedFiles.ID(1), obj);
         end
+
+        %-----------------------------------------------------------------%
+        function antennaHeight = AntennaHeight(obj, idx, referenceValue)
+            antennaHeight = NaN;
+
+            if isfield(obj(idx).MetaData.Antenna, 'Height')
+                Height = obj(idx).MetaData.Antenna.Height;
+
+                if isnumeric(Height) && isfinite(Height) && (Height > 0)
+                    antennaHeight = Height;
+                elseif ischar(Height)
+                    antennaHeight = str2double(extractBefore(Height, 'm'));
+                end
+            end
+
+            if isnan(antennaHeight)
+                antennaHeight = referenceValue;
+            end
+        end
     end
 
 
@@ -424,13 +443,11 @@ classdef specData < handle
                 % Mapeamento entre os fluxos...
                 SpecInfo_MetaData = ComparableMetaData(SpecInfo, generalSettings);
                 for mm = 1:numel(SpecInfo)
-                    SpecInfo_GPS      = [SpecInfo(mm).GPS.Latitude, SpecInfo(mm).GPS.Longitude];
                     specData_MetaData = ComparableMetaData(obj, generalSettings);
         
                     idx1 = [];
                     for kk = 1:numel(obj)
-                        specData_GPS = [obj(kk).GPS.Latitude, obj(kk).GPS.Longitude];
-                        Distance_GPS = fcn.gpsDistance(SpecInfo_GPS, specData_GPS) * 1000;
+                        Distance_GPS = deg2km(distance(SpecInfo(mm).GPS.Latitude, SpecInfo(mm).GPS.Longitude, obj(kk).GPS.Latitude, obj(kk).GPS.Longitude)) * 1000;
         
                         if isequal(specData_MetaData(kk), SpecInfo_MetaData(mm)) && (Distance_GPS <= generalSettings.Merge.Distance)
                             idx1 = kk;
@@ -544,13 +561,6 @@ classdef specData < handle
                     % Mapeamento entre os fluxos de espectro e as canalizações
                     % aplicáveis à cada faixa.
                     obj(ii).UserData(1).channelLibIndex = FindRelatedBands(obj(ii).callingApp.channelObj, obj(ii));
-                end
-
-                % Avaliando informações customizadas do playback, caso
-                % existentes.
-                [status, customPlayback] = fcn.checkCustomPlaybackFieldNames(obj(ii), obj(ii).callingApp.General);
-                if status
-                    obj(ii).UserData.customPlayback = customPlayback;
                 end
             end
         

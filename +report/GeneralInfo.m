@@ -12,7 +12,7 @@ function [idx, reportInfo] = GeneralInfo(app, Mode, reportTemplateIndex)
             idx = app.play_PlotPanel.UserData.NodeData;
             detectionMode = 'Manual';
 
-        case {'report.AddOrDeleteThread', 'auxApp.winSignalAnalysis'}
+        case {'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission', 'signalAnalysis.externalJSON'}
             idx = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
             detectionMode = 'Manual';
     end

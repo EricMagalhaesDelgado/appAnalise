@@ -77,7 +77,7 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
             auxDistance = [];
             
             if ~isempty(idx2)
-                auxDistance = fcn.gpsDistance(struct('lat', SpecInfo(idx).GPS.Latitude, 'lon', SpecInfo(idx).GPS.Longitude), RFDataHub(idx2, 6:7));
+                auxDistance = deg2km(distance(SpecInfo(idx).GPS.Latitude, SpecInfo(idx).GPS.Longitude, RFDataHub.Latitude(idx2), RFDataHub.Longitude(idx2)));
             end
 
             % Como referência de BW, usa-se a BW da própria emissão. Caso o

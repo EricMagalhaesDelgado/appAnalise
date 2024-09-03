@@ -1,5 +1,5 @@
 {
-    "version": 0.29,
+    "version": 0.37,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -196,9 +196,9 @@
             "Fcn": "area",
             "LineStyle": "-",
             "LineWidth": 0.5,
-            "Color": "#005cd1",
-            "EdgeColor": "#005cd1",
-            "FaceColor": "#005cd1"
+            "Color": "#4A90E2",
+            "EdgeColor": "#4A90E2",
+            "FaceColor": "#4A90E2"
         },
         "ClearWrite": {
             "Fcn": "line",
@@ -218,17 +218,17 @@
             "Fcn": "line",
             "LineStyle": "-",
             "LineWidth": 0.5,
-            "Color": "#00ff00",
-            "EdgeColor": "#00ff00",
-            "FaceColor": "#00ff00"
+            "Color": "#00cc66",
+            "EdgeColor": "#00cc66",
+            "FaceColor": "#00cc66"
         },
         "MaxHold": {
             "Fcn": "line",
             "LineStyle": "-",
             "LineWidth": 0.5,
-            "Color": "#ff12a6",
-            "EdgeColor": "#ff12a6",
-            "FaceColor": "#ff12a6"
+            "Color": "#FF5CAD",
+            "EdgeColor": "#FF5CAD",
+            "FaceColor": "#FF5CAD"
         },
         "Persistance": {
             "Interpolation": "nearest",

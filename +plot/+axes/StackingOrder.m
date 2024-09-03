@@ -4,6 +4,7 @@ classdef (Abstract) StackingOrder
         %-----------------------------------------------------------------%
         winAppAnalise     = {'mkrLabels', 'occTHR', 'mkrROI', 'ROI', 'Average', 'ClearWrite', 'MaxHold', 'mkrLine', 'Channels', 'BandLimits', 'Persistance', 'MinHold', 'WaterfallTime', 'Waterfall'}
         winSignalAnalysis = {'ROI', 'Average', 'MaxHold', 'MinHold'}
+        RFLink            = {'Station', 'Link', 'Fresnel', 'FirstObstruction', 'Terrain'}
         winRFDataHub      = {}
         winDriveTest      = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute'}
     end
@@ -15,25 +16,16 @@ classdef (Abstract) StackingOrder
             switch clientID
                 case 'appAnalise:PLAYBACK'
                     refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
-
                 case 'appAnalise:REPORT'
                     refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
-
                 case 'appAnalise:RFDataHub'
                     refStackingOrder = plot.axes.StackingOrder.winRFDataHub;
-
                 case 'appAnalise:DriveTest'
                     refStackingOrder = plot.axes.StackingOrder.winDriveTest;
-
                 case 'appAnalise:SIGNALANALYSIS'
                     refStackingOrder = plot.axes.StackingOrder.winSignalAnalysis;
-
-                case 'appColeta:TASK'
-
-                case 'webapp RFDataHub'
-
-                case 'webapp SCH'
-
+                case 'RFLink'
+                    refStackingOrder = plot.axes.StackingOrder.RFLink;
                 otherwise
                     error('Unexpected option.')
             end

@@ -136,7 +136,12 @@ classdef (Abstract) RFDataHub
 
 
         %-----------------------------------------------------------------%
-        function stdDescription = Description(RFDataHub, idx)
+        function stdDescription = Description(RFDataHub, idx, addAuxiliarInfo)
+            arguments 
+                RFDataHub
+                idx
+                addAuxiliarInfo logical = true
+            end
             mergeCount = RFDataHub.MergeCount(idx);
             if mergeCount == "1"; mergeNote = '';
             else;                 mergeNote = sprintf(', M=%s', mergeCount);
@@ -151,6 +156,9 @@ classdef (Abstract) RFDataHub
                                                                                          mergeNote,                   ...
                                                                                          RFDataHub.Location(idx),     ...
                                                                                          RFDataHub.State(idx));
+            if addAuxiliarInfo
+                stdDescription = sprintf('%s @ (ID=#%d, Latitude=%.6fº, Longitude=%.6fº)', stdDescription, idx, RFDataHub.Latitude(idx), RFDataHub.Longitude(idx));
+            end
         end
 
 
@@ -185,7 +193,7 @@ classdef (Abstract) RFDataHub
             Station     = RFDataHub.Station(idx(1));
             Description = class.RFDataHub.Description(RFDataHub, idx(1));
                         
-            Distance    = fcn.gpsDistance([latNode, longNode], [Latitude, Longitude]);
+            Distance    = deg2km(distance(latNode, longNode, Latitude, Longitude));
             stationInfo = struct('ID', ID, 'Frequency', Frequency, 'Service', Service, 'Station', Station, 'Description', Description, 'Distance', Distance);
         end
 
