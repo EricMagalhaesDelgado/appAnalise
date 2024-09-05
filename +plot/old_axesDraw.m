@@ -315,9 +315,14 @@ classdef (Abstract) old_axesDraw
                 plot.old_axesDraw.DriveTestFilterPlot(hAxes, Parameters, 'GeographicPlot');
             end            
             plot.old_axesDraw.DriveTestRoutePlot(hAxes, Parameters)
-            plot.old_axesDraw.DriveTestDistortionlPlot(hAxes, Parameters);
-            plot.old_axesDraw.DriveTestDensityPlot(hAxes, Parameters);
             plot.old_axesDraw.DriveTestPointsPlot(hAxes, Parameters);
+
+            switch Parameters.plotType
+                case 'distortion'
+                    plot.old_axesDraw.DriveTestDistortionlPlot(hAxes, Parameters);
+                case 'density'
+                    plot.old_axesDraw.DriveTestDensityPlot(hAxes, Parameters);
+            end            
 
             % PÓS-PLOT
             plot.axes.StackingOrder.execute(hAxes, 'appAnalise:DriveTest')
@@ -378,7 +383,6 @@ classdef (Abstract) old_axesDraw
             end
         end
 
-
         %-----------------------------------------------------------------%
         function DriveTestRoutePlot(hAxes, Parameters)
             delete(findobj(hAxes, 'Tag', 'OutRoute', '-or', 'Tag', 'InRoute'))
@@ -394,13 +398,12 @@ classdef (Abstract) old_axesDraw
                 otherwise;   markerSize = 8*Parameters.route_MarkerSize;
             end
 
-            hOutRoute   = geoplot(hAxes, OutTable.Lat, OutTable.Long, 'Marker', '.', 'Color', Parameters.route_OutColor, 'MarkerFaceColor', Parameters.route_OutColor, 'MarkerEdgeColor', Parameters.route_OutColor, 'MarkerSize', markerSize, 'LineStyle', 'none',                     'Tag', 'OutRoute');
-            hInRoute    = geoplot(hAxes,  InTable.Lat,  InTable.Long, 'Marker', '.', 'Color', Parameters.route_InColor,  'MarkerFaceColor', Parameters.route_InColor,  'MarkerEdgeColor', Parameters.route_InColor,  'MarkerSize', markerSize, 'LineStyle', Parameters.route_LineStyle, 'Tag', 'InRoute');
+            hOutRoute   = geoplot(hAxes, OutTable.Latitude, OutTable.Longitude, 'Marker', '.', 'Color', Parameters.route_OutColor, 'MarkerFaceColor', Parameters.route_OutColor, 'MarkerEdgeColor', Parameters.route_OutColor, 'MarkerSize', markerSize, 'LineStyle', 'none',                     'Tag', 'OutRoute');
+            hInRoute    = geoplot(hAxes,  InTable.Latitude,  InTable.Longitude, 'Marker', '.', 'Color', Parameters.route_InColor,  'MarkerFaceColor', Parameters.route_InColor,  'MarkerEdgeColor', Parameters.route_InColor,  'MarkerSize', markerSize, 'LineStyle', Parameters.route_LineStyle, 'Tag', 'InRoute');
 
             plot.datatip.Template(hOutRoute, 'Coordinates')
             plot.datatip.Template(hInRoute, 'Coordinates')
         end
-
 
         %-----------------------------------------------------------------%
         function DriveTestDistortionlPlot(hAxes, Parameters)
@@ -412,8 +415,7 @@ classdef (Abstract) old_axesDraw
             end
 
             hDistortion = geoscatter(hAxes, tempTable{:,1}, tempTable{:,2}, [], tempTable{:,3},  ...
-                                            'filled', 'SizeData', 20*Parameters.distortion_Size, ...
-                                            'Visible', Parameters.distortion_Visibility, 'Tag', 'Distortion');
+                                            'filled', 'SizeData', 20*Parameters.plotSize, 'Tag', 'Distortion');
             plot.datatip.Template(hDistortion, 'SweepID+ChannelPower+Coordinates')
         end
 
@@ -432,9 +434,9 @@ classdef (Abstract) old_axesDraw
                 weights = weights+abs(min(weights));
             end
 
-            geodensityplot(hAxes, tempTable{:,1}, tempTable{:,2}, weights,                     ...
-                                  'FaceColor','interp', 'Radius', 100*Parameters.density_Size, ...
-                                  'PickableParts', 'none', 'Visible', Parameters.density_Visibility, 'Tag', 'Density');
+            geodensityplot(hAxes, tempTable{:,1}, tempTable{:,2}, weights,                 ...
+                                  'FaceColor','interp', 'Radius', 100*Parameters.plotSize, ...
+                                  'PickableParts', 'none', 'Tag', 'Density');
         end
 
 

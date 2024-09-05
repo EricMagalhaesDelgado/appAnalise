@@ -75,11 +75,38 @@ classdef (Abstract) Interactivity
         end
 
         %-----------------------------------------------------------------%
+        function GeographicRegionZoomInteraction(hAxes, hToolbarButton)
+            disableDefaultInteractivity(hAxes)
+            hToolbarButton.ImageSource = 'ZoomRegion_20Filled.png';
+            r = drawrectangle(hAxes, 'FaceSelectable', 0,           ...
+                                     'InteractionsAllowed', 'none', ...
+                                     'LineWidth', 1,                ...
+                                     'FaceAlpha', 0);
+
+            if ~isempty(r.Position)                           && ...
+                    all(r.Position(3:4) > 0)                  && ...
+                    r.Position(1) >= hAxes.LatitudeLimits(1)  && ...
+                    r.Position(1) <  hAxes.LatitudeLimits(2)  && ...
+                    r.Position(2) >= hAxes.LongitudeLimits(1) && ...
+                    r.Position(2) <  hAxes.LongitudeLimits(2)
+
+                newLatitudeLimits  = [r.Position(1), sum(r.Position([1,3]))];
+                newLongitudeLimits = [r.Position(2), sum(r.Position([2,4]))];
+
+                geolimits(hAxes, newLatitudeLimits, newLongitudeLimits)
+            end
+
+            delete(r)
+            hToolbarButton.ImageSource = 'ZoomRegion_20.png';
+            enableDefaultInteractivity(hAxes)
+        end
+
+        %-----------------------------------------------------------------%
         % DEFAULT
         %-----------------------------------------------------------------%
         function DefaultCreation(hAxes, interactionList)
             arguments
-                hAxes           matlab.ui.control.UIAxes
+                hAxes
                 interactionList matlab.graphics.interaction.interface.BaseInteraction = [dataTipInteraction, regionZoomInteraction]
             end
 
