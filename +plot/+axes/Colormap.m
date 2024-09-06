@@ -1,6 +1,6 @@
 function Colormap(hAxes, colormapName)
 
-    if isempty(hAxes.UserData) || (isfield(hAxes.UserData, 'Colormap') && ~strcmp(hAxes.UserData.Colormap, colormapName))
+    if isempty(hAxes.UserData) || ~isfield(hAxes.UserData, 'Colormap') || (isfield(hAxes.UserData, 'Colormap') && ~strcmp(hAxes.UserData.Colormap, colormapName))
         colormap(hAxes, colormapName);
         hAxes.Colormap(1,:) = hAxes.Color;
     

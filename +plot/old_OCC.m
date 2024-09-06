@@ -2,7 +2,7 @@ function old_OCC(app, idx, Type, occIndex)
 
     switch Type
         case 'Creation'
-            if app.tool_Occupancy.Value
+            if app.axesTool_Occupancy.UserData.Value
                 DeleteLines(app)
 
                 xArray  = app.bandObj.xArray;

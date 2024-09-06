@@ -322,10 +322,11 @@ classdef (Abstract) old_axesDraw
                     plot.old_axesDraw.DriveTestDistortionlPlot(hAxes, Parameters);
                 case 'density'
                     plot.old_axesDraw.DriveTestDensityPlot(hAxes, Parameters);
-            end            
+            end
+            geolimits(hAxes, 'auto')
 
             % PÓS-PLOT
-            plot.axes.StackingOrder.execute(hAxes, 'appAnalise:DriveTest')
+            plot.axes.StackingOrder.execute(hAxes, 'appAnalise:DRIVETEST')
         end
 
 
@@ -341,6 +342,7 @@ classdef (Abstract) old_axesDraw
             gpsMatrix  = vertcat(gpsPerFile.Matrix);
 
             geoplot(hAxes, gpsMatrix(:,1), gpsMatrix(:,2));
+            geolimits(hAxes, 'auto')
         end
         
         
@@ -414,9 +416,13 @@ classdef (Abstract) old_axesDraw
                 case 'BinData'; tempTable = Parameters.binTable;
             end
 
+            try
             hDistortion = geoscatter(hAxes, tempTable{:,1}, tempTable{:,2}, [], tempTable{:,3},  ...
                                             'filled', 'SizeData', 20*Parameters.plotSize, 'Tag', 'Distortion');
             plot.datatip.Template(hDistortion, 'SweepID+ChannelPower+Coordinates')
+            catch ME
+                getReport(ME)
+            end
         end
 
 

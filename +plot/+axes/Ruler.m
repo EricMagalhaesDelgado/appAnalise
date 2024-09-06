@@ -3,6 +3,7 @@ function Ruler(hAxes, xLim, yLim)
         case 'datetime'
             if ~isa(hAxes.YAxis, 'matlab.graphics.axis.decorator.DatetimeRuler')
                 matlab.graphics.internal.configureAxes(hAxes, xLim, yLim)
+                hAxes.YAxis.SecondaryLabelFormat = 'MMMM dd, yyyy';
             end
     
         otherwise

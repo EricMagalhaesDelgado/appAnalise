@@ -6,7 +6,7 @@ classdef (Abstract) StackingOrder
         winSignalAnalysis = {'ROI', 'Average', 'MaxHold', 'MinHold'}
         RFLink            = {'Station', 'Link', 'Fresnel', 'FirstObstruction', 'Terrain'}
         winRFDataHub      = {}
-        winDriveTest      = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute'}
+        winDriveTest      = {'ROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute', 'ClearWrite', 'Persistance', 'WaterfallTime', 'Waterfall'}
     end
 
 
@@ -20,7 +20,7 @@ classdef (Abstract) StackingOrder
                     refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
                 case 'appAnalise:RFDataHub'
                     refStackingOrder = plot.axes.StackingOrder.winRFDataHub;
-                case 'appAnalise:DriveTest'
+                case 'appAnalise:DRIVETEST'
                     refStackingOrder = plot.axes.StackingOrder.winDriveTest;
                 case 'appAnalise:SIGNALANALYSIS'
                     refStackingOrder = plot.axes.StackingOrder.winSignalAnalysis;

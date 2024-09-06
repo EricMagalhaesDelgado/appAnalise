@@ -50,7 +50,7 @@ classdef (Abstract) Layout
                     case 'matlab.graphics.axis.decorator.DatetimeRuler'
                         ylabel(hAxes, 'Instante')
                     otherwise
-                        ylabel(hAxes, 'Amostra')
+                        ylabel(hAxes, 'Varredura')
                 end
             end
 

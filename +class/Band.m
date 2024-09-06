@@ -2,9 +2,9 @@ classdef Band < handle
 
     properties
         %-----------------------------------------------------------------%
-        Context
+        Context     char {mustBeMember(Context, {'appAnalise:PLAYBACK', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'})} = 'appAnalise:PLAYBACK' % 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION'
         callingApp
-
+        
         Receiver
         nSweeps
         DataPoints
@@ -24,9 +24,8 @@ classdef Band < handle
         %-----------------------------------------------------------------%
         function obj = Band(Context, callingApp)
             obj.Context    = Context;
-            obj.callingApp = callingApp;
+            obj.callingApp = callingApp;            
         end
-
 
         %-----------------------------------------------------------------%
         function axesLimits = update(obj, idx, varargin)
@@ -54,24 +53,61 @@ classdef Band < handle
             axesLimits     = Limits(obj, idx, varargin{:});
         end
 
-
         %-----------------------------------------------------------------%
         function axesLimits = Limits(obj, idx, varargin)
+            % Nos contextos "appAnalise:PLAYBACK" e "appAnalise:REPORT:BAND"
+            % o plot é orientado à faixa de frequência. Neste caso, os limites
+            % dos eixos serão manuais - selecionados diretamente no PLAYBACK - 
+            % ou automáticos.
+
+            % Já nos contextos cujo plot é orientado à emissão, os limites serão
+            % delimitados pelas características da emissão (FreqCenter e BW) e 
+            % pela variável BandGuard.
+
+            % O campo "xIndexLimits" é aplicável apenas ao plot orientado à
+            % emissão. Mantido em todos os contextos para garantir uma estrutura
+            % uniforme de axesLimits.
+
             switch obj.Context
-                case 'appAnalise:PLAYBACK'
-                  % axesLimits = struct('xLim', {}, 'yLevelLim', {}, 'yTimeLim', {})
-                    axesLimits = playbackLimits(obj, idx);
+                case {'appAnalise:PLAYBACK', 'appAnalise:REPORT:BAND'}
+                    specData = obj.callingApp.specData(idx);        
+                    switch specData.UserData.customPlayback.Type
+                        case 'manual'
+                            xLimits      = specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits;
+                            yLevelLimits = specData.UserData.customPlayback.Parameters.Controls.LevelLimits;
+                            cLimits      = specData.UserData.customPlayback.Parameters.Waterfall.LevelLimits;
 
-                case 'appAnalise:REPORT'
-                    axesLimits = reportLimits(obj, idx);
-                    error('PENDENTE AJUSTAR IMPLEMENTAÇÃO')
+                            if isequal(cLimits, [0,0])
+                                cLimits  = [0,1];
+                            end
+        
+                            if issorted(xLimits, 'strictascend') && issorted(yLevelLimits, 'strictascend') && issorted(cLimits, 'strictascend')
+                                axesLimits = struct('xLim',         xLimits,                                      ...
+                                                    'xIndexLimits', freq2idx(obj, xLimits * 1e+6),                ...
+                                                    'yLevelLim',    yLevelLimits,                                 ...
+                                                    'yTimeLim',     [specData.Data{1}(1), specData.Data{1}(end)], ...
+                                                    'cLim',         cLimits);
 
-                case 'appAnalise:SIGNALANALYSIS'
-                    idxEmission = varargin{1};
-                    axesLimits = playbackAutomaticLimits(obj, idx, idxEmission);
+                                if specData.Data{1}(1) == specData.Data{1}(end)
+                                    axesLimits.yTimeLim(2) = axesLimits.yTimeLim(2) + seconds(1);
+                                end        
+                            else
+                                axesLimits = XYCLimits(obj, idx);
+                            end        
+                    otherwise
+                        axesLimits = XYCLimits(obj, idx);
+                    end
+
+                case {'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'}
+                    if isempty(varargin)
+                        error('Band:Limits:UnexpectedNumberOfInputArguments', 'Unexpected number of input arguments')
+                    end
+
+                  % idxEmission = varargin{1};
+                  % GuardBand   = varargin{2};
+                    axesLimits  = XYCLimits(obj, idx, varargin{:});
             end
         end
-
 
         %-----------------------------------------------------------------%
         function [XArray, YArray] = XYArray(obj, idx, plotTag)
@@ -109,7 +145,7 @@ classdef Band < handle
                                 YArray  = specData.Data{2}(:,idxTime)';
                             end
         
-                        case 'appAnalise:SIGNALANALYSIS'
+                        case {'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'}
                             YArray = specData.Data{3}(:,idxFcn)';
                     end
 
@@ -117,7 +153,7 @@ classdef Band < handle
                      XArray = [obj.xArray(1), obj.xArray(end)];
 
                     switch obj.Context
-                        case 'appAnalise:PLAYBACK'
+                        case {'appAnalise:PLAYBACK', 'appAnalise:DRIVETEST'}
                             hAxes = obj.callingApp.UIAxes3;
                             switch class(hAxes.YAxis)
                                 case 'matlab.graphics.axis.decorator.DatetimeRuler'
@@ -174,68 +210,40 @@ classdef Band < handle
 
     methods(Access = private)
         %-----------------------------------------------------------------%
-        function axesLimits = playbackLimits(obj, idx)
-            specData = obj.callingApp.specData(idx);
-
-            switch specData.UserData.customPlayback.Type
-                case 'manual'
-                    xLim      = specData.UserData.customPlayback.Parameters.Controls.FrequencyLimits;
-                    yLevelLim = specData.UserData.customPlayback.Parameters.Controls.LevelLimits;
-                    cLim      = specData.UserData.customPlayback.Parameters.Waterfall.LevelLimits;
-
-                    if issorted(xLim, 'strictascend') && issorted(yLevelLim, 'strictascend') && issorted(cLim, 'strictascend')
-                        axesLimits = struct('xLim',      xLim,      ...
-                                            'yLevelLim', yLevelLim, ...
-                                            'cLim',      cLim);
-
-                        axesLimits.yTimeLim = [specData.Data{1}(1), specData.Data{1}(end)];
-                        if specData.Data{1}(1) == specData.Data{1}(end)
-                            axesLimits.yTimeLim(2) = axesLimits.yTimeLim(2) + seconds(1);
-                        end
-
-                    else
-                        axesLimits = playbackAutomaticLimits(obj, idx);
-                    end
-
-            otherwise
-                axesLimits = playbackAutomaticLimits(obj, idx);
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function axesLimits = playbackAutomaticLimits(obj, idx, idxEmission)
+        function axesLimits = XYCLimits(obj, idx, idxEmission, GuardBand)
             arguments
                 obj
                 idx
                 idxEmission = -1
+                GuardBand   = struct('Mode', 'manual', 'Parameters', struct('Type', 'BWRelated', 'Value', 5))
             end
             specData   = obj.callingApp.specData(idx);
 
             % xLimits
             switch obj.Context
                 case {'appAnalise:PLAYBACK', 'appAnalise:REPORT:BAND'}
-                    xLimits = [obj.FreqStart, obj.FreqStop];
+                    xLimits    = [obj.FreqStart, obj.FreqStop];
+                    xIndexDown = 1;
+                    xIndexUp   = obj.DataPoints;
 
-                case {'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS'}
-                    projectData = obj.callingApp.projectData;
+                case {'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'}
+                    emissionFreqCenter = specData.UserData.Emissions.Frequency(idxEmission); % MHz
+                    emissionBW         = specData.UserData.Emissions.BW(idxEmission) / 1000; % kHz >> MHz
 
-                    if obj.callingApp.projectData.peaksTable.BW(idxEmission) ~= 0
-                        F0_axes = projectData.peaksTable.Frequency(idxEmission) - 2.5*projectData.peaksTable.BW(idxEmission)/1000;
-                        F1_axes = projectData.peaksTable.Frequency(idxEmission) + 2.5*projectData.peaksTable.BW(idxEmission)/1000;
-                    else
-                        F0_axes = projectData.peaksTable.Frequency(idxEmission) - .5;
-                        F1_axes = projectData.peaksTable.Frequency(idxEmission) + .5;
+                    if emissionBW <= 0
+                        GuardBand = struct('Mode', 'manual', 'Parameters', struct('Type', 'Fixed', 'Value', 1));
                     end
-
-                    xLimits = [F0_axes, F1_axes];
+                    [xLimits,    ...
+                     xIndexDown, ...
+                     xIndexUp] = XEmissionLimits(obj, emissionFreqCenter, emissionBW, GuardBand);
             end
         
             % yLevelLimits
             DataType     = specData.MetaData.DataType;
             if ismember(DataType, class.Constants.specDataTypes)
                 % yLimits
-                minArray = sort(specData.Data{3}(:,1));
-                maxArray = sort(specData.Data{3}(:,3), 'descend');
+                minArray = sort(specData.Data{3}(xIndexDown:xIndexUp, 1));
+                maxArray = sort(specData.Data{3}(xIndexDown:xIndexUp, 3), 'descend');
 
                 nSamples = ceil(.01*numel(minArray));
                 minValue = median(minArray(1:nSamples));
@@ -245,7 +253,7 @@ classdef Band < handle
                 upYLim   = maxValue - mod(maxValue, 10) + 10;
 
                 % cLimits
-                downCLim = RF.noiseEstimation(specData, .05, .15, 3);
+                downCLim = RF.noiseEstimation(specData, xIndexDown, xIndexUp, .05, .15, 3);
                 upCLim   = upYLim - 10;
                 downCLim = max(downCLim, upCLim-30);
 
@@ -263,7 +271,7 @@ classdef Band < handle
                 upCLim   = 1;
 
             else
-                error('Band:playbackAutomaticLimits:UnexpectedDataType', 'UnexpectedDataType')
+                error('Band:XYCLimits:UnexpectedDataType', 'UnexpectedDataType')
             end
             yLevelLimits = [downYLim, upYLim];
         
@@ -271,72 +279,39 @@ classdef Band < handle
                 yLevelLimits(1) = yLevelLimits(1) + diff(yLevelLimits) - class.Constants.yMaxLimRange;
             end
 
-            axesLimits.xLim      = xLimits;
-            axesLimits.yLevelLim = yLevelLimits;
-            axesLimits.cLim      = [downCLim, upCLim];
+            axesLimits = struct('xLim',         xLimits,                                      ...
+                                'xIndexLimits', [xIndexDown, xIndexUp],                       ...
+                                'yLevelLim',    yLevelLimits,                                 ...
+                                'yTimeLim',     [specData.Data{1}(1), specData.Data{1}(end)], ...
+                                'cLim',         [downCLim, upCLim]);
 
-            % yTimeLimits
-            axesLimits.yTimeLim  = [specData.Data{1}(1), specData.Data{1}(end)];
             if specData.Data{1}(1) == specData.Data{1}(end)
                 axesLimits.yTimeLim(2) = axesLimits.yTimeLim(2) + seconds(1);
             end
         end
 
         %-----------------------------------------------------------------%
-        function [xLim, yLim, zLim, xIndexLim, xLimitedArray] = reportLimits(obj, idx, Parameters, yUnit)
-            specData = obj.callingApp.specData(idx);
-
-            switch Parameters.Plot.Type
-                case 'Band'
-                    FreqStartView = obj.FreqStart;
-                    FreqStopView  = obj.FreqStop;
-                    xIndexLim     = [1, obj.DataPoints];
-
-                case 'Emission'
-                    emissionIndex = Parameters.Plot.emissionIndex;
-                    if emissionIndex == -1
-                        error('Unexpected value.')
+        function [xFrequencyLimits, xIndexDown, xIndexUp] = XEmissionLimits(obj, emissionFreqCenter, emissionBW, GuardBand)
+            switch GuardBand.Mode
+                case 'auto'
+                    emissionFreqStart = emissionFreqCenter - emissionBW/2;
+                    emissionFreqStop  = emissionFreqCenter + emissionBW/2;
+        
+                case 'manual'
+                    switch GuardBand.Parameters.Type
+                        case 'Fixed'
+                            emissionFreqStart = emissionFreqCenter - GuardBand.Parameters.Value/2;
+                            emissionFreqStop  = emissionFreqCenter + GuardBand.Parameters.Value/2;
+        
+                        case 'BWRelated'
+                            emissionFreqStart = emissionFreqCenter - (1+GuardBand.Parameters.Value) * emissionBW/2;
+                            emissionFreqStop  = emissionFreqCenter + (1+GuardBand.Parameters.Value) * emissionBW/2;
                     end
+            end
     
-                    emissionBW    = specData.UserData.Emissions.BW(emissionIndex)/1000;
-                    xGuardBand    = Parameters.Axes.xGuardBandFactor * emissionBW;
-    
-                    FreqStartView = specData.UserData.Emissions.Frequency(emissionIndex) - (emissionBW + xGuardBand)/2;
-                    FreqStopView  = specData.UserData.Emissions.Frequency(emissionIndex) + (emissionBW + xGuardBand)/2;
-                    xIndexLim     = [freq2idx(obj, FreqStartView*1e+6, 'fix'), freq2idx(obj, FreqStopView*1e+6, 'ceil')];
-
-                    xLimitedArray = obj.xArray(xIndexLim(1):xIndexLim(2));
-            end
-
-            xLim = [FreqStartView, FreqStopView];
-
-            switch yUnit
-                case {'ordinary level', 'persistance level'}
-                    yLim = yzLimits(obj, specData, yUnit, xIndexLim);
-                    zLim = [-1, 1];
-                case 'occupancy level'
-                    yLim = [0, 100];
-                    zLim = [-1, 1];
-                case 'time'
-                    yLim = [SpecInfo.Data{1}(1), SpecInfo.Data{1}(end)];
-                    zLim = yzLimits(obj, specData, yUnit, xIndexLim);
-                case 'timeIndex'
-                    yLim = [1, numel(SpecInfo.Data{1})];
-                    zLim = [-1, 1];
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function yzLim = yzLimits(obj, specData, yUnit, xIndexLim)
-            yzLim  = [min(specData.Data{3}(xIndexLim(1):xIndexLim(2),1)), ...
-                      max(specData.Data{3}(xIndexLim(1):xIndexLim(2),end))];
-
-            if ismember(yUnit, {'persistance level', 'time'})
-                yzAmplitude = class.Constants.yMaxLimRange;
-
-                yzLim(2)    = max(yzLim(1)+yzAmplitude, yzLim(2));
-                yzLim(1)    = yzLim(2)-yzAmplitude;
-            end
+            xIndexDown       = freq2idx(obj, emissionFreqStart * 1e+6, 'CheckAndRound', 'fix');
+            xIndexUp         = freq2idx(obj, emissionFreqStop  * 1e+6, 'CheckAndRound', 'ceil');
+            xFrequencyLimits = idx2freq(obj, [xIndexDown, xIndexUp]) / 1e+6;
         end
     end
 end
