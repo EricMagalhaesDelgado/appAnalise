@@ -389,10 +389,10 @@ classdef (Abstract) old_axesDraw
         function DriveTestRoutePlot(hAxes, Parameters)
             delete(findobj(hAxes, 'Tag', 'OutRoute', '-or', 'Tag', 'InRoute'))
 
-            specTable   = Parameters.specTable;
-            filtTable   = Parameters.filtTable;
+            specTable   = Parameters.specRawTable;
+            filtTable   = Parameters.specFilteredTable;
 
-            OutTable    = specTable(~specTable.filtered,:);
+            OutTable    = specTable(~specTable.Filtered,:);
             InTable     = filtTable;
 
             switch Parameters.route_LineStyle
@@ -412,17 +412,15 @@ classdef (Abstract) old_axesDraw
             delete(findobj(hAxes, 'Tag', 'Distortion'))
 
             switch Parameters.Source
-                case 'RawData'; tempTable = Parameters.filtTable;
-                case 'BinData'; tempTable = Parameters.binTable;
+                case {'Raw', 'Filtered'}
+                    tempTable = Parameters.specFilteredTable;
+                case 'Data-Binning'
+                    tempTable = Parameters.specBinTable;
             end
 
-            try
-            hDistortion = geoscatter(hAxes, tempTable{:,1}, tempTable{:,2}, [], tempTable{:,3},  ...
+            hDistortion = geoscatter(hAxes, tempTable.Latitude, tempTable.Longitude, [], tempTable.ChannelPower,  ...
                                             'filled', 'SizeData', 20*Parameters.plotSize, 'Tag', 'Distortion');
             plot.datatip.Template(hDistortion, 'SweepID+ChannelPower+Coordinates')
-            catch ME
-                getReport(ME)
-            end
         end
 
 

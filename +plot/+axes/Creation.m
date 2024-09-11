@@ -22,7 +22,8 @@ function hAxes = Creation(hParent, axesType, varargin)
             end            
 
         case 'Geographic'
-            hAxes = geoaxes(hParent, FontSize=6, Units='pixels', Basemap='none', Box='off', ...
+            hAxes = geoaxes(hParent, ColorScale='log', FontSize=6, Units='pixels', ...
+                                     Basemap='none', Box='off',                    ...
                                      Interactions=[], Toolbar=[]);
             hAxes.LatitudeLabel.String  = '';
             hAxes.LongitudeLabel.String = '';

@@ -127,32 +127,33 @@ classdef (Abstract) datatip
                 case 'Coordinates+Frequency'
                     hTable = varargin{1};
 
-                    dtParent.DataTipTemplate.DataTipRows(1).Label = 'Latitude:';
-                    dtParent.DataTipTemplate.DataTipRows(2).Label = 'Longitude:';
-                    dtParent.DataTipTemplate.DataTipRows(3)       = dataTipTextRow('Frequência:', hTable.Frequency, '%.3f MHz');
-                    dtParent.DataTipTemplate.DataTipRows(4)       = dataTipTextRow('Entidade:',   hTable.Name);
+                    dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Lat:';
+                    dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Lon:';
+                    dtParent.DataTipTemplate.DataTipRows(3)        = dataTipTextRow('Frequência:', hTable.Frequency, '%.3f MHz');
+                    dtParent.DataTipTemplate.DataTipRows(4)        = dataTipTextRow('Entidade:',   hTable.Name);
 
-                    dtParent.DataTipTemplate.DataTipRows          = dtParent.DataTipTemplate.DataTipRows([3:4,1:2]);
+                    dtParent.DataTipTemplate.DataTipRows           = dtParent.DataTipTemplate.DataTipRows([3:4,1:2]);
 
                 case 'SweepID+ChannelPower+Coordinates'
                     hTable = table((1:numel(dtParent.LatitudeData))', 'VariableNames', {'ID'});
 
-                    dtParent.DataTipTemplate.DataTipRows(1).Label = 'Latitude:';
-                    dtParent.DataTipTemplate.DataTipRows(2).Label = 'Longitude:';
-                    dtParent.DataTipTemplate.DataTipRows(3)       = dataTipTextRow('ID:', hTable.ID);
-                    dtParent.DataTipTemplate.DataTipRows(4)       = dataTipTextRow('Potência:', 'CData', '%.1f dBm');
+                    dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Lat:';
+                    dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Lon:';
+                    dtParent.DataTipTemplate.DataTipRows(3)        = dataTipTextRow('', hTable.ID, '#%d');
+                    dtParent.DataTipTemplate.DataTipRows(4)        = dataTipTextRow('', 'CData', '%.1f dBm');
 
                     if numel(dtParent.DataTipTemplate.DataTipRows) > 4
                         dtParent.DataTipTemplate.DataTipRows(5:end) = [];
                     end
 
-                    dtParent.DataTipTemplate.DataTipRows          = dtParent.DataTipTemplate.DataTipRows([3:4,1:2]);
+                    dtParent.DataTipTemplate.DataTipRows           = dtParent.DataTipTemplate.DataTipRows([3:4,1:2]);
 
                 case 'SweepID+ChannelPower'
                     hUnit = varargin{1};
 
-                    dtParent.DataTipTemplate.DataTipRows(1).Label = 'ID:';
-                    dtParent.DataTipTemplate.DataTipRows(2)       = dataTipTextRow('Potência:', 'YData', ['%.1f ' hUnit]);
+                    dtParent.DataTipTemplate.DataTipRows(1).Label  = '';
+                    dtParent.DataTipTemplate.DataTipRows(1).Format = '#%d';
+                    dtParent.DataTipTemplate.DataTipRows(2)        = dataTipTextRow('', 'YData', ['%.1f ' hUnit]);
 
 
                 case 'winRFDataHub.Geographic'
@@ -174,8 +175,8 @@ classdef (Abstract) datatip
                     dtParent.DataTipTemplate.DataTipRows        = dtParent.DataTipTemplate.DataTipRows([3,1,4,2]);
 
                 case 'winRFDataHub.SelectedNode'
-                    dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Latitude:';
-                    dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Longitude:';
+                    dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Lat:';
+                    dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Lon:';
 
                     if numel(dtParent.DataTipTemplate.DataTipRows) > 2
                         dtParent.DataTipTemplate.DataTipRows(3:end) = [];
@@ -203,9 +204,9 @@ classdef (Abstract) datatip
                 case 'RFLink.Terrain'
                     hTable = varargin{1};
 
-                    dtParent.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Latitude:',  hTable.Latitude,  '%.6fº');
-                    dtParent.DataTipTemplate.DataTipRows(2) = dataTipTextRow('Longitude:', hTable.Longitude, '%.6fº');
-                    dtParent.DataTipTemplate.DataTipRows(3) = dataTipTextRow('Elevação:',  hTable.Elevation, '%.1f m');
+                    dtParent.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Lat:',  hTable.Latitude,  '%.6fº');
+                    dtParent.DataTipTemplate.DataTipRows(2) = dataTipTextRow('Lon:', hTable.Longitude, '%.6fº');
+                    dtParent.DataTipTemplate.DataTipRows(3) = dataTipTextRow('',  hTable.Elevation, '%.1f m');
             end
 
             if exist('dt', 'var')
