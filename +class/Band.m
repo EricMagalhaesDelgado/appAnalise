@@ -226,7 +226,7 @@ classdef Band < handle
                     xIndexDown = 1;
                     xIndexUp   = obj.DataPoints;
 
-                case {'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'}
+                case {'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS'}
                     emissionFreqCenter = specData.UserData.Emissions.Frequency(idxEmission); % MHz
                     emissionBW         = specData.UserData.Emissions.BW(idxEmission) / 1000; % kHz >> MHz
 
@@ -236,6 +236,14 @@ classdef Band < handle
                     [xLimits,    ...
                      xIndexDown, ...
                      xIndexUp] = XEmissionLimits(obj, emissionFreqCenter, emissionBW, GuardBand);
+
+                case 'appAnalise:DRIVETEST'
+                    chFrequency = obj.callingApp.general_chFrequency.Value; % MHz
+                    chBW        = obj.callingApp.general_chBW.Value / 1000; % kHz >> MHz
+
+                    [xLimits,    ...
+                     xIndexDown, ...
+                     xIndexUp] = XEmissionLimits(obj, chFrequency, chBW, GuardBand);
             end
         
             % yLevelLimits
@@ -291,27 +299,31 @@ classdef Band < handle
         end
 
         %-----------------------------------------------------------------%
-        function [xFrequencyLimits, xIndexDown, xIndexUp] = XEmissionLimits(obj, emissionFreqCenter, emissionBW, GuardBand)
+        function [xFrequencyLimits, xIndexDown, xIndexUp] = XEmissionLimits(obj, refFreqCenter, refBW, GuardBand)
+            % Escolhido como nome da variável "refFreqCenter" e "refBW" 
+            % porque essa chamada é consumida tanto por ROIs relacionadas a
+            % emissões, quanto por ROIs relacionadas a canais.
+
             switch GuardBand.Mode
                 case 'auto'
-                    emissionFreqStart = emissionFreqCenter - emissionBW/2;
-                    emissionFreqStop  = emissionFreqCenter + emissionBW/2;
+                    screenFreqStart = refFreqCenter - refBW/2;
+                    screenFreqStop  = refFreqCenter + refBW/2;
         
                 case 'manual'
                     switch GuardBand.Parameters.Type
                         case 'Fixed'
-                            emissionFreqStart = emissionFreqCenter - GuardBand.Parameters.Value/2;
-                            emissionFreqStop  = emissionFreqCenter + GuardBand.Parameters.Value/2;
+                            screenFreqStart = refFreqCenter - GuardBand.Parameters.Value/2;
+                            screenFreqStop  = refFreqCenter + GuardBand.Parameters.Value/2;
         
                         case 'BWRelated'
-                            emissionFreqStart = emissionFreqCenter - (1+GuardBand.Parameters.Value) * emissionBW/2;
-                            emissionFreqStop  = emissionFreqCenter + (1+GuardBand.Parameters.Value) * emissionBW/2;
+                            screenFreqStart = refFreqCenter - GuardBand.Parameters.Value * refBW/2;
+                            screenFreqStop  = refFreqCenter + GuardBand.Parameters.Value * refBW/2;
                     end
             end
     
-            xIndexDown       = freq2idx(obj, emissionFreqStart * 1e+6, 'CheckAndRound', 'fix');
-            xIndexUp         = freq2idx(obj, emissionFreqStop  * 1e+6, 'CheckAndRound', 'ceil');
-            xFrequencyLimits = idx2freq(obj, [xIndexDown, xIndexUp]) / 1e+6;
+            xIndexDown       = freq2idx(obj, screenFreqStart * 1e+6, 'CheckAndRound', 'fix');
+            xIndexUp         = freq2idx(obj, screenFreqStop  * 1e+6, 'CheckAndRound', 'ceil');
+            xFrequencyLimits = [screenFreqStart, screenFreqStop];
         end
     end
 end

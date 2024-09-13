@@ -6,7 +6,8 @@ classdef (Abstract) StackingOrder
         winSignalAnalysis = {'EmissionROI', 'Average', 'MaxHold', 'MinHold'}
         RFLink            = {'Station', 'Link', 'Fresnel', 'FirstObstruction', 'Terrain'}
         winRFDataHub      = {}
-        winDriveTest      = {'ChannelROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute', 'ClearWrite', 'Persistance', 'Waterfall'}
+        winDriveTest      = {'FilterROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute', ...    % app.UIAxes1   (GeographicAxes)
+                             'ChannelROI', 'ClearWrite', 'Persistance', 'Timeline', 'Waterfall', 'ChannelPower'}  % app.UIAxes2-4 (CatersianAxes)
     end
 
 

@@ -13,8 +13,8 @@ function chAssigned = getChannel(specData, idxThread, idxEmission, channelObj)
     chFrequency = getChannelFrequency(specData, idxThread, idxEmission, channelObj);
     chBW        = getChannelBW(specData, idxThread, idxEmission, chFrequency);
 
-    chAssigned  = struct('Frequency', double(chFrequency), ...
-                         'ChannelBW', double(chBW));
+    chAssigned  = struct('Frequency', round(double(chFrequency), 6), ...
+                         'ChannelBW', round(double(chBW), 6));
 end
 
 %-------------------------------------------------------------------------%

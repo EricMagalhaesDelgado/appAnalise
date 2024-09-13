@@ -15,7 +15,10 @@ classdef userData
                                      'VariableTypes', {'double', 'double'}, ...
                                      'VariableNames', {'FreqStart', 'FreqStop'})
 
-        Emissions            = table(uint16([]), [], [], true(0,1), {}, struct('DriveTest', {}), ...
+        % O "coringa" para armazenar informações individualizadas por emissão
+        % é o "UserData". Já criados os campos "Description", "ChannelAssigned"
+        % e "DriveTest", mas outros deverão ser criados no futuro...
+        Emissions            = table(uint16([]), [], [], true(0,1), {}, struct('Description', {}, 'ChannelAssigned', {}, 'DriveTest', {}), ...
                                      'VariableNames', {'Index', 'Frequency', 'BW', 'isTruncated', 'Detection', 'UserData'})
 
         measCalibration      = table('Size', [0, 4],                                    ...
@@ -34,6 +37,13 @@ classdef userData
 
 
     methods (Static = true)
+        %-----------------------------------------------------------------%
+        function userDataTemplate = emissionUserDataTemplate()
+            userDataTemplate = struct('Description',     '',                                       ...
+                                      'ChannelAssigned', struct('Frequency', {}, 'ChannelBW', {}), ...
+                                      'DriveTest',       []);
+        end
+
         %-----------------------------------------------------------------%
         function reportProperties_DefaultValues(specData, idxThreads, callingApp)        
             for ii = idxThreads
