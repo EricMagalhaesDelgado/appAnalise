@@ -1,5 +1,5 @@
 {
-    "version": 0.40,
+    "version": 0.43,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -263,7 +263,18 @@
             "YLimOffset": 3,
             "StepEffect": true
         },
-        "ROI": {
+        "ChannelROI": {
+            "Color": "#b746ff",
+            "MarkerSize": 5,
+            "LineWidth": 1,
+            "EdgeAlpha": 0,
+            "FaceAlpha": 0.4,
+            "LabelOffsetMode": "bottom",
+            "LabelOffset": 1,
+            "LabelColor": "#000000",
+            "LabelFontSize": 8
+        },
+        "EmissionROI": {
             "Color": "#66bae0",
             "MarkerSize": 5,
             "LineWidth": 1,

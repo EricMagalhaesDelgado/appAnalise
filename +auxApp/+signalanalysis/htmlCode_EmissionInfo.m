@@ -6,12 +6,12 @@ function [htmlContent, emissionTag, userDescription, stationInfo] = htmlCode_Emi
 
     % Registrando registros diferentes de "Licenciada" em vermelho:
     if ~strcmp(peaksTable.Regulatory{1}, 'Licenciada')
-        peaksTable.Regulatory{1} = sprintf('<font style="color: #c94756;">%s</font>', peaksTable.Regulatory{1});
+        peaksTable.Regulatory{1} = sprintf('<font style="color: red;">%s</font>', peaksTable.Regulatory{1});
     end
 
     if ~isempty(exceptionList) 
         if ~strcmp(exceptionList.Regulatory{1}, 'Licenciada')
-            exceptionList.Regulatory{1} = sprintf('<font style="color: #c94756;">%s</font>', exceptionList.Regulatory{1});
+            exceptionList.Regulatory{1} = sprintf('<font style="color: red;">%s</font>', exceptionList.Regulatory{1});
         end
     end
 
@@ -24,7 +24,7 @@ function [htmlContent, emissionTag, userDescription, stationInfo] = htmlCode_Emi
             columnsDiff.(columnName) = string(peaksTable.(columnName));
             stationInfo.(columnName) = peaksTable.(columnName);
         else
-            columnsDiff.(columnName) = sprintf('<del>%s</del> → <font style="color: #c94756;">%s</font>', string(peaksTable.(columnName)), string(exceptionList.(columnName)));
+            columnsDiff.(columnName) = sprintf('<del>%s</del> → <font style="color: red;">%s</font>', string(peaksTable.(columnName)), string(exceptionList.(columnName)));
             stationInfo.(columnName) = exceptionList.(columnName);
         end
     end

@@ -149,11 +149,9 @@ classdef (Abstract) datatip
                     dtParent.DataTipTemplate.DataTipRows           = dtParent.DataTipTemplate.DataTipRows([3:4,1:2]);
 
                 case 'SweepID+ChannelPower'
-                    hUnit = varargin{1};
-
                     dtParent.DataTipTemplate.DataTipRows(1).Label  = '';
                     dtParent.DataTipTemplate.DataTipRows(1).Format = '#%d';
-                    dtParent.DataTipTemplate.DataTipRows(2)        = dataTipTextRow('', 'YData', ['%.1f ' hUnit]);
+                    dtParent.DataTipTemplate.DataTipRows(2)        = dataTipTextRow('', 'YData', '%.1f dBm');
 
 
                 case 'winRFDataHub.Geographic'

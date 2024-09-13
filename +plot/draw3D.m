@@ -9,6 +9,7 @@ classdef (Abstract) draw3D
                     bandObj = varargin{2};
                     idx     = varargin{3};
 
+                    Context     = bandObj.Context;
                     defaultProp = bandObj.callingApp.General;
                     customProp  = bandObj.callingApp.specData(idx).UserData.customPlayback.Parameters;
         
@@ -16,7 +17,7 @@ classdef (Abstract) draw3D
                      Fcn,          ...
                      Decimation,   ...
                      colormapName, ...
-                     cLimits]   = plot.Config('Waterfall', defaultProp, customProp);
+                     cLimits]   = plot.Config('Waterfall', defaultProp, customProp, Context);
         
                     xArray      = bandObj.xArray';
                     xLim        = [xArray(1), xArray(end)];
@@ -61,7 +62,7 @@ classdef (Abstract) draw3D
                             hWaterfall = image(hAxes, xArray, 1:nSweeps, specData.Data{2}', plotConfig{:});
                             Decimation = 'auto';
                     end
-                    
+
                     if isempty(cLimits)
                         cLimits = bandObj.callingApp.restoreView(3).cLim;
                         hAxes.UserData.CLimMode = 'auto';

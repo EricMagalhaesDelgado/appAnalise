@@ -109,22 +109,21 @@ classdef (Abstract) draw2D
         end
 
         %-----------------------------------------------------------------%
-        function rectangularROI(hAxes, bandObj, idx, plotTag, idxEmission, postPlotConfig)
+        function rectangularROI(hAxes, bandObj, srcROITable, idxROI, plotTag, postPlotConfig)
             arguments
                 hAxes
                 bandObj
-                idx
+                srcROITable
+                idxROI
                 plotTag
-                idxEmission    = []
                 postPlotConfig = {}
             end
 
-            listEmission = bandObj.callingApp.specData(idx).UserData.Emissions;
-            if isempty(idxEmission)
-                idxEmission = 1:height(listEmission);
+            if isempty(idxROI)
+                idxROI = 1:height(srcROITable);
             end
-            
-            if ~isempty(listEmission)                
+
+            if ~isempty(srcROITable)             
                 defaultProp  = bandObj.callingApp.General;
                 customProp   = [];
 
@@ -134,8 +133,8 @@ classdef (Abstract) draw2D
                  LabelOffset] = plot.Config(plotTag, defaultProp, customProp);
 
                 yLimits = double(hAxes.YLim);
-                for ii = idxEmission
-                    hROI = drawrectangle(hAxes, 'Position', [listEmission.Frequency(ii)-listEmission.BW(ii)/2000, yLimits(1)+1, listEmission.BW(ii)/1000, diff(yLimits)-2], plotConfigROI{:});
+                for ii = idxROI
+                    hROI = drawrectangle(hAxes, 'Position', [srcROITable.Frequency(ii)-srcROITable.BW(ii)/2000, yLimits(1)+1, srcROITable.BW(ii)/1000, diff(yLimits)-2], plotConfigROI{:});
 
                     if ~isempty(postPlotConfig)
                         set(hROI, postPlotConfig{:})
@@ -143,7 +142,10 @@ classdef (Abstract) draw2D
                 end
 
                 switch bandObj.Context
-                    case {'appAnalise:PLAYBACK', 'appAnalise:SIGNALANALYSIS'}
+                    case {'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'}
+                        % ...
+                        % Pendente migrar o ROI do PLAYBACK, hoje criado na
+                        % função "ClearWrite_old" desta classe.
                         % ...
 
                     case 'appAnalise:REPORT:BAND'
@@ -154,7 +156,7 @@ classdef (Abstract) draw2D
                                 yTextPosition = yLimits(2)-LabelOffset;                        
                         end
 
-                        text(hAxes, listEmission.Frequency(idxEmission), repmat(yLimits(1)+yTextPosition, numel(idxEmission), 1), string((idxEmission)'), plotConfigText{:});
+                        text(hAxes, srcROITable.Frequency(idxROI), repmat(yLimits(1)+yTextPosition, numel(idxROI), 1), string((idxROI)'), plotConfigText{:});
                 end
             end
         end

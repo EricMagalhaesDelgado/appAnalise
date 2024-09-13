@@ -1,12 +1,12 @@
-function varargout = Config(plotTag, defaultProperties, customProperties)
-
+function varargout = Config(plotTag, defaultProperties, customProperties, Context)
     arguments
         plotTag
         defaultProperties     % "GeneralSettings.json"        
         customProperties = [] % Customização disponibilizada no modo PLAYBACK do app
+        Context          = ''
     end
 
-    selectedProperties  = customPropertiesParser(plotTag, defaultProperties, customProperties);
+    selectedProperties  = customPropertiesParser(plotTag, defaultProperties, customProperties, Context);
     tempPlotConfig      = selectedProperties.Plot.(plotTag);
 
     switch plotTag
@@ -46,13 +46,13 @@ function varargout = Config(plotTag, defaultProperties, customProperties)
             plotConfig  = {'Color', tempPlotConfig.Color, 'LineWidth', tempPlotConfig.LineWidth, 'PickableParts', 'none'};
             varargout   = {plotConfig, tempPlotConfig.YLimOffsetMode, tempPlotConfig.YLimOffset, tempPlotConfig.StepEffect};
 
-        case 'ROI'
+        case {'EmissionROI', 'ChannelROI'}
             if ischar(tempPlotConfig.Color)
                 tempPlotConfig.Color = hex2rgb(tempPlotConfig.Color);
             end
 
-            plotConfig     = {'Color', tempPlotConfig.Color, 'MarkerSize', tempPlotConfig.MarkerSize, 'LineWidth', tempPlotConfig.LineWidth, 'EdgeAlpha', tempPlotConfig.EdgeAlpha, 'FaceAlpha', tempPlotConfig.FaceAlpha, 'Deletable', 0, 'FaceSelectable', 0, 'InteractionsAllowed', 'all'};
-            plotConfigText = {'Color', tempPlotConfig.LabelColor, 'BackgroundColor', tempPlotConfig.Color, 'FontSize', tempPlotConfig.LabelFontSize, 'FontWeight', 'bold', 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'PickableParts', 'none', 'Tag', 'ROI'};
+            plotConfig     = {'Color', tempPlotConfig.Color, 'MarkerSize', tempPlotConfig.MarkerSize, 'LineWidth', tempPlotConfig.LineWidth, 'EdgeAlpha', tempPlotConfig.EdgeAlpha, 'FaceAlpha', tempPlotConfig.FaceAlpha, 'Deletable', 0, 'FaceSelectable', 0};
+            plotConfigText = {'Color', tempPlotConfig.LabelColor, 'BackgroundColor', tempPlotConfig.Color, 'FontSize', tempPlotConfig.LabelFontSize, 'FontWeight', 'bold', 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'PickableParts', 'none', 'Tag', plotTag};
             varargout      = {plotConfig, plotConfigText, tempPlotConfig.LabelOffsetMode, tempPlotConfig.LabelOffset};
 
         case {'ClearWrite', 'Average', 'MinHold', 'MaxHold'}
@@ -75,10 +75,18 @@ end
 
 
 %-------------------------------------------------------------------------%
-function selectedProperties = customPropertiesParser(plotTag, defaultProperties, customProperties)
+function selectedProperties = customPropertiesParser(plotTag, defaultProperties, customProperties, Context)
+    arguments
+        plotTag 
+        defaultProperties 
+        customProperties 
+        Context = ''
+    end
+
     selectedProperties = defaultProperties;
+
     if ~isempty(customProperties)
-        if ismember(plotTag, {'Persistance', 'Waterfall', 'WaterfallTime'})
+        if ismember(plotTag, {'Persistance', 'Waterfall', 'WaterfallTime'}) && ~strcmp(Context, 'appAnalise:DRIVETEST')
             selectedProperties.Plot.(plotTag) = customProperties.(plotTag);
         end
     end
