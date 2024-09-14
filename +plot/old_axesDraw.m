@@ -59,7 +59,7 @@ classdef (Abstract) old_axesDraw
         %-----------------------------------------------------------------%
         function cartesianAxes__type2(hAxes, SpecInfo, Parameters)          % Persistance
             Average     = Parameters.Average;
-            ROI         = Parameters.ROI;
+            EmissionROI = Parameters.EmissionROI;
             Persistance = Parameters.Persistance;
             Axes        = Parameters.Axes;
             
@@ -71,7 +71,7 @@ classdef (Abstract) old_axesDraw
             plot.old_axesDraw.PersistancePlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, Persistance)
             plot.old_axesDraw.OrdinaryPlot(hAxes, SpecInfo, xIndexLim, xArray, yLim, 'Average', Average)
             plot.old_axesDraw.BandLimitsPlot(hAxes, SpecInfo)
-            plot.old_axesDraw.EmissionPlot(hAxes, SpecInfo, yLim, ROI);            
+            plot.old_axesDraw.EmissionPlot(hAxes, SpecInfo, yLim, EmissionROI);            
             plot.old_axesDraw.ThresholdPlot(hAxes, SpecInfo, xArray)
 
             plot.axes.StackingOrder.execute(hAxes, 'appAnalise:REPORT')
@@ -240,9 +240,9 @@ classdef (Abstract) old_axesDraw
 
                 NN = height(pks);
                 pksLabel = string((1:NN)'); % Opcionalmente: "P_" + string((1:NN)')
-                text(hAxes, pks.Frequency, repmat(yLim(1)+ROI.yPosition, NN, 1), pksLabel, ...
-                           'Color', ROI.TextColor, 'BackgroundColor', ROI.Color,           ...
-                           'FontSize', ROI.TextFontSize, 'FontWeight', 'bold',             ...
+                text(hAxes, pks.Frequency, repmat(yLim(1)+ROI.LabelOffset, NN, 1), pksLabel, ...
+                           'Color', ROI.LabelColor, 'BackgroundColor', ROI.LabelColor,       ...
+                           'FontSize', ROI.LabelFontSize, 'FontWeight', 'bold',              ...
                            'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'PickableParts', 'none', 'Tag', 'mkrLabels');
             end
         end
@@ -302,8 +302,7 @@ classdef (Abstract) old_axesDraw
             end
 
             % PRÉ-PLOT
-            colormap(hAxes, Parameters.Colormap)
-            hAxes.Colormap(1,:) = [0,0,0];
+            cla(hAxes)
 
             % AJUSTE DO BASEMAP
             if isfield(Parameters, 'Basemap')
@@ -317,12 +316,24 @@ classdef (Abstract) old_axesDraw
             plot.old_axesDraw.DriveTestRoutePlot(hAxes, Parameters)
             plot.old_axesDraw.DriveTestPointsPlot(hAxes, Parameters);
 
+            hDistortionVisibility = 0;
+            hDensityVisibility    = 0;
             switch Parameters.plotType
                 case 'distortion'
-                    plot.old_axesDraw.DriveTestDistortionlPlot(hAxes, Parameters);
+                    hDistortionVisibility = 1;
                 case 'density'
-                    plot.old_axesDraw.DriveTestDensityPlot(hAxes, Parameters);
+                    hDensityVisibility    = 1;
             end
+
+            switch Parameters.Source
+                case {'Raw', 'Filtered'}
+                    srcTable = Parameters.specFilteredTable;
+                case 'Data-Binning'
+                    srcTable = Parameters.specBinTable;
+            end
+
+            plot.old_axesDraw.DriveTestDistortionlPlot(hAxes, srcTable, Parameters, hDistortionVisibility);
+            plot.old_axesDraw.DriveTestDensityPlot(hAxes, srcTable, Parameters, hDensityVisibility);
             geolimits(hAxes, 'auto')
 
             % PÓS-PLOT
@@ -350,7 +361,7 @@ classdef (Abstract) old_axesDraw
         % EIXO GEOGRÁFICO: PLOT
         %-----------------------------------------------------------------%
         function DriveTestFilterPlot(hAxes, Parameters, plotType)
-            delete(findobj(hAxes, 'Tag', 'ROI'))
+            delete(findobj(hAxes.Children, 'Tag', 'FilterROI'))
 
             filterTable = Parameters.filterTable;
 
@@ -362,8 +373,7 @@ classdef (Abstract) old_axesDraw
                         if ~strcmp(plotType, 'CartesianPlot')
                             continue
                         end
-
-                        hROI = images.roi.Line(hAxes, 'Color', 'red', 'MarkerSize', 4, 'LineWidth', 1, 'Deletable', 0, 'InteractionsAllowed', 'translate', 'Tag', 'ROI');
+                        hROI = images.roi.Line(hAxes, 'Color', 'red', 'MarkerSize', 4, 'LineWidth', 1, 'Deletable', 0, 'InteractionsAllowed', 'translate', 'Tag', 'FilterROI');
 
                     case {'Circle', 'Rectangle', 'Polygon'}
                         if ~strcmp(plotType, 'GeographicPlot')
@@ -375,7 +385,7 @@ classdef (Abstract) old_axesDraw
                             case 'Rectangle'; roiFcn = 'Rectangle'; roiNameArgument = 'Rotatable=true, ';
                             case 'Polygon';   roiFcn = 'Polygon';   roiNameArgument = '';
                         end
-                        eval(sprintf('hROI = images.roi.%s(hAxes, LineWidth=1, Deletable=0, FaceSelectable=0, %sTag="ROI");', roiFcn, roiNameArgument))
+                        eval(sprintf('hROI = images.roi.%s(hAxes, LineWidth=1, Deletable=0, FaceSelectable=0, %sTag="FilterROI");', roiFcn, roiNameArgument))
                 end
 
                 fieldsList = fields(filterTable.roi(ii).specification);
@@ -387,7 +397,7 @@ classdef (Abstract) old_axesDraw
 
         %-----------------------------------------------------------------%
         function DriveTestRoutePlot(hAxes, Parameters)
-            delete(findobj(hAxes, 'Tag', 'OutRoute', '-or', 'Tag', 'InRoute'))
+            delete(findobj(hAxes.Children, 'Tag', 'OutRoute', '-or', 'Tag', 'InRoute'))
 
             specTable   = Parameters.specRawTable;
             filtTable   = Parameters.specFilteredTable;
@@ -408,45 +418,38 @@ classdef (Abstract) old_axesDraw
         end
 
         %-----------------------------------------------------------------%
-        function DriveTestDistortionlPlot(hAxes, Parameters)
-            delete(findobj(hAxes, 'Tag', 'Distortion'))
+        function hDistortion = DriveTestDistortionlPlot(hAxes, srcTable, Parameters, hDistortionVisibility)
+            delete(findobj(hAxes.Children, 'Tag', 'Distortion'))
 
             switch Parameters.Source
                 case {'Raw', 'Filtered'}
-                    tempTable = Parameters.specFilteredTable;
+                    srcTable = Parameters.specFilteredTable;
                 case 'Data-Binning'
-                    tempTable = Parameters.specBinTable;
+                    srcTable = Parameters.specBinTable;
             end
 
-            hDistortion = geoscatter(hAxes, tempTable.Latitude, tempTable.Longitude, [], tempTable.ChannelPower,  ...
-                                            'filled', 'SizeData', 20*Parameters.plotSize, 'Tag', 'Distortion');
+            hDistortion = geoscatter(hAxes, srcTable.Latitude, srcTable.Longitude, [], srcTable.ChannelPower,  ...
+                                            'filled', 'SizeData', 20*Parameters.plotSize, 'Tag', 'Distortion', 'Visible', hDistortionVisibility);
             plot.datatip.Template(hDistortion, 'SweepID+ChannelPower+Coordinates')
         end
 
 
         %-----------------------------------------------------------------%
-        function DriveTestDensityPlot(hAxes, Parameters)
-            delete(findobj(hAxes, 'Tag', 'Density'))
-
-            switch Parameters.Source
-                case 'RawData'; tempTable = Parameters.filtTable;
-                case 'BinData'; tempTable = Parameters.binTable;
-            end
-
-            weights = tempTable{:,3};
+        function hDensity = DriveTestDensityPlot(hAxes, srcTable, Parameters, hDensityVisibility)
+            weights = srcTable.ChannelPower;
             if min(weights) < 0
                 weights = weights+abs(min(weights));
             end
 
-            geodensityplot(hAxes, tempTable{:,1}, tempTable{:,2}, weights,                 ...
-                                  'FaceColor','interp', 'Radius', 100*Parameters.plotSize, ...
-                                  'PickableParts', 'none', 'Tag', 'Density');
+            hDensity = geodensityplot(hAxes, srcTable.Latitude, srcTable.Longitude, weights,          ...
+                                             'FaceColor','interp', 'Radius', 100*Parameters.plotSize, ...
+                                             'PickableParts', 'none', 'Tag', 'Density', 'Visible', hDensityVisibility);
         end
 
 
         %-----------------------------------------------------------------%
         function DriveTestPointsPlot(hAxes, Parameters)
-            delete(findobj(hAxes, 'Tag', 'Points'))
+            delete(findobj(hAxes.Children, 'Tag', 'Points'))
 
             global RFDataHub
             pointsTable = Parameters.pointsTable;

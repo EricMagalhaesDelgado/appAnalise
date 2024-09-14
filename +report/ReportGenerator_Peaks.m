@@ -18,9 +18,7 @@ function Peaks = ReportGenerator_Peaks(app, SpecInfo, idx, DetectionMode)
         newBW  = newBW * 1000;
 
         if ~isempty(newIndex)
-            NN = numel(newIndex);
-            SpecInfo(idx).UserData.Emissions(end+1:end+NN,1:5) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), Method);
-            fcn.Detection_BandLimits(SpecInfo(idx))
+            play_AddEmission2List(app, idx, newIndex, newFreq, newBW, Method)
         end
     end
 

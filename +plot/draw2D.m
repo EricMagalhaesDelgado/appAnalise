@@ -281,7 +281,7 @@ classdef (Abstract) draw2D
                     
                     app.specData(idx1).UserData.Emissions(idx2,[1:3, 5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value, jsonencode(emissionInfo)};
                     play_BandLimits_updateEmissions(app, idx1, newIndex)
-                    play_UpdatePeaksTable(app, idx1)
+                    play_UpdatePeaksTable(app, idx1, 'playback.AddEditOrDeleteEmission')
             end
         end
     end

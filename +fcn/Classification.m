@@ -1,32 +1,20 @@
-function [Peaks, channelAssigned] = Classification(app, SpecInfo, idxThread, Peaks, idxEmission)
-    arguments
-        app
-        SpecInfo
-        idxThread
-        Peaks
-        idxEmission = []
-    end    
+function Peaks = Classification(app, SpecInfo, idxThread, Peaks)
 
     % Trata-se de algoritmo de classificação de emissões, comparando-as com a base 
     % *anatelDB*.
     % Versão: 29/04/2022
+
     global RFDataHub
 
-    % O argumento de entrada "idxEmission" e o de saída "channelAssigned"
-    % suportam o módulo Drive-test. É uma "gambi" que deverá ser revista no
-    % futuro! (11/09/2024)
-    channelAssigned = struct('FreqCenter', [], 'ChannelBW', []);
-    
     % Trunca a frequência central da emissão, caso aplicável, possibilitando 
     % a sua classificação.
     Peaks.Truncated(:) = single(-1);
-    if isempty(idxEmission)
-        for ii = 1:height(Peaks)
-            Peaks.Truncated(ii) = getChannelFrequency(SpecInfo, idxThread, ii, app.channelObj);
+    for ii = 1:height(Peaks)
+        if SpecInfo(idxThread).UserData.Emissions.isTruncated(ii)
+            Peaks.Truncated(ii) = TruncatedFrequency(app.channelObj, SpecInfo(idxThread), ii);
+        else
+            Peaks.Truncated(ii) = SpecInfo(idxThread).UserData.Emissions.Frequency(ii);
         end
-    else
-        channelAssigned.FreqCenter = getChannelFrequency(SpecInfo, idxThread, idxEmission, app.channelObj);
-        Peaks.Truncated(1) = channelAssigned.FreqCenter;
     end
 
 
@@ -95,7 +83,7 @@ function [Peaks, channelAssigned] = Classification(app, SpecInfo, idxThread, Pea
             % Como referência de BW, usa-se a BW da própria emissão. Caso o
             % registro do anateldb possua a designação de emissão da estação, 
             % então é substituído esse valor pelo constante no anateldb.
-            channelAssigned.ChannelBW = Peaks.BW(ii);
+            BW = Peaks.BW(ii);
 
             while true
                 classContour = [];
@@ -107,7 +95,7 @@ function [Peaks, channelAssigned] = Classification(app, SpecInfo, idxThread, Pea
                     Description = class.RFDataHub.Description(RFDataHub, idx2(idx3));
 
                     if RFDataHub.BW(idx2(idx3)) > 0
-                        channelAssigned.ChannelBW = RFDataHub.BW(idx2(idx3));
+                        BW = RFDataHub.BW(idx2(idx3));
                     end
 
                 else
@@ -173,7 +161,7 @@ function [Peaks, channelAssigned] = Classification(app, SpecInfo, idxThread, Pea
                 RuralContour = classMultiplier * classContour;
             end
                 
-            if (Distance > RuralContour) | (channelAssigned.ChannelBW < (1-bwFactors(1))*Peaks.BW(ii)) | (channelAssigned.ChannelBW > (1+bwFactors(2))*Peaks.BW(ii))
+            if (Distance > RuralContour) || (BW < (1-bwFactors(1))*Peaks.BW(ii)) || (BW > (1+bwFactors(2))*Peaks.BW(ii))
                 Distance = [];
             end
         end
@@ -221,14 +209,5 @@ function classContour = TV_classCountour(classStation)
         case 'B'; classContour = 32.3;
         case 'A'; classContour = 47.9;
         case 'E'; classContour = 65.6;
-    end
-end
-
-%-------------------------------------------------------------------------%
-function Frequency = getChannelFrequency(specData, idxThread, idxEmission, channelObj)
-    if specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
-        Frequency = TruncatedFrequency(channelObj, specData(idxThread), idxEmission);
-    else
-        Frequency = specData(idxThread).UserData.Emissions.Frequency(idxEmission);
     end
 end
