@@ -1,9 +1,9 @@
 function msgWarning = exportFiles(specRawTable, specFilteredTable, specBinTable, fileBaseName, dataSource, hPlot, channelTag)
 
     % TABELAS DO APPANALISE:DRIVE-TEST:
-    % - specRawTable.....: "Timestamp", "Latitude", "Longitude", "emissionPower", "filtered",        "PK1"
-    % - specFilteredTable:              "Latitude", "Longitude", "emissionPower", "LatEq", "LongEq", "FK1", "FK2"
-    % - specBinTable.....:              "binLat",   "binLong",   "binPower", "binCount",                    "PK2"
+    % - specRawTable.....: "Timestamp", "Latitude", "Longitude", "ChannelPower", "Filtered"
+    % - specFilteredTable:              "Latitude", "Longitude", "ChannelPower", "LatEq", "LongEq", "BinIndex"
+    % - specBinTable.....:              "Latitude", "Longitude", "ChannelPower", "Measures"
 
     % ARQUIVOS DE SAÍDA:
     % - XLSX: para uso no Excel; e
@@ -17,6 +17,11 @@ function msgWarning = exportFiles(specRawTable, specFilteredTable, specBinTable,
 
     % XLSX
     try
+        % Cria coluna "BinIndex" para facilitar a vida de quem for usar um
+        % "PROCV da vida" no Excel.
+        specBinTable.BinIndex = (1:height(specBinTable))';
+        specBinTable = movevars(specBinTable, 'BinIndex', 'Before', 1);
+
         writetable(specRawTable,      fileSheetName, 'FileType', 'spreadsheet', 'WriteMode', 'replacefile',    'Sheet', 'RAW')
         writetable(specFilteredTable, fileSheetName, 'FileType', 'spreadsheet', 'WriteMode', 'overwritesheet', 'Sheet', 'FILTERED')
         writetable(specBinTable,      fileSheetName, 'FileType', 'spreadsheet', 'WriteMode', 'overwritesheet', 'Sheet', 'DATA-BINNING')        

@@ -305,7 +305,7 @@ classdef (Abstract) old_axesDraw
             cla(hAxes)
 
             % AJUSTE DO BASEMAP
-            if isfield(Parameters, 'Basemap')
+            if isfield(Parameters, 'Basemap') && ~strcmp(hAxes.Basemap, Parameters.Basemap)
                 hAxes.Basemap = Parameters.Basemap;
             end
 
@@ -419,15 +419,6 @@ classdef (Abstract) old_axesDraw
 
         %-----------------------------------------------------------------%
         function hDistortion = DriveTestDistortionlPlot(hAxes, srcTable, Parameters, hDistortionVisibility)
-            delete(findobj(hAxes.Children, 'Tag', 'Distortion'))
-
-            switch Parameters.Source
-                case {'Raw', 'Filtered'}
-                    srcTable = Parameters.specFilteredTable;
-                case 'Data-Binning'
-                    srcTable = Parameters.specBinTable;
-            end
-
             hDistortion = geoscatter(hAxes, srcTable.Latitude, srcTable.Longitude, [], srcTable.ChannelPower,  ...
                                             'filled', 'SizeData', 20*Parameters.plotSize, 'Tag', 'Distortion', 'Visible', hDistortionVisibility);
             plot.datatip.Template(hDistortion, 'SweepID+ChannelPower+Coordinates')
