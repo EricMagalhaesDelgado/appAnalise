@@ -32,11 +32,6 @@ classdef (Abstract) StackingOrder
             end
             
             stackingOrderTag = arrayfun(@(x) x.Tag, hAxes.Children, 'UniformOutput', false)';
-            % newOrderIndex    = [];
-            % for ii = 1:numel(refStackingOrder)
-            %     idx = find(strcmp(stackingOrderTag, refStackingOrder{ii}));
-            %     newOrderIndex = [newOrderIndex, idx];
-            % end
 
             [~, newOrderMemberIndex] = ismember(stackingOrderTag, refStackingOrder);
             [~, newOrderIndex]       = sort(newOrderMemberIndex);

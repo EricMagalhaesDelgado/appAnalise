@@ -118,8 +118,8 @@ classdef (Abstract) datatip
                     end
 
                 case 'Coordinates'
-                    dtParent.DataTipTemplate.DataTipRows(1).Label = 'Latitude:';
-                    dtParent.DataTipTemplate.DataTipRows(2).Label = 'Longitude:';
+                    dtParent.DataTipTemplate.DataTipRows(1).Label = 'Lat:';
+                    dtParent.DataTipTemplate.DataTipRows(2).Label = 'Lon:';
                     if numel(dtParent.DataTipTemplate.DataTipRows) > 2
                         dtParent.DataTipTemplate.DataTipRows(3:end) = [];
                     end
@@ -129,8 +129,8 @@ classdef (Abstract) datatip
 
                     dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Lat:';
                     dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Lon:';
-                    dtParent.DataTipTemplate.DataTipRows(3)        = dataTipTextRow('Frequência:', hTable.Frequency, '%.3f MHz');
-                    dtParent.DataTipTemplate.DataTipRows(4)        = dataTipTextRow('Entidade:',   hTable.Name);
+                    dtParent.DataTipTemplate.DataTipRows(3)        = dataTipTextRow('', hTable.Frequency, '%.3f MHz');
+                    dtParent.DataTipTemplate.DataTipRows(4)        = dataTipTextRow('',   hTable.Name);
 
                     dtParent.DataTipTemplate.DataTipRows           = dtParent.DataTipTemplate.DataTipRows([3:4,1:2]);
 
