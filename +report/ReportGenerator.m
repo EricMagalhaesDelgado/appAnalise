@@ -1,4 +1,4 @@
-function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
+function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo, d)
 
     global hFig
 
@@ -24,9 +24,9 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
     RootFolder    = reportInfo.General.RootFolder;
     Template      = jsondecode(reportInfo.Model.Template);
     
-    SpecInfo      = app.specData(idx);
+    SpecInfo      = app.specData(idxThreads);
     exceptionList = app.projectData.exceptionList;
-    peaksTable    = Fcn_Peaks(app, SpecInfo, reportInfo.DetectionMode, exceptionList);    
+    peaksTable    = Fcn_Peaks(app, idxThreads, reportInfo.DetectionMode, exceptionList);    
     
     % HTML header (style)    
     if strcmp(reportInfo.General.Version, 'Preliminar')
@@ -306,12 +306,10 @@ end
 
 
 %-------------------------------------------------------------------------%
-function peaksTable = Fcn_Peaks(app, SpecInfo, DetectionMode, exceptionList)
-
+function peaksTable = Fcn_Peaks(app, idxThreads, DetectionMode, exceptionList)
     peaksTable = [];
-
-    for ii = 1:numel(SpecInfo)
-        Peaks = report.ReportGenerator_Peaks(app, SpecInfo, ii, DetectionMode);
+    for ii = idxThreads
+        Peaks = report.ReportGenerator_Peaks(app, ii, DetectionMode);
 
         if ~isempty(Peaks)
             if isempty(peaksTable); peaksTable = Peaks;
@@ -320,7 +318,7 @@ function peaksTable = Fcn_Peaks(app, SpecInfo, DetectionMode, exceptionList)
         end
 
         Peaks = Fcn_exceptionList(Peaks, exceptionList);
-        SpecInfo(ii).UserData.reportPeaksTable = Peaks;
+        app.specData(ii).UserData.reportPeaksTable = Peaks;
     end
 end
 

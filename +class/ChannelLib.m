@@ -225,13 +225,13 @@ classdef ChannelLib < handle
 
                 case 'Custom'
                     for ii = 1:height(specData.UserData.channelManual)
-                        if emission_downLim > specData.UserData.channelManual.Band{ii}(2) || emission_upLim < specData.UserData.channelManual.Band{ii}(1)
+                        if emission_downLim > specData.UserData.channelManual(ii).Band(2) || emission_upLim < specData.UserData.channelManual(ii).Band(1)
                             continue
                         end
 
-                        FreqStart   = specData.UserData.channelManual.FirstChannel(ii);
-                        FreqStop    = specData.UserData.channelManual.LastChannel(ii);
-                        StepWidth   = specData.UserData.channelManual.StepWidth(ii);
+                        FreqStart   = specData.UserData.channelManual(ii).FirstChannel;
+                        FreqStop    = specData.UserData.channelManual(ii).LastChannel;
+                        StepWidth   = specData.UserData.channelManual(ii).StepWidth;
     
                         Channels = [Channels, FreqStart:StepWidth:FreqStop];
                     end

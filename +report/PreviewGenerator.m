@@ -1,11 +1,7 @@
-function peaksTable = PreviewGenerator(app, idx, DetectionMode)
-
-    %SpecInfo   = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
-    SpecInfo = app.specData(idx);
+function peaksTable = PreviewGenerator(app, idxThreads, DetectionMode)
     peaksTable = [];
-
-    for ii = 1:numel(SpecInfo)
-        Peaks = report.ReportGenerator_Peaks(app, SpecInfo, ii, DetectionMode);
+    for ii = idxThreads
+        Peaks = report.ReportGenerator_Peaks(app, ii, DetectionMode);
 
         if ~isempty(Peaks)
             if isempty(peaksTable); peaksTable = Peaks;

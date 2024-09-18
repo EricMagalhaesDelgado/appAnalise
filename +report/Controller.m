@@ -54,7 +54,7 @@ function Controller(app, Mode)
 
             case 'signalAnalysis.externalJSON'
                 [~, countTable] = report.ReportGenerator_Table_Summary(app.projectData.peaksTable, app.projectData.exceptionList);
-                tableStr = ReportGenerator_Aux3(app.CallingApp, idx, countTable);
+                tableStr = ReportGenerator_Aux3(app, idx, countTable);
 
                 defaultFilename = class.Constants.DefaultFileName(app.CallingApp.config_Folder_userPath.Value, 'preReport', app.CallingApp.report_Issue.Value);
 

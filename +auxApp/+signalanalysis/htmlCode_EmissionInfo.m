@@ -4,7 +4,10 @@ function [htmlContent, emissionTag, userDescription, stationInfo] = htmlCode_Emi
     exceptionList   = projectData.exceptionList(idxException, :);
     emissionTag     = sprintf('%.3f MHz ⌂ %.1f kHz', peaksTable.Frequency, peaksTable.BW);
 
-    % Registrando registros diferentes de "Licenciada" em vermelho:
+    % Destacando em VERMELHO registros que possuem situação diferente de 
+    % "Licenciada" e, também, registros cujo número da estação é igual a -1.
+    % Este último caso, contudo, é feito apenas se a tabela exceptionList 
+    % estiver vazia.
     if ~strcmp(peaksTable.Regulatory{1}, 'Licenciada')
         peaksTable.Regulatory{1} = sprintf('<font style="color: red;">%s</font>', peaksTable.Regulatory{1});
     end
@@ -27,6 +30,10 @@ function [htmlContent, emissionTag, userDescription, stationInfo] = htmlCode_Emi
             columnsDiff.(columnName) = sprintf('<del>%s</del> → <font style="color: red;">%s</font>', string(peaksTable.(columnName)), string(exceptionList.(columnName)));
             stationInfo.(columnName) = exceptionList.(columnName);
         end
+    end
+
+    if strcmp(columnsDiff.Station, '-1')
+        columnsDiff.Station = '<font style="color: red;">-1</font>';
     end
 
     % stationInfo 

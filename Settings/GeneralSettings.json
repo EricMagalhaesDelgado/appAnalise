@@ -1,5 +1,5 @@
 {
-    "version": 0.43,
+    "version": 0.45,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -312,6 +312,17 @@
             "LineWidth": 0.5,
             "EdgeColor": "#ff12a6",
             "FaceColor": "#ff12a6"
+        }
+    },
+    "RFDataHub": {
+        "DefaultRX": {
+            "Latitude": -15.805479,
+            "Longitude": -47.882499,
+            "Height": 30
+        },
+        "DefaultPrimaryFilter": {
+            "Column": "State",
+            "Value": "DF"
         }
     },
     "Integration": {

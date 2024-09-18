@@ -89,17 +89,16 @@ function Peaks = Classification(app, SpecInfo, idxThread, Peaks)
                 classContour = [];
                 
                 [Distance, idx3] = min(auxDistance);
-                if ~isempty(idx3)
-                    Service     = RFDataHub.Service(idx2(idx3));
-                    Station     = RFDataHub.Station(idx2(idx3));
-                    Description = class.RFDataHub.Description(RFDataHub, idx2(idx3));
-
-                    if RFDataHub.BW(idx2(idx3)) > 0
-                        BW = RFDataHub.BW(idx2(idx3));
-                    end
-
-                else
+                if isempty(Distance)
                     break
+                end
+
+                Service     = RFDataHub.Service(idx2(idx3));
+                Station     = RFDataHub.Station(idx2(idx3));
+                Description = class.RFDataHub.Description(RFDataHub, idx2(idx3));
+
+                if RFDataHub.BW(idx2(idx3)) > 0
+                    BW = RFDataHub.BW(idx2(idx3));
                 end
 
                 if isempty(findPeaks)
@@ -161,7 +160,7 @@ function Peaks = Classification(app, SpecInfo, idxThread, Peaks)
                 RuralContour = classMultiplier * classContour;
             end
                 
-            if (Distance > RuralContour) || (BW < (1-bwFactors(1))*Peaks.BW(ii)) || (BW > (1+bwFactors(2))*Peaks.BW(ii))
+            if ~isempty(Distance) && ((Distance > RuralContour) || (BW < (1-bwFactors(1))*Peaks.BW(ii)) || (BW > (1+bwFactors(2))*Peaks.BW(ii)))
                 Distance = [];
             end
         end
