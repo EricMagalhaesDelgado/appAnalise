@@ -114,9 +114,16 @@ classdef (Abstract) RFDataHub
             end
         end
 
-
         %-----------------------------------------------------------------%
-        function RFDataHub = ColumnNames(RFDataHub, Type)
+        function varargout = ColumnNamesMapping(operationType, varargin)
+            arguments
+                operationType char {mustBeMember(operationType, {'columnArrays', 'label2name', 'name2label'})}
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+
             rawColumnNames    = ["Frequência", "Entidade", "Fistel", "Serviço", "Estação", "Latitude", "Longitude", "Código_Município", "Município", "UF",                                      ... %  1 a 10
                                  "Classe", "Classe_Emissão", "Largura_Emissão(kHz)", "Validade_RF", "Status", "Fonte", "Multiplicidade","Log", "Cota_Base_Torre(m)", "Potência_Transmissor(W)", ... % 11 a 20
                                  "Ganho_Antena(dBd)", "Ângulo_Elevação_Antena", "Azimute_Antena", "Altura_Antena(m)", "Atenuação_Linha(db/100m)", "Perdas_Acessórias_Linha(db)",                ... % 21 a 26
@@ -125,6 +132,26 @@ classdef (Abstract) RFDataHub
             editedColumnNames = ["Frequency", "Name", "Fistel", "Service", "Station", "Latitude", "Longitude", "LocationID", "Location", "State",                                               ... %  1 a 10
                                  "StationClass", "EmissionClass", "BW", "SpectrumActValidity", "Status", "Source", "MergeCount", "Log", "TowerBaseElevation", "TransmitterPower",               ... % 11 a 20
                                  "AntennaGain", "AntennaElevation", "AntennaAzimuth", "AntennaHeight", "LineAttenuation", "LineAccessoryLosses", "AntennaPattern", "LineLength", "URL"];            % 21 a 29
+
+            switch operationType
+                case 'columnArrays'
+                    varargout = {rawColumnNames, editedColumnNames};
+
+                otherwise
+                    switch operationType
+                        case 'label2name'
+                            nameDict  = dictionary(rawColumnNames, editedColumnNames);
+                        case 'name2label'
+                            nameDict  = dictionary(editedColumnNames, rawColumnNames);
+                    end
+                    varargout = {nameDict(varargin{1})};
+            end            
+        end
+
+        %-----------------------------------------------------------------%
+        function RFDataHub = ColumnNames(RFDataHub, Type)
+            [rawColumnNames, ...
+             editedColumnNames] = class.RFDataHub.ColumnNamesMapping('columnArrays');
 
             switch Type
                 case 'port2eng'

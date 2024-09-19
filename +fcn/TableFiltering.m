@@ -1,7 +1,7 @@
 function fLogical = TableFiltering(hTable, filterTable)
         
     if any(filterTable.Enable)
-        idx1 = find(strcmp(filterTable.Order, 'Node'))';
+        idx1 = find(strcmp(filterTable.Order, 'Node') & filterTable.Enable)';
 
         fLogical   = ones(height(hTable), 1, 'logical');
         fTolerance = class.Constants.floatDiffTolerance;
@@ -10,24 +10,22 @@ function fLogical = TableFiltering(hTable, filterTable)
             tempLogical = zeros(height(hTable), 1, 'logical');
     
             idx2 = [ii, find(filterTable.RelatedID == ii)'];
-            if any(filterTable.Enable(idx2))
-                for jj = idx2
-                    if (jj ~= ii) && ~filterTable.Enable(jj)
-                        continue
-                    end
-    
-                    switch filterTable.Type{jj}
-                        case 'ROI'
-                            tempLogical = or(tempLogical, inROI(filterTable.Value{jj}{1}, hTable.Latitude, hTable.Longitude));
-                            
-                        otherwise
-                            Fcn = filterFcn(filterTable.Operation{jj}, filterTable.Value{jj}, fTolerance);
-                            tempLogical = or(tempLogical, Fcn(hTable{:, filterTable.Column(jj)}));
-                    end
+            for jj = idx2
+                if (jj ~= ii) && ~filterTable.Enable(jj)
+                    continue
                 end
-        
-                fLogical = and(fLogical, tempLogical);
+
+                switch filterTable.Type{jj}
+                    case 'ROI'
+                        tempLogical = or(tempLogical, inROI(filterTable.Value{jj}{1}, hTable.Latitude, hTable.Longitude));
+                        
+                    otherwise
+                        Fcn = filterFcn(filterTable.Operation{jj}, filterTable.Value{jj}, fTolerance);
+                        tempLogical = or(tempLogical, Fcn(hTable{:, filterTable.Column(jj)}));
+                end
             end
+    
+            fLogical = and(fLogical, tempLogical);
         end
 
     else
@@ -59,6 +57,6 @@ function Fcn = filterFcn(filterOperation, filterValue, fTolerance)
         end
 
     else
-        error('Unexpected filter value')
+        error('fcn:TableFiltering:UnexpectedFilterValue', 'Unexpected filter value')
     end
 end

@@ -1,5 +1,5 @@
 {
-    "version": 0.45,
+    "version": 0.47,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -321,9 +321,11 @@
             "Height": 30
         },
         "DefaultPrimaryFilter": {
-            "Column": "State",
+            "ColumnName": "State",
+            "ColumnLabel": "UF",
             "Value": "DF"
-        }
+        },
+        "lastSearch": []
     },
     "Integration": {
         "Trace": null,
