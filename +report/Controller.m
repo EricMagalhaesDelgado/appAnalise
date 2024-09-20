@@ -48,8 +48,12 @@ function Controller(app, Mode)
 
             
             case {'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission'}
+                app.progressDialog.Visible = 'visible';
+
                 Peaks = report.PreviewGenerator(app, idx, reportInfo.DetectionMode);
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
+
+                app.progressDialog.Visible = 'hidden';
 
 
             case 'signalAnalysis.externalJSON'

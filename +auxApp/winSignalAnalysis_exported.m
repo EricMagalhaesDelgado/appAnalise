@@ -1,4 +1,4 @@
-classdef dockSignalAnalysis < matlab.apps.AppBase
+classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -124,20 +124,24 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
             % (diretamente em JS).
             jsBackDoor_Customizations(app)
 
+            % Define tamanho mínimo do app (não aplicável à versão webapp).
+            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
+                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+            end
+
+            app.progressDialog.Visible = 'visible';
+
             % Criação do eixo e leitura dos dados...
             startup_AppProperties(app)
             startup_GUIComponents(app)
             startup_Axes(app)
             drawnow
 
-            % Libera screen... 
-            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
-                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-            end                
-
             pause(.100)
             renderProjectDataOnScreen(app)
             focus(app.UITable)
+
+            app.progressDialog.Visible = 'hidden';
         end
 
         %-----------------------------------------------------------------%
@@ -153,7 +157,6 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
                 app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
             end
 
-
             sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
                                                                                    'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
                                                                                                        '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
@@ -163,7 +166,9 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
                                                                                    'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
 
             ccTools.compCustomizationV2(app.jsBackDoor, app.AdditionalDescription, 'textAlign', 'justify')
-            ccTools.compCustomizationV2(app.jsBackDoor, app.TXGrid, 'backgroundColor', 'transparent')
+            ccTools.compCustomizationV2(app.jsBackDoor, app.TXGrid,    'backgroundColor', 'transparent')
+            ccTools.compCustomizationV2(app.jsBackDoor, app.TXPanel,   'backgroundColor', 'transparent')
+            ccTools.compCustomizationV2(app.jsBackDoor, app.TXSubGrid, 'backgroundColor', 'transparent')
         end
 
         %-----------------------------------------------------------------%
@@ -640,11 +645,9 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
             jsBackDoor_Initialization(app)
 
             if app.isDocked
-                app.GridLayout.Padding = [0 0 0 24];
-                app.tool_RefreshScreenSize.Visible = 0;
                 drawnow
+                app.tool_RefreshScreenSize.Visible = 0;
                 startup_Controller(app)
-                
             else
                 appUtil.winPosition(app.UIFigure)
                 startup_timerCreation(app)
@@ -656,7 +659,6 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
         function closeFcn(app, event)
             
             appBackDoor(app.CallingApp, app, 'closeFcn')
-            app.CallingApp.auxiliarWin1 = [];
             delete(app)
             
         end
@@ -932,15 +934,17 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
 
         % Create UIFigure and components
         function createComponents(app, Container)
+
+            % Create UIFigure and hide until all components are created
             if isempty(Container)
-                app.UIFigure  = uifigure('Visible', 'off');
+                app.UIFigure = uifigure('Visible', 'off');
+                app.UIFigure.AutoResizeChildren = 'off';
                 app.UIFigure.Position = [100 100 1244 660];
                 app.UIFigure.Name = 'appAnalise';
                 app.UIFigure.Icon = 'icon_48.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
 
                 app.Container = app.UIFigure;
-                app.isDocked  = false;
 
             else
                 delete(Container.Children)
@@ -1057,6 +1061,7 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
 
             % Create plotPanel
             app.plotPanel = uipanel(app.Document);
+            app.plotPanel.AutoResizeChildren = 'off';
             app.plotPanel.BorderType = 'none';
             app.plotPanel.BackgroundColor = [0 0 0];
             app.plotPanel.Layout.Row = [5 7];
@@ -1074,6 +1079,7 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
 
             % Create TXPanel
             app.TXPanel = uipanel(app.TXGrid);
+            app.TXPanel.AutoResizeChildren = 'off';
             app.TXPanel.ForegroundColor = [0.9412 0.9412 0.9412];
             app.TXPanel.Title = 'TX';
             app.TXPanel.BackgroundColor = [0 0 0];
@@ -1328,10 +1334,10 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
             app.toolGrid.ColumnWidth = {22, 22, '1x', 22, 22, 22};
-            app.toolGrid.RowHeight = {'1x', 17, '1x'};
+            app.toolGrid.RowHeight = {5, 17, '1x'};
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
-            app.toolGrid.Padding = [5 5 0 5];
+            app.toolGrid.Padding = [0 5 0 5];
             app.toolGrid.Layout.Row = 4;
             app.toolGrid.Layout.Column = [1 5];
             app.toolGrid.BackgroundColor = [0.9412 0.9412 0.9412];
@@ -1406,13 +1412,13 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = dockSignalAnalysis(Container, mainapp)
+        function app = winSignalAnalysis_exported(Container, varargin)
 
             % Create UIFigure and components
             createComponents(app, Container)
 
             % Execute the startup function
-            runStartupFcn(app, @(app)startupFcn(app, mainapp))
+            runStartupFcn(app, @(app)startupFcn(app, varargin{:}))
 
             if nargout == 0
                 clear app
@@ -1421,9 +1427,9 @@ classdef dockSignalAnalysis < matlab.apps.AppBase
 
         % Code that executes before app deletion
         function delete(app)
-            if app.isDocked
-                delete(app.Container.Children)
-            else
+
+            % Delete UIFigure when app is deleted
+            if ~app.isDocked
                 delete(app.UIFigure)
             end
         end
