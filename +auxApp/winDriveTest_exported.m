@@ -21,7 +21,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         axesTool_PlotSize               matlab.ui.control.Slider
         axesTool_DensityPlot            matlab.ui.control.Image
         axesTool_DistortionPlot         matlab.ui.control.Image
-        axesTool_DataTip                matlab.ui.control.Image
         axesTool_RegionZoom             matlab.ui.control.Image
         axesTool_RestoreView            matlab.ui.control.Image
         plotPanel                       matlab.ui.container.Panel
@@ -227,6 +226,66 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
     methods
         %-----------------------------------------------------------------%
+        % ÍNDICES DO FLUXO ESPECTRAL E DA EMISSÃO
+        %-----------------------------------------------------------------%
+        function [idxThread, idxEmission] = specDataIndex(app, operationType)
+            arguments
+                app 
+                operationType char {mustBeMember(operationType, {'EmissionShowed',              ...
+                                                                 'RefreshPlotParameters',       ...
+                                                                 'ChannelParameterChanged',     ...
+                                                                 'ChannelDefault',              ...
+                                                                 'PlotDataSourceChanged',       ...
+                                                                 'DataBinningParameterChanged', ...
+                                                                 'EmissionSelectionChanged'})} = 'EmissionShowed'
+            end
+
+            % É salva na propriedade "UserData" de app.general_emissionInfo a
+            % informação relacionada ao fluxo espectral e a emissão sob análise.
+
+            % emissionID = struct('Thread',   struct('Index',     idx,                                                     ...
+            %                                        'UUID',      {specData(idx).RelatedFiles.uuid}),                      ...
+            %                     'Emission', struct('Index',     idxEmission,                                             ...
+            %                                        'Frequency', specData(idx).UserData.Emissions.Frequency(idxEmission), ...
+            %                                        'BW',        specData(idx).UserData.Emissions.BW(idxEmission),        ...
+            %                                        'Tag',       emissionTag));
+
+            emissionID  = app.general_emissionInfo.UserData;
+
+            % Inicialmente, busca-se o fluxo espectral (referenciado 
+            % unicamente pela lista UUID dos arquivos brutos).
+            threadUUID  = emissionID.Thread.UUID;
+            listOfAllThreadsUUID = arrayfun(@(x) x.RelatedFiles.uuid, app.specData, 'UniformOutput', false);
+            
+            idxThread   = find(cellfun(@(x) isequal(x, threadUUID), listOfAllThreadsUUID), 1);
+            idxEmission = [];
+
+            % Caso seja identificado o fluxo espectral, busca a emissão 
+            % sob análise na lista de emissões.
+            if ~isempty(idxThread)
+                switch operationType
+                    case 'EmissionSelectionChanged'
+                        newEmissionTag = app.general_emissionList.Value;
+                        emissionTable  = app.specData(idxThread).UserData.Emissions;
+
+                        for ii = 1:height(emissionTable)
+                            if strcmp(newEmissionTag, sprintf('%.3f MHz ⌂ %.1f kHz', emissionTable.Frequency(ii), emissionTable.BW(ii)))
+                                idxEmission = ii;
+                                break
+                            end
+                        end
+
+                    otherwise
+                        emissionFrequency = emissionID.Emission.Frequency;
+                        emissionBW        = emissionID.Emission.BW;
+        
+                        idxEmission = find(abs(app.specData(idxThread).UserData.Emissions.Frequency - emissionFrequency) <= class.Constants.floatDiffTolerance & ...
+                                           abs(app.specData(idxThread).UserData.Emissions.BW        - emissionBW)        <= class.Constants.floatDiffTolerance, 1);
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
         % ATUALIZAÇÃO DE LISTA DE EMISSÕES NO APPANALISE
         %-----------------------------------------------------------------%
         function EmissionListUpdated(app)
@@ -377,10 +436,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_GUIComponents(app, idxThread, idxEmission)
-            % Inicialização de botões do toolbar do eixo, e de edição das 
-            % características do canal:
-            app.axesTool_DataTip.UserData = false;
-            app.general_chEdit.UserData   = false;
+            % Inicialização de edição das características do canal:
+            app.general_chEdit.UserData = false;
 
             % Lista as emissões:
             updateListOfEmissions(app, idxThread, idxEmission)
@@ -457,66 +514,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             linkaxes([app.UIAxes2, app.UIAxes3], 'x')
             plot.axes.Interactivity.DefaultCreation(app.UIAxes1, [dataTipInteraction, zoomInteraction, panInteraction])
             plot.axes.Interactivity.DefaultCreation([app.UIAxes2, app.UIAxes4], dataTipInteraction)
-        end
-
-        %-----------------------------------------------------------------%
-        % ÍNDICES DO FLUXO ESPECTRAL E DA EMISSÃO
-        %-----------------------------------------------------------------%
-        function [idxThread, idxEmission] = specDataIndex(app, operationType)
-            arguments
-                app 
-                operationType char {mustBeMember(operationType, {'EmissionShowed',              ...
-                                                                 'RefreshPlotParameters',       ...
-                                                                 'ChannelParameterChanged',     ...
-                                                                 'ChannelDefault',              ...
-                                                                 'PlotDataSourceChanged',       ...
-                                                                 'DataBinningParameterChanged', ...
-                                                                 'EmissionSelectionChanged'})} = 'EmissionShowed'
-            end
-
-            % É salva na propriedade "UserData" de app.general_emissionInfo a
-            % informação relacionada ao fluxo espectral e a emissão sob análise.
-
-            % emissionID = struct('Thread',   struct('Index',     idx,                                                     ...
-            %                                        'UUID',      {specData(idx).RelatedFiles.uuid}),                      ...
-            %                     'Emission', struct('Index',     idxEmission,                                             ...
-            %                                        'Frequency', specData(idx).UserData.Emissions.Frequency(idxEmission), ...
-            %                                        'BW',        specData(idx).UserData.Emissions.BW(idxEmission),        ...
-            %                                        'Tag',       emissionTag));
-
-            emissionID  = app.general_emissionInfo.UserData;
-
-            % Inicialmente, busca-se o fluxo espectral (referenciado 
-            % unicamente pela lista UUID dos arquivos brutos).
-            threadUUID  = emissionID.Thread.UUID;
-            listOfAllThreadsUUID = arrayfun(@(x) x.RelatedFiles.uuid, app.specData, 'UniformOutput', false);
-            
-            idxThread   = find(cellfun(@(x) isequal(x, threadUUID), listOfAllThreadsUUID), 1);
-            idxEmission = [];
-
-            % Caso seja identificado o fluxo espectral, busca a emissão 
-            % sob análise na lista de emissões.
-            if ~isempty(idxThread)
-                switch operationType
-                    case 'EmissionSelectionChanged'
-                        newEmissionTag = app.general_emissionList.Value;
-                        emissionTable  = app.specData(idxThread).UserData.Emissions;
-
-                        for ii = 1:height(emissionTable)
-                            if strcmp(newEmissionTag, sprintf('%.3f MHz ⌂ %.1f kHz', emissionTable.Frequency(ii), emissionTable.BW(ii)))
-                                idxEmission = ii;
-                                break
-                            end
-                        end
-
-                    otherwise
-                        emissionFrequency = emissionID.Emission.Frequency;
-                        emissionBW        = emissionID.Emission.BW;
-        
-                        idxEmission = find(abs(app.specData(idxThread).UserData.Emissions.Frequency - emissionFrequency) <= class.Constants.floatDiffTolerance & ...
-                                           abs(app.specData(idxThread).UserData.Emissions.BW        - emissionBW)        <= class.Constants.floatDiffTolerance, 1);
-                end
-            end
+            plot.axes.Interactivity.DataCursorMode(app.UIAxes3, true)
         end
 
         %-----------------------------------------------------------------%
@@ -1796,8 +1794,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: axesTool_DataTip, axesTool_RegionZoom, 
-        % ...and 1 other component
+        % Image clicked function: axesTool_RegionZoom, axesTool_RestoreView
         function axesTool_InteractionImageClicked(app, event)
             
             switch event.Source
@@ -1806,16 +1803,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
                 case app.axesTool_RegionZoom
                     plot.axes.Interactivity.GeographicRegionZoomInteraction(app.UIAxes1, app.axesTool_RegionZoom)
-
-                case app.axesTool_DataTip
-                    app.axesTool_DataTip.UserData = ~app.axesTool_DataTip.UserData;
-                    if app.axesTool_DataTip.UserData
-                        app.axesTool_DataTip.ImageSource = 'DataTip_22Filled.png';
-                    else
-                        app.axesTool_DataTip.ImageSource = 'DataTip_22.png';
-                    end
-
-                    plot.axes.Interactivity.DataCursorMode(app.UIFigure, app.axesTool_DataTip.UserData)
             end
 
         end
@@ -3646,13 +3633,13 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.plotPanel = uipanel(app.GridLayout);
             app.plotPanel.AutoResizeChildren = 'off';
             app.plotPanel.BorderType = 'none';
-            app.plotPanel.BackgroundColor = [1 1 0];
+            app.plotPanel.BackgroundColor = [1 1 1];
             app.plotPanel.Layout.Row = [2 3];
             app.plotPanel.Layout.Column = [4 7];
 
             % Create axesToolbarGrid
             app.axesToolbarGrid = uigridlayout(app.GridLayout);
-            app.axesToolbarGrid.ColumnWidth = {22, 22, 22, 22, 22, '1x'};
+            app.axesToolbarGrid.ColumnWidth = {22, 22, 22, 22, '1x'};
             app.axesToolbarGrid.RowHeight = {'1x'};
             app.axesToolbarGrid.ColumnSpacing = 0;
             app.axesToolbarGrid.Padding = [2 2 2 7];
@@ -3676,20 +3663,12 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.axesTool_RegionZoom.Layout.Column = 2;
             app.axesTool_RegionZoom.ImageSource = 'ZoomRegion_20.png';
 
-            % Create axesTool_DataTip
-            app.axesTool_DataTip = uiimage(app.axesToolbarGrid);
-            app.axesTool_DataTip.ImageClickedFcn = createCallbackFcn(app, @axesTool_InteractionImageClicked, true);
-            app.axesTool_DataTip.Tooltip = {'DataTip'};
-            app.axesTool_DataTip.Layout.Row = 1;
-            app.axesTool_DataTip.Layout.Column = 3;
-            app.axesTool_DataTip.ImageSource = 'DataTip_22.png';
-
             % Create axesTool_DistortionPlot
             app.axesTool_DistortionPlot = uiimage(app.axesToolbarGrid);
             app.axesTool_DistortionPlot.ImageClickedFcn = createCallbackFcn(app, @axesTool_PlotTypeValueChanged, true);
             app.axesTool_DistortionPlot.Tooltip = {'Distortion'};
             app.axesTool_DistortionPlot.Layout.Row = 1;
-            app.axesTool_DistortionPlot.Layout.Column = 4;
+            app.axesTool_DistortionPlot.Layout.Column = 3;
             app.axesTool_DistortionPlot.ImageSource = 'DriveTestDistortion_32.png';
 
             % Create axesTool_DensityPlot
@@ -3698,7 +3677,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.axesTool_DensityPlot.Enable = 'off';
             app.axesTool_DensityPlot.Tooltip = {'Heatmap'};
             app.axesTool_DensityPlot.Layout.Row = 1;
-            app.axesTool_DensityPlot.Layout.Column = 5;
+            app.axesTool_DensityPlot.Layout.Column = 4;
             app.axesTool_DensityPlot.ImageSource = 'DriveTestDensity_32.png';
 
             % Create axesTool_PlotSize
@@ -3709,7 +3688,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.axesTool_PlotSize.ValueChangedFcn = createCallbackFcn(app, @axesTool_PlotSizeValueChanged, true);
             app.axesTool_PlotSize.ValueChangingFcn = createCallbackFcn(app, @axesTool_PlotSizeValueChanging, true);
             app.axesTool_PlotSize.Layout.Row = 1;
-            app.axesTool_PlotSize.Layout.Column = 6;
+            app.axesTool_PlotSize.Layout.Column = 5;
             app.axesTool_PlotSize.Value = 1;
 
             % Create plotSource
@@ -3741,7 +3720,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
             app.toolGrid.ColumnWidth = {22, 22, 22, 248, 196, '1x', 22, 22, 22};
-            app.toolGrid.RowHeight = {5, 17, '1x'};
+            app.toolGrid.RowHeight = {4, 17, '1x'};
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
             app.toolGrid.Padding = [0 5 0 5];

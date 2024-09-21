@@ -1334,7 +1334,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
             app.toolGrid.ColumnWidth = {22, 22, '1x', 22, 22, 22};
-            app.toolGrid.RowHeight = {5, 17, '1x'};
+            app.toolGrid.RowHeight = {4, 17, '1x'};
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
             app.toolGrid.Padding = [0 5 0 5];
@@ -1352,11 +1352,12 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             % Create tool_ExportJSONFile
             app.tool_ExportJSONFile = uiimage(app.toolGrid);
+            app.tool_ExportJSONFile.ScaleMethod = 'none';
             app.tool_ExportJSONFile.ImageClickedFcn = createCallbackFcn(app, @toolbarCallbacks, true);
             app.tool_ExportJSONFile.Tooltip = {'Exporta arquivo JSON com informações das emissões sob análise'};
             app.tool_ExportJSONFile.Layout.Row = 2;
             app.tool_ExportJSONFile.Layout.Column = 2;
-            app.tool_ExportJSONFile.ImageSource = 'Export_24.png';
+            app.tool_ExportJSONFile.ImageSource = 'Export_16.png';
 
             % Create jsBackDoor
             app.jsBackDoor = uihtml(app.toolGrid);

@@ -1,7 +1,7 @@
 function mlapp2m(listOfMLAPPFiles, showDiffApp)
     arguments
         listOfMLAPPFiles cell = {'winDriveTest', 'winSignalAnalysis', 'winRFDataHub'};
-        showDiffApp   logical = true
+        showDiffApp   logical = false
     end
 
     fileFolder = fileparts(mfilename('fullpath'));

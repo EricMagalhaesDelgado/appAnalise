@@ -142,14 +142,20 @@ classdef specData < handle
         end
 
         %-----------------------------------------------------------------%
-        function merge(obj, idxThreads, hFigure)
+        function obj = merge(obj, idxThreads, hFigure)
+            % "obj" como saída é ESSENCIAL para garantir que tenha efeito
+            % a diretriz: obj(idxThreads(2:nThreads)) = []; 
             arguments 
                 obj
-                idxThreads  double {mustBeGreaterThanOrEqual(idxThreads, 2)}
+                idxThreads
                 hFigure    (1,1) matlab.ui.Figure
             end
             
             % VALIDAÇÕES
+            if numel(idxThreads) < 2
+                error(ErrorMessage(obj, 'merge'))
+            end
+
             mergeTable = createSortableTable(obj, idxThreads, {'FreqStart', 'FreqStop'});
 
             if ~isscalar(unique(mergeTable.Receiver)) || ~isscalar(unique(mergeTable.DataType)) || ~isscalar(unique(mergeTable.LevelUnit))               

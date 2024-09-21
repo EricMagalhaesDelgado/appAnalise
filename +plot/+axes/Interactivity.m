@@ -290,9 +290,9 @@ classdef (Abstract) Interactivity
         %-----------------------------------------------------------------%
         % DATATIP
         %-----------------------------------------------------------------%
-        function DataCursorMode(hFig, dataTipInteractionStatus)
+        function DataCursorMode(hAxes, dataTipInteractionStatus)
             d = dictionary([true, false], ["on", "off"]);
-            datacursormode(hFig, d(dataTipInteractionStatus))
+            datacursormode(hAxes, d(dataTipInteractionStatus))
         end
 
         %-----------------------------------------------------------------%
