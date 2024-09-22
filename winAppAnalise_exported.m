@@ -3248,28 +3248,30 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         % Value changed function: menu_Button7
         function menu_OpenRFDataHubModule(app, event)
-            
-            auxApp.winRFDataHub_new(app)
 
-            % clickedButton = event.Source;
-            % 
-            % if event.PreviousValue
-            %     clickedButton.Value = true;
-            %     return
-            % end
-            % 
-            % if isempty(app.hRFDataHub) || ~isvalid(app.hRFDataHub)
-            %     msgQuestion   = ['O RFDataHub é uma ETL de dados de estações de telecomunicações composta por '       ...
-            %                      'registros extraídos de bases de dados do MOSAICO, STEL, SRD, ICAO, AISWEB, GEOAIS ' ...
-            %                      'e REDEMET.<br><br>Deseja abrir o módulo de consulta ao RFDataHub?'];
-            %     userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-            %     if userSelection == "Não"
-            %         app.menu_Button7.Value = 0;
-            %         return
-            %     end
-            % end
-            % 
-            % menu_LayoutAuxiliarApp(app, 'RFDATAHUB', 'Open')
+            clickedButton = event.Source;
+
+            if ~isempty(app.hRFDataHub) && isvalid(app.hRFDataHub) && ~app.hRFDataHub.isDocked
+                clickedButton.Value = false;
+                figure(app.hRFDataHub.UIFigure)
+                return
+            elseif event.PreviousValue
+                clickedButton.Value = true;
+                return
+            end            
+
+            if isempty(app.hRFDataHub) || ~isvalid(app.hRFDataHub)
+                msgQuestion   = ['O RFDataHub é uma ETL de dados de estações de telecomunicações composta por '       ...
+                                 'registros extraídos de bases de dados do MOSAICO, STEL, SRD, ICAO, AISWEB, GEOAIS ' ...
+                                 'e REDEMET.<br><br>Deseja abrir o módulo de consulta ao RFDataHub?'];
+                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                if userSelection == "Não"
+                    clickedButton.Value = 0;
+                    return
+                end
+            end
+
+            menu_LayoutAuxiliarApp(app, 'RFDATAHUB', 'Open')
 
         end
 
