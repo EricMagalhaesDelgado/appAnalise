@@ -292,11 +292,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             [idxThread, idxEmission] = specDataIndex(app, 'EmissionShowed');
 
             if isempty(idxThread) || isempty(app.specData(idxThread).UserData.Emissions)
-                app.plotFlag = 0;
-                msgWarning = ['A lista de emissões do fluxo espectral sob análise está vazia. ' ...
-                              'Por essa razão, este módulo do appAnalise será fechado.'];
-                appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgWarning, {'OK'}, 1, 1);
-
                 closeFcn(app)
                 return
             end
@@ -2540,7 +2535,9 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 app.Container = app.UIFigure;
 
             else
-                delete(Container.Children)
+                if ~isempty(Container.Children)
+                    delete(Container.Children)
+                end
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
@@ -3848,7 +3845,9 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         function delete(app)
 
             % Delete UIFigure when app is deleted
-            if ~app.isDocked
+            if app.isDocked
+                delete(app.Container.Children)
+            else
                 delete(app.UIFigure)
             end
         end

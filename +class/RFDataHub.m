@@ -236,5 +236,32 @@ classdef (Abstract) RFDataHub
                 msgError = ME.identifier;
             end
         end
+
+        %-----------------------------------------------------------------%
+        function [x1, q1] = parsingAntennaPattern(jsonLikePattern, nPoints)
+            arguments
+                jsonLikePattern char
+                nPoints
+            end
+            % jsonLikePattern = '{''0'': 8.0, ''10'': 8.0, ''20'': 8.0, ''30'': 8.0, ''40'': 9.0, ''50'': 8.0, ... ''345'': 9.063, ''355'': 8.5}';
+
+            s = regexp(jsonLikePattern,'''(?<angle>\d+)''\s*:\s*(?<gain>[\d\.]+)', 'names');
+            x0 = deg2rad(str2double({s.angle}));
+            q0  = str2double({s.gain});
+
+            [x0, idxSort] = sort(x0);
+            q0 = q0(idxSort);
+
+            if (abs(x0(1)-0) <= class.Constants.floatDiffTolerance) && (abs(x0(end)-2*pi) > class.Constants.floatDiffTolerance)
+                x0(end+1) = 2*pi;
+                q0(end+1) = q0(1);
+            elseif (abs(x0(1)-0) > class.Constants.floatDiffTolerance) && (abs(x0(end)-2*pi) <= class.Constants.floatDiffTolerance)
+                x0 = [0, x0];
+                q0 = [q0(end), q0];
+            end
+
+            x1 = linspace(0,2*pi,nPoints);
+            q1 = interp1(x0, q0, x1, "spline", "extrap");
+        end
     end
 end

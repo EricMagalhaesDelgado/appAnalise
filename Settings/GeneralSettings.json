@@ -1,5 +1,5 @@
 {
-    "version": 0.48,
+    "version": 0.52,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -320,10 +320,10 @@
             "Longitude": -47.882499,
             "Height": 30
         },
-        "DefaultPrimaryFilter": {
-            "ColumnName": "State",
-            "ColumnLabel": "UF",
-            "Value": "DF"
+        "DefaultFilter": {
+            "ColumnLabel": "Distância",
+            "Operation": "≤",
+            "Value": 30
         },
         "lastSearch": []
     },

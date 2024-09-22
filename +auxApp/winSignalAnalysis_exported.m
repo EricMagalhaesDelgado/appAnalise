@@ -947,7 +947,9 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 app.Container = app.UIFigure;
 
             else
-                delete(Container.Children)
+                if ~isempty(Container.Children)
+                    delete(Container.Children)
+                end
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
@@ -1430,7 +1432,9 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         function delete(app)
 
             % Delete UIFigure when app is deleted
-            if ~app.isDocked
+            if app.isDocked
+                delete(app.Container.Children)
+            else
                 delete(app.UIFigure)
             end
         end
