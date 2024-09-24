@@ -413,25 +413,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         config_FiscalizaPD              matlab.ui.control.RadioButton
         config_FiscalizaVersionLabel    matlab.ui.control.Label
         config_Option2Grid              matlab.ui.container.GridLayout
-        config_SelectedTableColumns     matlab.ui.container.CheckBoxTree
-        config_SelectedTableColumnsLabel  matlab.ui.control.Label
-        config_MiscelaneousPanel2       matlab.ui.container.Panel
-        config_MiscelaneousGrid2        matlab.ui.container.GridLayout
-        config_WordCloudColumn          matlab.ui.control.DropDown
-        config_WordCloudColumnLabel     matlab.ui.control.Label
-        config_WordCloudAlgorithm       matlab.ui.control.DropDown
-        config_WordCloudAlgorithmLabel  matlab.ui.control.Label
-        config_MiscelaneousLabel2       matlab.ui.control.Label
-        config_MiscelaneousPanel1       matlab.ui.container.Panel
-        config_MiscelaneousGrid1        matlab.ui.container.GridLayout
-        config_nMinWords                matlab.ui.control.DropDown
-        config_nMinWordsLabel           matlab.ui.control.Label
-        config_nMinCharacters           matlab.ui.control.Spinner
-        config_nMinCharactersLabel      matlab.ui.control.Label
-        config_MiscelaneousLabel1       matlab.ui.control.Label
-        config_SearchModePanel          matlab.ui.container.ButtonGroup
-        config_SearchModeListOfWords    matlab.ui.control.RadioButton
-        config_SearchModeTokenSuggestion  matlab.ui.control.RadioButton
+        Panel_5                         matlab.ui.container.Panel
+        config_openDebugVersion         matlab.ui.control.CheckBox
+        config_openAsDocked             matlab.ui.control.CheckBox
         config_SearchModeLabel          matlab.ui.control.Label
         config_Option1Grid              matlab.ui.container.GridLayout
         config_FolderMapPanel           matlab.ui.container.Panel
@@ -450,9 +434,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         config_Folder_DataHubGETLabel   matlab.ui.control.Label
         config_FolderMapLabel           matlab.ui.control.Label
         config_Control                  matlab.ui.container.GridLayout
-        Panel2                          matlab.ui.container.Panel
-        config_openDebugVersion         matlab.ui.control.CheckBox
-        config_openAsDocked             matlab.ui.control.CheckBox
         config_ButtonGroup              matlab.ui.container.ButtonGroup
         config_Option_Folder            matlab.ui.control.RadioButton
         config_Option_Fiscaliza         matlab.ui.control.RadioButton
@@ -557,7 +538,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         hDriveTest                                                          % auxApp.winDriveTest.mlapp      | auxApp.winDriveTest_exported.m
         hSignalAnalysis                                                     % auxApp.winSignalAnalysis.mlapp | auxApp.winSignalAnalysis_exported.m
-        hRFDataHub                                                          % auxApp.winRFDataHub.mlapp      | auxApp.winRFDataHub_exported.m
+        hRFDataHub                                                          % winRFDataHub.mlapp             | winRFDataHub_exported.m
     end
     
     
@@ -617,6 +598,20 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
                 end
                 drawnow
+
+                % O processo "turningBackgroundColorInvisible" do splashscreen
+                % demora 1250 ms. São 50 iterações em que em cada uma delas
+                % a opacidade da imagem diminuir em 0.02. Entre cada iteração, 
+                % 25 ms. Esse último trecho, entretanto, delimitado pelo
+                % comentário "Libera screen..." demora cerca de 1600 ms.
+
+                % A diretriz abaixo é a garantia de exclusão do splashscreen. 
+                % Ao abrir o webapp SCH no iPhone, por exemplo, o splashscreen 
+                % não foi excluído, o que "travou" o app.
+                if isvalid(app.home_Grid)
+                    pause(.500)
+                    delete(app.home_Grid)
+                end
             end
         end
 
@@ -838,7 +833,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case 'credentialDialog'
                     fiscalizaLibConnection.report_Connect(app, event.HTMLEventData, 'OpenConnection')
                 case 'BackgroundColorTurnedInvisible'
-                    eval(sprintf('delete(%s)', event.HTMLEventData))
+                    if isvalid(app.home_Grid)
+                        delete(app.home_Grid)
+                    end
                 case 'app.file_Tree'
                     file_ContextMenu_delTree1NodeSelected(app)
                 case 'app.file_FilteringTree'
@@ -882,7 +879,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
 
                     % MATLAB R2024a Update 6 apresentou um BUG, não armazenando
-                    % alterações na propriedade "BorderColor" de um painel.
+                    % alterações na propriedade "BorderColor" dos painéis quando
+                    % realizadas no ambiente do AppDesigner.
                     app.drivetest_Container.BorderColor      = [.94,.94,.94];
                     app.signalanalysis_Container.BorderColor = [.94,.94,.94];
                     app.rfdatahub_Container.BorderColor      = [.94,.94,.94];
@@ -917,7 +915,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
         end
 
-
+        
         %-----------------------------------------------------------------%
         % CUSTOMIZAÇÃO DECORRENTE DA TROCA DO MODO DE OPERAÇÃO
         %-----------------------------------------------------------------%
@@ -1017,8 +1015,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     docRefMenuButton     = app.menu_Button2; % PLAYBACK
                     dockContainer        = app.rfdatahub_Container;
                     
-                    FileHandle_MFILE     = @auxApp.winRFDataHub_exported;
-                    FileHandle_MLAPP     = @auxApp.winRFDataHub;
+                    FileHandle_MFILE     = @winRFDataHub_exported;
+                    FileHandle_MLAPP     = @winRFDataHub;
             end
 
             switch operationType
@@ -1090,6 +1088,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     inputArguments = {};
             end
         end
+
 
         %-----------------------------------------------------------------%
         % APAGA COISAS...
@@ -3085,7 +3084,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 error('UnexpectedCall')
                         end
 
-                    case {'auxApp.winRFDataHub', 'auxApp.winRFDataHub_exported'}
+                    case {'winRFDataHub', 'winRFDataHub_exported'}
                         switch operationType
                             case 'closeFcn'
                                 menu_LayoutAuxiliarApp(app, 'RFDATAHUB', 'Close')
@@ -9308,26 +9307,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.config_Option_Folder.FontSize = 11;
             app.config_Option_Folder.Position = [11 26 137 22];
 
-            % Create Panel2
-            app.Panel2 = uipanel(app.config_Control);
-            app.Panel2.Title = 'Panel2';
-            app.Panel2.Layout.Row = 6;
-            app.Panel2.Layout.Column = 1;
-
-            % Create config_openAsDocked
-            app.config_openAsDocked = uicheckbox(app.Panel2);
-            app.config_openAsDocked.Text = 'DOCKED MODE: Abertas as versões M dos apps auxiliares.';
-            app.config_openAsDocked.WordWrap = 'on';
-            app.config_openAsDocked.Position = [9 58 312 35];
-            app.config_openAsDocked.Value = true;
-
-            % Create config_openDebugVersion
-            app.config_openDebugVersion = uicheckbox(app.Panel2);
-            app.config_openDebugVersion.Text = 'DEBUG MODE: São abertas as versões MLAPP dos apps auxiliares), quando não selecionado DOCKED MODE.';
-            app.config_openDebugVersion.WordWrap = 'on';
-            app.config_openDebugVersion.Position = [12 11 304 44];
-            app.config_openDebugVersion.Value = true;
-
             % Create config_Option1Grid
             app.config_Option1Grid = uigridlayout(app.config_mainGrid);
             app.config_Option1Grid.ColumnWidth = {'1x'};
@@ -9453,8 +9432,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create config_Option2Grid
             app.config_Option2Grid = uigridlayout(app.config_mainGrid);
             app.config_Option2Grid.ColumnWidth = {'1x'};
-            app.config_Option2Grid.RowHeight = {22, 5, 68, 5, 22, 5, 68, 5, 22, 5, 68, 5, 22, 5, '1x', 1};
-            app.config_Option2Grid.RowSpacing = 0;
+            app.config_Option2Grid.RowHeight = {22, 140, '1x'};
+            app.config_Option2Grid.RowSpacing = 5;
             app.config_Option2Grid.Padding = [0 0 0 0];
             app.config_Option2Grid.Layout.Row = 1;
             app.config_Option2Grid.Layout.Column = 2;
@@ -9468,161 +9447,25 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.config_SearchModeLabel.Layout.Column = 1;
             app.config_SearchModeLabel.Text = 'MODO';
 
-            % Create config_SearchModePanel
-            app.config_SearchModePanel = uibuttongroup(app.config_Option2Grid);
-            app.config_SearchModePanel.AutoResizeChildren = 'off';
-            app.config_SearchModePanel.BackgroundColor = [1 1 1];
-            app.config_SearchModePanel.Layout.Row = 3;
-            app.config_SearchModePanel.Layout.Column = 1;
+            % Create Panel_5
+            app.Panel_5 = uipanel(app.config_Option2Grid);
+            app.Panel_5.BackgroundColor = [1 1 1];
+            app.Panel_5.Layout.Row = 2;
+            app.Panel_5.Layout.Column = 1;
 
-            % Create config_SearchModeTokenSuggestion
-            app.config_SearchModeTokenSuggestion = uiradiobutton(app.config_SearchModePanel);
-            app.config_SearchModeTokenSuggestion.Tag = 'strcmp';
-            app.config_SearchModeTokenSuggestion.Text = '<p style="text-align:justify; line-height:1.1;">Pesquisa orientada à palavra que está sendo escrita, sugerindo <i>tokens</i> relacionados.</p>';
-            app.config_SearchModeTokenSuggestion.WordWrap = 'on';
-            app.config_SearchModeTokenSuggestion.FontSize = 11;
-            app.config_SearchModeTokenSuggestion.Interpreter = 'html';
-            app.config_SearchModeTokenSuggestion.Position = [10 39 840 29];
-            app.config_SearchModeTokenSuggestion.Value = true;
+            % Create config_openAsDocked
+            app.config_openAsDocked = uicheckbox(app.Panel_5);
+            app.config_openAsDocked.Text = 'DOCKED MODE: Abertas as versões M dos apps auxiliares.';
+            app.config_openAsDocked.WordWrap = 'on';
+            app.config_openAsDocked.Position = [9 98 312 35];
+            app.config_openAsDocked.Value = true;
 
-            % Create config_SearchModeListOfWords
-            app.config_SearchModeListOfWords = uiradiobutton(app.config_SearchModePanel);
-            app.config_SearchModeListOfWords.Tag = 'contains';
-            app.config_SearchModeListOfWords.Text = '<p style="text-align:justify; line-height:1.1;">Pesquisa orientada à uma lista de palavras separadas por vírgulas. Não há sugestão de <i>tokens</i> relacionados.</p>';
-            app.config_SearchModeListOfWords.WordWrap = 'on';
-            app.config_SearchModeListOfWords.FontSize = 11;
-            app.config_SearchModeListOfWords.Interpreter = 'html';
-            app.config_SearchModeListOfWords.Position = [11 16 837 34];
-
-            % Create config_MiscelaneousLabel1
-            app.config_MiscelaneousLabel1 = uilabel(app.config_Option2Grid);
-            app.config_MiscelaneousLabel1.VerticalAlignment = 'bottom';
-            app.config_MiscelaneousLabel1.FontSize = 10;
-            app.config_MiscelaneousLabel1.Layout.Row = 5;
-            app.config_MiscelaneousLabel1.Layout.Column = 1;
-            app.config_MiscelaneousLabel1.Text = 'ALGORITMO SUGESTÃO DE TOKENS';
-
-            % Create config_MiscelaneousPanel1
-            app.config_MiscelaneousPanel1 = uipanel(app.config_Option2Grid);
-            app.config_MiscelaneousPanel1.AutoResizeChildren = 'off';
-            app.config_MiscelaneousPanel1.Layout.Row = 7;
-            app.config_MiscelaneousPanel1.Layout.Column = 1;
-
-            % Create config_MiscelaneousGrid1
-            app.config_MiscelaneousGrid1 = uigridlayout(app.config_MiscelaneousPanel1);
-            app.config_MiscelaneousGrid1.ColumnWidth = {150, 150};
-            app.config_MiscelaneousGrid1.RowHeight = {17, 22};
-            app.config_MiscelaneousGrid1.RowSpacing = 5;
-            app.config_MiscelaneousGrid1.BackgroundColor = [1 1 1];
-
-            % Create config_nMinCharactersLabel
-            app.config_nMinCharactersLabel = uilabel(app.config_MiscelaneousGrid1);
-            app.config_nMinCharactersLabel.VerticalAlignment = 'bottom';
-            app.config_nMinCharactersLabel.WordWrap = 'on';
-            app.config_nMinCharactersLabel.FontSize = 11;
-            app.config_nMinCharactersLabel.Layout.Row = 1;
-            app.config_nMinCharactersLabel.Layout.Column = 1;
-            app.config_nMinCharactersLabel.Text = 'Qtd. mínima caracteres:';
-
-            % Create config_nMinCharacters
-            app.config_nMinCharacters = uispinner(app.config_MiscelaneousGrid1);
-            app.config_nMinCharacters.Limits = [2 4];
-            app.config_nMinCharacters.RoundFractionalValues = 'on';
-            app.config_nMinCharacters.ValueDisplayFormat = '%d';
-            app.config_nMinCharacters.FontSize = 11;
-            app.config_nMinCharacters.Layout.Row = 2;
-            app.config_nMinCharacters.Layout.Column = 1;
-            app.config_nMinCharacters.Value = 2;
-
-            % Create config_nMinWordsLabel
-            app.config_nMinWordsLabel = uilabel(app.config_MiscelaneousGrid1);
-            app.config_nMinWordsLabel.VerticalAlignment = 'bottom';
-            app.config_nMinWordsLabel.WordWrap = 'on';
-            app.config_nMinWordsLabel.FontSize = 11;
-            app.config_nMinWordsLabel.Layout.Row = 1;
-            app.config_nMinWordsLabel.Layout.Column = 2;
-            app.config_nMinWordsLabel.Interpreter = 'html';
-            app.config_nMinWordsLabel.Text = 'Qtd. mínima <i>tokens</i>:';
-
-            % Create config_nMinWords
-            app.config_nMinWords = uidropdown(app.config_MiscelaneousGrid1);
-            app.config_nMinWords.Items = {'20', '50', '100'};
-            app.config_nMinWords.FontSize = 11;
-            app.config_nMinWords.BackgroundColor = [1 1 1];
-            app.config_nMinWords.Layout.Row = 2;
-            app.config_nMinWords.Layout.Column = 2;
-            app.config_nMinWords.Value = '20';
-
-            % Create config_MiscelaneousLabel2
-            app.config_MiscelaneousLabel2 = uilabel(app.config_Option2Grid);
-            app.config_MiscelaneousLabel2.VerticalAlignment = 'bottom';
-            app.config_MiscelaneousLabel2.FontSize = 10;
-            app.config_MiscelaneousLabel2.Layout.Row = 9;
-            app.config_MiscelaneousLabel2.Layout.Column = 1;
-            app.config_MiscelaneousLabel2.Text = 'ANOTAÇÃO DO TIPO "WORDCLOUD"';
-
-            % Create config_MiscelaneousPanel2
-            app.config_MiscelaneousPanel2 = uipanel(app.config_Option2Grid);
-            app.config_MiscelaneousPanel2.AutoResizeChildren = 'off';
-            app.config_MiscelaneousPanel2.Layout.Row = 11;
-            app.config_MiscelaneousPanel2.Layout.Column = 1;
-
-            % Create config_MiscelaneousGrid2
-            app.config_MiscelaneousGrid2 = uigridlayout(app.config_MiscelaneousPanel2);
-            app.config_MiscelaneousGrid2.ColumnWidth = {150, 150};
-            app.config_MiscelaneousGrid2.RowHeight = {17, 22};
-            app.config_MiscelaneousGrid2.RowSpacing = 5;
-            app.config_MiscelaneousGrid2.BackgroundColor = [1 1 1];
-
-            % Create config_WordCloudAlgorithmLabel
-            app.config_WordCloudAlgorithmLabel = uilabel(app.config_MiscelaneousGrid2);
-            app.config_WordCloudAlgorithmLabel.VerticalAlignment = 'bottom';
-            app.config_WordCloudAlgorithmLabel.WordWrap = 'on';
-            app.config_WordCloudAlgorithmLabel.FontSize = 11;
-            app.config_WordCloudAlgorithmLabel.Layout.Row = 1;
-            app.config_WordCloudAlgorithmLabel.Layout.Column = 1;
-            app.config_WordCloudAlgorithmLabel.Text = 'Algoritmo gráfico:';
-
-            % Create config_WordCloudAlgorithm
-            app.config_WordCloudAlgorithm = uidropdown(app.config_MiscelaneousGrid2);
-            app.config_WordCloudAlgorithm.Items = {'D3.js', 'MATLAB built-in'};
-            app.config_WordCloudAlgorithm.FontSize = 11;
-            app.config_WordCloudAlgorithm.BackgroundColor = [1 1 1];
-            app.config_WordCloudAlgorithm.Layout.Row = 2;
-            app.config_WordCloudAlgorithm.Layout.Column = 1;
-            app.config_WordCloudAlgorithm.Value = 'D3.js';
-
-            % Create config_WordCloudColumnLabel
-            app.config_WordCloudColumnLabel = uilabel(app.config_MiscelaneousGrid2);
-            app.config_WordCloudColumnLabel.VerticalAlignment = 'bottom';
-            app.config_WordCloudColumnLabel.WordWrap = 'on';
-            app.config_WordCloudColumnLabel.FontSize = 11;
-            app.config_WordCloudColumnLabel.Layout.Row = 1;
-            app.config_WordCloudColumnLabel.Layout.Column = 2;
-            app.config_WordCloudColumnLabel.Text = 'Pesquisa orientada à coluna:';
-
-            % Create config_WordCloudColumn
-            app.config_WordCloudColumn = uidropdown(app.config_MiscelaneousGrid2);
-            app.config_WordCloudColumn.Items = {'Modelo', 'Nome Comercial'};
-            app.config_WordCloudColumn.FontSize = 11;
-            app.config_WordCloudColumn.BackgroundColor = [1 1 1];
-            app.config_WordCloudColumn.Layout.Row = 2;
-            app.config_WordCloudColumn.Layout.Column = 2;
-            app.config_WordCloudColumn.Value = 'Modelo';
-
-            % Create config_SelectedTableColumnsLabel
-            app.config_SelectedTableColumnsLabel = uilabel(app.config_Option2Grid);
-            app.config_SelectedTableColumnsLabel.VerticalAlignment = 'bottom';
-            app.config_SelectedTableColumnsLabel.FontSize = 10;
-            app.config_SelectedTableColumnsLabel.Layout.Row = 13;
-            app.config_SelectedTableColumnsLabel.Layout.Column = 1;
-            app.config_SelectedTableColumnsLabel.Text = 'VISIBILIDADE DE COLUNAS';
-
-            % Create config_SelectedTableColumns
-            app.config_SelectedTableColumns = uitree(app.config_Option2Grid, 'checkbox');
-            app.config_SelectedTableColumns.FontSize = 11;
-            app.config_SelectedTableColumns.Layout.Row = 15;
-            app.config_SelectedTableColumns.Layout.Column = 1;
+            % Create config_openDebugVersion
+            app.config_openDebugVersion = uicheckbox(app.Panel_5);
+            app.config_openDebugVersion.Text = 'DEBUG MODE: São abertas as versões MLAPP dos apps auxiliares), quando não selecionado DOCKED MODE.';
+            app.config_openDebugVersion.WordWrap = 'on';
+            app.config_openDebugVersion.Position = [13 23 304 44];
+            app.config_openDebugVersion.Value = true;
 
             % Create config_Option3Grid
             app.config_Option3Grid = uigridlayout(app.config_mainGrid);

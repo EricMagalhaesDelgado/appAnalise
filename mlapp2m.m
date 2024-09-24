@@ -43,7 +43,13 @@ function mlapp2m(MLAPPFiles, showDiffApp)
                     writematrix(matlabCode, [fileBaseName '_exported.m'], 'FileType', 'text', 'WriteMode', 'overwrite', 'QuoteStrings', 'none')
 
                 otherwise
-                    fileBaseName = fullfile(fileFolder, '+auxApp', oldClassName);
+                    switch oldClassName
+                        case 'winRFDataHub'
+                            fileBaseName = fullfile(fileFolder, oldClassName);
+                        otherwise
+                            fileBaseName = fullfile(fileFolder, '+auxApp', oldClassName);
+                    end
+                    
                     matlabCode   = getMFileContent(fileBaseName);
 
                     % Salva a versão original do .M em pasta temporária, de

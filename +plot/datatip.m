@@ -55,8 +55,6 @@ classdef (Abstract) datatip
                                                    'SweepID+ChannelPower' ...
                                                    'winRFDataHub.Geographic' ...
                                                    'winRFDataHub.SelectedNode' ...
-                                                   'winRFDataHub.Histogram1' ...
-                                                   'winRFDataHub.Histogram2' ...
                                                    'RFLink.LOS', ...
                                                    'RFLink.Terrain'})}
             end
@@ -160,20 +158,9 @@ classdef (Abstract) datatip
                 case 'winRFDataHub.Geographic'
                     hTable = varargin{1};
 
-                    dtParent.DataTipTemplate.DataTipRows(1)     = dataTipTextRow('', hTable.Frequency, '%.3f MHz');
-                    dtParent.DataTipTemplate.DataTipRows(2)     = dataTipTextRow('', hTable.Distance,  '%.0f km');
-
-                    ROWS = height(hTable);
-                    if ROWS == 1
-                        dtParent.DataTipTemplate.DataTipRows(3) = dataTipTextRow('ID:', {hTable{:,1}});
-                        dtParent.DataTipTemplate.DataTipRows(4) = dataTipTextRow('',    {hTable{:,5}});
-
-                    elseif ROWS > 1
-                        dtParent.DataTipTemplate.DataTipRows(3) = dataTipTextRow('ID:', hTable{:,1});
-                        dtParent.DataTipTemplate.DataTipRows(4) = dataTipTextRow('',    hTable{:,5});
-                    end
-
-                    dtParent.DataTipTemplate.DataTipRows        = dtParent.DataTipTemplate.DataTipRows([3,1,4,2]);
+                    dtParent.DataTipTemplate.DataTipRows(1)     = dataTipTextRow('', hTable.ID);
+                    dtParent.DataTipTemplate.DataTipRows(2)     = dataTipTextRow('', hTable.Frequency, '%.3f MHz');
+                    dtParent.DataTipTemplate.DataTipRows(3)     = dataTipTextRow('', hTable.Distance,  '%.1f km');
 
                 case 'winRFDataHub.SelectedNode'
                     dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Lat:';
@@ -182,18 +169,6 @@ classdef (Abstract) datatip
                     if numel(dtParent.DataTipTemplate.DataTipRows) > 2
                         dtParent.DataTipTemplate.DataTipRows(3:end) = [];
                     end
-
-                case 'winRFDataHub.Histogram1'
-                    dtParent.DataTipTemplate.DataTipRows           = flip(dtParent.DataTipTemplate.DataTipRows);
-                    
-                    dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Banda (MHz):';
-                    dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Registros:';
-
-                case 'winRFDataHub.Histogram2'
-                    dtParent.DataTipTemplate.DataTipRows           = flip(dtParent.DataTipTemplate.DataTipRows);
-
-                    dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Serviço:';
-                    dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Registros:';
 
                 case 'RFLink.LOS'
                     hTable = varargin{1};

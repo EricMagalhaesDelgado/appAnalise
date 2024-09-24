@@ -5,9 +5,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         UIFigure                       matlab.ui.Figure
         GridLayout                     matlab.ui.container.GridLayout
         axesToolbarGrid                matlab.ui.container.GridLayout
-        axesTool_PDFButton             matlab.ui.control.Image
-        axesTool_simulationButton      matlab.ui.control.Image
-        axesTool_TableVisibility       matlab.ui.control.Image
         axesTool_RegionZoom            matlab.ui.control.Image
         axesTool_RestoreView           matlab.ui.control.Image
         plotPanel                      matlab.ui.container.Panel
@@ -32,11 +29,20 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         ControlTabGroup                matlab.ui.container.TabGroup
         Tab_1                          matlab.ui.container.Tab
         Tab1_Grid                      matlab.ui.container.GridLayout
-        PlotPanel                      matlab.ui.container.Panel
         search_SelectedRowInfoPanel    matlab.ui.container.Panel
         search_SelectedRowInfoGrid     matlab.ui.container.GridLayout
-        search_SelectedRowInfo         matlab.ui.control.HTML
-        REGISTROSELECIONADOLabel       matlab.ui.control.Label
+        PlotPanel                      matlab.ui.container.Panel
+        stationInfo                    matlab.ui.control.HTML
+        filter_refTXPanel              matlab.ui.container.Panel
+        filter_refTXGrid               matlab.ui.container.GridLayout
+        filter_refTXHeight             matlab.ui.control.NumericEditField
+        filter_refTXHeightLabel        matlab.ui.control.Label
+        filter_refTXLongitude          matlab.ui.control.NumericEditField
+        filter_refTXLongitudeLabel     matlab.ui.control.Label
+        filter_refTXLatitude           matlab.ui.control.NumericEditField
+        filter_refTXLatitudeLabel      matlab.ui.control.Label
+        filter_refTXLabel              matlab.ui.control.Label
+        filter_refTXIcon               matlab.ui.control.Image
         Tab_2                          matlab.ui.container.Tab
         Tab2_Grid                      matlab.ui.container.GridLayout
         filter_refRXPanel              matlab.ui.container.Panel
@@ -107,35 +113,21 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         misc_ElevationAPISourceLabel   matlab.ui.control.Label
         ELEVAOLabel                    matlab.ui.control.Label
         config_xyAxesPanel             matlab.ui.container.Panel
-        config_xyAxesGrid              matlab.ui.container.GridLayout
-        config_chPowerFaceAlpha        matlab.ui.control.Spinner
-        config_chPowerEdgeAlpha        matlab.ui.control.Spinner
-        config_chPowerColor            matlab.ui.control.ColorPicker
-        config_chPowerVisibility       matlab.ui.control.DropDown
-        config_chPowerLabel            matlab.ui.control.Label
-        config_chROIFaceAlpha          matlab.ui.control.Spinner
-        config_chROIEdgeAlpha          matlab.ui.control.Spinner
-        config_chROIColor              matlab.ui.control.ColorPicker
-        config_chROIVisibility         matlab.ui.control.DropDown
-        config_chROILabel              matlab.ui.control.Label
-        config_PersistanceVisibility   matlab.ui.control.DropDown
-        config_PersistanceLabel        matlab.ui.control.Label
         config_xyAxesLabel             matlab.ui.control.Label
         config_geoAxesPanel            matlab.ui.container.Panel
         config_geoAxesGrid             matlab.ui.container.GridLayout
-        config_points_Size             matlab.ui.control.Slider
-        config_points_Color            matlab.ui.control.ColorPicker
-        config_points_LineStyle        matlab.ui.control.DropDown
-        config_points_Label            matlab.ui.control.Label
-        config_Car_Size                matlab.ui.control.Slider
-        config_Car_Color               matlab.ui.control.ColorPicker
-        config_Car_LineStyle           matlab.ui.control.DropDown
-        config_Car_Label               matlab.ui.control.Label
-        config_route_Size              matlab.ui.control.Slider
-        config_route_InColor           matlab.ui.control.ColorPicker
-        config_route_OutColor          matlab.ui.control.ColorPicker
-        config_route_LineStyle         matlab.ui.control.DropDown
-        config_route_Label             matlab.ui.control.Label
+        config_Station_Size            matlab.ui.control.Slider
+        config_Station_Color           matlab.ui.control.ColorPicker
+        config_Station_DataTipVisibility  matlab.ui.control.DropDown
+        config_Station_Label           matlab.ui.control.Label
+        config_RX_Size                 matlab.ui.control.Slider
+        config_RX_Color                matlab.ui.control.ColorPicker
+        config_RX_Visibility           matlab.ui.control.DropDown
+        config_RX_Label                matlab.ui.control.Label
+        config_TX_Size                 matlab.ui.control.Slider
+        config_TX_Color                matlab.ui.control.ColorPicker
+        config_TX_DataTipVisibility    matlab.ui.control.DropDown
+        config_TX_Label                matlab.ui.control.Label
         config_geoAxesSubPanel         matlab.ui.container.Panel
         config_geoAxesSubGrid          matlab.ui.container.GridLayout
         config_Colormap                matlab.ui.control.DropDown
@@ -146,6 +138,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         config_Refresh                 matlab.ui.control.Image
         config_geoAxesLabel            matlab.ui.control.Label
         toolGrid                       matlab.ui.container.GridLayout
+        axesTool_simulationButton      matlab.ui.control.Image
+        axesTool_PDFButton             matlab.ui.control.Image
+        axesTool_TableVisibility       matlab.ui.control.Image
         filter_Summary                 matlab.ui.control.Image
         tool_ExportButton              matlab.ui.control.Image
         jsBackDoor                     matlab.ui.control.HTML
@@ -169,6 +164,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         General
         rootFolder
 
+        % Essa propriedade registra o tipo de execução da aplicação, podendo
+        % ser: 'built-in', 'desktopApp' ou 'webApp'.
+        executionMode
+        
+        % Essa propriedade registra se o RFDataHub está em modo "standalone"
+        % (true) ou como módulo do appAnalise (false).
+        standaloneFlag
+
         % A função do timer é executada uma única vez após a renderização
         % da figura, lendo arquivos de configuração, iniciando modo de operação
         % paralelo etc. A ideia é deixar o MATLAB focar apenas na criação dos 
@@ -191,14 +194,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         progressDialog
 
         % Propriedades do app.
-        specData
+        specData = class.specData.empty
 
         %-----------------------------------------------------------------%
         % ESPECIFICIDADES AUXAPP.WINDRIVETEST
         %-----------------------------------------------------------------%
         rfDataHub
+        rfDataHubLOG
         rfDataHubSummary
-        rfDataHubLogical
         
         UIAxes1
         UIAxes2
@@ -206,9 +209,11 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         restoreView  = struct('ID', {}, 'xLim', {}, 'yLim', {}, 'cLim', {})
 
         elevationObj = RF.Elevation
-        pointsTable  = table('Size',          [0, 6],                                                    ...
-                             'VariableTypes', {'cell', 'double', 'double', 'cell', 'double', 'logical'}, ...
-                             'VariableNames', {'Type', 'Latitude', 'Longitude', 'Location', 'AntennaHeight', 'Reference'})
+        ChannelReportObj
+
+        pointsTable  = table('Size',          [0, 5],                                            ...
+                             'VariableTypes', {'cell', 'double', 'double', 'double', 'logical'}, ...
+                             'VariableNames', {'Type', 'Latitude', 'Longitude', 'AntennaHeight', 'Reference'})
         filterTable  = table('Size',          [0, 9],                                                                      ...
                              'VariableTypes', {'cell', 'int8', 'int8', 'cell', 'cell', 'int8', 'cell', 'logical', 'cell'}, ...
                              'VariableNames', {'Order', 'ID', 'RelatedID', 'Type', 'Operation', 'Column', 'Value', 'Enable', 'uuid'})
@@ -220,19 +225,27 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % INICIALIZAÇÃO
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource           = ccTools.fcn.jsBackDoorHTMLSource();
-            app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)jsBackDoor_Listener(app, evt);
+            app.jsBackDoor.HTMLSource            = ccTools.fcn.jsBackDoorHTMLSource();
+            app.jsBackDoor.HTMLEventReceivedFcn  = @(~, evt)jsBackDoor_Listener(app, evt);
+
+            app.stationInfo.HTMLSource           = textFormatGUI.jsBackDoorContainer("textBox");
+            app.stationInfo.HTMLEventReceivedFcn = @(~, evt)jsBackDoor_Listener(app, evt);
         end
 
         %-----------------------------------------------------------------%
         function jsBackDoor_Listener(app, event)
-            % switch event.HTMLEventName
-            %     case 'app.filter_Tree'
-            %         filter_delFilter(app, struct('Source', app.filter_delButton))
-            %     case 'app.points_Tree'
-            %         points_delButtonMenuSelected(app)
-            % end
-            % drawnow
+            switch event.HTMLEventName
+                case 'app.stationInfo'
+                    msgQuestion   = 'Deseja fazer <i>download</i> do Relatório do Canal publicado no MOSAICO?';
+                    userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+                    if strcmp(userSelection, 'Não')
+                        return
+                    end
+
+                    getChannelReport(app, 'Cache+RealTime')
+
+            end
+            drawnow
         end
 
         %-------------------------------------------------------------------------%
@@ -259,6 +272,16 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         
                     sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
+
+                    % uialert, uiprogressdialog, uiconfirm
+                    % sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mwDialog', ...
+                    %                                                                        'classAttributes',  'background-color: white;'));
+                    % 
+                    % sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mwDialog .mwDialogTitleBar', ...
+                    %                                                                        'classAttributes',  'background-color: #f0f0f0;'));
+                    % 
+                    % sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mwDialog .mwDialogTitleBar .mwCloseNode', ...
+                    %                                                                        'classAttributes',  'background-color: #f0f0f0;'));
                     
                     ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
                     ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
@@ -310,12 +333,23 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             jsBackDoor_Customizations(app, 0)
             jsBackDoor_Customizations(app, 1)
 
-            % Define tamanho mínimo do app (não aplicável à versão webapp).
-            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
-                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+            app.progressDialog.Visible = 'visible';
+
+            if app.standaloneFlag
+                % PATH SEARCH
+                appName        = class.Constants.appName;
+                MFilePath      = fileparts(mfilename('fullpath'));
+                app.rootFolder = appUtil.RootFolder(appName, MFilePath);
+                app.executionMode = appUtil.ExecutionMode(app.UIFigure);
+
+                % "GeneralSettings.json"
+                startup_Files2Read(app)                
             end
 
-            app.progressDialog.Visible = 'visible';
+            % Define tamanho mínimo do app (não aplicável à versão webapp).
+            if ~strcmp(app.executionMode, 'webApp') && ~app.isDocked
+                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+            end
 
             startup_AppProperties(app)
             startup_AxesCreation(app)
@@ -327,14 +361,27 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
+        function startup_Files2Read(app)
+            % "GeneralSettings.json"
+            [app.General, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder);
+            if ~isempty(msgWarning)
+                appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
+            end
+        
+            app.General.AppVersion = fcn.startup_Versions("Startup", app.rootFolder);
+        end
+
+        %-----------------------------------------------------------------%
         function startup_AppProperties(app)
             % refRX
             filter_getReferenceRX(app)
 
             % app.rfDataHub
             global RFDataHub
+            global RFDataHubLog
             
             app.rfDataHub = RFDataHub;
+            app.rfDataHubLOG = RFDataHubLog;
             
             % Contorna erro da função inROI, que retorna como se todos os
             % pontos estivessem internos ao ROI, quando as coordenadas
@@ -344,7 +391,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.rfDataHub.Longitude   = app.rfDataHub.Longitude;
 
             app.rfDataHub.ID          = "#" + string((1:height(RFDataHub))');
-            app.rfDataHub.Description = "[" + string(RFDataHub.Source) + "] " + string(RFDataHub.Status) + ", " + string(RFDataHub.StationClass) + ", " + string(RFDataHub.Name) + " (Fistel=" + string(RFDataHub.Fistel) + ", M=" + string(RFDataHub.MergeCount) + "), " + string(RFDataHub.Location) + "/" + string(RFDataHub.State);
+            app.rfDataHub.Description = "[" + string(RFDataHub.Source) + "] " + string(RFDataHub.Status) + ", " + string(RFDataHub.StationClass) + ", " + string(RFDataHub.Name) + ", " + string(RFDataHub.Location) + "/" + string(RFDataHub.State) + " (M=" + string(RFDataHub.MergeCount) + ")";
             filter_calculateDistanceColumn(app)
                         
             % app.rfDataHubSummary
@@ -383,14 +430,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % Eixo cartesiano: PERFIL DE RELEVO
             app.UIAxes2 = plot.axes.Creation(hParent, 'Cartesian', {'XGrid', 'off', 'XMinorGrid', 'off', 'XTick', [], 'XColor', 'none',  ...
                                                                     'YGrid', 'off', 'YMinorGrid', 'off', 'YTick', [], 'YColor', 'none', ...
-                                                                    'Color', 'none', 'UserData', struct('TX', [], 'RX', [])});
+                                                                    'Color', 'none', 'Visible', 'off', 'UserData', struct('TX', [], 'RX', [])});
             app.UIAxes2.Layout.Tile = 15;
             app.UIAxes2.Layout.TileSpan = [1 2];
             app.UIAxes2.XAxis.TickLabelFormat = '%.1f';
 
             % Eixo cartesiano: DIAGRAMA DE RADIAÇÃO DA ANTENA
             app.PlotPanel.AutoResizeChildren = 'off';
-            app.UIAxes3 = polaraxes(app.PlotPanel, 'Units', 'normalized', 'Position', [.1,.1,.8,.8], 'ThetaZeroLocation', 'top', 'FontSize', 9, 'Color', 'none');
+            app.UIAxes3 = polaraxes(app.PlotPanel, 'Units', 'normalized', 'Position', [.18,-.15,.82,1], 'ThetaZeroLocation', 'top', 'FontSize', 9, 'Color', 'none', 'ThetaTick', 0);
             hold(app.UIAxes3, 'on')
 
             % Axes interactions:
@@ -400,12 +447,27 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_GUIComponents(app)
-            % ...
+            app.axesTool_TableVisibility.UserData  = true;
+            app.axesTool_PDFButton.UserData        = false;
+            app.axesTool_simulationButton.UserData = false;
         end
     end
 
 
     methods (Access = private)
+        %-----------------------------------------------------------------%
+        function [idxRFDataHub, idxSelectedRow] = getRFDataHubIndex(app)
+            if isempty(app.UITable.Selection)
+                idxRFDataHub   = [];
+                idxSelectedRow = [];
+                
+            else
+                idxSelectedRow = app.UITable.Selection(1);
+                idxVirtual     = app.UITable.Data.ID(idxSelectedRow);    
+                idxRFDataHub   = str2double(extractAfter(idxVirtual, '#'));
+            end
+        end
+
         %-----------------------------------------------------------------%
         function filter_getReferenceRX(app)
             refRXFlag = false;
@@ -441,6 +503,12 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     app.filter_refRXHeight.Value    = app.General.RFDataHub.DefaultRX.Height;
                 end
             end
+
+            app.pointsTable(end+1,:) = {'RX',                            ...
+                                        app.filter_refRXLatitude.Value,  ...
+                                        app.filter_refRXLongitude.Value, ...
+                                        app.filter_refRXHeight.Value,    ...
+                                        true};
         end
 
         %-----------------------------------------------------------------%
@@ -568,11 +636,15 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 initialSelectedRow  = app.UITable.Data.ID{app.UITable.Selection(1)};
             end
 
-            % Filtragem, preenchendo a tabela o seu label (nº de linhas).
-            app.rfDataHubLogical = fcn.TableFiltering(app.rfDataHub, app.filterTable);
-            set(app.UITable, 'Selection', [], 'Data', app.rfDataHub(app.rfDataHubLogical,[30, 1, 6:7, 31, 4:5, 12, 13, 29, 32]))
-            app.UITable.Data = sortrows(app.UITable.Data, 'Distance');
-            app.tableInfoNRows.Text = "#" + string(height(app.UITable.Data));
+            % Filtragem, preenchendo a tabela e o seu label (nº de linhas).
+            idxRFDataHubArray = find(fcn.TableFiltering(app.rfDataHub, app.filterTable));
+            columnGUINames    = {'ID', 'Frequency', 'Description', 'Service', 'Station', 'BW', 'Distance'};
+
+            set(app.UITable, 'Selection', [], 'Data', app.rfDataHub(idxRFDataHubArray, columnGUINames))
+            [app.UITable.Data, idxSort] = sortrows(app.UITable.Data, 'Distance');
+            app.UITable.UserData = idxRFDataHubArray(idxSort);
+
+            app.tableInfoNRows.Text = sprintf('#%d', numel(idxRFDataHubArray));
 
             % Aplicando a seleção inicial da tabela, caso aplicável.
             selectedRow = 0;
@@ -585,23 +657,140 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             end
             
             app.UITable.Selection = [selectedRow, 1];
-            UITableSelectionChanged(app, struct('Source', app.UITable))
-
-            % Aplicando estilo.
-            filter_TableStyle(app, 'ProgrammaticallySelectedRow')
-            filter_TableStyle(app, 'TerrainProfilePlot')
-
+            
             % Plots.
-            plot_General(app)
-            % plot_SelectedRow(app)
-            % plot_Nodes(app)
-            % if app.tool_simulationAxesVisibility.Value
-            %     plot_simulationLink(app)
-            % end
+            plot_Stations(app)
+            plot_RX(app)
+            UITableSelectionChanged(app, struct('Source', app.UITable))            
+            plot.axes.StackingOrder.execute(app.UIAxes1, 'appAnalise:RFDATAHUB')
 
             app.progressDialog.Visible = 'hidden';
         end
 
+
+        %-----------------------------------------------------------------%
+        % PLOT
+        %-----------------------------------------------------------------%
+        function plot_Stations(app)
+            if isempty(app.UITable.Data)
+                cla(app.UIAxes1)
+
+            else
+                % Inicialmente, apagam-se as estações anteriormente plotadas, 
+                % mantendo-se os ROIs.    
+                delete(findobj(app.UIAxes1.Children, '-not', 'Tag', 'FilterROI'))
+
+                idxRFDataHub   = app.UITable.UserData;
+                latitudeArray  = app.rfDataHub.Latitude(idxRFDataHub);
+                longitudeArray = app.rfDataHub.Longitude(idxRFDataHub);
+
+                hStations = geoscatter(app.UIAxes1, latitudeArray, longitudeArray, ...
+                    'MarkerEdgeColor', app.config_Station_Color.Value,             ...
+                    'SizeData',        app.config_Station_Size.Value,              ...
+                    'Tag', 'Stations');
+                plot.datatip.Template(hStations, 'winRFDataHub.Geographic', app.UITable.Data)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function plot_RX(app)
+            RX = struct('Latitude',  app.filter_refRXLatitude.Value, ...
+                        'Longitude', app.filter_refRXLongitude.Value);
+
+            geoscatter(app.UIAxes1, RX.Latitude, RX.Longitude,     ...
+                'Marker',          '^',                            ...
+                'MarkerEdgeColor', app.config_RX_Color.Value,      ...
+                'MarkerFaceColor', app.config_RX_Color.Value,      ...
+                'SizeData',        36*app.config_RX_Size.Value,    ...
+                'PickableParts',   'none',                         ...
+                'Visible',         app.config_RX_Visibility.Value, ...
+                'Tag',             'RX');
+        end
+
+        %-----------------------------------------------------------------%
+        function plot_TX(app, idxRFDataHub, idxSelectedRow)            
+            if ~isempty(app.UITable.Selection)
+                TX = struct('Latitude',  app.rfDataHub.Latitude(idxRFDataHub), ...
+                            'Longitude', app.rfDataHub.Longitude(idxRFDataHub));
+
+                % DataTip
+                hTXDataTip = findobj(app.UIAxes1.Children, 'Type', 'datatip', 'Tag', 'TX');
+                if isempty(hTXDataTip)
+                    hStations = findobj(app.UIAxes1.Children, 'Tag', 'Stations');
+                    datatip(hStations,                                     ...
+                        'DataIndex',       idxSelectedRow,                 ...
+                        'PickableParts',   'none',                         ...
+                        'Visible',         app.config_TX_DataTipVisibility.Value, ...
+                        'Tag',             'TX');
+                else
+                    hTXDataTip.DataIndex = idxSelectedRow;
+                end
+
+                % Scatter
+                hTXScatter = findobj(app.UIAxes1.Children, 'Type', 'scatter', 'Tag', 'TX');
+                if isempty(hTXScatter)
+                    geoscatter(app.UIAxes1, TX.Latitude, TX.Longitude,   ...
+                        'LineWidth',       2,                            ...
+                        'Marker',          'o',                          ...
+                        'MarkerEdgeColor', app.config_TX_Color.Value,    ...
+                        'MarkerFaceColor', app.config_TX_Color.Value,    ...
+                        'SizeData',        36*app.config_TX_Size.Value , ...
+                        'PickableParts',   'none',                       ...
+                        'Tag',             'TX');
+                else
+                    set(hTXScatter, 'LatitudeData',  TX.Latitude, ...
+                                     'LongitudeData', TX.Longitude)
+                end
+
+            else
+                delete(findobj(app.UIAxes1.Children, 'Tag', 'TX'))
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function getChannelReport(app, operationType)
+            arguments
+                app
+                operationType char {mustBeMember(operationType, {'OnlyCache', 'Cache+RealTime', 'RealTime'})}
+            end
+
+            if isempty(app.ChannelReportObj)
+                app.ChannelReportObj = RF.ChannelReport;
+            end
+
+            if ismember(operationType, {'Cache+RealTime', 'RealTime'})
+                app.progressDialog.Visible = 'visible';
+            end
+
+            idxRFDataHub = app.stationInfo.UserData;
+            URL = char(app.rfDataHub.URL(idxRFDataHub));
+
+            [idxCache, msgError] = Get(app.ChannelReportObj, URL, operationType);
+
+            if ~isempty(idxCache)
+                app.axesTool_PDFButton.UserData = true;
+                app.GridLayout.ColumnWidth(7:8) = {10,'1x'};
+
+                app.chReportHTML.HTMLSource = app.ChannelReportObj.cacheMapping.File{idxCache};
+
+            else
+                app.chReportHTML.HTMLSource     = 'pdfLogo.html';
+
+                if ismember(operationType, {'Cache+RealTime', 'RealTime'}) && ~isempty(msgError)
+                    appUtil.modalWindow(app.UIFigure, 'error', msgError);
+                end
+            end
+
+            if strcmp(app.progressDialog.Visible, 'visible')
+                app.progressDialog.Visible = 'hidden';
+            end
+        end
+
+
+
+
+        %-----------------------------------------------------------------%
+        % TRECHO COPIADO DE SIGNALANALYSIS (ADAPTAR!)
         %-----------------------------------------------------------------%
         function plot_createRFLinkPlot(app, idxPrjPeaks, idxThread, idxStation)
             try
@@ -617,7 +806,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 % PLOT: RFLink
                 plot.RFLink(app.UIAxes2, txObj, rxObj, wayPoints3D, 'dark')
                 app.UIAxes2.PickableParts = "visible";
-                app.restoreView(2) = struct('ID', 'app.UIAxes2', 'xLim', app.UIAxes2.XLim, 'yLim', app.UIAxes2.YLim, 'cLim', 'auto');
 
                 if isempty(findobj(app.UIAxes2.Children, 'Tag', 'FirstObstruction'))
                     app.axesTool_Warning.Visible = 0;
@@ -900,7 +1088,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                            'AntennaHeight',        app.pointsTable.AntennaHeight(rxIndex));
         end
 
-
         %-----------------------------------------------------------------%
         function filterValue = filter_Value(app, filterValue)
             if isnumeric(filterValue)
@@ -915,7 +1102,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 filterValue = '⌂';
             end
         end
-
 
         %-----------------------------------------------------------------%
         function filter_ROICallbacks(app, src, event)
@@ -933,103 +1119,11 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             end            
         end
 
-        %-----------------------------------------------------------------%
-        function filter_TableStyle(app, Type)
-            switch Type
-                case {'SelectionRowChanged', 'ProgrammaticallySelectedRow'}
-                    idx1 = find(app.UITable.StyleConfigurations.Target == "cell");
-                    if ~isempty(idx1)
-                        removeStyle(app.UITable, idx1)
-                    end
-
-                    if strcmp(Type, 'ProgrammaticallySelectedRow')
-                        if ~isempty(app.UITable.Selection)
-                            idx2 = app.UITable.Selection(1);
-                            addStyle(app.UITable, uistyle("BackgroundColor", '#ddf0ff'), 'cell', [idx2,1])
-                        end
-                    end
-
-                case 'HorizontalAlign'
-                    addStyle(app.UITable, uistyle('HorizontalAlignment', 'right'), 'column', [8,10])
-
-                case 'TerrainProfilePlot'
-                    idx1 = find(app.UITable.StyleConfigurations.Target == "row");
-                    if ~isempty(idx1)
-                        removeStyle(app.UITable, idx1)
-                    end
-
-                    if ~isempty(app.UIAxes2.UserData.TX)
-                        idx2 = app.UIAxes2.UserData.TX.ID;
-                        if ~isempty(idx2)
-                            idx3 = find(strcmp(app.UITable.Data.ID, idx2), 1);
-                            if ~isempty(idx3)
-                                addStyle(app.UITable, uistyle("BackgroundColor", '#c94756', 'FontColor', 'white'), 'row', idx3)
-                            end
-                        end
-                    end
-            end
-        end
 
 
-        %-----------------------------------------------------------------%
-        function plot_General(app)
-            hObjects = app.UIAxes1.Children;
-            idx = contains(arrayfun(@(x) x.Tag, app.UIAxes1.Children, 'UniformOutput', false), 'ROI');
-            delete(hObjects(~idx))
-
-            rfDataHubFlag = height(app.UITable.Data);
-            if rfDataHubFlag
-                p1 = geoscatter(app.UIAxes1, app.UITable.Data.Latitude, app.UITable.Data.Longitude, MarkerEdgeColor='#009578', Tag='Station');
-            end
-
-            uistack(hObjects(idx))
-            
-            if rfDataHubFlag
-                plot.datatip.Template(p1, 'winRFDataHub.Geographic', app.UITable.Data)
-            end
-        end
 
 
-        %-----------------------------------------------------------------%
-        function plot_Nodes(app)
-            if ~isempty(app.pointsTable)
-                idx1 = find(app.pointsTable.Reference, 1);                
-                if height(app.pointsTable) > 1
-                    idx2 = setdiff(1:height(app.pointsTable), idx1);
-                    p1 = geoscatter(app.UIAxes1, app.pointsTable.Latitude(idx2), app.pointsTable.Longitude(idx2), 'Marker', '^', 'MarkerEdgeColor', '#c94756', 'Tag', 'OthersNodes');
-                    plot.datatip.Template(p1, 'winRFDataHub.SelectedNode')
-                end
-                
-                p2 = geoscatter(app.UIAxes1, app.pointsTable.Latitude(idx1), app.pointsTable.Longitude(idx1), 'Marker', '^', 'MarkerEdgeColor', '#c94756', 'MarkerFaceColor', '#c94756', 'Tag', 'SelectedNode');
-                plot.datatip.Template(p2, 'winRFDataHub.SelectedNode')
-            end
-        end
 
-
-        %-----------------------------------------------------------------%
-        function plot_SelectedRow(app)
-            hSelected = findobj(app.UIAxes1, Tag='SelectedRow');
-            
-            if ~isempty(app.UITable.Selection)
-                idx = app.UITable.Selection(1);
-
-                if isempty(hSelected)
-                    hSelected = geoscatter(app.UIAxes1, app.UITable.Data.Latitude(idx), app.UITable.Data.Longitude(idx), MarkerEdgeColor='#c94756', ...
-                                                                                                                         MarkerFaceColor='#c94756', ...
-                                                                                                                         Tag='SelectedRow');
-                else
-                    set(hSelected, 'LatitudeData',  app.UITable.Data.Latitude(idx), ...
-                                   'LongitudeData', app.UITable.Data.Longitude(idx))
-                end
-                plot.datatip.Template(hSelected, 'winRFDataHub.Geographic', app.UITable.Data(idx,:))
-                layout_simulationLink(app, idx)
-                
-            else
-                delete(hSelected)
-
-                layout_simulationLink(app, [])
-            end
-        end
 
 
         %-----------------------------------------------------------------%
@@ -1061,74 +1155,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % PLOT: RFLink
             plot.RFLink(app.UIAxes2, txObj, rxObj, wayPoints3D)
 
-            app.restoreView = {app.UIAxes2.XLim, app.UIAxes2.YLim};
-            filter_TableStyle(app, 'TerrainProfilePlot')
-
             delete(d)
-        end
-    end
-
-
-    methods (Access = public)
-        %-----------------------------------------------------------------%
-        function externalRequest(app, request)
-            switch request.Type
-                case 'TerrainProfilePlot'
-                    try
-                        % Aba 1: PONTO DE MONITORAÇÃO
-                        % Avalia a distância do sensor registrada na tabela
-                        % app.peaksTable (propriedade do app principal) e a
-                        % distância dos pontos de monitoração registrados
-                        % em app.pointsTable (os quais estão sujeitos à
-                        % edição).
-                        rxLat = request.rxLatitude;
-                        rxLon = request.rxLongitude;
-
-                        refIndex = find(app.pointsTable.Reference, 1);                        
-                        minDist  = deg2km(distance(app.pointsTable.Latitude(refIndex), app.pointsTable.Longitude(refIndex), rxLat, rxLon))/1000;
-
-                        if minDist > class.Constants.floatDiffTolerance
-                            points_NodeList(app)
-                            [~, minDistIndex] = min(distance(app.pointsTable.Latitude, app.pointsTable.Longitude, rxLat, rxLon));
-
-                            refIndex = find(app.pointsTable.Reference, 1);
-                            if refIndex ~= minDistIndex
-                                app.pointsTable.Reference               = zeros(height(app.pointsTable), 1, 'logical');
-                                app.pointsTable.Reference(minDistIndex) = true;
-                                
-                                points_TreeBuilding(app, minDistIndex)
-                            end
-                        end
-
-                        % Aba 2: FILTRO
-                        filter_delFilter(app, struct('Source', app.filter_delAllButton))
-                        txStationNumber = request.txStationNumber;
-
-                        app.filter_SecondaryType8.Value = true;
-                        filter_typePanelSelectionChanged(app)
-                        app.filter_SecondaryNumValue1.Value = double(txStationNumber);
-                        filter_addFilter(app)
-
-                        app.UITable.Selection = [1 1];
-                        UITableSelectionChanged(app)
-
-                        % AJUSTES FINAIS: ENLACE E LAYOUT
-                        % A versão compilada está deixando de renderizar em
-                        % tela algumas das personalizações abaixo... por
-                        % isso inserido o drawnow.
-                        drawnow nocallbacks
-                        pause(.1)
-                        misc_TerrainProfileRefreshImage(app)
-                        
-                        general_LeftPanelMenuSelectionChanged(app, struct('Source', app.menu_Button2Icon))
-                        figure(app.UIFigure)
-                    catch
-
-                    end
-
-                case 'StationsMap'
-
-            end
         end
     end
     
@@ -1139,20 +1166,42 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp)
             
-            app.CallingApp = mainapp;
-            app.General    = mainapp.General;
-            app.rootFolder = mainapp.rootFolder;
-            app.specData   = mainapp.specData;
+            try
+                % Inicialmente, verifica se foi passado mainapp como argumento 
+                % de entrada. 
+                % • Caso sim, trata-se de app executado como módulo do appAnalise.
+                % • Caso não, trata-se de app executado em modo standalone.
+                if nargin == 1
+                    app.standaloneFlag = true;
+    
+                    appUtil.disablingWarningMessages()
+                    set(app.UIFigure, 'Name', 'RFDataHub', 'Icon', 'mosaic_18Gray.png')
+                else
+                    app.standaloneFlag = false;
+    
+                    app.CallingApp    = mainapp;
+                    app.General       = mainapp.General;
+                    app.rootFolder    = mainapp.rootFolder;
+                    app.executionMode = mainapp.executionMode;
+                    app.specData      = mainapp.specData;
+                end
+    
+                app.GridLayout.ColumnWidth(7:8) = {0,0};
+                jsBackDoor_Initialization(app)
+    
+                % Em sendo executado como módulo do appAnalise, o app pode
+                % estar em modo DOCK ou UNDOCK, o que é definido em configuração
+                % no próprio appAnalise.
+                if app.isDocked
+                    drawnow
+                    startup_Controller(app)
+                else
+                    appUtil.winPosition(app.UIFigure)
+                    startup_timerCreation(app)
+                end
 
-            app.GridLayout.ColumnWidth(7:8) = {0,0};
-            jsBackDoor_Initialization(app)
-
-            if app.isDocked
-                drawnow
-                startup_Controller(app)
-            else
-                appUtil.winPosition(app.UIFigure)
-                startup_timerCreation(app)
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
             end
 
         end
@@ -1160,7 +1209,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            appBackDoor(app.CallingApp, app, 'closeFcn')
+            if ~isempty(app.CallingApp)
+                appBackDoor(app.CallingApp, app, 'closeFcn')
+            end
             delete(app)
             
         end
@@ -1193,17 +1244,58 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: tool_ControlPanelVisibility
-        function tool_LeftPanelVisibilityImageClicked(app, event)
+        % Image clicked function: axesTool_PDFButton, 
+        % ...and 3 other components
+        function tool_InteractionImageClicked(app, event)
             
             focus(app.jsBackDoor)
+            
+            switch event.Source
+                case app.tool_ControlPanelVisibility
+                    if app.GridLayout.ColumnWidth{2}
+                        app.tool_ControlPanelVisibility.ImageSource = 'ArrowRight_32.png';
+                        app.GridLayout.ColumnWidth(2:3) = {0,0};
+                    else
+                        app.tool_ControlPanelVisibility.ImageSource = 'ArrowLeft_32.png';
+                        app.GridLayout.ColumnWidth(2:3) = {325,10};
+                    end
 
-            if app.GridLayout.ColumnWidth{2}
-                app.tool_ControlPanelVisibility.ImageSource = 'ArrowRight_32.png';
-                app.GridLayout.ColumnWidth(2:3) = {0,0};
-            else
-                app.tool_ControlPanelVisibility.ImageSource = 'ArrowLeft_32.png';
-                app.GridLayout.ColumnWidth(2:3) = {325,10};
+                case app.axesTool_TableVisibility
+                    app.axesTool_TableVisibility.UserData = ~app.axesTool_TableVisibility.UserData;
+                    if app.axesTool_TableVisibility.UserData
+                        app.GridLayout.RowHeight(4:5) = {10,'.4x'};
+                    else
+                        app.GridLayout.RowHeight(4:5) = {0,0};
+                    end
+
+                case app.axesTool_PDFButton
+                    app.axesTool_PDFButton.UserData = ~app.axesTool_PDFButton.UserData;
+                    if app.axesTool_PDFButton.UserData
+                        app.GridLayout.ColumnWidth(7:8) = {10,'1x'};
+                    else
+                        app.GridLayout.ColumnWidth(7:8) = {0,0};
+                    end
+
+                case app.axesTool_simulationButton
+                    app.axesTool_simulationButton.UserData = ~app.axesTool_simulationButton.UserData;
+                    if app.axesTool_simulationButton.UserData
+                        set(findobj(app.UIAxes2), 'Visible', 1)
+                    else
+                        set(findobj(app.UIAxes2), 'Visible', 0)
+                    end
+            end
+
+        end
+
+        % Image clicked function: axesTool_RegionZoom, axesTool_RestoreView
+        function axesTool_InteractionImageClicked(app, event)
+            
+            switch event.Source
+                case app.axesTool_RestoreView
+                    geolimits(app.UIAxes1, app.restoreView(1).xLim, app.restoreView(1).yLim)
+
+                case app.axesTool_RegionZoom
+                    plot.axes.Interactivity.GeographicRegionZoomInteraction(app.UIAxes1, app.axesTool_RegionZoom)
             end
 
         end
@@ -1225,26 +1317,45 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Selection changed function: UITable
         function UITableSelectionChanged(app, event)
             
-            idxRow = event.Source.Selection(1);
-            idxVirtual = str2double(extractAfter(event.Source.Data.ID(idxRow), '#'));
-            if isequal(app.search_SelectedRowInfo.UserData, idxVirtual)
-                return
+            [idxRFDataHub, idxSelectedRow] = getRFDataHubIndex(app);
+            if ~isempty(idxRFDataHub)
+                if isequal(app.stationInfo.UserData, idxRFDataHub)
+                    return
+                end
+
+                app.filter_refTXLatitude.Value  = double(app.rfDataHub.Latitude(idxRFDataHub));
+                app.filter_refTXLongitude.Value = double(app.rfDataHub.Longitude(idxRFDataHub));
+                app.filter_refTXHeight.Value    = 10;
+
+                htmlContent = auxApp.rfdatahub.htmlCode_StationInfo(app.rfDataHub, idxRFDataHub, app.rfDataHubLOG);
+                sendEventToHTMLSource(app.stationInfo, 'draw', struct('EventName', 'app.stationInfo', 'htmlContent', htmlContent, 'ImageID', 'RelatorioCanalMosaico'))
+                app.stationInfo.UserData = idxRFDataHub;
+    
+                delete(findobj(app.UIAxes3.Children, 'Tag', 'AntennaPattern'))
+                if app.rfDataHub.AntennaPattern(idxRFDataHub) ~= "-1"
+                    app.search_SelectedRowInfoGrid.RowHeight{2} = 166;
+                    [angle, gain] = class.RFDataHub.parsingAntennaPattern(app.rfDataHub.AntennaPattern(idxRFDataHub), 360);
+                    polarplot(app.UIAxes3, angle, gain, 'Tag', 'AntennaPattern')
+                else
+                    app.search_SelectedRowInfoGrid.RowHeight{2} = 0;
+                end
+
+                if app.axesTool_PDFButton.UserData
+                    getChannelReport(app, 'OnlyCache')
+                end
+    
+                plot_TX(app, idxRFDataHub, idxSelectedRow)
+    
+                % if app.tool_simulationAxesVisibility.Value
+                %     plot_simulationLink(app)
+                % end
+                % drawnow
+
+                app.restoreView(1) = struct('ID', 'app.UIAxes1', 'xLim', app.UIAxes1.LatitudeLimits, 'yLim', app.UIAxes1.LongitudeLimits, 'cLim', 'auto');
+
+            else
+                delete(findobj(app.UIAxes1.Children, 'Tag', 'SelectedStation'))
             end
-
-            dataStruct = struct('group', 'RFDataHub', 'value', table2struct(app.rfDataHub(idxVirtual,:)));
-            app.search_SelectedRowInfo.HTMLSource = textFormatGUI.struct2PrettyPrintList(dataStruct, "print -1");
-            app.search_SelectedRowInfo.UserData   = idxVirtual;
-
-            delete(findobj(app.UIAxes3.Children, 'Tag', 'AntennaPattern'))
-            if app.rfDataHub.AntennaPattern(idxVirtual) ~= "-1"
-                [angle, gain] = class.RFDataHub.parsingAntennaPattern(app.rfDataHub.AntennaPattern(idxVirtual), 360);
-                polarplot(app.UIAxes3, angle, gain, 'Tag', 'AntennaPattern')
-            end
-
-
-            % filter_TableStyle(app, 'SelectionRowChanged')
-            % plot_SelectedRow(app)
-            % drawnow
             
         end
 
@@ -1592,26 +1703,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: axesTool_PDFButton
+        % Callback function: not associated with a component
         function misc_PDFButtonButtonPushed(app, event)
             
-            d = appUtil.modalWindow(app.UIFigure, 'progressdlg', 'Em andamento...');
 
-            try
-                idx = app.UITable.Selection(1);    
-                fileName = fullfile(app.CallingApp.config_Folder_userPath.Value, sprintf('Relatório do Canal - Estação %d.pdf', app.UITable.Data.Station(idx)));
-
-                if ~isfile(fileName)
-                    websave(fileName, char(app.UITable.Data.URL(idx)), weboptions(Timeout=30));
-                end
-                app.chReportHTML.HTMLSource = fileName;
-                app.chReportLabel.Text      = sprintf('Estação nº %d', app.UITable.Data.Station(idx));
-
-            catch ME
-                appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
-            end
-
-            delete(d)
 
         end
 
@@ -1627,7 +1722,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     d = appUtil.modalWindow(app.UIFigure, 'progressdlg', 'Em andamento...');
 
                     try
-                        tempRFDataHub = class.RFDataHub.ColumnNames(app.rfDataHub(app.rfDataHubLogical,1:29), 'eng2port');
+                        idxRFDataHubArray = app.UITable.UserData;
+                        tempRFDataHub = class.RFDataHub.ColumnNames(app.rfDataHub(idxRFDataHubArray,1:29), 'eng2port');
                         writetable(tempRFDataHub, fullfile(filePath, fileName), 'WriteMode', 'overwritesheet')
                     catch ME
                         appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
@@ -1656,7 +1752,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: axesTool_simulationButton
+        % Callback function: not associated with a component
         function misc_TerrainProfileRefreshImage(app, event)
             
             if ~app.tool_simulationAxesVisibility.Value
@@ -1695,7 +1791,84 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Image clicked function: filter_Summary
         function filter_SummaryImageClicked(app, event)
             
-                pause(1)
+                uialert(app.UIFigure, 'Uma mensagem qualquer...', 'Um título qualquer...', 'Icon', 'info')
+
+        end
+
+        % Callback function: config_RX_Color, config_TX_Color
+        function config_geoAxesColorParameterChanged(app, event)
+            
+            selectedColor = event.Source.Value;
+
+            switch event.Source
+                case app.config_Station_Color
+                    set(findobj(app.UIAxes1.Children, 'Tag', 'Stations'), 'MarkerFaceColor', selectedColor, 'MarkerEdgeColor', selectedColor)
+
+                case app.config_TX_Color
+                    set(findobj(app.UIAxes1.Children, 'Type', 'scatter', 'Tag', 'TX'), 'MarkerFaceColor', selectedColor, 'MarkerEdgeColor', 'white')
+
+                case app.config_RX_Color
+                    set(findobj(app.UIAxes1.Children, 'Tag', 'RX'),  'MarkerFaceColor', selectedColor, 'MarkerEdgeColor', 'white')
+            end
+
+        end
+
+        % Callback function: config_Basemap, config_Colormap, 
+        % ...and 4 other components
+        function config_geoAxesOthersParametersChanged(app, event)
+            
+            switch event.Source
+                case app.config_Basemap
+                    if ~strcmp(app.UIAxes1.Basemap, event.Value)
+                        switch event.Value
+                            case 'none'
+                                set(app.UIAxes1, 'Basemap', event.Value, 'Box', 'on', 'AxisColor', [.8,.8,.8])
+                                app.GridLayout.ColumnWidth{4} = 0;
+                                ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'backgroundColor', 'transparent')
+
+                            otherwise
+                                set(app.UIAxes1, 'Basemap', event.Value, 'Box', 'off', 'AxisColor', 'white')
+                                app.GridLayout.ColumnWidth{4} = 5;
+                                ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'backgroundColor', '#ffffff')
+                        end
+
+                        initialStationColor = app.config_Station_Color.Value;
+                        switch event.Value
+                            case {'streets-dark', 'satellite'}
+                                if isequal(initialStationColor, [0.7882 0.2784 0.3412])
+                                    StationDarkColor = [0,1,1];
+                                    app.config_Station_Color.Value = StationDarkColor;
+                                    set(findobj(app.UIAxes1.Children, 'Tag', 'Stations'), 'MarkerEdgeColor', StationDarkColor)
+                                end                                
+
+                            otherwise
+                                if isequal(initialStationColor, [0,1,1])
+                                    StationLightColor = [0.7882 0.2784 0.3412];
+                                    app.config_Station_Color.Value = StationLightColor;
+                                    set(findobj(app.UIAxes1.Children, 'Tag', 'Stations'), 'MarkerEdgeColor', StationLightColor)
+                                end
+                        end
+                    end
+
+                case app.config_Colormap
+                    if strcmp(app.UIAxes1.UserData.Colormap, event.Value)
+                        return
+                    end
+
+                    plot.axes.Colormap(app.UIAxes1, event.Value)
+
+                case app.config_TX_DataTipVisibility
+                    set(findobj(app.UIAxes1.Children, 'Type', 'datatip', 'Tag', 'TX'), 'Visible', app.config_TX_DataTipVisibility.Value)
+
+                case app.config_Station_Size
+                    set(findobj(app.UIAxes1.Children, 'Type', 'scatter', 'Tag', 'Stations'), 'SizeData', event.Value)
+
+                case app.config_TX_Size
+                    set(findobj(app.UIAxes1.Children, 'Type', 'scatter', 'Tag', 'TX'),       'SizeData', 36*event.Value)
+
+                case app.config_RX_Size
+                    set(findobj(app.UIAxes1.Children,                    'Tag', 'RX'),       'SizeData', 36*event.Value)
+            end
 
         end
     end
@@ -1729,7 +1902,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {5, 325, 10, 5, 116, '1x', 10, '1x', 5};
+            app.GridLayout.ColumnWidth = {5, 325, 10, 5, 50, '1x', 10, '1x', 5};
             app.GridLayout.RowHeight = {5, 22, '1x', 10, '0.4x', 5, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
@@ -1738,8 +1911,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
-            app.toolGrid.ColumnWidth = {22, '1x', 22, 22, 22};
-            app.toolGrid.RowHeight = {4, 17, '1x'};
+            app.toolGrid.ColumnWidth = {22, 22, 22, 22, '1x', 22, 22, 22};
+            app.toolGrid.RowHeight = {4, '1x', 17, '1x'};
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
             app.toolGrid.Padding = [0 5 0 5];
@@ -1749,33 +1922,58 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create tool_ControlPanelVisibility
             app.tool_ControlPanelVisibility = uiimage(app.toolGrid);
-            app.tool_ControlPanelVisibility.ImageClickedFcn = createCallbackFcn(app, @tool_LeftPanelVisibilityImageClicked, true);
-            app.tool_ControlPanelVisibility.Layout.Row = 2;
+            app.tool_ControlPanelVisibility.ImageClickedFcn = createCallbackFcn(app, @tool_InteractionImageClicked, true);
+            app.tool_ControlPanelVisibility.Layout.Row = 3;
             app.tool_ControlPanelVisibility.Layout.Column = 1;
-            app.tool_ControlPanelVisibility.HorizontalAlignment = 'left';
-            app.tool_ControlPanelVisibility.VerticalAlignment = 'bottom';
             app.tool_ControlPanelVisibility.ImageSource = 'ArrowLeft_32.png';
 
             % Create jsBackDoor
             app.jsBackDoor = uihtml(app.toolGrid);
-            app.jsBackDoor.Layout.Row = 2;
-            app.jsBackDoor.Layout.Column = 3;
+            app.jsBackDoor.Layout.Row = 3;
+            app.jsBackDoor.Layout.Column = 6;
 
             % Create tool_ExportButton
             app.tool_ExportButton = uiimage(app.toolGrid);
             app.tool_ExportButton.ScaleMethod = 'none';
             app.tool_ExportButton.ImageClickedFcn = createCallbackFcn(app, @misc_exportButtonPushed, true);
-            app.tool_ExportButton.Layout.Row = 2;
-            app.tool_ExportButton.Layout.Column = 4;
+            app.tool_ExportButton.Layout.Row = 3;
+            app.tool_ExportButton.Layout.Column = 7;
             app.tool_ExportButton.ImageSource = 'Export_16.png';
 
             % Create filter_Summary
             app.filter_Summary = uiimage(app.toolGrid);
             app.filter_Summary.ImageClickedFcn = createCallbackFcn(app, @filter_SummaryImageClicked, true);
             app.filter_Summary.Tooltip = {'Informações acerca do processo de análise dos dados'};
-            app.filter_Summary.Layout.Row = 2;
-            app.filter_Summary.Layout.Column = 5;
+            app.filter_Summary.Layout.Row = 3;
+            app.filter_Summary.Layout.Column = 8;
             app.filter_Summary.ImageSource = 'Info_32.png';
+
+            % Create axesTool_TableVisibility
+            app.axesTool_TableVisibility = uiimage(app.toolGrid);
+            app.axesTool_TableVisibility.ScaleMethod = 'none';
+            app.axesTool_TableVisibility.ImageClickedFcn = createCallbackFcn(app, @tool_InteractionImageClicked, true);
+            app.axesTool_TableVisibility.Tooltip = {'Visibilidade da tabela'};
+            app.axesTool_TableVisibility.Layout.Row = 3;
+            app.axesTool_TableVisibility.Layout.Column = 2;
+            app.axesTool_TableVisibility.ImageSource = 'View_16.png';
+
+            % Create axesTool_PDFButton
+            app.axesTool_PDFButton = uiimage(app.toolGrid);
+            app.axesTool_PDFButton.ScaleMethod = 'none';
+            app.axesTool_PDFButton.ImageClickedFcn = createCallbackFcn(app, @tool_InteractionImageClicked, true);
+            app.axesTool_PDFButton.Tooltip = {'Relatório do registro selecionado'; '(limitado à radiodifusão)'};
+            app.axesTool_PDFButton.Layout.Row = 3;
+            app.axesTool_PDFButton.Layout.Column = 3;
+            app.axesTool_PDFButton.ImageSource = 'Publish_PDF_16.png';
+
+            % Create axesTool_simulationButton
+            app.axesTool_simulationButton = uiimage(app.toolGrid);
+            app.axesTool_simulationButton.ScaleMethod = 'none';
+            app.axesTool_simulationButton.ImageClickedFcn = createCallbackFcn(app, @tool_InteractionImageClicked, true);
+            app.axesTool_simulationButton.Tooltip = {'Perfil de terreno entre registro selecionado (TX) '; 'e estação de referência (RX)'};
+            app.axesTool_simulationButton.Layout.Row = 3;
+            app.axesTool_simulationButton.Layout.Column = 4;
+            app.axesTool_simulationButton.ImageSource = 'Publish_HTML_16.png';
 
             % Create ControlTabGrid
             app.ControlTabGrid = uigridlayout(app.GridLayout);
@@ -1799,45 +1997,116 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create Tab1_Grid
             app.Tab1_Grid = uigridlayout(app.Tab_1);
-            app.Tab1_Grid.ColumnWidth = {'1x', 200, 13};
-            app.Tab1_Grid.RowHeight = {22, '1x', 166, 13};
+            app.Tab1_Grid.ColumnWidth = {22, '1x', 16, 16};
+            app.Tab1_Grid.RowHeight = {36, 59, '1x'};
             app.Tab1_Grid.ColumnSpacing = 5;
             app.Tab1_Grid.RowSpacing = 5;
             app.Tab1_Grid.Padding = [0 0 0 0];
             app.Tab1_Grid.BackgroundColor = [1 1 1];
 
-            % Create REGISTROSELECIONADOLabel
-            app.REGISTROSELECIONADOLabel = uilabel(app.Tab1_Grid);
-            app.REGISTROSELECIONADOLabel.VerticalAlignment = 'bottom';
-            app.REGISTROSELECIONADOLabel.FontSize = 10;
-            app.REGISTROSELECIONADOLabel.Layout.Row = 1;
-            app.REGISTROSELECIONADOLabel.Layout.Column = 1;
-            app.REGISTROSELECIONADOLabel.Text = 'REGISTRO SELECIONADO';
+            % Create filter_refTXIcon
+            app.filter_refTXIcon = uiimage(app.Tab1_Grid);
+            app.filter_refTXIcon.Layout.Row = 1;
+            app.filter_refTXIcon.Layout.Column = 1;
+            app.filter_refTXIcon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Pin_32.png');
+
+            % Create filter_refTXLabel
+            app.filter_refTXLabel = uilabel(app.Tab1_Grid);
+            app.filter_refTXLabel.VerticalAlignment = 'bottom';
+            app.filter_refTXLabel.FontSize = 11;
+            app.filter_refTXLabel.Layout.Row = 1;
+            app.filter_refTXLabel.Layout.Column = [2 3];
+            app.filter_refTXLabel.Interpreter = 'html';
+            app.filter_refTXLabel.Text = {'<b>Estação transmissora - TX</b>'; '<font style="font-size: 9px; color: gray;">(Registro selecionado em tabela)</font>'};
+
+            % Create filter_refTXPanel
+            app.filter_refTXPanel = uipanel(app.Tab1_Grid);
+            app.filter_refTXPanel.Layout.Row = 2;
+            app.filter_refTXPanel.Layout.Column = [1 4];
+
+            % Create filter_refTXGrid
+            app.filter_refTXGrid = uigridlayout(app.filter_refTXPanel);
+            app.filter_refTXGrid.ColumnWidth = {'1x', '1x', '1x'};
+            app.filter_refTXGrid.RowHeight = {17, 22};
+            app.filter_refTXGrid.RowSpacing = 5;
+            app.filter_refTXGrid.Padding = [10 10 10 5];
+            app.filter_refTXGrid.BackgroundColor = [1 1 1];
+
+            % Create filter_refTXLatitudeLabel
+            app.filter_refTXLatitudeLabel = uilabel(app.filter_refTXGrid);
+            app.filter_refTXLatitudeLabel.VerticalAlignment = 'bottom';
+            app.filter_refTXLatitudeLabel.FontSize = 10;
+            app.filter_refTXLatitudeLabel.Layout.Row = 1;
+            app.filter_refTXLatitudeLabel.Layout.Column = 1;
+            app.filter_refTXLatitudeLabel.Text = 'Latitude:';
+
+            % Create filter_refTXLatitude
+            app.filter_refTXLatitude = uieditfield(app.filter_refTXGrid, 'numeric');
+            app.filter_refTXLatitude.ValueDisplayFormat = '%.6f';
+            app.filter_refTXLatitude.Editable = 'off';
+            app.filter_refTXLatitude.FontSize = 11;
+            app.filter_refTXLatitude.Layout.Row = 2;
+            app.filter_refTXLatitude.Layout.Column = 1;
+            app.filter_refTXLatitude.Value = -1;
+
+            % Create filter_refTXLongitudeLabel
+            app.filter_refTXLongitudeLabel = uilabel(app.filter_refTXGrid);
+            app.filter_refTXLongitudeLabel.VerticalAlignment = 'bottom';
+            app.filter_refTXLongitudeLabel.FontSize = 10;
+            app.filter_refTXLongitudeLabel.Layout.Row = 1;
+            app.filter_refTXLongitudeLabel.Layout.Column = 2;
+            app.filter_refTXLongitudeLabel.Text = 'Longitude:';
+
+            % Create filter_refTXLongitude
+            app.filter_refTXLongitude = uieditfield(app.filter_refTXGrid, 'numeric');
+            app.filter_refTXLongitude.ValueDisplayFormat = '%.6f';
+            app.filter_refTXLongitude.Editable = 'off';
+            app.filter_refTXLongitude.FontSize = 11;
+            app.filter_refTXLongitude.Layout.Row = 2;
+            app.filter_refTXLongitude.Layout.Column = 2;
+            app.filter_refTXLongitude.Value = -1;
+
+            % Create filter_refTXHeightLabel
+            app.filter_refTXHeightLabel = uilabel(app.filter_refTXGrid);
+            app.filter_refTXHeightLabel.VerticalAlignment = 'bottom';
+            app.filter_refTXHeightLabel.FontSize = 10;
+            app.filter_refTXHeightLabel.Layout.Row = 1;
+            app.filter_refTXHeightLabel.Layout.Column = 3;
+            app.filter_refTXHeightLabel.Text = 'Altura (metros):';
+
+            % Create filter_refTXHeight
+            app.filter_refTXHeight = uieditfield(app.filter_refTXGrid, 'numeric');
+            app.filter_refTXHeight.Limits = [0 Inf];
+            app.filter_refTXHeight.RoundFractionalValues = 'on';
+            app.filter_refTXHeight.ValueDisplayFormat = '%d';
+            app.filter_refTXHeight.Editable = 'off';
+            app.filter_refTXHeight.FontSize = 11;
+            app.filter_refTXHeight.Layout.Row = 2;
+            app.filter_refTXHeight.Layout.Column = 3;
 
             % Create search_SelectedRowInfoPanel
             app.search_SelectedRowInfoPanel = uipanel(app.Tab1_Grid);
-            app.search_SelectedRowInfoPanel.Layout.Row = [2 4];
-            app.search_SelectedRowInfoPanel.Layout.Column = [1 3];
+            app.search_SelectedRowInfoPanel.Layout.Row = 3;
+            app.search_SelectedRowInfoPanel.Layout.Column = [1 4];
 
             % Create search_SelectedRowInfoGrid
             app.search_SelectedRowInfoGrid = uigridlayout(app.search_SelectedRowInfoPanel);
-            app.search_SelectedRowInfoGrid.ColumnWidth = {'1x'};
-            app.search_SelectedRowInfoGrid.RowHeight = {'1x'};
+            app.search_SelectedRowInfoGrid.ColumnWidth = {'1x', 140, 18};
+            app.search_SelectedRowInfoGrid.RowHeight = {'1x', 140, 18};
+            app.search_SelectedRowInfoGrid.RowSpacing = 0;
             app.search_SelectedRowInfoGrid.Padding = [0 0 0 0];
             app.search_SelectedRowInfoGrid.BackgroundColor = [1 1 1];
 
-            % Create search_SelectedRowInfo
-            app.search_SelectedRowInfo = uihtml(app.search_SelectedRowInfoGrid);
-            app.search_SelectedRowInfo.HTMLSource = ' ';
-            app.search_SelectedRowInfo.Layout.Row = 1;
-            app.search_SelectedRowInfo.Layout.Column = 1;
+            % Create stationInfo
+            app.stationInfo = uihtml(app.search_SelectedRowInfoGrid);
+            app.stationInfo.Layout.Row = [1 3];
+            app.stationInfo.Layout.Column = [1 3];
 
             % Create PlotPanel
-            app.PlotPanel = uipanel(app.Tab1_Grid);
+            app.PlotPanel = uipanel(app.search_SelectedRowInfoGrid);
             app.PlotPanel.BorderType = 'none';
-            app.PlotPanel.Title = 'aa';
-            app.PlotPanel.BackgroundColor = [0.3922 0.8314 0.0745];
-            app.PlotPanel.Layout.Row = 3;
+            app.PlotPanel.BackgroundColor = [1 1 1];
+            app.PlotPanel.Layout.Row = 2;
             app.PlotPanel.Layout.Column = 2;
 
             % Create Tab_2
@@ -1846,7 +2115,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % Create Tab2_Grid
             app.Tab2_Grid = uigridlayout(app.Tab_2);
             app.Tab2_Grid.ColumnWidth = {22, '1x', 16, 16};
-            app.Tab2_Grid.RowHeight = {22, 96, 134, 8, '1x', 1, 36, 59};
+            app.Tab2_Grid.RowHeight = {36, 59, 22, 96, 134, 8, '1x'};
             app.Tab2_Grid.ColumnSpacing = 5;
             app.Tab2_Grid.RowSpacing = 5;
             app.Tab2_Grid.Padding = [0 0 0 0];
@@ -1856,16 +2125,16 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_SecondaryLabel = uilabel(app.Tab2_Grid);
             app.filter_SecondaryLabel.VerticalAlignment = 'bottom';
             app.filter_SecondaryLabel.FontSize = 10;
-            app.filter_SecondaryLabel.Layout.Row = 1;
+            app.filter_SecondaryLabel.Layout.Row = 3;
             app.filter_SecondaryLabel.Layout.Column = [1 2];
-            app.filter_SecondaryLabel.Text = 'PRIMÁRIA';
+            app.filter_SecondaryLabel.Text = 'FILTRO';
 
             % Create filter_SecondaryTypePanel
             app.filter_SecondaryTypePanel = uibuttongroup(app.Tab2_Grid);
             app.filter_SecondaryTypePanel.AutoResizeChildren = 'off';
             app.filter_SecondaryTypePanel.SelectionChangedFcn = createCallbackFcn(app, @filter_typePanelSelectionChanged, true);
             app.filter_SecondaryTypePanel.BackgroundColor = [1 1 1];
-            app.filter_SecondaryTypePanel.Layout.Row = 2;
+            app.filter_SecondaryTypePanel.Layout.Row = 4;
             app.filter_SecondaryTypePanel.Layout.Column = [1 4];
             app.filter_SecondaryTypePanel.FontWeight = 'bold';
             app.filter_SecondaryTypePanel.FontSize = 10;
@@ -1960,7 +2229,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_SecondaryValuePanel.AutoResizeChildren = 'off';
             app.filter_SecondaryValuePanel.SelectionChangedFcn = createCallbackFcn(app, @filter_SecondaryValuePanelSelectionChanged, true);
             app.filter_SecondaryValuePanel.BackgroundColor = [1 1 1];
-            app.filter_SecondaryValuePanel.Layout.Row = 3;
+            app.filter_SecondaryValuePanel.Layout.Row = 5;
             app.filter_SecondaryValuePanel.Layout.Column = [1 4];
 
             % Create filter_SecondaryOperation1
@@ -2146,14 +2415,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_AddImage = uiimage(app.Tab2_Grid);
             app.filter_AddImage.ImageClickedFcn = createCallbackFcn(app, @filter_addFilter, true);
             app.filter_AddImage.Tooltip = {'Adicionar filtro'};
-            app.filter_AddImage.Layout.Row = 4;
+            app.filter_AddImage.Layout.Row = 6;
             app.filter_AddImage.Layout.Column = 4;
             app.filter_AddImage.ImageSource = 'addSymbol_32.png';
 
             % Create filter_Tree
             app.filter_Tree = uitree(app.Tab2_Grid, 'checkbox');
             app.filter_Tree.FontSize = 10;
-            app.filter_Tree.Layout.Row = 5;
+            app.filter_Tree.Layout.Row = 7;
             app.filter_Tree.Layout.Column = [1 4];
 
             % Assign Checked Nodes
@@ -2161,38 +2430,38 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create filter_refRXIcon
             app.filter_refRXIcon = uiimage(app.Tab2_Grid);
-            app.filter_refRXIcon.Layout.Row = 7;
+            app.filter_refRXIcon.Layout.Row = 1;
             app.filter_refRXIcon.Layout.Column = 1;
-            app.filter_refRXIcon.ImageSource = 'Pin_32.png';
+            app.filter_refRXIcon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Pin_32Triangle.png');
 
             % Create filter_refRXLabel
             app.filter_refRXLabel = uilabel(app.Tab2_Grid);
             app.filter_refRXLabel.VerticalAlignment = 'bottom';
             app.filter_refRXLabel.FontSize = 11;
-            app.filter_refRXLabel.Layout.Row = 7;
+            app.filter_refRXLabel.Layout.Row = 1;
             app.filter_refRXLabel.Layout.Column = 2;
             app.filter_refRXLabel.Interpreter = 'html';
-            app.filter_refRXLabel.Text = {'<b>Estação de referência (RX)</b>'; '<font style="font-size: 9px; color: gray;">(relacionada à coluna calculada "Distância")</font>'};
+            app.filter_refRXLabel.Text = {'<b>Estação receptora - RX</b>'; '<font style="font-size: 9px; color: gray;">(Referência da coluna calculada "Distância" e do enlace)</font>'};
 
             % Create filter_refRXRefresh
             app.filter_refRXRefresh = uiimage(app.Tab2_Grid);
             app.filter_refRXRefresh.ImageClickedFcn = createCallbackFcn(app, @filter_refRXRefreshClicked, true);
             app.filter_refRXRefresh.Tooltip = {'Atualiza estação de referência'};
-            app.filter_refRXRefresh.Layout.Row = 7;
+            app.filter_refRXRefresh.Layout.Row = 1;
             app.filter_refRXRefresh.Layout.Column = 3;
             app.filter_refRXRefresh.VerticalAlignment = 'bottom';
             app.filter_refRXRefresh.ImageSource = 'Refresh_18.png';
 
             % Create filter_refRXEdit
             app.filter_refRXEdit = uiimage(app.Tab2_Grid);
-            app.filter_refRXEdit.Layout.Row = 7;
+            app.filter_refRXEdit.Layout.Row = 1;
             app.filter_refRXEdit.Layout.Column = 4;
             app.filter_refRXEdit.VerticalAlignment = 'bottom';
             app.filter_refRXEdit.ImageSource = 'Edit_32.png';
 
             % Create filter_refRXPanel
             app.filter_refRXPanel = uipanel(app.Tab2_Grid);
-            app.filter_refRXPanel.Layout.Row = 8;
+            app.filter_refRXPanel.Layout.Row = 2;
             app.filter_refRXPanel.Layout.Column = [1 4];
 
             % Create filter_refRXGrid
@@ -2348,7 +2617,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create config_geoAxesGrid
             app.config_geoAxesGrid = uigridlayout(app.config_geoAxesPanel);
-            app.config_geoAxesGrid.ColumnWidth = {60, 70, 36, 36, '1x'};
+            app.config_geoAxesGrid.ColumnWidth = {'1x', 50, 36, 36, 54};
             app.config_geoAxesGrid.RowHeight = {17, 64, 22, 22, 22};
             app.config_geoAxesGrid.RowSpacing = 5;
             app.config_geoAxesGrid.Padding = [10 10 10 5];
@@ -2369,7 +2638,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create config_geoAxesSubGrid
             app.config_geoAxesSubGrid = uigridlayout(app.config_geoAxesSubPanel);
-            app.config_geoAxesSubGrid.ColumnWidth = {'1x', 94};
+            app.config_geoAxesSubGrid.ColumnWidth = {'1x', 90};
             app.config_geoAxesSubGrid.RowHeight = {17, 22};
             app.config_geoAxesSubGrid.RowSpacing = 5;
             app.config_geoAxesSubGrid.Padding = [10 10 10 5];
@@ -2386,6 +2655,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % Create config_Basemap
             app.config_Basemap = uidropdown(app.config_geoAxesSubGrid);
             app.config_Basemap.Items = {'none', 'darkwater', 'streets-light', 'streets-dark', 'satellite', 'topographic', 'grayterrain'};
+            app.config_Basemap.ValueChangedFcn = createCallbackFcn(app, @config_geoAxesOthersParametersChanged, true);
             app.config_Basemap.FontSize = 11;
             app.config_Basemap.BackgroundColor = [1 1 1];
             app.config_Basemap.Layout.Row = 2;
@@ -2403,120 +2673,123 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % Create config_Colormap
             app.config_Colormap = uidropdown(app.config_geoAxesSubGrid);
             app.config_Colormap.Items = {'winter', 'parula', 'turbo', 'gray', 'hot', 'jet', 'summer'};
+            app.config_Colormap.ValueChangedFcn = createCallbackFcn(app, @config_geoAxesOthersParametersChanged, true);
             app.config_Colormap.FontSize = 11;
             app.config_Colormap.BackgroundColor = [1 1 1];
             app.config_Colormap.Layout.Row = 2;
             app.config_Colormap.Layout.Column = 2;
             app.config_Colormap.Value = 'winter';
 
-            % Create config_route_Label
-            app.config_route_Label = uilabel(app.config_geoAxesGrid);
-            app.config_route_Label.FontSize = 10;
-            app.config_route_Label.Layout.Row = 3;
-            app.config_route_Label.Layout.Column = 1;
-            app.config_route_Label.Text = 'Rota:';
+            % Create config_TX_Label
+            app.config_TX_Label = uilabel(app.config_geoAxesGrid);
+            app.config_TX_Label.WordWrap = 'on';
+            app.config_TX_Label.FontSize = 10;
+            app.config_TX_Label.Layout.Row = 4;
+            app.config_TX_Label.Layout.Column = [1 2];
+            app.config_TX_Label.Text = {'Estação'; 'transmissora - TX:'};
 
-            % Create config_route_LineStyle
-            app.config_route_LineStyle = uidropdown(app.config_geoAxesGrid);
-            app.config_route_LineStyle.Items = {'none', ':', '-'};
-            app.config_route_LineStyle.FontSize = 11;
-            app.config_route_LineStyle.BackgroundColor = [1 1 1];
-            app.config_route_LineStyle.Layout.Row = 3;
-            app.config_route_LineStyle.Layout.Column = 2;
-            app.config_route_LineStyle.Value = 'none';
+            % Create config_TX_DataTipVisibility
+            app.config_TX_DataTipVisibility = uidropdown(app.config_geoAxesGrid);
+            app.config_TX_DataTipVisibility.Items = {'on', 'off'};
+            app.config_TX_DataTipVisibility.ValueChangedFcn = createCallbackFcn(app, @config_geoAxesOthersParametersChanged, true);
+            app.config_TX_DataTipVisibility.FontSize = 11;
+            app.config_TX_DataTipVisibility.BackgroundColor = [1 1 1];
+            app.config_TX_DataTipVisibility.Layout.Row = 4;
+            app.config_TX_DataTipVisibility.Layout.Column = 2;
+            app.config_TX_DataTipVisibility.Value = 'on';
 
-            % Create config_route_OutColor
-            app.config_route_OutColor = uicolorpicker(app.config_geoAxesGrid);
-            app.config_route_OutColor.Value = [0.502 0.502 0.502];
-            app.config_route_OutColor.Layout.Row = 3;
-            app.config_route_OutColor.Layout.Column = 3;
-            app.config_route_OutColor.BackgroundColor = [1 1 1];
+            % Create config_TX_Color
+            app.config_TX_Color = uicolorpicker(app.config_geoAxesGrid);
+            app.config_TX_Color.ValueChangedFcn = createCallbackFcn(app, @config_geoAxesColorParameterChanged, true);
+            app.config_TX_Color.Layout.Row = 4;
+            app.config_TX_Color.Layout.Column = 3;
+            app.config_TX_Color.BackgroundColor = [1 1 1];
 
-            % Create config_route_InColor
-            app.config_route_InColor = uicolorpicker(app.config_geoAxesGrid);
-            app.config_route_InColor.Value = [0.8706 0.5412 0.5412];
-            app.config_route_InColor.Layout.Row = 3;
-            app.config_route_InColor.Layout.Column = 4;
-            app.config_route_InColor.BackgroundColor = [1 1 1];
+            % Create config_TX_Size
+            app.config_TX_Size = uislider(app.config_geoAxesGrid);
+            app.config_TX_Size.Limits = [1.1 2.9];
+            app.config_TX_Size.MajorTicks = [];
+            app.config_TX_Size.ValueChangingFcn = createCallbackFcn(app, @config_geoAxesOthersParametersChanged, true);
+            app.config_TX_Size.MinorTicks = [];
+            app.config_TX_Size.FontSize = 10;
+            app.config_TX_Size.Tooltip = {'Tamanho do marcador'};
+            app.config_TX_Size.Layout.Row = 4;
+            app.config_TX_Size.Layout.Column = [4 5];
+            app.config_TX_Size.Value = 2;
 
-            % Create config_route_Size
-            app.config_route_Size = uislider(app.config_geoAxesGrid);
-            app.config_route_Size.Limits = [1 9];
-            app.config_route_Size.MajorTicks = [];
-            app.config_route_Size.MinorTicks = [];
-            app.config_route_Size.FontSize = 10;
-            app.config_route_Size.Tooltip = {'Tamanho do marcador'};
-            app.config_route_Size.Layout.Row = 3;
-            app.config_route_Size.Layout.Column = 5;
-            app.config_route_Size.Value = 1;
+            % Create config_RX_Label
+            app.config_RX_Label = uilabel(app.config_geoAxesGrid);
+            app.config_RX_Label.WordWrap = 'on';
+            app.config_RX_Label.FontSize = 10;
+            app.config_RX_Label.Layout.Row = 5;
+            app.config_RX_Label.Layout.Column = [1 2];
+            app.config_RX_Label.Text = {'Estação'; 'receptora - RX:'};
 
-            % Create config_Car_Label
-            app.config_Car_Label = uilabel(app.config_geoAxesGrid);
-            app.config_Car_Label.FontSize = 10;
-            app.config_Car_Label.Layout.Row = 4;
-            app.config_Car_Label.Layout.Column = 1;
-            app.config_Car_Label.Text = 'Veículo:';
+            % Create config_RX_Visibility
+            app.config_RX_Visibility = uidropdown(app.config_geoAxesGrid);
+            app.config_RX_Visibility.Items = {'on', 'off'};
+            app.config_RX_Visibility.Enable = 'off';
+            app.config_RX_Visibility.FontSize = 11;
+            app.config_RX_Visibility.BackgroundColor = [1 1 1];
+            app.config_RX_Visibility.Layout.Row = 5;
+            app.config_RX_Visibility.Layout.Column = 2;
+            app.config_RX_Visibility.Value = 'on';
 
-            % Create config_Car_LineStyle
-            app.config_Car_LineStyle = uidropdown(app.config_geoAxesGrid);
-            app.config_Car_LineStyle.Items = {'none', 'o', 'square', '^'};
-            app.config_Car_LineStyle.FontSize = 11;
-            app.config_Car_LineStyle.BackgroundColor = [1 1 1];
-            app.config_Car_LineStyle.Layout.Row = 4;
-            app.config_Car_LineStyle.Layout.Column = 2;
-            app.config_Car_LineStyle.Value = 'none';
+            % Create config_RX_Color
+            app.config_RX_Color = uicolorpicker(app.config_geoAxesGrid);
+            app.config_RX_Color.ValueChangedFcn = createCallbackFcn(app, @config_geoAxesColorParameterChanged, true);
+            app.config_RX_Color.Layout.Row = 5;
+            app.config_RX_Color.Layout.Column = 3;
+            app.config_RX_Color.BackgroundColor = [1 1 1];
 
-            % Create config_Car_Color
-            app.config_Car_Color = uicolorpicker(app.config_geoAxesGrid);
-            app.config_Car_Color.Layout.Row = 4;
-            app.config_Car_Color.Layout.Column = 3;
-            app.config_Car_Color.BackgroundColor = [1 1 1];
+            % Create config_RX_Size
+            app.config_RX_Size = uislider(app.config_geoAxesGrid);
+            app.config_RX_Size.Limits = [1.1 2.9];
+            app.config_RX_Size.MajorTicks = [];
+            app.config_RX_Size.ValueChangingFcn = createCallbackFcn(app, @config_geoAxesOthersParametersChanged, true);
+            app.config_RX_Size.MinorTicks = [];
+            app.config_RX_Size.FontSize = 10;
+            app.config_RX_Size.Tooltip = {'Tamanho do marcador'};
+            app.config_RX_Size.Layout.Row = 5;
+            app.config_RX_Size.Layout.Column = [4 5];
+            app.config_RX_Size.Value = 2;
 
-            % Create config_Car_Size
-            app.config_Car_Size = uislider(app.config_geoAxesGrid);
-            app.config_Car_Size.Limits = [1 19];
-            app.config_Car_Size.MajorTicks = [];
-            app.config_Car_Size.MinorTicks = [];
-            app.config_Car_Size.FontSize = 10;
-            app.config_Car_Size.Tooltip = {'Tamanho do marcador'};
-            app.config_Car_Size.Layout.Row = 4;
-            app.config_Car_Size.Layout.Column = [4 5];
-            app.config_Car_Size.Value = 10;
+            % Create config_Station_Label
+            app.config_Station_Label = uilabel(app.config_geoAxesGrid);
+            app.config_Station_Label.WordWrap = 'on';
+            app.config_Station_Label.FontSize = 10;
+            app.config_Station_Label.Layout.Row = 3;
+            app.config_Station_Label.Layout.Column = 1;
+            app.config_Station_Label.Text = 'Estações RFDataHub:';
 
-            % Create config_points_Label
-            app.config_points_Label = uilabel(app.config_geoAxesGrid);
-            app.config_points_Label.WordWrap = 'on';
-            app.config_points_Label.FontSize = 10;
-            app.config_points_Label.Layout.Row = 5;
-            app.config_points_Label.Layout.Column = [1 2];
-            app.config_points_Label.Text = {'Pontos de'; 'interesse:'};
+            % Create config_Station_DataTipVisibility
+            app.config_Station_DataTipVisibility = uidropdown(app.config_geoAxesGrid);
+            app.config_Station_DataTipVisibility.Items = {'on', 'off'};
+            app.config_Station_DataTipVisibility.Enable = 'off';
+            app.config_Station_DataTipVisibility.FontSize = 11;
+            app.config_Station_DataTipVisibility.BackgroundColor = [1 1 1];
+            app.config_Station_DataTipVisibility.Layout.Row = 3;
+            app.config_Station_DataTipVisibility.Layout.Column = 2;
+            app.config_Station_DataTipVisibility.Value = 'on';
 
-            % Create config_points_LineStyle
-            app.config_points_LineStyle = uidropdown(app.config_geoAxesGrid);
-            app.config_points_LineStyle.Items = {'none', 'o', 'square', '^'};
-            app.config_points_LineStyle.FontSize = 11;
-            app.config_points_LineStyle.BackgroundColor = [1 1 1];
-            app.config_points_LineStyle.Layout.Row = 5;
-            app.config_points_LineStyle.Layout.Column = 2;
-            app.config_points_LineStyle.Value = 'none';
+            % Create config_Station_Color
+            app.config_Station_Color = uicolorpicker(app.config_geoAxesGrid);
+            app.config_Station_Color.Value = [0 1 1];
+            app.config_Station_Color.Layout.Row = 3;
+            app.config_Station_Color.Layout.Column = 3;
+            app.config_Station_Color.BackgroundColor = [1 1 1];
 
-            % Create config_points_Color
-            app.config_points_Color = uicolorpicker(app.config_geoAxesGrid);
-            app.config_points_Color.Value = [0 0 0];
-            app.config_points_Color.Layout.Row = 5;
-            app.config_points_Color.Layout.Column = 3;
-            app.config_points_Color.BackgroundColor = [1 1 1];
-
-            % Create config_points_Size
-            app.config_points_Size = uislider(app.config_geoAxesGrid);
-            app.config_points_Size.Limits = [6 12];
-            app.config_points_Size.MajorTicks = [];
-            app.config_points_Size.MinorTicks = [];
-            app.config_points_Size.FontSize = 10;
-            app.config_points_Size.Tooltip = {'Tamanho do marcador'};
-            app.config_points_Size.Layout.Row = 5;
-            app.config_points_Size.Layout.Column = [4 5];
-            app.config_points_Size.Value = 9;
+            % Create config_Station_Size
+            app.config_Station_Size = uislider(app.config_geoAxesGrid);
+            app.config_Station_Size.Limits = [1 36];
+            app.config_Station_Size.MajorTicks = [];
+            app.config_Station_Size.ValueChangingFcn = createCallbackFcn(app, @config_geoAxesOthersParametersChanged, true);
+            app.config_Station_Size.MinorTicks = [];
+            app.config_Station_Size.FontSize = 10;
+            app.config_Station_Size.Tooltip = {'Tamanho do marcador'};
+            app.config_Station_Size.Layout.Row = 3;
+            app.config_Station_Size.Layout.Column = [4 5];
+            app.config_Station_Size.Value = 1;
 
             % Create config_xyAxesLabel
             app.config_xyAxesLabel = uilabel(app.Tab4_Grid);
@@ -2533,125 +2806,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.config_xyAxesPanel.AutoResizeChildren = 'off';
             app.config_xyAxesPanel.Layout.Row = 5;
             app.config_xyAxesPanel.Layout.Column = [1 2];
-
-            % Create config_xyAxesGrid
-            app.config_xyAxesGrid = uigridlayout(app.config_xyAxesPanel);
-            app.config_xyAxesGrid.ColumnWidth = {60, 70, 36, '1x', '1x'};
-            app.config_xyAxesGrid.RowHeight = {22, 22, 22};
-            app.config_xyAxesGrid.RowSpacing = 5;
-            app.config_xyAxesGrid.BackgroundColor = [1 1 1];
-
-            % Create config_PersistanceLabel
-            app.config_PersistanceLabel = uilabel(app.config_xyAxesGrid);
-            app.config_PersistanceLabel.FontSize = 10;
-            app.config_PersistanceLabel.Layout.Row = 1;
-            app.config_PersistanceLabel.Layout.Column = [1 2];
-            app.config_PersistanceLabel.Text = 'Persistência:';
-
-            % Create config_PersistanceVisibility
-            app.config_PersistanceVisibility = uidropdown(app.config_xyAxesGrid);
-            app.config_PersistanceVisibility.Items = {'on', 'off'};
-            app.config_PersistanceVisibility.Tooltip = {''};
-            app.config_PersistanceVisibility.FontSize = 11;
-            app.config_PersistanceVisibility.BackgroundColor = [1 1 1];
-            app.config_PersistanceVisibility.Layout.Row = 1;
-            app.config_PersistanceVisibility.Layout.Column = 2;
-            app.config_PersistanceVisibility.Value = 'on';
-
-            % Create config_chROILabel
-            app.config_chROILabel = uilabel(app.config_xyAxesGrid);
-            app.config_chROILabel.WordWrap = 'on';
-            app.config_chROILabel.FontSize = 10;
-            app.config_chROILabel.Layout.Row = 2;
-            app.config_chROILabel.Layout.Column = 1;
-            app.config_chROILabel.Text = 'Canal:';
-
-            % Create config_chROIVisibility
-            app.config_chROIVisibility = uidropdown(app.config_xyAxesGrid);
-            app.config_chROIVisibility.Items = {'on', 'off'};
-            app.config_chROIVisibility.Tooltip = {''};
-            app.config_chROIVisibility.FontSize = 11;
-            app.config_chROIVisibility.BackgroundColor = [1 1 1];
-            app.config_chROIVisibility.Layout.Row = 2;
-            app.config_chROIVisibility.Layout.Column = 2;
-            app.config_chROIVisibility.Value = 'on';
-
-            % Create config_chROIColor
-            app.config_chROIColor = uicolorpicker(app.config_xyAxesGrid);
-            app.config_chROIColor.Value = [0.7216 0.2706 1];
-            app.config_chROIColor.Tooltip = {''};
-            app.config_chROIColor.Layout.Row = 2;
-            app.config_chROIColor.Layout.Column = 3;
-            app.config_chROIColor.BackgroundColor = [1 1 1];
-
-            % Create config_chROIEdgeAlpha
-            app.config_chROIEdgeAlpha = uispinner(app.config_xyAxesGrid);
-            app.config_chROIEdgeAlpha.Step = 0.1;
-            app.config_chROIEdgeAlpha.Limits = [0 1];
-            app.config_chROIEdgeAlpha.ValueDisplayFormat = '%.1f';
-            app.config_chROIEdgeAlpha.FontSize = 11;
-            app.config_chROIEdgeAlpha.Tooltip = {'Transparência da margem'};
-            app.config_chROIEdgeAlpha.Layout.Row = 2;
-            app.config_chROIEdgeAlpha.Layout.Column = 4;
-
-            % Create config_chROIFaceAlpha
-            app.config_chROIFaceAlpha = uispinner(app.config_xyAxesGrid);
-            app.config_chROIFaceAlpha.Step = 0.1;
-            app.config_chROIFaceAlpha.Limits = [0 1];
-            app.config_chROIFaceAlpha.ValueDisplayFormat = '%.1f';
-            app.config_chROIFaceAlpha.FontSize = 11;
-            app.config_chROIFaceAlpha.Tooltip = {'Transparência da face'};
-            app.config_chROIFaceAlpha.Layout.Row = 2;
-            app.config_chROIFaceAlpha.Layout.Column = 5;
-            app.config_chROIFaceAlpha.Value = 0.4;
-
-            % Create config_chPowerLabel
-            app.config_chPowerLabel = uilabel(app.config_xyAxesGrid);
-            app.config_chPowerLabel.WordWrap = 'on';
-            app.config_chPowerLabel.FontSize = 10;
-            app.config_chPowerLabel.Layout.Row = 3;
-            app.config_chPowerLabel.Layout.Column = [1 2];
-            app.config_chPowerLabel.Text = {'Potência do'; 'canal:'};
-
-            % Create config_chPowerVisibility
-            app.config_chPowerVisibility = uidropdown(app.config_xyAxesGrid);
-            app.config_chPowerVisibility.Items = {'on', 'off'};
-            app.config_chPowerVisibility.Tooltip = {''};
-            app.config_chPowerVisibility.FontSize = 11;
-            app.config_chPowerVisibility.BackgroundColor = [1 1 1];
-            app.config_chPowerVisibility.Layout.Row = 3;
-            app.config_chPowerVisibility.Layout.Column = 2;
-            app.config_chPowerVisibility.Value = 'on';
-
-            % Create config_chPowerColor
-            app.config_chPowerColor = uicolorpicker(app.config_xyAxesGrid);
-            app.config_chPowerColor.Value = [0.5686 1 0];
-            app.config_chPowerColor.Tooltip = {''};
-            app.config_chPowerColor.Layout.Row = 3;
-            app.config_chPowerColor.Layout.Column = 3;
-            app.config_chPowerColor.BackgroundColor = [1 1 1];
-
-            % Create config_chPowerEdgeAlpha
-            app.config_chPowerEdgeAlpha = uispinner(app.config_xyAxesGrid);
-            app.config_chPowerEdgeAlpha.Step = 0.1;
-            app.config_chPowerEdgeAlpha.Limits = [0 1];
-            app.config_chPowerEdgeAlpha.ValueDisplayFormat = '%.1f';
-            app.config_chPowerEdgeAlpha.FontSize = 11;
-            app.config_chPowerEdgeAlpha.Tooltip = {'Transparência da margem'};
-            app.config_chPowerEdgeAlpha.Layout.Row = 3;
-            app.config_chPowerEdgeAlpha.Layout.Column = 4;
-            app.config_chPowerEdgeAlpha.Value = 1;
-
-            % Create config_chPowerFaceAlpha
-            app.config_chPowerFaceAlpha = uispinner(app.config_xyAxesGrid);
-            app.config_chPowerFaceAlpha.Step = 0.1;
-            app.config_chPowerFaceAlpha.Limits = [0 1];
-            app.config_chPowerFaceAlpha.ValueDisplayFormat = '%.1f';
-            app.config_chPowerFaceAlpha.FontSize = 11;
-            app.config_chPowerFaceAlpha.Tooltip = {'Transparência da face'};
-            app.config_chPowerFaceAlpha.Layout.Row = 3;
-            app.config_chPowerFaceAlpha.Layout.Column = 5;
-            app.config_chPowerFaceAlpha.Value = 0.4;
 
             % Create ELEVAOLabel
             app.ELEVAOLabel = uilabel(app.Tab4_Grid);
@@ -2837,10 +2991,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create UITable
             app.UITable = uitable(app.GridLayout);
-            app.UITable.ColumnName = {'ID'; 'FREQUÊNCIA|(MHz)'; 'LATITUDE'; 'LONGITUDE'; 'DESCRIÇÃO|(Entidade+Fistel+Multiplicidade+Localidade)'; 'SERVIÇO'; 'ESTAÇÃO'; 'CLASSE|EMISSÃO'; 'LARGURA|(kHz)'; 'URL'; 'DISTÂNCIA|(km)'};
-            app.UITable.ColumnWidth = {50, 110, 75, 75, 'auto', 75, 75, 75, 75, 50, 90};
+            app.UITable.ColumnName = {'ID'; 'FREQUÊNCIA|(MHz)'; 'DESCRIÇÃO|(Entidade+Fistel+Multiplicidade+Localidade)'; 'SERVIÇO'; 'ESTAÇÃO'; 'LARGURA|(kHz)'; 'DISTÂNCIA|(km)'};
+            app.UITable.ColumnWidth = {60, 110, 'auto', 75, 75, 75, 90};
             app.UITable.RowName = {};
-            app.UITable.ColumnSortable = [false true false false false true true false true false true];
+            app.UITable.ColumnSortable = [false true false true true true true];
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @UITableSelectionChanged, true);
             app.UITable.Multiselect = 'off';
             app.UITable.ForegroundColor = [0.149 0.149 0.149];
@@ -2867,13 +3021,13 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % Create plotPanel
             app.plotPanel = uipanel(app.GridLayout);
             app.plotPanel.BorderType = 'none';
-            app.plotPanel.BackgroundColor = [0.302 0.7451 0.9333];
+            app.plotPanel.BackgroundColor = [1 1 1];
             app.plotPanel.Layout.Row = [2 3];
             app.plotPanel.Layout.Column = [4 6];
 
             % Create axesToolbarGrid
             app.axesToolbarGrid = uigridlayout(app.GridLayout);
-            app.axesToolbarGrid.ColumnWidth = {22, 22, 22, 22, 22};
+            app.axesToolbarGrid.ColumnWidth = {22, 22};
             app.axesToolbarGrid.RowHeight = {'1x'};
             app.axesToolbarGrid.ColumnSpacing = 0;
             app.axesToolbarGrid.Padding = [2 2 2 7];
@@ -2883,6 +3037,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create axesTool_RestoreView
             app.axesTool_RestoreView = uiimage(app.axesToolbarGrid);
+            app.axesTool_RestoreView.ImageClickedFcn = createCallbackFcn(app, @axesTool_InteractionImageClicked, true);
             app.axesTool_RestoreView.Tooltip = {'RestoreView'};
             app.axesTool_RestoreView.Layout.Row = 1;
             app.axesTool_RestoreView.Layout.Column = 1;
@@ -2890,36 +3045,11 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create axesTool_RegionZoom
             app.axesTool_RegionZoom = uiimage(app.axesToolbarGrid);
+            app.axesTool_RegionZoom.ImageClickedFcn = createCallbackFcn(app, @axesTool_InteractionImageClicked, true);
             app.axesTool_RegionZoom.Tooltip = {'RegionZoom'};
             app.axesTool_RegionZoom.Layout.Row = 1;
             app.axesTool_RegionZoom.Layout.Column = 2;
             app.axesTool_RegionZoom.ImageSource = 'ZoomRegion_20.png';
-
-            % Create axesTool_TableVisibility
-            app.axesTool_TableVisibility = uiimage(app.axesToolbarGrid);
-            app.axesTool_TableVisibility.ScaleMethod = 'none';
-            app.axesTool_TableVisibility.Tooltip = {'Visibilidade da tabela'};
-            app.axesTool_TableVisibility.Layout.Row = 1;
-            app.axesTool_TableVisibility.Layout.Column = 3;
-            app.axesTool_TableVisibility.ImageSource = 'View_16.png';
-
-            % Create axesTool_simulationButton
-            app.axesTool_simulationButton = uiimage(app.axesToolbarGrid);
-            app.axesTool_simulationButton.ScaleMethod = 'none';
-            app.axesTool_simulationButton.ImageClickedFcn = createCallbackFcn(app, @misc_TerrainProfileRefreshImage, true);
-            app.axesTool_simulationButton.Tooltip = {'Perfil de terreno entre registro selecionado (TX) '; 'e estação de referência (RX)'};
-            app.axesTool_simulationButton.Layout.Row = 1;
-            app.axesTool_simulationButton.Layout.Column = 5;
-            app.axesTool_simulationButton.ImageSource = 'Publish_HTML_16.png';
-
-            % Create axesTool_PDFButton
-            app.axesTool_PDFButton = uiimage(app.axesToolbarGrid);
-            app.axesTool_PDFButton.ScaleMethod = 'none';
-            app.axesTool_PDFButton.ImageClickedFcn = createCallbackFcn(app, @misc_PDFButtonButtonPushed, true);
-            app.axesTool_PDFButton.Tooltip = {'Relatório do registro selecionado'; '(limitado à radiodifusão)'};
-            app.axesTool_PDFButton.Layout.Row = 1;
-            app.axesTool_PDFButton.Layout.Column = 4;
-            app.axesTool_PDFButton.ImageSource = 'Publish_PDF_16.png';
 
             % Create filter_ContextMenu
             app.filter_ContextMenu = uicontextmenu(app.UIFigure);

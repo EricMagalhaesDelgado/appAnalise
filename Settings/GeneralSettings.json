@@ -1,5 +1,5 @@
 {
-    "version": 0.52,
+    "version": 0.53,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -331,5 +331,5 @@
         "Trace": null,
         "SampleTime": 10
     },
-    "AuxiliarAppDockState": true
+    "AuxiliarAppDockState": false
 }
