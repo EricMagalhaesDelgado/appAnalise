@@ -435,7 +435,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Eixo cartesiano: DIAGRAMA DE RADIAÇÃO DA ANTENA
             app.PlotPanel.AutoResizeChildren = 'off';
-            app.UIAxes3 = polaraxes(app.PlotPanel, 'Units', 'normalized', 'Position', [.18,-.15,.82,1], 'ThetaZeroLocation', 'top', 'FontSize', 9, 'Color', 'none', 'ThetaTick', 0);
+            app.UIAxes3 = polaraxes(app.PlotPanel, 'Units',             'normalized',    ...
+                                                   'Position',          [.05,.05,.9,.9], ...
+                                                   'ThetaZeroLocation', 'top',           ...
+                                                   'FontSize',          9,               ...
+                                                   'Color',             'none',          ...
+                                                   'ThetaTick',         0,               ...
+                                                   'ThetaDir',          'clockwise',     ...
+                                                   'RTickLabel',        {});
             hold(app.UIAxes3, 'on')
 
             % Axes interactions:
@@ -704,7 +711,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 'Marker',          '^',                            ...
                 'MarkerEdgeColor', app.config_RX_Color.Value,      ...
                 'MarkerFaceColor', app.config_RX_Color.Value,      ...
-                'SizeData',        36*app.config_RX_Size.Value,    ...
+                'SizeData',        44*app.config_RX_Size.Value,    ...
                 'PickableParts',   'none',                         ...
                 'Visible',         app.config_RX_Visibility.Value, ...
                 'Tag',             'RX');
@@ -740,7 +747,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                         'Marker',          'o',                          ...
                         'MarkerEdgeColor', app.config_TX_Color.Value,    ...
                         'MarkerFaceColor', app.config_TX_Color.Value,    ...
-                        'SizeData',        36*app.config_TX_Size.Value , ...
+                        'SizeData',        20*app.config_TX_Size.Value , ...
                         'PickableParts',   'none',                       ...
                         'Tag',             'TX');
                 else
@@ -754,39 +761,67 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         function plot_createRFLinkPlot(app)
             delete(findobj(app.UIAxes1.Children, 'Tag', 'RFLink'))
             cla(app.UIAxes2)
+            delete(findobj(app.UIAxes3.Children, 'Tag', 'Azimuth'))
 
-            idxRFDataHub = getRFDataHubIndex(app);
-            try
-                % OBJETOS TX e RX
-                [txObj, rxObj] = RFLinkObjects(app, idxRFDataHub);
+            if app.axesTool_simulationButton.UserData
+                idxRFDataHub = getRFDataHubIndex(app);
+                try
+                    % OBJETOS TX e RX
+                    [txObj, rxObj] = RFLinkObjects(app, idxRFDataHub);
+        
+                    % ELEVAÇÃO DO LINK TX-RX
+                    [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj);
+                    if ~isempty(msgWarning)
+                        appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                    end
+        
+                    % PLOT: RFLink Map
+                    geoplot(app.UIAxes1, wayPoints3D(:,1), wayPoints3D(:,2), Color='#c94756', LineStyle='-.', PickableParts='none', Tag='RFLink');
+                    
+                    % PLOT: RFLink
+                    plot.RFLink(app.UIAxes2, txObj, rxObj, wayPoints3D, 'light')
     
-                % ELEVAÇÃO DO LINK TX-RX
-                [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj);
-                if ~isempty(msgWarning)
-                    appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                    % PLOT: RFLink Azimuth
+                    Azimuth = deg2rad(app.UIAxes2.UserData.Azimuth);
+                    polarplot(app.UIAxes3, Azimuth,            app.UIAxes3.RLim(1), 'MarkerEdgeColor', '#c94756', 'MarkerFaceColor', '#c94756', 'Marker', 'o', 'Tag', 'Azimuth')
+                    polarplot(app.UIAxes3, Azimuth,            app.UIAxes3.RLim(2), 'MarkerEdgeColor', '#c94756', 'MarkerFaceColor', '#c94756', 'Marker', '^', 'Tag', 'Azimuth')
+                    polarplot(app.UIAxes3, [Azimuth, Azimuth], app.UIAxes3.RLim,    'Color', '#c94756', 'LineStyle', '-.', 'Tag', 'Azimuth')
+                    
+                    % PLOT: RFLink Legend
+                    txID = sprintf(' \\bfTX\n ID: %s\n Frequência: %.3f MHz\n Latitude: %.6fº\n Longitude: %.6fº\n Altura: %.1fm', ...
+                        app.rfDataHub.ID(idxRFDataHub), txObj.TransmitterFrequency/1e+6, txObj.Latitude, txObj.Longitude, txObj.AntennaHeight);
+                    rxID = sprintf('\\bfRX \nLatitude: %.6fº \nLongitude: %.6fº\n Altura: %.1fm', ...
+                        rxObj.Latitude, rxObj.Longitude, rxObj.AntennaHeight);
+    
+                    if app.UIAxes2.UserData.TXAntennaElevation >= app.UIAxes2.UserData.RXAntennaElevation
+                        txIDHeight = 0;
+                        txIDAlign  = 'bottom';
+                    else
+                        txIDHeight = .95;
+                        txIDAlign  = 'top';
+                    end
+    
+                    text(app.UIAxes2, 0, txIDHeight, txID, Units='normalized', FontSize=10, Interpreter='tex', VerticalAlignment=txIDAlign, PickableParts='none');
+                    text(app.UIAxes2, 1, 0,          rxID, Units='normalized', FontSize=10, Interpreter='tex', VerticalAlignment='bottom',  PickableParts='none', HorizontalAlignment='right');
+    
+                    app.stationInfo.UserData.RFLinkStatus = true;
+                    
+                catch
+                    app.stationInfo.UserData.RFLinkStatus = false;
                 end
-    
-                % PLOT: RFLink
-                plot.RFLink(app.UIAxes2, txObj, rxObj, wayPoints3D, 'light')
-                
-                % PLOT: RFLink Map
-                geoplot(app.UIAxes1, wayPoints3D(:,1), wayPoints3D(:,2), Color='#c94756', LineStyle='-.', PickableParts='none', Tag='RFLink');
+            end
 
-                % PLOT: RFLink Legend
-                txID = sprintf(' \\bfTX\n ID: %s\n Frequência: %.3f MHz\n Latitude: %.6fº\n Longitude: %.6fº\n Altura da antena: %.1fm', ...
-                    app.rfDataHub.ID(idxRFDataHub), txObj.TransmitterFrequency/1e+6, txObj.Latitude, txObj.Longitude, txObj.AntennaHeight);
-                rxID = sprintf('\\bfRX \nLatitude: %.6fº \nLongitude: %.6fº\n Altura da antena: %.1fm', ...
-                    rxObj.Latitude, rxObj.Longitude, rxObj.AntennaHeight);
+            plot_PolarAxesVisibility(app)
+        end
 
-                text(app.UIAxes2, 0, .95, txID, Units='normalized', FontSize=10, Interpreter='tex', VerticalAlignment='top', PickableParts='none');
-                text(app.UIAxes2, 1, .95, rxID, Units='normalized', FontSize=10, Interpreter='tex', VerticalAlignment='top', PickableParts='none', HorizontalAlignment='right');
-
-                app.stationInfo.UserData.RFLinkStatus = true;
-                
-            catch
-                delete(findobj(app.UIAxes1.Children, 'Tag', 'RFLink'))
-                cla(app.UIAxes2)
-                app.stationInfo.UserData.RFLinkStatus = false;
+        %-----------------------------------------------------------------%
+        function plot_PolarAxesVisibility(app)
+            % Visibilidade do eixo polar, com diagrama de radiação da
+            % antena e azimute do enlace, caso aplicáveis.
+            if isempty(app.UIAxes3.Children)
+                app.search_SelectedRowInfoGrid.RowHeight{2} = 0;
+            else
+                app.search_SelectedRowInfoGrid.RowHeight{2} = 166;
             end
         end
 
@@ -1292,14 +1327,13 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 case app.axesTool_simulationButton
                     app.axesTool_simulationButton.UserData = ~app.axesTool_simulationButton.UserData;
                     if app.axesTool_simulationButton.UserData
-                        plot_createRFLinkPlot(app)
-                        
                         app.UIAxes1.Layout.TileSpan = [1,1];
                         set(findobj(app.UIAxes2), 'Visible', 1)
                     else
                         app.UIAxes1.Layout.TileSpan = [2,2];
                         set(findobj(app.UIAxes2), 'Visible', 0)
                     end
+                    plot_createRFLinkPlot(app)
             end
 
         end
@@ -1380,21 +1414,22 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 app.stationInfo.HTMLSource = htmlContent;
                     
                 % Plot "AntennaPattern"
+                % O bloco try/catch protege possível erro no parser da informação
+                % do Mosaico. Como exposto em class.RFDataHub.parsingAntennaPattern
+                % foram identificados quatro formas de armazenar a informação.
                 if app.rfDataHub.AntennaPattern(idxRFDataHub) ~= "-1"
-                    app.search_SelectedRowInfoGrid.RowHeight{2} = 166;
-                    [angle, gain] = class.RFDataHub.parsingAntennaPattern(app.rfDataHub.AntennaPattern(idxRFDataHub), 360);
-                    polarplot(app.UIAxes3, angle, gain, 'Tag', 'AntennaPattern')
-                else
-                    app.search_SelectedRowInfoGrid.RowHeight{2} = 0;
+                    try
+                        [angle, gain] = class.RFDataHub.parsingAntennaPattern(app.rfDataHub.AntennaPattern(idxRFDataHub), 360);
+                        polarplot(app.UIAxes3, angle, gain, 'Tag', 'AntennaPattern')
+                    catch
+                    end
                 end
 
                 % Plot "TX"
                 plot_TX(app, idxRFDataHub, idxSelectedRow)
 
                 % Plot "RFLink"
-                if app.axesTool_simulationButton.UserData
-                    plot_createRFLinkPlot(app)
-                end
+                plot_createRFLinkPlot(app)                
 
                 % Atualiza "Relatório Canal", do MOSAICO, apenas se o relatório 
                 % estiver em cache.
@@ -1801,10 +1836,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     set(findobj(app.UIAxes1.Children, 'Type', 'scatter', 'Tag', 'Stations'), 'SizeData', event.Value)
 
                 case app.config_TX_Size
-                    set(findobj(app.UIAxes1.Children, 'Type', 'scatter', 'Tag', 'TX'),       'SizeData', 36*event.Value)
+                    set(findobj(app.UIAxes1.Children, 'Type', 'scatter', 'Tag', 'TX'),       'SizeData', 20*event.Value)
 
                 case app.config_RX_Size
-                    set(findobj(app.UIAxes1.Children,                    'Tag', 'RX'),       'SizeData', 36*event.Value)
+                    set(findobj(app.UIAxes1.Children,                    'Tag', 'RX'),       'SizeData', 44*event.Value)
             end
 
         end
@@ -2598,13 +2633,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.config_TX_Color = uicolorpicker(app.config_geoAxesGrid);
             app.config_TX_Color.Value = [0.7882 0.2784 0.3373];
             app.config_TX_Color.ValueChangedFcn = createCallbackFcn(app, @config_geoAxesColorParameterChanged, true);
+            app.config_TX_Color.Enable = 'off';
             app.config_TX_Color.Layout.Row = 4;
             app.config_TX_Color.Layout.Column = 3;
             app.config_TX_Color.BackgroundColor = [1 1 1];
 
             % Create config_TX_Size
             app.config_TX_Size = uislider(app.config_geoAxesGrid);
-            app.config_TX_Size.Limits = [1.1 2.9];
+            app.config_TX_Size.Limits = [1 3];
             app.config_TX_Size.MajorTicks = [];
             app.config_TX_Size.ValueChangingFcn = createCallbackFcn(app, @config_geoAxesOthersParametersChanged, true);
             app.config_TX_Size.MinorTicks = [];
@@ -2612,7 +2648,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.config_TX_Size.Tooltip = {'Tamanho do marcador'};
             app.config_TX_Size.Layout.Row = 4;
             app.config_TX_Size.Layout.Column = [4 5];
-            app.config_TX_Size.Value = 2;
+            app.config_TX_Size.Value = 1;
 
             % Create config_RX_Label
             app.config_RX_Label = uilabel(app.config_geoAxesGrid);
@@ -2636,13 +2672,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.config_RX_Color = uicolorpicker(app.config_geoAxesGrid);
             app.config_RX_Color.Value = [0.7882 0.2784 0.3373];
             app.config_RX_Color.ValueChangedFcn = createCallbackFcn(app, @config_geoAxesColorParameterChanged, true);
+            app.config_RX_Color.Enable = 'off';
             app.config_RX_Color.Layout.Row = 5;
             app.config_RX_Color.Layout.Column = 3;
             app.config_RX_Color.BackgroundColor = [1 1 1];
 
             % Create config_RX_Size
             app.config_RX_Size = uislider(app.config_geoAxesGrid);
-            app.config_RX_Size.Limits = [1.1 2.9];
+            app.config_RX_Size.Limits = [1 3];
             app.config_RX_Size.MajorTicks = [];
             app.config_RX_Size.ValueChangingFcn = createCallbackFcn(app, @config_geoAxesOthersParametersChanged, true);
             app.config_RX_Size.MinorTicks = [];
@@ -2650,7 +2687,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.config_RX_Size.Tooltip = {'Tamanho do marcador'};
             app.config_RX_Size.Layout.Row = 5;
             app.config_RX_Size.Layout.Column = [4 5];
-            app.config_RX_Size.Value = 2;
+            app.config_RX_Size.Value = 1;
 
             % Create config_Station_Label
             app.config_Station_Label = uilabel(app.config_geoAxesGrid);
@@ -2674,6 +2711,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.config_Station_Color = uicolorpicker(app.config_geoAxesGrid);
             app.config_Station_Color.Value = [0 1 1];
             app.config_Station_Color.ValueChangedFcn = createCallbackFcn(app, @config_geoAxesColorParameterChanged, true);
+            app.config_Station_Color.Enable = 'off';
             app.config_Station_Color.Layout.Row = 3;
             app.config_Station_Color.Layout.Column = 3;
             app.config_Station_Color.BackgroundColor = [1 1 1];

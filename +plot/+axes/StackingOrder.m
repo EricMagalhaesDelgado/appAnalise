@@ -9,7 +9,7 @@ classdef (Abstract) StackingOrder
         winSignalAnalysis = {'EmissionROI', 'Average', 'MaxHold', 'MinHold'}                                      % app.UIAxes2   (CartesianAxes)
         winRFDataHub      = {'FilterROI', 'RX', 'TX', 'RFLink', 'Stations'}                                       % app.UIAxes1   (GeographicAxes)
 
-        RFLink            = {'Station', 'Link', 'Fresnel', 'FirstObstruction', 'Terrain'}
+        RFLink            = {'Footnote', 'StationLabel', 'Station', 'Link', 'Fresnel', 'FirstObstruction', 'Terrain'}
     end
 
 

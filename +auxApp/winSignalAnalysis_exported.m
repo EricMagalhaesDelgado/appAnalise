@@ -167,7 +167,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             ccTools.compCustomizationV2(app.jsBackDoor, app.AdditionalDescription, 'textAlign', 'justify')
             ccTools.compCustomizationV2(app.jsBackDoor, app.TXGrid,    'backgroundColor', 'transparent')
-            ccTools.compCustomizationV2(app.jsBackDoor, app.TXPanel,   'backgroundColor', 'transparent')
+            ccTools.compCustomizationV2(app.jsBackDoor, app.TXPanel,   'backgroundColor', 'rgba(0,0,0,0.5)')
             ccTools.compCustomizationV2(app.jsBackDoor, app.TXSubGrid, 'backgroundColor', 'transparent')
         end
 
@@ -185,13 +185,17 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function startup_Axes(app)
             % Axes creation:
-            hParent     = tiledlayout(app.plotPanel, 1, 3, "Padding", "compact", "TileSpacing", "loose");
-            app.UIAxes2 = plot.axes.Creation(hParent, 'Cartesian', {'XGrid', 'off', 'XMinorGrid', 'off', 'YGrid', 'off', 'YMinorGrid', 'off', 'Clipping', 'off'});
+            hParent     = tiledlayout(app.plotPanel, 1, 3, "Padding", "compact", "TileSpacing", "compact");
+            app.UIAxes2 = plot.axes.Creation(hParent, 'Cartesian', {'XGrid', 'off', 'XMinorGrid', 'off',                           ...
+                                                                    'YGrid', 'off', 'YMinorGrid', 'off', 'YAxisLocation', "right", ...
+                                                                    'Clipping', 'off'});
             app.UIAxes2.Layout.Tile = 2;
             app.UIAxes2.Layout.TileSpan = [1 2];
             app.UIAxes2.XAxis.TickLabelFormat = '%.1f';
 
-            app.UIAxes1 = plot.axes.Creation(hParent, 'Cartesian', {'Box', 'on'});
+            app.UIAxes1 = plot.axes.Creation(hParent, 'Cartesian', {'XGrid', 'off', 'XMinorGrid', 'off', ...
+                                                                    'YGrid', 'off', 'YMinorGrid', 'off', ...
+                                                                    'Box', 'on', 'TickDir', 'none'});
 
             % Axes fixed labels:
             xlabel(app.UIAxes1, 'Frequência (MHz)')

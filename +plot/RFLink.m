@@ -19,10 +19,10 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode)
         rxAntenna = rxAntenna + rxSite.AntennaHeight;
     end
 
-    % (b) 1ª Zona de Fresnel, atenuação no espaço livre e análise de visada 
-    %     entre TX e RX.
-    [Rn, Dm, d1] = RF.Propagation.FresnelZone(txSite, rxSite, height(wayPoints3D));
-    vq  = interp1([0, Dm], [txAntenna, rxAntenna], d1, 'linear');    
+    % (b) 1ª Zona de Fresnel, atenuação no espaço livre, análise de visada 
+    %     entre TX e RX, distância e azimute.
+    [Rn, distM, d1, Azimuth] = RF.Propagation.FresnelZone(txSite, rxSite, height(wayPoints3D));
+    vq  = interp1([0, distM], [txAntenna, rxAntenna], d1, 'linear');    
     PL  = fspl(d1, physconst('LightSpeed')/txSite.TransmitterFrequency);
     [~, xFirstObstruction] = RF.Propagation.LOS(wayPoints3D(:,3), vq, Rn);
 
@@ -49,9 +49,12 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode)
     end
     
     % (b) Estações TX e RX.
-    stem(hAxes, 0,       txAntenna, 'filled', 'MarkerFaceColor', colorStation, 'Color', colorStation,                'PickableParts', 'none', 'Tag', 'Station');
-    stem(hAxes, Dm/1000, rxAntenna, 'filled', 'MarkerFaceColor', colorStation, 'Color', colorStation, 'Marker', '^', 'PickableParts', 'none', 'Tag', 'Station');
-    
+    stem(hAxes, 0,          txAntenna, 'filled', 'MarkerFaceColor', colorStation, 'Color', colorStation,                'PickableParts', 'none', 'Tag', 'Station');
+    stem(hAxes, distM/1000, rxAntenna, 'filled', 'MarkerFaceColor', colorStation, 'Color', colorStation, 'Marker', '^', 'PickableParts', 'none', 'Tag', 'Station');
+
+    text(hAxes, 0,          txAntenna, ' TX', 'Color', colorStation, 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
+    text(hAxes, distM/1000, rxAntenna, ' RX', 'Color', colorStation, 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
+        
     % (c) Linha de visada entre TX e RX.
     hLOS = plot(hAxes, d1/1000, vq, 'Color', colorLink, 'LineStyle', '-.', 'LineWidth', .5,  'Tag', 'Link');
     hLOSTable = table(d1/1000, vq, PL, 'VariableNames', {'Distance', 'Height', 'PathLoss'});
@@ -71,8 +74,11 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode)
     hAxes.YLim(1) = max(hAxes.YLim(1), min(wayPoints3D(:,3))-1);
     hTerrain.BaseValue = hAxes.YLim(1);
 
+    % (e) Nota de rodapé.
+    text(hAxes, distM/2000, hAxes.YLim(1), sprintf('(Distância: %.1f km, Azimute: %.1fº)', distM/1000, Azimuth), 'Color', colorStation, 'HorizontalAlignment', 'center' ,'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'Footnote');
+
     % ## post-Plot
-    hAxes.UserData = struct('TX', txSite, 'RX', rxSite);
+    hAxes.UserData = struct('TX', txSite, 'RX', rxSite, 'Distance', distM/1000, 'Azimuth', Azimuth, 'TXAntennaElevation', txAntenna, 'RXAntennaElevation', rxAntenna);
     plot.axes.StackingOrder.execute(hAxes, 'RFLink')
 end
 
