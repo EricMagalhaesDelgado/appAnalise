@@ -8,11 +8,11 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
         stationTag = sprintf('%.3f MHz ⌂ %.1f kHz', stationInfo.Frequency, stationInfo.BW);
     end
 
-    stationURL = '';
-    if stationInfo.URL ~= "-1"
-        [imgExt, imgString] = Base64Link();
-        stationURL = sprintf('<img id="RelatorioCanalMosaico" src="data:image/%s;base64,%s" style="width:12px; height:12px; cursor: pointer;"/>', imgExt, imgString);
-    end
+    % stationURL = '';
+    % if stationInfo.URL ~= "-1"
+    %     [imgExt, imgString] = Base64Link();
+    %     stationURL = sprintf('<img id="RelatorioCanalMosaico" src="data:image/%s;base64,%s" style="width:12px; height:12px; cursor: pointer;"/>', imgExt, imgString);
+    % end
 
     % ToDo: agregar o nome do serviço à informação...
     stationService = sprintf('%d', stationInfo.Service);
@@ -76,7 +76,7 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
     end
 
     htmlContent   = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; margin: 5px; color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px;">%s</p>', stationInfo.Source) ...
-                     sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; margin: 5px;"><b>%s</b>&thinsp;&thinsp;&thinsp;%s</p>', stationTag, stationURL) ...
+                     sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; margin: 5px;"><b>%s</b></p>', stationTag)                             ...
                      sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; text-align: justify; margin: 5px; padding-bottom: 10px;">%s</p>', stationInfo.Description) ...
                      textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')];
 end

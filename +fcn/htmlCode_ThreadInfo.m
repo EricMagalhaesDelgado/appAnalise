@@ -9,7 +9,12 @@ function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
                                             'Type',    dataSource(idxFile).Type,        ...
                                             'nData',   numel(dataSource(idxFile).Data), ...
                                             'Memory',  sprintf('%.3f MB', dataSource(idxFile).Memory)));
-        dataStruct(end+1) = struct('group', 'RECEPTOR',  'value', dataSource(idxFile).Data(1).Receiver);
+        if isempty(idxThread)
+            receiverList = strjoin(unique({dataSource(idxFile).Data.Receiver})', '<br>');
+        else
+            receiverList = dataSource(idxFile).Data(idxThread(1)).Receiver;
+        end
+        dataStruct(end+1) = struct('group', 'RECEPTOR',  'value', receiverList);
 
     else % 'class.specData'
         idxThread  = varargin{1};

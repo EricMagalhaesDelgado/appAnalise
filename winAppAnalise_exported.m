@@ -414,8 +414,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         config_FiscalizaVersionLabel    matlab.ui.control.Label
         config_Option2Grid              matlab.ui.container.GridLayout
         Panel_5                         matlab.ui.container.Panel
-        config_openDebugVersion         matlab.ui.control.CheckBox
-        config_openAsDocked             matlab.ui.control.CheckBox
+        config_openData2Simulate        matlab.ui.control.CheckBox
+        config_openAuxiliarApp2Debug    matlab.ui.control.CheckBox
+        config_openAuxiliarAppAsDocked  matlab.ui.control.CheckBox
         config_SearchModeLabel          matlab.ui.control.Label
         config_Option1Grid              matlab.ui.container.GridLayout
         config_FolderMapPanel           matlab.ui.container.Panel
@@ -739,18 +740,18 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     app.drivetest_Undock.Visible      = 0;
                     app.signalanalysis_Undock.Visible = 0;
                     app.rfdatahub_Undock.Visible      = 0;
-                    set(app.config_openAsDocked,     'Value', 1, 'Enable', 0)
-                    set(app.config_openDebugVersion, 'Value', 0, 'Enable', 0)
+                    set(app.config_openAuxiliarAppAsDocked,     'Value', 1, 'Enable', 0)
+                    set(app.config_openAuxiliarApp2Debug, 'Value', 0, 'Enable', 0)
 
                 otherwise
                     % A versão desktop do app, contudo, possibilita a definição 
                     % do local onde deve ser renderizado os módulos auxiliares.
-                    app.config_openAsDocked.Value = app.General.AuxiliarAppDockState;
+                    app.config_openAuxiliarAppAsDocked.Value = app.General.AuxiliarAppDockState;
 
                     % E a pasta do usuário é configurável.
                     userPaths = appUtil.UserPaths(app.General.fileFolder.userPath);
                     set(app.config_Folder_userPath, 'Items', userPaths, 'Value', userPaths{end})
-                    app.General.fileFolder.userPath = userPaths{end};                    
+                    app.General.fileFolder.userPath = userPaths{end};
             end
 
             pythonPath = app.General.fileFolder.pythonPath;
@@ -1025,7 +1026,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         app.progressDialog.Visible = 'visible';
 
                         varargin = horzcat({app}, varargin{:});
-                        if app.config_openAsDocked.Value
+                        if app.config_openAuxiliarAppAsDocked.Value
                             app.(propertyName) = FileHandle_MFILE(dockContainer, varargin{:});
 
                             set(dockMenuButton, 'Enable', 1, 'Value', 1)
@@ -1033,7 +1034,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         else
                             dockMenuButton.Value = 0;
 
-                            if app.config_openDebugVersion.Value
+                            if app.config_openAuxiliarApp2Debug.Value
                                 app.(propertyName) = FileHandle_MLAPP(varargin{:});
                             else
                                 app.(propertyName) = FileHandle_MFILE([], varargin{:});
@@ -1153,6 +1154,102 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         % ## Modo "ARQUIVO(S)" ##
+        %-----------------------------------------------------------------%
+        function file_OpenSelectedFiles(app, filePath, fileName)
+            d = appUtil.modalWindow(app.UIFigure, 'progressdlg', 'Em andamento a leitura de metadados do(s) arquivo(s) selecionado(s).');            
+            
+            repeteadFiles = {};
+            for ii = 1:numel(fileName)
+                d.Message = sprintf('Em andamento a leitura de metadados do arquivo:\n•&thinsp;%s\n\n%d de %d', fileName{ii}, ii, numel(fileName));
+                
+                fileFullPath  = fullfile(filePath, fileName{ii});
+                [~,~,fileExt] = fileparts(fileFullPath);
+
+                relatedFiles  = RelatedFiles(app.metaData);
+
+                switch lower(fileExt)
+                    case {'.bin', '.dbm', '.sm1809', '.csv'}
+                        if ~any(contains(relatedFiles, fileName(ii), 'IgnoreCase', true))
+                            idx = numel(app.metaData)+1;
+                            
+                            app.metaData(idx).File = fileFullPath;
+                            app.metaData(idx).Type = 'Spectral data';
+                        else
+                            repeteadFiles(end+1) = fileName(ii);
+                            continue
+                        end
+                        
+                    case '.mat'
+                        lastwarn('')
+                        load(fileFullPath, '-mat', 'prj_Type', 'prj_RelatedFiles')
+                        [~, warnID] = lastwarn;
+                        
+                        % Um projeto .MAT pode conter informações geradas por mais
+                        % de um arquivo .BIN, por exemplo. Por essa razão, certifica-se
+                        % que nenhum dos arquivos relacionados ao projeto já foram 
+                        % lidos anteriormente.
+                        if strcmp(warnID, 'MATLAB:load:variableNotFound')
+                            msgWarning = sprintf('O arquivo indicado a seguir não foi gerado pelo appAnalise ou appColeta.\n•&thinsp;%s', fileName{ii});
+                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);                                                        
+                            continue
+                            
+                        elseif any(strcmpi(fileFullPath, {app.metaData.File}))
+                            msgWarning = sprintf('O arquivo indicado a seguir já tinha sido lido.\n•&thinsp;%s', fileName{ii});
+                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);                            
+                            continue
+                            
+                        elseif any(contains(relatedFiles, prj_RelatedFiles, 'IgnoreCase', true))
+                            msgWarning = sprintf(['O arquivo indicado a seguir não será lido por já ter sido lido ao menos um arquivo relacionado ao ' ...
+                                           'projeto appAnalise.\n•&thinsp;%s\n\nArquivo(s) relacionado(s) ao projeto appAnalise já lido(s):\n%s'],   ...
+                                           fileName{ii}, strjoin(cellfun(@(x) sprintf('•&thinsp;%s', x), relatedFiles(contains(relatedFiles, prj_RelatedFiles, 'IgnoreCase', true)), 'UniformOutput', false), '\n'));
+                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);                            
+                            continue
+
+                        elseif ~isempty(app.metaData) && strcmp(prj_Type, 'Project data') && ismember('Project data', {app.metaData.Type})
+                            msgWarning = sprintf('O arquivo indicado a seguir não será lido porque já foram lidos os metadados de outro projeto appAnalise.\n•&thinsp;%s', fileName{ii});
+                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);                            
+                            continue
+                            
+                        else
+                            idx = numel(app.metaData)+1;
+                            
+                            app.metaData(idx).File = fileFullPath;
+                            app.metaData(idx).Type = prj_Type;
+                        end
+                end
+                
+                try
+                    % Chama método público da classe "class.metaData".
+                    InitialFileReading(app.metaData(idx))
+
+                catch ME
+                    appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+
+                    % Se ocorre um erro no processo de leitura, e esse erro
+                    % não for um dos mapeados, o objeto app.metaData será reiniciado.
+                    switch ME.identifier
+                        case {'metaData:Read:NotImplementedReader', 'metaData:Read:UnexpectedFileFormat', 'metaData:Read:EmptySpectralData'}
+                            delete(app.metaData(idx))
+                            app.metaData(idx) = [];
+
+                        otherwise
+                            delete(app.metaData)
+                            app.metaData = class.metaData.empty;
+
+                            fclose all;
+                            break
+                    end
+                end
+            end
+            
+            if ~isempty(repeteadFiles)
+                msgWarning = sprintf('Os metadados do(s) arquivo(s) indicado(s) a seguir já tinham sido lidos.\n%s', strjoin(strcat("•&thinsp;", repeteadFiles), '\n'));
+                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+            end
+
+            file_TreeBuilding(app)
+        end
+
         %-----------------------------------------------------------------%
         function file_TreeBuilding(app)
             if ~isempty(app.file_Tree.Children)
@@ -3230,14 +3327,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             switch event.Source
                 case {app.drivetest_Undock, app.signalanalysis_Undock, app.rfdatahub_Undock}
-                    initialConfig = app.config_openAsDocked.Value;
-                    app.config_openAsDocked.Value = false;
+                    initialConfig = app.config_openAuxiliarAppAsDocked.Value;
+                    app.config_openAuxiliarAppAsDocked.Value = false;
 
                     inputArguments = menu_LayoutUndockingAuxiliarApp(app, auxiliarApp);
                     menu_LayoutAuxiliarApp(app, auxiliarApp, 'Close')
                     menu_LayoutAuxiliarApp(app, auxiliarApp, 'Open', inputArguments{:})
 
-                    app.config_openAsDocked.Value = initialConfig;
+                    app.config_openAuxiliarAppAsDocked.Value = initialConfig;
 
                 case {app.drivetest_Close, app.signalanalysis_Close, app.rfdatahub_Close}
                     menu_LayoutAuxiliarApp(app, auxiliarApp, 'Close')
@@ -3301,112 +3398,29 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function file_ButtonPushed_OpenFile(app, event)
             
             focus(app.file_Tree)
-            
-            % <ReviewNote> EMD - 14/08/2024</ReviewNote>
-            [fileName, filePath] = uigetfile({'*.bin;*.dbm;*.mat', 'Binários (*.bin,*.dbm,*.mat)'; ...
-                                              '*.csv;*.sm1809',    'Textuais (*.csv,*.sm1809)'},   ...
-                                              '', app.General.fileFolder.lastVisited, 'MultiSelect', 'on');
-            figure(app.UIFigure)
 
-            if isequal(fileName, 0)
-                return
-            elseif ~iscell(fileName)
-                fileName = {fileName};
-            end
-            misc_updateLastVisitedFolder(app, filePath)
+            if app.config_openData2Simulate.Value
+                filePath = fullfile(app.rootFolder, 'Simulation');
 
-            d = appUtil.modalWindow(app.UIFigure, 'progressdlg', 'Em andamento a leitura de metadados do(s) arquivo(s) selecionado(s).');            
-            
-            repeteadFiles = {};
-            for ii = 1:numel(fileName)
-                d.Message = sprintf('Em andamento a leitura de metadados do arquivo:\n•&thinsp;%s\n\n%d de %d', fileName{ii}, ii, numel(fileName));
-                
-                fileFullPath  = fullfile(filePath, fileName{ii});
-                [~,~,fileExt] = fileparts(fileFullPath);
+                listOfFiles = dir(filePath);
+                fileName = {listOfFiles.name};
+                fileName = fileName(endsWith(lower(fileName), '.mat'));
 
-                relatedFiles  = RelatedFiles(app.metaData);
-
-                switch lower(fileExt)
-                    case {'.bin', '.dbm', '.sm1809', '.csv'}
-                        if ~any(contains(relatedFiles, fileName(ii), 'IgnoreCase', true))
-                            idx = numel(app.metaData)+1;
-                            
-                            app.metaData(idx).File = fileFullPath;
-                            app.metaData(idx).Type = 'Spectral data';
-                        else
-                            repeteadFiles(end+1) = fileName(ii);
-                            continue
-                        end
-                        
-                    case '.mat'
-                        lastwarn('')
-                        load(fileFullPath, '-mat', 'prj_Type', 'prj_RelatedFiles')
-                        [~, warnID] = lastwarn;
-                        
-                        % Um projeto .MAT pode conter informações geradas por mais
-                        % de um arquivo .BIN, por exemplo. Por essa razão, certifica-se
-                        % que nenhum dos arquivos relacionados ao projeto já foram 
-                        % lidos anteriormente.
-                        if strcmp(warnID, 'MATLAB:load:variableNotFound')
-                            msgWarning = sprintf('O arquivo indicado a seguir não foi gerado pelo appAnalise ou appColeta.\n•&thinsp;%s', fileName{ii});
-                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);                                                        
-                            continue
-                            
-                        elseif any(strcmpi(fileFullPath, {app.metaData.File}))
-                            msgWarning = sprintf('O arquivo indicado a seguir já tinha sido lido.\n•&thinsp;%s', fileName{ii});
-                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);                            
-                            continue
-                            
-                        elseif any(contains(relatedFiles, prj_RelatedFiles, 'IgnoreCase', true))
-                            msgWarning = sprintf(['O arquivo indicado a seguir não será lido por já ter sido lido ao menos um arquivo relacionado ao ' ...
-                                           'projeto appAnalise.\n•&thinsp;%s\n\nArquivo(s) relacionado(s) ao projeto appAnalise já lido(s):\n%s'],   ...
-                                           fileName{ii}, strjoin(cellfun(@(x) sprintf('•&thinsp;%s', x), relatedFiles(contains(relatedFiles, prj_RelatedFiles, 'IgnoreCase', true)), 'UniformOutput', false), '\n'));
-                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);                            
-                            continue
-
-                        elseif ~isempty(app.metaData) && strcmp(prj_Type, 'Project data') && ismember('Project data', {app.metaData.Type})
-                            msgWarning = sprintf('O arquivo indicado a seguir não será lido porque já foram lidos os metadados de outro projeto appAnalise.\n•&thinsp;%s', fileName{ii});
-                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);                            
-                            continue
-                            
-                        else
-                            idx = numel(app.metaData)+1;
-                            
-                            app.metaData(idx).File = fileFullPath;
-                            app.metaData(idx).Type = prj_Type;
-                        end
+            else
+                [fileName, filePath] = uigetfile({'*.bin;*.dbm;*.mat', 'Binários (*.bin,*.dbm,*.mat)'; ...
+                                                  '*.csv;*.sm1809',    'Textuais (*.csv,*.sm1809)'},   ...
+                                                  '', app.General.fileFolder.lastVisited, 'MultiSelect', 'on');
+                figure(app.UIFigure)
+    
+                if isequal(fileName, 0)
+                    return
+                elseif ~iscell(fileName)
+                    fileName = {fileName};
                 end
-                
-                try
-                    % Chama método público da classe "class.metaData".
-                    InitialFileReading(app.metaData(idx))
-
-                catch ME
-                    appUtil.modalWindow(app.UIFigure, 'error', ME.message);
-
-                    % Se ocorre um erro no processo de leitura, e esse erro
-                    % não for um dos mapeados, o objeto app.metaData será reiniciado.
-                    switch ME.identifier
-                        case {'metaData:Read:NotImplementedReader', 'metaData:Read:UnexpectedFileFormat', 'metaData:Read:EmptySpectralData'}
-                            delete(app.metaData(idx))
-                            app.metaData(idx) = [];
-
-                        otherwise
-                            delete(app.metaData)
-                            app.metaData = class.metaData.empty;
-
-                            fclose all;
-                            break
-                    end
-                end
-            end
-            
-            if ~isempty(repeteadFiles)
-                msgWarning = sprintf('Os metadados do(s) arquivo(s) indicado(s) a seguir já tinham sido lidos.\n%s', strjoin(strcat("•&thinsp;", repeteadFiles), '\n'));
-                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                misc_updateLastVisitedFolder(app, filePath)
             end
 
-            file_TreeBuilding(app)
+            file_OpenSelectedFiles(app, filePath, fileName)
 
         end
 
@@ -5935,6 +5949,18 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 
             else
                 menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open')
+            end
+
+        end
+
+        % Value changed function: config_openData2Simulate
+        function config_openData2SimulateValueChanged(app, event)
+            
+            if app.config_openData2Simulate.Value
+                app.config_FiscalizaHM.Value  = 1;
+                app.config_FiscalizaPD.Enable = 0;
+            else
+                app.config_FiscalizaPD.Enable = 1;
             end
 
         end
@@ -9432,7 +9458,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create config_Option2Grid
             app.config_Option2Grid = uigridlayout(app.config_mainGrid);
             app.config_Option2Grid.ColumnWidth = {'1x'};
-            app.config_Option2Grid.RowHeight = {22, 140, '1x'};
+            app.config_Option2Grid.RowHeight = {22, 180, 22, '1x'};
             app.config_Option2Grid.RowSpacing = 5;
             app.config_Option2Grid.Padding = [0 0 0 0];
             app.config_Option2Grid.Layout.Row = 1;
@@ -9453,19 +9479,25 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.Panel_5.Layout.Row = 2;
             app.Panel_5.Layout.Column = 1;
 
-            % Create config_openAsDocked
-            app.config_openAsDocked = uicheckbox(app.Panel_5);
-            app.config_openAsDocked.Text = 'DOCKED MODE: Abertas as versões M dos apps auxiliares.';
-            app.config_openAsDocked.WordWrap = 'on';
-            app.config_openAsDocked.Position = [9 98 312 35];
-            app.config_openAsDocked.Value = true;
+            % Create config_openAuxiliarAppAsDocked
+            app.config_openAuxiliarAppAsDocked = uicheckbox(app.Panel_5);
+            app.config_openAuxiliarAppAsDocked.Text = 'DOCKED MODE: Abertas as versões M dos apps auxiliares.';
+            app.config_openAuxiliarAppAsDocked.WordWrap = 'on';
+            app.config_openAuxiliarAppAsDocked.Position = [9 139 312 35];
+            app.config_openAuxiliarAppAsDocked.Value = true;
 
-            % Create config_openDebugVersion
-            app.config_openDebugVersion = uicheckbox(app.Panel_5);
-            app.config_openDebugVersion.Text = 'DEBUG MODE: São abertas as versões MLAPP dos apps auxiliares), quando não selecionado DOCKED MODE.';
-            app.config_openDebugVersion.WordWrap = 'on';
-            app.config_openDebugVersion.Position = [13 23 304 44];
-            app.config_openDebugVersion.Value = true;
+            % Create config_openAuxiliarApp2Debug
+            app.config_openAuxiliarApp2Debug = uicheckbox(app.Panel_5);
+            app.config_openAuxiliarApp2Debug.Text = 'DEBUG MODE: São abertas as versões MLAPP dos apps auxiliares), quando não selecionado DOCKED MODE.';
+            app.config_openAuxiliarApp2Debug.WordWrap = 'on';
+            app.config_openAuxiliarApp2Debug.Position = [13 64 304 44];
+            app.config_openAuxiliarApp2Debug.Value = true;
+
+            % Create config_openData2Simulate
+            app.config_openData2Simulate = uicheckbox(app.Panel_5);
+            app.config_openData2Simulate.ValueChangedFcn = createCallbackFcn(app, @config_openData2SimulateValueChanged, true);
+            app.config_openData2Simulate.Text = 'Modo simulação';
+            app.config_openData2Simulate.Position = [28 20 242 22];
 
             % Create config_Option3Grid
             app.config_Option3Grid = uigridlayout(app.config_mainGrid);

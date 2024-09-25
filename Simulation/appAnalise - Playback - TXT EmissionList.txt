@@ -1,0 +1,3 @@
+FreqCenter_MHz,BW_kHz,Description
+94.3,256,Rádio Piatã FM
+103.9,512,Rádio A Tarde FM

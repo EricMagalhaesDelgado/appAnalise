@@ -4,7 +4,7 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode)
         txSite
         rxSite
         wayPoints3D
-        plotMode   char {mustBeMember(plotMode, {'dark', 'light'})} = 'light'
+        plotMode   char {mustBeMember(plotMode,  {'dark', 'light'})}  = 'light'
     end
 
     % ## prePlot
@@ -36,6 +36,7 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode)
 
     % ## Plot
     cla(hAxes)
+    hAxes.XLimMode = 'auto';
     hAxes.YLimMode = 'auto';
 
     % (a) Perfil de terreno e primeira obstrução (caso aplicável).
@@ -67,10 +68,10 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode)
                               LineWidth=.5, ...
                               Tag='Fresnel');
 
+    hAxes.YLim(1) = max(hAxes.YLim(1), min(wayPoints3D(:,3))-1);
+    hTerrain.BaseValue = hAxes.YLim(1);
+
     % ## post-Plot
-    hAxes.YLim(1) = 0;
-    hAxes.YLim(2) = max([hAxes.YLim(2), txAntenna, rxAntenna]);
-    hAxes.XLim = [0, Dm/1000];    
     hAxes.UserData = struct('TX', txSite, 'RX', rxSite);
     plot.axes.StackingOrder.execute(hAxes, 'RFLink')
 end

@@ -245,7 +245,7 @@ classdef (Abstract) RFDataHub
             end
             % jsonLikePattern = '{''0'': 8.0, ''10'': 8.0, ''20'': 8.0, ''30'': 8.0, ''40'': 9.0, ''50'': 8.0, ... ''345'': 9.063, ''355'': 8.5}';
 
-            s = regexp(jsonLikePattern,'''(?<angle>\d+)''\s*:\s*(?<gain>[\d\.]+)', 'names');
+            s = regexp(jsonLikePattern,'''(?<angle>\d+)''\s*:\s*''?(?<gain>[\d\.]+)''?', 'names');
             x0 = deg2rad(str2double({s.angle}));
             q0  = str2double({s.gain});
 
