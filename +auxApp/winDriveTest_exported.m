@@ -500,6 +500,9 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.UIAxes4.View = [270, 90];
             app.UIAxes4.YAxis.Direction = "reverse";
 
+            % Legenda
+            legend(app.UIAxes1, 'Location', 'southwest', 'Color', [.94,.94,.94], 'EdgeColor', [.9,.9,.9], 'NumColumns', 4, 'LineWidth', .5, 'FontSize', 7.5)
+
             % Colorbar
             colorBar = colorbar(app.UIAxes1, "Location", "layout", "TickDirection", "none", "HitTest", "off", "PickableParts", "none", "FontSize", 7, "Color", "white", 'AxisLocation', 'in', 'Box', 'off');
             colorBar.Layout.Tile = 220;
@@ -1085,6 +1088,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                                                   'MarkerSize',      markerSize, ...
                                                                   'LineStyle',       'none',     ...
                                                                   'PickableParts',   'none',     ...
+                                                                  'DisplayName',     'Rota',     ...
                                                                   'Tag',             'OutRoute');
             % InRoute
             geoplot(hAxes,  InTable.Latitude,  InTable.Longitude, 'Marker',          '.',        ...
@@ -1094,6 +1098,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                                                   'MarkerSize',      markerSize, ...
                                                                   'LineStyle',       LineStyle,  ...
                                                                   'PickableParts',   'none',     ...
+                                                                  'DisplayName',     'Rota',     ...
                                                                   'Tag',             'InRoute');
         end
 
@@ -1124,7 +1129,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Distorção
             hDistortion = geoscatter(hAxes, srcTable.Latitude, srcTable.Longitude, [], srcTable.ChannelPower,  ...
-                                            'filled', 'SizeData', 20*plotSize, 'Tag', 'Distortion', 'Visible', hDistortionVisibility);
+                                            'filled', 'SizeData', 20*plotSize, 'Tag', 'Distortion', 'Visible', hDistortionVisibility, 'DisplayName', 'Potência do canal (Distorção)');
             plot.datatip.Template(hDistortion, 'SweepID+ChannelPower+Coordinates', app.UIAxes4.UserData.YLimUnit)
 
             % Densidade
@@ -1135,7 +1140,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             geodensityplot(hAxes, srcTable.Latitude, srcTable.Longitude, weights, ...
                                   'FaceColor','interp', 'Radius', 100*plotSize,   ...
-                                  'PickableParts', 'none', 'Tag', 'Density', 'Visible', hDensityVisibility);
+                                  'PickableParts', 'none', 'Tag', 'Density', 'Visible', hDensityVisibility, 'DisplayName', 'Potência do canal (Densidade)');
         end
 
         %-----------------------------------------------------------------%
@@ -1256,6 +1261,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                                                                          'MarkerSize',      MarkerSize,   ...
                                                                                          'MarkerFaceColor', MarkerColor,  ...
                                                                                          'MarkerEdgeColor', MarkerColor,  ...
+                                                                                         'DisplayName',     'Pontos de interesse (RFDataHub)', ...
                                                                                          'Tag',             'Points');
                         plot.datatip.Template(hStation, 'Coordinates+Frequency', app.pointsTable.value(ii).Data)
 
@@ -1267,8 +1273,10 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                                                                          'MarkerSize',      MarkerSize,  ...
                                                                                          'MarkerFaceColor', 'none',      ...
                                                                                          'MarkerEdgeColor', MarkerColor, ...
+                                                                                         'PickableParts',   'none',      ...
+                                                                                         'DisplayName',     'Pontos de interesse (FindPeaks)', ...
                                                                                          'Tag',             'Points');
-                        plot.datatip.Template(hFindPeaks, 'Coordinates', app.pointsTable.value(ii).Data)
+                        % plot.datatip.Template(hFindPeaks, 'Coordinates', app.pointsTable.value(ii).Data)
                 end
             end
         end
@@ -1279,7 +1287,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 case 'Creation'
                     app.hCar = geoscatter(app.UIAxes1, app.specRawTable.Latitude(app.idxTime), app.specRawTable.Longitude(app.idxTime), 'filled',              ...
                                           'Marker', app.config_Car_LineStyle.Value, 'MarkerFaceColor', app.config_Car_Color.Value, 'MarkerEdgeColor', 'black', ...
-                                          'SizeData', 10*app.config_Car_Size.Value, 'PickableParts', 'none', 'Tag', 'Car');
+                                          'SizeData', 10*app.config_Car_Size.Value, 'PickableParts', 'none', 'DisplayName', 'Veículo', 'Tag', 'Car');
 
                 case 'Update'
                     set(app.hCar, 'LatitudeData', app.specRawTable.Latitude(app.idxTime), ...
@@ -1468,8 +1476,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
                     switch Source
                         case 'Dados brutos'
-                            refCoordinates = app.specFilteredTable{idxPeak,            {'Latitude', 'Longitude'}};
-                            Coordinates    = app.specFilteredTable{idxListOfPeaks(ii), {'Latitude', 'Longitude'}};    
+                            refCoordinates = app.specRawTable{idxPeak,            {'Latitude', 'Longitude'}};
+                            Coordinates    = app.specRawTable{idxListOfPeaks(ii), {'Latitude', 'Longitude'}};    
                         
                         case 'Dados processados (Data Binning)'
                             refCoordinates = app.specBinTable{idxPeak,                 {'Latitude', 'Longitude'}};
@@ -1484,7 +1492,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
                 switch Source
                     case 'Dados brutos'
-                        Coordinates = app.specFilteredTable{idxPeak, {'Latitude', 'Longitude'}};
+                        Coordinates = app.specRawTable{idxPeak, {'Latitude', 'Longitude'}};
                     case 'Dados processados (Data Binning)'
                         Coordinates = app.specBinTable{idxPeak,      {'Latitude', 'Longitude'}};
                 end
@@ -2288,6 +2296,10 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                             end
 
                             app.filterTable(end+1,:) = {FilterType, FilterSubtype, struct('handle', hROI, 'specification', filter_roiSpecification(app, hROI))};
+                    end
+                    
+                    if isprop(hROI, 'DisplayName')
+                        hROI.DisplayName = 'Contorno';
                     end
             end
             

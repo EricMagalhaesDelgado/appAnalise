@@ -3157,7 +3157,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         switch operationType
                             case 'closeFcn'
                                 menu_LayoutAuxiliarApp(app, 'SIGNALANALYSIS', 'Close')
-                                report_SaveWarn(app)
     
                             case {'DeleteButtonPushed', 'PeakValueChanged'}
                                 idxThread = varargin{1};

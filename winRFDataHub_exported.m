@@ -231,7 +231,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             switch tabIndex
                 case 0 % STARTUP
-                    if app.isDocked
+                    if app.isDocked && ~isempty(app.CallingApp) && isprop(app.CallingApp, 'progressDialog')
                         app.progressDialog = app.CallingApp.progressDialog;
                     else
                         app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
@@ -1019,7 +1019,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            if ~isempty(app.CallingApp)
+            if ~isempty(app.CallingApp) && ismethod(app.CallingApp, 'appBackDoor')
                 appBackDoor(app.CallingApp, app, 'closeFcn')
             end
             delete(app)
