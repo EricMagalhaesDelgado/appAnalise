@@ -133,7 +133,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         config_Refresh                  matlab.ui.control.Image
         config_geoAxesLabel             matlab.ui.control.Label
         toolGrid                        matlab.ui.container.GridLayout
-        tableInfoNRows                  matlab.ui.control.Label
+        tableNRows                      matlab.ui.control.Label
+        tableNRowsIcon                  matlab.ui.control.Image
         Image                           matlab.ui.control.Image
         axesTool_simulationButton       matlab.ui.control.Image
         axesTool_PDFButton              matlab.ui.control.Image
@@ -144,10 +145,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         filter_ContextMenu              matlab.ui.container.ContextMenu
         filter_delButton                matlab.ui.container.Menu
         filter_delAllButton             matlab.ui.container.Menu
-        points_ContextMenu              matlab.ui.container.ContextMenu
-        points_referenceButton          matlab.ui.container.Menu
-        points_editRowButton            matlab.ui.container.Menu
-        points_delButton                matlab.ui.container.Menu
     end
 
     
@@ -181,7 +178,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % da customizaçao por meio dessa propriedade jsBackDoorFlag.
         jsBackDoorFlag = {true, ...
                           true, ...
-                          true, ...
                           true};
 
         % Janela de progresso já criada no DOM. Dessa forma, controla-se 
@@ -207,9 +203,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         elevationObj = RF.Elevation
         ChannelReportObj
 
-        pointsTable  = table('Size',          [0, 5],                                            ...
-                             'VariableTypes', {'cell', 'double', 'double', 'double', 'logical'}, ...
-                             'VariableNames', {'Type', 'Latitude', 'Longitude', 'AntennaHeight', 'Reference'})
         filterTable  = table('Size',          [0, 9],                                                                      ...
                              'VariableTypes', {'cell', 'int8', 'int8', 'cell', 'cell', 'int8', 'cell', 'logical', 'cell'}, ...
                              'VariableNames', {'Order', 'ID', 'RelatedID', 'Type', 'Operation', 'Column', 'Value', 'Enable', 'uuid'})
@@ -364,15 +357,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_AppProperties(app)
-            % O controle do registro selecionado, do PDF e do plot "RFLink"
-            % é organizado na propriedade "UserData" de app.emissionInfo
-            % (Painel HTML).
-            app.stationInfo.UserData = struct('idxRFDataHub', [], ...
-                                              'PDFDocStatus', false, ...
-                                              'RFLinkStatus', false);
-
             % refRX
-            filter_getReferenceRX(app)
+            referenceRX_getWayPoint(app)
 
             % app.rfDataHub
             global RFDataHub
@@ -390,7 +376,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             app.rfDataHub.ID          = "#" + string((1:height(RFDataHub))');
             app.rfDataHub.Description = "[" + string(RFDataHub.Source) + "] " + string(RFDataHub.Status) + ", " + string(RFDataHub.StationClass) + ", " + string(RFDataHub.Name) + ", " + string(RFDataHub.Location) + "/" + string(RFDataHub.State) + " (M=" + string(RFDataHub.MergeCount) + ")";
-            filter_calculateDistanceColumn(app)
+            referenceRX_CalculateDistance(app)
                         
             % app.rfDataHubSummary
             app.rfDataHubSummary = summary(RFDataHub);
@@ -474,7 +460,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function filter_getReferenceRX(app)
+        function referenceRX_getWayPoint(app)
             refRXFlag = false;
             for ii = 1:numel(app.specData)
                 if app.specData(ii).GPS.Status
@@ -508,16 +494,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     app.filter_refRXHeight.Value    = app.General.RFDataHub.DefaultRX.Height;
                 end
             end
-
-            app.pointsTable(end+1,:) = {'RX',                            ...
-                                        app.filter_refRXLatitude.Value,  ...
-                                        app.filter_refRXLongitude.Value, ...
-                                        app.filter_refRXHeight.Value,    ...
-                                        true};
         end
 
         %-----------------------------------------------------------------%
-        function filter_calculateDistanceColumn(app)
+        function referenceRX_CalculateDistance(app)
             app.rfDataHub.Distance = round(single(deg2km(distance(app.rfDataHub.Latitude,         ...
                                                                   app.rfDataHub.Longitude,        ...
                                                                   app.filter_refRXLatitude.Value, ...
@@ -597,25 +577,30 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             if ~isempty(idx1)
                 checkedNodes = {};
                 for ii = idx1
-                    parentNode = uitreenode(app.filter_Tree, 'Text', sprintf('#%d: RFDataHub.("%s") %s %s', app.filterTable.ID(ii),                        ...
-                                                                                                            app.filterTable.Type{ii},                      ...
-                                                                                                            app.filterTable.Operation{ii},                 ...
-                                                                                                            filter_Value(app, app.filterTable.Value{ii})), ...
-                                                             'NodeData', ii, 'ContextMenu', app.filter_ContextMenu);
-                    if app.filterTable.Enable(ii)
-                        checkedNodes = [checkedNodes, parentNode];
-                    end
-    
-                    idx2 = find(app.filterTable.RelatedID == ii)';                
-                    for jj = idx2
-                        childNode = uitreenode(parentNode, 'Text', sprintf('#%d: RFDataHub.("%s") %s %s', app.filterTable.ID(jj),                        ...
-                                                                                                          app.filterTable.Type{jj},                      ...
-                                                                                                          app.filterTable.Operation{jj},                 ...
-                                                                                                          filter_Value(app, app.filterTable.Value{jj})), ...
-                                                           'NodeData', jj, 'ContextMenu', app.filter_ContextMenu);
-    
-                        if app.filterTable.Enable(jj)
-                            checkedNodes = [checkedNodes, childNode];
+                    idx2 = find(app.filterTable.RelatedID == ii)';
+                    if isempty(idx2)
+                        parentNode = uitreenode(app.filter_Tree, 'Text', sprintf('#%d: RFDataHub.("%s") %s %s', app.filterTable.ID(ii),                        ...
+                                                                                                                app.filterTable.Type{ii},                      ...
+                                                                                                                app.filterTable.Operation{ii},                 ...
+                                                                                                                filter_Value(app, app.filterTable.Value{ii})), ...
+                                                                 'NodeData', ii, 'ContextMenu', app.filter_ContextMenu);
+                        if app.filterTable.Enable(ii)
+                            checkedNodes = [checkedNodes, parentNode];
+                        end
+
+                    else
+                        parentNode = uitreenode(app.filter_Tree, 'Text', '*.*', ...
+                                                                 'NodeData', [ii, idx2], 'ContextMenu', app.filter_ContextMenu);
+                        for jj = [ii, idx2]
+                            childNode = uitreenode(parentNode, 'Text', sprintf('#%d: RFDataHub.("%s") %s %s', app.filterTable.ID(jj),                        ...
+                                                                                                              app.filterTable.Type{jj},                      ...
+                                                                                                              app.filterTable.Operation{jj},                 ...
+                                                                                                              filter_Value(app, app.filterTable.Value{jj})), ...
+                                                               'NodeData', jj, 'ContextMenu', app.filter_ContextMenu);
+        
+                            if app.filterTable.Enable(jj)
+                                checkedNodes = [checkedNodes, childNode];
+                            end
                         end
                     end
                 end
@@ -644,7 +629,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             [app.UITable.Data, idxSort] = sortrows(app.UITable.Data, 'Distance');
             app.UITable.UserData = idxRFDataHubArray(idxSort);
 
-            app.tableInfoNRows.Text = sprintf('#%d', numel(idxRFDataHubArray));
+            NN = numel(idxRFDataHubArray);
+            MM = height(app.rfDataHub);
+            app.tableNRows.Text = sprintf('%d de %d registros\n%.1f %%', NN, MM, (NN/MM)*100);
 
             % Aplicando a seleção inicial da tabela, caso aplicável.
             idxSelectedRow = 0;
@@ -672,20 +659,12 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.progressDialog.Visible = 'hidden';
         end
 
-        %-----------------------------------------------------------------%
-        function filter_AddStyle2Table(app, idxSelectedRow)
-            removeStyle(app.UITable)
-            if idxSelectedRow
-                addStyle(app.UITable, uistyle('BackgroundColor', '#d8ebfa'), 'row', idxSelectedRow)
-            end
-        end
-
 
         %-----------------------------------------------------------------%
         % PLOT
         %-----------------------------------------------------------------%
         function plot_Stations(app)
-            delete(findobj(app.UIAxes1.Children, '-not', 'Tag', 'FilterROI'))
+            delete(findobj(app.UIAxes1.Children, '-not', {'Tag', 'FilterROI', '-or', 'Tag', 'TX'}))
 
             if ~isempty(app.UITable.Data)
                 geolimits(app.UIAxes1, 'auto')
@@ -718,11 +697,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function plot_TX(app, idxRFDataHub, idxSelectedRow)            
-            if isempty(idxRFDataHub)
-                delete(findobj(app.UIAxes1.Children, 'Tag', 'TX'))
+        function plot_TX(app, idxRFDataHub, idxSelectedRow)
+            delete(findobj(app.UIAxes1.Children, 'Tag', 'TX'))
 
-            else
+            if ~isempty(idxRFDataHub)
                 TX = struct('Latitude',  app.rfDataHub.Latitude(idxRFDataHub), ...
                             'Longitude', app.rfDataHub.Longitude(idxRFDataHub));
 
@@ -763,11 +741,12 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             cla(app.UIAxes2)
             delete(findobj(app.UIAxes3.Children, 'Tag', 'Azimuth'))
 
-            if app.axesTool_simulationButton.UserData
-                idxRFDataHub = getRFDataHubIndex(app);
+            if app.axesTool_simulationButton.UserData && ~isempty(app.UITable.Selection)
+                [idxRFDataHub, idxSelectedRow] = getRFDataHubIndex(app);
+
                 try
                     % OBJETOS TX e RX
-                    [txObj, rxObj] = RFLinkObjects(app, idxRFDataHub);
+                    [txObj, rxObj] = misc_RFLinkObjects(app, idxRFDataHub, idxSelectedRow);
         
                     % ELEVAÇÃO DO LINK TX-RX
                     [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj);
@@ -779,7 +758,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     geoplot(app.UIAxes1, wayPoints3D(:,1), wayPoints3D(:,2), Color='#c94756', LineStyle='-.', PickableParts='none', Tag='RFLink');
                     
                     % PLOT: RFLink
-                    plot.RFLink(app.UIAxes2, txObj, rxObj, wayPoints3D, 'light')
+                    plot.RFLink(app.UIAxes2, txObj, rxObj, wayPoints3D, 'light', true)
     
                     % PLOT: RFLink Azimuth
                     Azimuth = deg2rad(app.UIAxes2.UserData.Azimuth);
@@ -787,27 +766,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     polarplot(app.UIAxes3, Azimuth,            app.UIAxes3.RLim(2), 'MarkerEdgeColor', '#c94756', 'MarkerFaceColor', '#c94756', 'Marker', '^', 'Tag', 'Azimuth')
                     polarplot(app.UIAxes3, [Azimuth, Azimuth], app.UIAxes3.RLim,    'Color', '#c94756', 'LineStyle', '-.', 'Tag', 'Azimuth')
                     
-                    % PLOT: RFLink Legend
-                    txID = sprintf(' \\bfTX\n ID: %s\n Frequência: %.3f MHz\n Latitude: %.6fº\n Longitude: %.6fº\n Altura: %.1fm', ...
-                        app.rfDataHub.ID(idxRFDataHub), txObj.TransmitterFrequency/1e+6, txObj.Latitude, txObj.Longitude, txObj.AntennaHeight);
-                    rxID = sprintf('\\bfRX \nLatitude: %.6fº \nLongitude: %.6fº\n Altura: %.1fm', ...
-                        rxObj.Latitude, rxObj.Longitude, rxObj.AntennaHeight);
-    
-                    if app.UIAxes2.UserData.TXAntennaElevation >= app.UIAxes2.UserData.RXAntennaElevation
-                        txIDHeight = 0;
-                        txIDAlign  = 'bottom';
-                    else
-                        txIDHeight = .95;
-                        txIDAlign  = 'top';
-                    end
-    
-                    text(app.UIAxes2, 0, txIDHeight, txID, Units='normalized', FontSize=10, Interpreter='tex', VerticalAlignment=txIDAlign, PickableParts='none');
-                    text(app.UIAxes2, 1, 0,          rxID, Units='normalized', FontSize=10, Interpreter='tex', VerticalAlignment='bottom',  PickableParts='none', HorizontalAlignment='right');
-    
-                    app.stationInfo.UserData.RFLinkStatus = true;
-                    
                 catch
-                    app.stationInfo.UserData.RFLinkStatus = false;
                 end
             end
 
@@ -826,7 +785,56 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function [txSite, rxSite] = RFLinkObjects(app, idxRFDataHub)
+        function misc_getChannelReport(app, operationType)
+            arguments
+                app
+                operationType char {mustBeMember(operationType, {'OnlyCache', 'Cache+RealTime', 'RealTime'})}
+            end
+
+            if app.axesTool_PDFButton.UserData && ~isempty(app.UITable.Selection)
+                idxRFDataHub = getRFDataHubIndex(app);
+
+                URL = char(app.rfDataHub.URL(idxRFDataHub));
+                if strcmp(URL, '-1')
+                    layout_restartChannelReport(app)
+                    return
+                end
+
+                % Caso a URL seja válida, cria-se objeto ChannelReport, caso
+                % não existente.            
+                if isempty(app.ChannelReportObj)
+                    app.ChannelReportObj = RF.ChannelReport;
+                end
+    
+                % A operação poderá ser demorada caso seja do tipo "Cache+RealTime" 
+                % ou "RealTime". 
+                if ismember(operationType, {'Cache+RealTime', 'RealTime'})
+                    app.progressDialog.Visible = 'visible';
+                end
+    
+                [idxCache, msgError] = Get(app.ChannelReportObj, URL, operationType);
+                if ~isempty(idxCache)    
+                    app.chReportHTML.HTMLSource = app.ChannelReportObj.cacheMapping.File{idxCache};
+    
+                else
+                    layout_restartChannelReport(app)
+    
+                    if ismember(operationType, {'Cache+RealTime', 'RealTime'}) && ~isempty(msgError)
+                        appUtil.modalWindow(app.UIFigure, 'error', msgError);
+                    end
+                end
+    
+                if strcmp(app.progressDialog.Visible, 'visible')
+                    app.progressDialog.Visible = 'hidden';
+                end
+
+            else
+                layout_restartChannelReport(app)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function [txSite, rxSite] = misc_RFLinkObjects(app, idxRFDataHub, idxSelectedRow)
             % txSite e rxSite estão como struct, mas basta mudar para "txsite" e 
             % "rxsite" que eles poderão ser usados em predições, uma vez que os 
             % campos da estrutura são idênticos às propriedades dos objetos.
@@ -836,7 +844,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                             'TransmitterFrequency', double(app.rfDataHub.Frequency(idxRFDataHub)) * 1e+6, ...
                             'Latitude',             app.filter_refTXLatitude.Value,                       ...
                             'Longitude',            app.filter_refTXLongitude.Value,                      ...
-                            'AntennaHeight',        app.filter_refTXHeight.Value);
+                            'AntennaHeight',        app.filter_refTXHeight.Value, ...
+                            'ID',                   app.UITable.Data.ID(idxSelectedRow));
 
             % RX
             rxSite = struct('Name',                 'RX',                            ...
@@ -846,67 +855,18 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function restartChannelReport(app)
-            app.chReportHTML.HTMLSource = 'pdfLogo.html';
-            app.stationInfo.UserData.PDFDocStatus = false;
+        function layout_restartChannelReport(app)
+            app.chReportHTML.HTMLSource = 'Warning2.html';
         end
 
         %-----------------------------------------------------------------%
-        function getChannelReport(app, idxRFDataHub, operationType)
-            arguments
-                app
-                idxRFDataHub
-                operationType char {mustBeMember(operationType, {'OnlyCache', 'Cache+RealTime', 'RealTime'})}
-            end
-
-            URL = char(app.rfDataHub.URL(idxRFDataHub));
-            if strcmp(URL, '-1')
-                if app.stationInfo.UserData.PDFDocStatus
-                    restartChannelReport(app)
-                end
-                return
-            end
-
-            % Caso a URL seja válida, cria-se objeto ChannelReport, caso
-            % não existente.            
-            if isempty(app.ChannelReportObj)
-                app.ChannelReportObj = RF.ChannelReport;
-            end
-
-            % A operação poderá ser demorada caso seja do tipo "Cache+RealTime" 
-            % ou "RealTime". 
-            if ismember(operationType, {'Cache+RealTime', 'RealTime'})
-                app.progressDialog.Visible = 'visible';
-            end
-
-            [idxCache, msgError] = Get(app.ChannelReportObj, URL, operationType);
-            if ~isempty(idxCache)
-                app.axesTool_PDFButton.UserData = true;
-                app.GridLayout.ColumnWidth(7:8) = {10,'1x'};
-
-                app.chReportHTML.HTMLSource = app.ChannelReportObj.cacheMapping.File{idxCache};
-                app.stationInfo.UserData.PDFDocStatus = true;
-
-            else
-                restartChannelReport(app)
-
-                if ismember(operationType, {'Cache+RealTime', 'RealTime'}) && ~isempty(msgError)
-                    appUtil.modalWindow(app.UIFigure, 'error', msgError);
-                end
-            end
-
-            if strcmp(app.progressDialog.Visible, 'visible')
-                app.progressDialog.Visible = 'hidden';
+        function layout_TableStyle(app, idxSelectedRow)
+            removeStyle(app.UITable)
+            if idxSelectedRow
+                addStyle(app.UITable, uistyle('BackgroundColor', '#d8ebfa'), 'row', idxSelectedRow)
             end
         end
 
-
-
-
-
-
-        %-----------------------------------------------------------------%
-        % AINDA NÃO REVISADO DAQUI PRA BAIXO... :(
         %-----------------------------------------------------------------%
         function layout_FilterOperationPanel(app, filterType, filterDefault)            
             layout_FilterDefaultValues(app)
@@ -954,90 +914,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             end
         end
 
-
-        %-----------------------------------------------------------------%
-        function points_NodeList(app)
-            app.pointsTable(:,:) = [];
-
-            for ii = 1:numel(app.CallingApp.specData)
-                if app.CallingApp.specData(ii).GPS.Status
-                    AntennaHeight = -1;
-                    if isfield(app.CallingApp.specData(ii).MetaData.Antenna, 'Height')
-                        AntennaHeight = str2double(extractBefore(app.CallingApp.specData(ii).MetaData.Antenna.Height, 'm'));
-                    end
-
-                    newPoint      = {'auto',                                    ...
-                                     app.CallingApp.specData(ii).GPS.Latitude,  ...
-                                     app.CallingApp.specData(ii).GPS.Longitude, ...
-                                     app.CallingApp.specData(ii).GPS.Location,  ...
-                                     AntennaHeight,                             ...
-                                     false};
-                    newPointFlag = true;
-
-                    for jj = 1:height(app.pointsTable)
-                        if isequal(newPoint(2:5), table2cell(app.pointsTable(jj,2:5)))
-                            newPointFlag = false;
-                            break
-                        end
-                    end
-
-                    if newPointFlag
-                        app.pointsTable(end+1,:) = newPoint;
-                    end
-                end
-            end
-
-            if isempty(app.pointsTable)
-                % Caso não tenha um ponto de monitoração, insere-se a sede
-                % da Anatel. Isso garante a visualização do mapa centralizada
-                % em Brasília/DF.
-                app.pointsTable(1,:) = {'manual', -15.805479, -47.882499, 'Brasília/DF', 30, true};
-            else
-                app.pointsTable.Reference(1) = true;
-            end            
-
-            points_TreeBuilding(app, 1)
-        end
-
-        %-----------------------------------------------------------------%
-        function points_TreeBuilding(app, selectedID)
-            if ~isempty(app.points_Tree.Children)
-                delete(app.points_Tree.Children)
-                drawnow nocallbacks
-            end
-
-            if ~isempty(app.pointsTable)
-                for ii = 1:height(app.pointsTable)
-                    antennaHeight = '';
-                    if app.pointsTable.AntennaHeight(ii) > 0
-                        antennaHeight = sprintf(', %dm', app.pointsTable.AntennaHeight(ii));
-                    end
-
-                    nodeTree = uitreenode(app.points_Tree, 'Text', sprintf('#%d: %s (%.6fº, %.6fº%s)', ii, app.pointsTable.Location{ii},  ...
-                                                                                                           app.pointsTable.Latitude(ii),  ...
-                                                                                                           app.pointsTable.Longitude(ii), ...
-                                                                                                           antennaHeight),                ...
-                                                           'NodeData', ii, 'ContextMenu', app.points_ContextMenu);
-                    if app.pointsTable.Reference(ii)
-                        nodeTree.Icon = 'Pin_18.png';
-                    end
-                end
-
-                if ~ismember(selectedID, 1:height(app.pointsTable))
-                    selectedID = 1;
-                end
-                app.points_Tree.SelectedNodes = app.points_Tree.Children(selectedID);
-
-            else
-                app.filter_refRXGrid.ColumnWidth{4} = 22;
-                set(app.filter_refRXLatitude,      Value=-1, Editable=1)
-                set(app.filter_refRXLongitude,     Value=-1, Editable=1)
-                set(app.points_AntennaHeight, Value=-1, Editable=1)
-            end
-
-            points_TreeSelectionChanged(app)
-        end
-
         %-----------------------------------------------------------------%
         function layout_FilterDefaultValues(app)
             app.filter_SecondaryNumValue1.Value       = -1;
@@ -1045,95 +921,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_SecondaryTextFree.Value        = '';
             app.filter_SecondaryTextList.Items        = {};
             app.filter_SecondaryLogicalOperator.Items = {'E (&&)'};
-        end
-
-        function layout_CartesianAxesLayout(app)
-            if app.tool_HistogramAxesVisibility.Value
-                app.tool_simulationAxesVisibility.Value = 0;
-
-                layout_CartesianAxesSwitch(app, 'Visible',   2, [1 2])
-                layout_CartesianAxesSwitch(app, 'Visible',   3, [3 1])
-                layout_CartesianAxesSwitch(app, 'Invisible', 4, -1)
-
-            else
-                app.tool_simulationAxesVisibility.Value = 1;
-
-                layout_CartesianAxesSwitch(app, 'Invisible', 2, -1)
-                layout_CartesianAxesSwitch(app, 'Invisible', 3, -1)
-                layout_CartesianAxesSwitch(app, 'Visible',   4, [1 3])
-            end
-        end
-        
-        %-----------------------------------------------------------------%
-        function layout_CartesianAxesSwitch(app, axesVisibility, axesID, axesTiledPosition)
-            switch axesVisibility
-                case 'Invisible'
-                    eval(sprintf('set(app.UIAxes%d,          Visible=0)', axesID))
-                    eval(sprintf('set(app.UIAxes%d.Children, Visible=0)', axesID))
-                    eval(sprintf('set(app.UIAxes%d.Toolbar,  Visible=0)', axesID))
-
-                case 'Visible'
-                    eval(sprintf('set(app.UIAxes%d,          Visible=1)', axesID))
-                    eval(sprintf('set(app.UIAxes%d.Children, Visible=1)', axesID))
-                    eval(sprintf('set(app.UIAxes%d.Toolbar,  Visible=1)', axesID))
-    
-                    eval(sprintf('app.UIAxes%d.Layout.Tile = axesTiledPosition(1);', axesID))
-                    eval(sprintf('app.UIAxes%d.Layout.TileSpan = [1 axesTiledPosition(2)];', axesID))
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function layout_simulationLink(app, idx)
-            simulationFlag = false;
-
-            app.axesTool_PDFButton.Enable = 0;
-            if ~isempty(idx)
-                if app.UITable.Data.URL(idx) ~= "-1"
-                    app.axesTool_PDFButton.Enable = 1;
-                end
-
-                if ~isempty(app.pointsTable)
-                    simulationFlag = true;
-                end
-            end
-
-            if simulationFlag
-                app.link_LinkInfo.HTMLSource = textFormatGUI.struct2PrettyPrintList(misc_simulationLinkSummary(app, idx), 'delete');
-                app.axesTool_simulationButton.Enable    = 1;
-
-            else
-                app.link_LinkInfo.HTMLSource = ' ';
-                app.axesTool_simulationButton.Enable    = 0;
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function linkSummary = misc_simulationLinkSummary(app, idx)
-            [txObj, rxObj]  = misc_simulationObjects(app, idx);
-            txObj.Frequency = sprintf('%.3f MHz', txObj.TransmitterFrequency/1e+6);
-
-            linkSummary(1)  = struct('group', 'ESTAÇÃO TRANSMISSORA (TX)', 'value', txObj);
-            linkSummary(2)  = struct('group', 'ESTAÇÃO RECEPTORA (RX)',    'value', rxObj);
-        end
-
-        %-----------------------------------------------------------------%
-        function [txObj, rxObj] = misc_simulationObjects(app, idxStation)
-            txIndex = str2double(extractAfter(app.UITable.Data.ID{idxStation}, '#'));
-            rxIndex = find(app.pointsTable.Reference, 1);
-
-            txObj = struct('TransmitterFrequency', app.rfDataHub.Frequency(txIndex) * 1e+6,                ...
-                           'Latitude',             app.rfDataHub.Latitude(txIndex),                        ...
-                           'Longitude',            app.rfDataHub.Longitude(txIndex),                       ...
-                           'AntennaHeight',        str2double(char(app.rfDataHub.AntennaHeight(txIndex))), ...
-                           'AntennaPattern',       char(app.rfDataHub.AntennaPattern(txIndex)),            ...
-                           'Description',          app.UITable.Data.Description{idxStation},               ...
-                           'Service',              app.rfDataHub.Service(txIndex),                         ...
-                           'Station',              app.rfDataHub.Station(txIndex),                         ...
-                           'ID',                   app.UITable.Data.ID{idxStation});
-
-            rxObj = struct('Latitude',             app.pointsTable.Latitude(rxIndex),  ...
-                           'Longitude',            app.pointsTable.Longitude(rxIndex), ...
-                           'AntennaHeight',        app.pointsTable.AntennaHeight(rxIndex));
         end
 
         %-----------------------------------------------------------------%
@@ -1165,45 +952,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                         uistack(event.Source, 'top')
                     end
             end            
-        end
-
-
-
-
-
-
-
-
-        %-----------------------------------------------------------------%
-        function plot_simulationLink(app)
-            % VALIDAÇÕES
-            if isempty(app.UITable.Selection) || isempty(app.pointsTable)
-                return
-            end
-            idx = app.UITable.Selection(1);
-
-            d = appUtil.modalWindow(app.UIFigure, 'progressdlg', 'Em andamento...');
-            
-            % OBJETOS TX e RX
-            [txObj, rxObj] = misc_simulationObjects(app, idx);       
-
-            % ELEVAÇÃO DO LINK TX-RX
-            nPoints = str2double(app.misc_PointsPerLink.Value);
-            Server  = app.misc_ElevationAPISource.Value;
-
-            [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj, nPoints, false, Server);
-            if ~isempty(msgWarning)
-                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-            end
-
-            % PLOT: MAPA
-            delete(findobj(app.UIAxes1, 'Tag', 'RFLinkView', '-or', 'Tag', 'RFLink'))
-            geoplot(app.UIAxes1, wayPoints3D(:,1), wayPoints3D(:,2), Color='#c94756', LineStyle='-.', PickableParts='none', Tag='RFLinkView');
-
-            % PLOT: RFLink
-            plot.RFLink(app.UIAxes2, txObj, rxObj, wayPoints3D)
-
-            delete(d)
         end
     end
     
@@ -1311,8 +1059,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 case app.axesTool_TableVisibility
                     app.axesTool_TableVisibility.UserData = ~app.axesTool_TableVisibility.UserData;
                     if app.axesTool_TableVisibility.UserData
+                        app.UITable.Visible = 1;
                         app.GridLayout.RowHeight(4:5) = {10,'.4x'};
                     else
+                        app.UITable.Visible = 0;
                         app.GridLayout.RowHeight(4:5) = {0,0};
                     end
 
@@ -1323,6 +1073,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     else
                         app.GridLayout.ColumnWidth(7:8) = {0,0};
                     end
+                    misc_getChannelReport(app, 'Cache+RealTime')
 
                 case app.axesTool_simulationButton
                     app.axesTool_simulationButton.UserData = ~app.axesTool_simulationButton.UserData;
@@ -1380,23 +1131,24 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             
             [idxRFDataHub, idxSelectedRow] = getRFDataHubIndex(app);
             
-            if isequal(app.stationInfo.UserData.idxRFDataHub, idxRFDataHub)
+            if isequal(app.stationInfo.UserData, idxRFDataHub)
                 return
             end
 
             % Reinicializa componentes da GUI.
-            filter_AddStyle2Table(app, idxSelectedRow)
-            delete(findobj(app.UIAxes1.Children, 'Tag', 'TX'))
+            layout_TableStyle(app, idxSelectedRow)
             cla(app.UIAxes3)
 
-            app.stationInfo.UserData.idxRFDataHub = idxRFDataHub;
+            app.stationInfo.UserData = idxRFDataHub;
             
             if isempty(idxRFDataHub)
                 app.filter_refTXLatitude.Value  = -1;
                 app.filter_refTXLongitude.Value = -1;
                 app.filter_refTXHeight.Value    = 0;
                 app.stationInfo.HTMLSource      = '';
-                restartChannelReport(app)
+                layout_restartChannelReport(app)
+                delete(findobj(app.UIAxes1.Children, 'Tag', 'TX'))
+                cla(app.UIAxes2)
 
             else
                 % Estação transmissora - TX
@@ -1412,6 +1164,13 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 % Painel HTML
                 htmlContent = auxApp.rfdatahub.htmlCode_StationInfo(app.rfDataHub, idxRFDataHub, app.rfDataHubLOG);
                 app.stationInfo.HTMLSource = htmlContent;
+
+                % Painel PDF
+                if app.rfDataHub.Source(idxRFDataHub) == "MOSAICO-SRD"
+                    misc_getChannelReport(app, 'Cache+RealTime')
+                else
+                    layout_restartChannelReport(app)
+                end
                     
                 % Plot "AntennaPattern"
                 % O bloco try/catch protege possível erro no parser da informação
@@ -1429,70 +1188,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 plot_TX(app, idxRFDataHub, idxSelectedRow)
 
                 % Plot "RFLink"
-                plot_createRFLinkPlot(app)                
-
-                % Atualiza "Relatório Canal", do MOSAICO, apenas se o relatório 
-                % estiver em cache.
-                getChannelReport(app, idxRFDataHub, 'OnlyCache')
+                plot_createRFLinkPlot(app)
             end
             
-        end
-
-        % Menu selected function: points_delButton, points_editRowButton, 
-        % ...and 1 other component
-        function points_ContextMenuCallbacks(app, event)
-            
-            idx  = app.points_Tree.SelectedNodes.NodeData;
-
-            if ~isempty(idx)
-                editFlag = false;
-                refIndex = find(app.pointsTable.Reference, 1);
-
-                switch event.Source
-                    case app.points_referenceButton
-                        app.pointsTable.Reference      = zeros(height(app.pointsTable), 1, 'logical');
-                        app.pointsTable.Reference(idx) = true;
-
-                        editFlag = true;                        
-    
-                    case app.points_editRowButton
-                        if app.filter_refRXGrid.ColumnWidth{4}
-                            app.filter_refRXGrid.ColumnWidth{4} = 0;
-        
-                            app.filter_refRXLatitude.Editable      = 0;
-                            app.filter_refRXLongitude.Editable     = 0;
-                            app.points_AntennaHeight.Editable = 0;
-                            points_TreeSelectionChanged(app)
-                            return
-
-                        else
-                            app.filter_refRXGrid.ColumnWidth{4} = 22;
-        
-                            app.filter_refRXLatitude.Editable      = 1;
-                            app.filter_refRXLongitude.Editable     = 1;
-                            app.points_AntennaHeight.Editable = 1;
-                            focus(app.filter_refRXLatitude)
-                        end
-    
-                    case app.points_delButton                            
-                        app.pointsTable(idx,:) = [];
-
-                        if idx == refIndex
-                            editFlag = true;
-                            if ~isempty(app.pointsTable)
-                                app.pointsTable.Reference(1) = true;
-                            end
-                        end
-                end
-                
-                points_TreeBuilding(app, idx)
-    
-                if editFlag
-                    filter_calculateDistanceColumn(app)
-                    filter_TableFiltering(app)
-                end
-            end
-
         end
 
         % Value changed function: filter_refRXLatitude, 
@@ -1505,48 +1203,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
                 case app.filter_refRXLongitude
                     focus(app.points_AntennaHeight)
-
-                case app.points_AntennaHeight
-                    focus(app.points_editButton)
-
-                case app.points_editButton
-                    refIndex = find(app.pointsTable.Reference, 1);
-                    editFlag = true;
-                    
-                    if isempty(app.pointsTable)
-                        idx = 1;
-                    else
-                        idx  = app.points_Tree.SelectedNodes.NodeData;
-                        if idx ~= refIndex
-                            editFlag = false;
-                        end
-                    end
-
-                    newLatitude  = app.filter_refRXLatitude.Value;
-                    newLongitude = app.filter_refRXLongitude.Value;
-                    newLocation  = fcn.gpsFindCity(struct('Latitude', newLatitude, 'Longitude', newLongitude));
-                    newHeight    = app.points_AntennaHeight.Value;
-
-                    app.pointsTable(idx,:) = {'manual',     ...
-                                              newLatitude,  ...
-                                              newLongitude, ...
-                                              newLocation,  ...
-                                              newHeight,    ...
-                                              editFlag};
-
-                    points_TreeBuilding(app, idx)
-                    
-                    if editFlag
-                        filter_calculateDistanceColumn(app)
-                        filter_TableFiltering(app)
-                    end
-
-                    % O painel de visualização/edição das coordenadas do ponto
-                    % selecionado.
-                    app.filter_refRXGrid.ColumnWidth{4} = 0;
-                    set(app.filter_refRXLatitude,      Editable=0)
-                    set(app.filter_refRXLongitude,     Editable=0)
-                    set(app.points_AntennaHeight, Editable=0)
             end
 
         end
@@ -1667,7 +1323,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                         case 'ROI:Retângulo'; roiFcn = 'drawrectangle'; roiNameArgument = 'Rotatable=true, ';
                         case 'ROI:Polígono';  roiFcn = 'drawpolygon';   roiNameArgument = '';
                     end
-                    eval(sprintf('hROI = %s(app.UIAxes1, Color=[0.40,0.73,0.88], LineWidth=1, Deletable=0, FaceSelectable=0, %sTag="ROI", UserData="%s");', roiFcn, roiNameArgument, UUID))
+                    eval(sprintf('hROI = %s(app.UIAxes1, Color=[0.40,0.73,0.88], LineWidth=1, Deletable=0, FaceSelectable=0, %sTag="FilterROI", UserData="%s");', roiFcn, roiNameArgument, UUID))
                     plot.axes.Interactivity.DefaultEnable(app.UIAxes1)
 
                     if isempty(hROI.Position)
@@ -1735,7 +1391,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 idx2 = find(strcmp(app.filterTable.Type, 'ROI'))';
                 for ii = idx2
                     if ismember(ii, idx1)
-                        delete(findobj(app.UIAxes1.Children, Tag=sprintf('ROI_%s', app.filterTable.uuid{ii})))
+                        UUID = app.filterTable.uuid{ii};
+                        delete(findobj(app.UIAxes1.Children, 'UserData', UUID))
                     end
                 end                
 
@@ -1753,8 +1410,12 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         function filter_TreeCheckedNodesChanged(app, event)
             
             hTree             = findobj(app.filter_Tree, '-not', 'Type', 'uicheckboxtree');
-            hTreeNodeDataList = arrayfun(@(x) x.NodeData, hTree);
-            hCheckedNodeData  = arrayfun(@(x) x.NodeData, app.filter_Tree.CheckedNodes);
+            
+            hTreeNode         = arrayfun(@(x) x.NodeData, hTree, 'UniformOutput', false);
+            hTreeNodeDataList = unique(horzcat(hTreeNode{:}));
+
+            hCheckedNode      = arrayfun(@(x) x.NodeData, app.filter_Tree.CheckedNodes, 'UniformOutput', false);
+            hCheckedNodeData  = unique(horzcat(hCheckedNode{:}));
 
             disableIndexList  = setdiff(hTreeNodeDataList, hCheckedNodeData);
             enableIndexList   = setdiff((1:height(app.filterTable))', disableIndexList);
@@ -1851,6 +1512,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Create UIFigure and components
         function createComponents(app, Container)
 
+            % Get the file path for locating images
+            pathToMLAPP = fileparts(mfilename('fullpath'));
+
             % Create UIFigure and hide until all components are created
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
@@ -1883,7 +1547,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
-            app.toolGrid.ColumnWidth = {22, 22, 22, 22, 5, 22, 22, '1x'};
+            app.toolGrid.ColumnWidth = {22, 22, 22, 22, 5, 22, 22, '1x', 18};
             app.toolGrid.RowHeight = {4, 17, '1x'};
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
@@ -1925,7 +1589,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.axesTool_PDFButton = uiimage(app.toolGrid);
             app.axesTool_PDFButton.ScaleMethod = 'none';
             app.axesTool_PDFButton.ImageClickedFcn = createCallbackFcn(app, @tool_InteractionImageClicked, true);
-            app.axesTool_PDFButton.Enable = 'off';
             app.axesTool_PDFButton.Tooltip = {'Relatório do registro selecionado'; '(limitado à radiodifusão)'};
             app.axesTool_PDFButton.Layout.Row = 2;
             app.axesTool_PDFButton.Layout.Column = 3;
@@ -1950,14 +1613,22 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.Image.VerticalAlignment = 'bottom';
             app.Image.ImageSource = fullfile(pathToMLAPP, 'Icons', 'LineV.png');
 
-            % Create tableInfoNRows
-            app.tableInfoNRows = uilabel(app.toolGrid);
-            app.tableInfoNRows.HorizontalAlignment = 'right';
-            app.tableInfoNRows.VerticalAlignment = 'top';
-            app.tableInfoNRows.FontSize = 10;
-            app.tableInfoNRows.Layout.Row = [1 3];
-            app.tableInfoNRows.Layout.Column = 8;
-            app.tableInfoNRows.Text = '# 0 ';
+            % Create tableNRowsIcon
+            app.tableNRowsIcon = uiimage(app.toolGrid);
+            app.tableNRowsIcon.ScaleMethod = 'none';
+            app.tableNRowsIcon.Enable = 'off';
+            app.tableNRowsIcon.Layout.Row = 2;
+            app.tableNRowsIcon.Layout.Column = 9;
+            app.tableNRowsIcon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Filter_18.png');
+
+            % Create tableNRows
+            app.tableNRows = uilabel(app.toolGrid);
+            app.tableNRows.HorizontalAlignment = 'right';
+            app.tableNRows.FontSize = 10;
+            app.tableNRows.FontColor = [0.6 0.6 0.6];
+            app.tableNRows.Layout.Row = [1 3];
+            app.tableNRows.Layout.Column = 8;
+            app.tableNRows.Text = '';
 
             % Create ControlTabGrid
             app.ControlTabGrid = uigridlayout(app.GridLayout);
@@ -2968,7 +2639,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create chReportHTML
             app.chReportHTML = uihtml(app.GridLayout);
-            app.chReportHTML.HTMLSource = 'pdfLogo.html';
+            app.chReportHTML.HTMLSource = 'Warning2.html';
             app.chReportHTML.Layout.Row = [2 3];
             app.chReportHTML.Layout.Column = 8;
 
@@ -3017,25 +2688,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_delAllButton = uimenu(app.filter_ContextMenu);
             app.filter_delAllButton.MenuSelectedFcn = createCallbackFcn(app, @filter_delFilter, true);
             app.filter_delAllButton.Text = 'Excluir todos';
-
-            % Create points_ContextMenu
-            app.points_ContextMenu = uicontextmenu(app.UIFigure);
-
-            % Create points_referenceButton
-            app.points_referenceButton = uimenu(app.points_ContextMenu);
-            app.points_referenceButton.MenuSelectedFcn = createCallbackFcn(app, @points_ContextMenuCallbacks, true);
-            app.points_referenceButton.Text = 'Referência';
-
-            % Create points_editRowButton
-            app.points_editRowButton = uimenu(app.points_ContextMenu);
-            app.points_editRowButton.MenuSelectedFcn = createCallbackFcn(app, @points_ContextMenuCallbacks, true);
-            app.points_editRowButton.Separator = 'on';
-            app.points_editRowButton.Text = 'Editar';
-
-            % Create points_delButton
-            app.points_delButton = uimenu(app.points_ContextMenu);
-            app.points_delButton.MenuSelectedFcn = createCallbackFcn(app, @points_ContextMenuCallbacks, true);
-            app.points_delButton.Text = 'Excluir';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

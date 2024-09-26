@@ -10,8 +10,18 @@ function fLogical = TableFiltering(hTable, filterTable)
     % Eis um trabalho a fazer no futuro! :(
         
     if any(filterTable.Enable)
-        idx1 = find(strcmp(filterTable.Order, 'Node') & filterTable.Enable)';
+        % Identifica "filtros nós".
+        idx1 = find(strcmp(filterTable.Order, 'Node'))';
 
+        % Descarta filtros nós cujos membros foram desativados na GUI.
+        for ii = idx1
+            idx2 = [ii, find(filterTable.RelatedID == ii)'];
+            if all(~filterTable.Enable(idx2))
+                idx1(idx1 == ii) = [];
+            end
+        end
+
+        % Cria vetor lógico.
         fLogical   = ones(height(hTable), 1, 'logical');
         fTolerance = class.Constants.floatDiffTolerance;
 
@@ -20,7 +30,7 @@ function fLogical = TableFiltering(hTable, filterTable)
     
             idx2 = [ii, find(filterTable.RelatedID == ii)'];
             for jj = idx2
-                if (jj ~= ii) && ~filterTable.Enable(jj)
+                if ~filterTable.Enable(jj)
                     continue
                 end
 
@@ -58,6 +68,8 @@ function Fcn = filterFcn(filterOperation, filterValue, fTolerance)
         end
 
     elseif ischar(filterValue)
+        filterValue = strtrim(filterValue);
+        
         switch filterOperation
             case '=';  Fcn = @(x)  strcmpi(string(x),  filterValue);
             case '≠';  Fcn = @(x) ~strcmpi(string(x),  filterValue);

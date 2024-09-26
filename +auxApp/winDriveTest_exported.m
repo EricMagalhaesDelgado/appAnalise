@@ -2523,6 +2523,9 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % Create UIFigure and components
         function createComponents(app, Container)
 
+            % Get the file path for locating images
+            pathToMLAPP = fileparts(mfilename('fullpath'));
+
             % Create UIFigure and hide until all components are created
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');

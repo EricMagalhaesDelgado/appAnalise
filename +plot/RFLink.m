@@ -1,10 +1,11 @@
-function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode)
+function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode, footnoteFlag)
     arguments
         hAxes
         txSite
         rxSite
         wayPoints3D
         plotMode   char {mustBeMember(plotMode,  {'dark', 'light'})}  = 'light'
+        footnoteFlag logical = false
     end
 
     % ## prePlot
@@ -52,8 +53,8 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode)
     stem(hAxes, 0,          txAntenna, 'filled', 'MarkerFaceColor', colorStation, 'Color', colorStation,                'PickableParts', 'none', 'Tag', 'Station');
     stem(hAxes, distM/1000, rxAntenna, 'filled', 'MarkerFaceColor', colorStation, 'Color', colorStation, 'Marker', '^', 'PickableParts', 'none', 'Tag', 'Station');
 
-    text(hAxes, 0,          txAntenna, ' TX', 'Color', colorStation, 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
-    text(hAxes, distM/1000, rxAntenna, ' RX', 'Color', colorStation, 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
+    text(hAxes, 0,          txAntenna, 'TX   ', 'Color', colorStation, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
+    text(hAxes, distM/1000, rxAntenna, '  RX', 'Color', colorStation,                                 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
         
     % (c) Linha de visada entre TX e RX.
     hLOS = plot(hAxes, d1/1000, vq, 'Color', colorLink, 'LineStyle', '-.', 'LineWidth', .5,  'Tag', 'Link');
@@ -75,7 +76,14 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode)
     hTerrain.BaseValue = hAxes.YLim(1);
 
     % (e) Nota de rodapé.
-    text(hAxes, distM/2000, hAxes.YLim(1), sprintf('(Distância: %.1f km, Azimute: %.1fº)', distM/1000, Azimuth), 'Color', colorStation, 'HorizontalAlignment', 'center' ,'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'Footnote');
+    if footnoteFlag
+        Footnote = sprintf(['\n\\bfTX\nID: %s\nFrequência: %.3f MHz\nLatitude: %.6fº, Longitude: %.6fº, Altura: %.1fm\n\n'        ...
+                            '\\bfRX\nLatitude: %.6fº, Longitude: %.6fº, Altura: %.1fm\n\n'                                        ...
+                            '\\bfTX-RX\nDistância: %.1f km\nAzimute: %.1fº\nAtenuação espaço livre: %.1f dB'],                 ...
+                            txSite.ID, txSite.TransmitterFrequency/1e+6, txSite.Latitude, txSite.Longitude, txSite.AntennaHeight, ...
+                            rxSite.Latitude, rxSite.Longitude, rxSite.AntennaHeight, distM/1000, Azimuth, PL(end));    
+        t = text(hAxes, 0, 1, Footnote, Units='normalized', FontSize=10, Interpreter='tex', VerticalAlignment='top', PickableParts='none', Tag='Footnote');
+    end
 
     % ## post-Plot
     hAxes.UserData = struct('TX', txSite, 'RX', rxSite, 'Distance', distM/1000, 'Azimuth', Azimuth, 'TXAntennaElevation', txAntenna, 'RXAntennaElevation', rxAntenna);
