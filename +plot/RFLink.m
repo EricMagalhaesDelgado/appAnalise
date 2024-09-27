@@ -79,25 +79,20 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode, rotateViewFlag, fo
     hTerrain.BaseValue = hAxes.YLim(1);
 
     % (e) Visualização do eixo (OPCIONAL) e labels das estações TX e RX
-    txLabel = 'TX   ';
-    rxLabel = '  RX';
-    txLabelAlign  = 'right';
-    rxLabelAlign  = 'left';
-    footNotePosition = 0;
-    footNoteAlign = 'left';
+    txLabel      = 'TX   ';
+    rxLabel      = '  RX';
+    txLabelAlign = 'right';
+    rxLabelAlign = 'left';
 
     if rotateViewFlag
         if txSite.Longitude <= rxSite.Longitude
-            hAxes.View = [0,90];
+            hAxes.View   = [0,90];
         else
-            hAxes.View = [180,270];
-            txLabel = '  TX';
-            rxLabel = 'RX   ';
-
-            txLabelAlign     = 'left';
-            rxLabelAlign     = 'right';
-            footNotePosition = 1;
-            footNoteAlign    = 'right';
+            hAxes.View   = [180,270];
+            txLabel      = '  TX';
+            rxLabel      = 'RX   ';
+            txLabelAlign = 'left';
+            rxLabelAlign = 'right';
         end
     end
 
@@ -106,6 +101,15 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode, rotateViewFlag, fo
 
     % (f) Nota de rodapé (OPCIONAL)
     if footnoteFlag
+        footNotePosition = 0;
+        footNoteAlign = 'left';
+        
+        if ((txAntenna > rxAntenna) && isequal(hAxes.View, [0,90])) || ...
+           ((txAntenna < rxAntenna) && isequal(hAxes.View, [180,270]))
+            footNotePosition = 1;
+            footNoteAlign    = 'right';
+        end
+
         Footnote = sprintf(['\n\\bfTX\nID: %s\nFrequência: %.3f MHz\nLocalização: (%.6fº, %.6fº, %.1fm)\nAltura: %.1fm\n\n'                         ...
                             '\\bfRX\nLocalização: (%.6fº, %.6fº, %.1fm)\nAltura: %.1fm\n\n'                                                         ...
                             '\\bfTX-RX\nDistância: %.1f km\nAzimute: %.1fº\nAtenuação espaço livre: %.1f dB'],                                      ...

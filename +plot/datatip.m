@@ -54,7 +54,6 @@ classdef (Abstract) datatip
                                                    'SweepID+ChannelPower+Coordinates' ...
                                                    'SweepID+ChannelPower' ...
                                                    'winRFDataHub.Geographic' ...
-                                                   'winRFDataHub.SelectedNode' ...
                                                    'RFLink.LOS', ...
                                                    'RFLink.Terrain', ...
                                                    'AntennaPattern'})}
@@ -162,14 +161,6 @@ classdef (Abstract) datatip
                     dtParent.DataTipTemplate.DataTipRows(1)     = dataTipTextRow('', hTable.ID);
                     dtParent.DataTipTemplate.DataTipRows(2)     = dataTipTextRow('', hTable.Frequency, '%.3f MHz');
                     dtParent.DataTipTemplate.DataTipRows(3)     = dataTipTextRow('', hTable.Distance,  '%.1f km');
-
-                case 'winRFDataHub.SelectedNode'
-                    dtParent.DataTipTemplate.DataTipRows(1).Label  = 'Lat:';
-                    dtParent.DataTipTemplate.DataTipRows(2).Label  = 'Lon:';
-
-                    if numel(dtParent.DataTipTemplate.DataTipRows) > 2
-                        dtParent.DataTipTemplate.DataTipRows(3:end) = [];
-                    end
 
                 case 'RFLink.LOS'
                     hTable = varargin{1};

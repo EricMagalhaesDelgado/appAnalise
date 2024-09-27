@@ -352,14 +352,14 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 app.TXLongitude.Value = round(double(app.rfDataHub.Longitude(idxStation)), 6);
 
                 txAntennaHeight = str2double(char(app.rfDataHub.AntennaHeight(idxStation)));
-                if txAntennaHeight <= 0
-                    txAntennaHeight = 10;
+                if txAntennaHeight < 0
+                    txAntennaHeight = app.General.RFDataHub.DefaultTX.Height;
                 end
                 app.TXHeight.Value = txAntennaHeight;
             else
                 app.TXLatitude.Value  = -1;
                 app.TXLongitude.Value = -1;
-                app.TXHeight.Value    = 10;
+                app.TXHeight.Value    = app.General.RFDataHub.DefaultTX.Height;
             end
 
             % PLOT

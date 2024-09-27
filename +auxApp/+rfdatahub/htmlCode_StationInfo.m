@@ -1,6 +1,6 @@
-function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLOG)
+function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLOG, appGeneral)
 
-    % RFDataHub
+    % stationTag
     stationInfo    = table2struct(rfDataHub(idxRFDataHub,:));
     if stationInfo.BW <= 0
         stationTag = sprintf('%.3f MHz',            stationInfo.Frequency);
@@ -8,19 +8,28 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
         stationTag = sprintf('%.3f MHz ⌂ %.1f kHz', stationInfo.Frequency, stationInfo.BW);
     end
 
-    % stationURL = '';
-    % if stationInfo.URL ~= "-1"
-    %     [imgExt, imgString] = Base64Link();
-    %     stationURL = sprintf('<img id="RelatorioCanalMosaico" src="data:image/%s;base64,%s" style="width:12px; height:12px; cursor: pointer;"/>', imgExt, imgString);
-    % end
-
+    % stationService
+    global id2nameTable
+    if isempty(id2nameTable)
+        serviceOptions = appGeneral.fiscaliza.defaultValues.servicos_da_inspecao.options;
+        serviceIDs     = int16(str2double(extractBefore(serviceOptions, '-')));
+        id2nameTable   = table(serviceIDs, serviceOptions, 'VariableNames', {'ID', 'Serviço'});
+    end
     stationService = fiscalizaGUI.serviceMapping(stationInfo.Service);
+
+    [~, idxService] = ismember(stationInfo.Service, id2nameTable.ID);
+    if idxService
+        stationService = id2nameTable.("Serviço"){idxService};
+    else
+        stationService = num2str(stationService);
+    end
+
     if strcmp(stationService, '-1')
         stationService = '<font style="color: red;">-1</font>';
     end
     
+    % stationNumber
     mergeCount = str2double(string(stationInfo.MergeCount));
-
     if stationInfo.Station == -1
         stationNumber = sprintf('<font style="color: red;">%d</font>', stationInfo.Station);
     else
@@ -30,6 +39,7 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
         end
     end
 
+    % stationLocation, stationHeight
     stationLocation = sprintf('(%.6fº, %.6fº)', stationInfo.Latitude, stationInfo.Longitude);
     stationHeight   = str2double(char(stationInfo.AntennaHeight));
     if stationHeight <= 0
@@ -38,7 +48,7 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
         stationHeight = sprintf('%.1fm', stationHeight);
     end    
 
-    % RFDataHubLOG
+    % stationLOG
     stationLOG = class.RFDataHub.queryLog(rfDataHubLOG, stationInfo.Log);
     if isempty(stationLOG)
         stationLOG = 'Registro não editado';
@@ -47,7 +57,7 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
     % dataStruct2HTMLContent
     dataStruct(1) = struct('group', 'Service', 'value', stationService);
     dataStruct(2) = struct('group', 'Station', 'value', stationNumber);
-    dataStruct(3) = struct('group', 'Localização (Latitude, Longitude)', 'value', stationLocation);
+    dataStruct(3) = struct('group', 'Localização', 'value', stationLocation);
     dataStruct(4) = struct('group', 'Altura', 'value', stationHeight);
     dataStruct(5) = struct('group', 'OUTROS ASPECTOS TÉCNICOS', 'value', rmfield(stationInfo, {'AntennaPattern', ...
                                                                                                'BW',             ...

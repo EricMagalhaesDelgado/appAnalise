@@ -1,5 +1,5 @@
 {
-    "version": 0.53,
+    "version": 0.57,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -315,6 +315,9 @@
         }
     },
     "RFDataHub": {
+        "DefaultTX": {
+            "Height": 10
+        },
         "DefaultRX": {
             "Latitude": -15.805479,
             "Longitude": -47.882499,
@@ -330,6 +333,10 @@
     "Integration": {
         "Trace": null,
         "SampleTime": 10
+    },
+    "Elevation": {
+        "Server": "Open-Elevation",
+        "Points": 64
     },
     "AuxiliarAppDockState": false
 }
