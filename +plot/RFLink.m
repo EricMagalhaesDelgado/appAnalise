@@ -1,11 +1,12 @@
-function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode, footnoteFlag)
+function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode, rotateViewFlag, footnoteFlag)
     arguments
         hAxes
         txSite
         rxSite
         wayPoints3D
         plotMode   char {mustBeMember(plotMode,  {'dark', 'light'})}  = 'light'
-        footnoteFlag logical = false
+        rotateViewFlag logical = false
+        footnoteFlag   logical = false
     end
 
     % ## prePlot
@@ -40,7 +41,7 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode, footnoteFlag)
     hAxes.XLimMode = 'auto';
     hAxes.YLimMode = 'auto';
 
-    % (a) Perfil de terreno e primeira obstrução (caso aplicável).
+    % (a) Perfil de terreno e primeira obstrução (caso aplicável)
     hTerrain = area(hAxes, d1/1000, wayPoints3D(:,3), BaseValue=0, FaceColor=faceColorTerrain, EdgeColor=edgeColorTerrain, Tag='Terrain');
     hTerrainTable = table(wayPoints3D(:,1), wayPoints3D(:,2), wayPoints3D(:,3), 'VariableNames', {'Latitude', 'Longitude', 'Elevation'});
     plot.datatip.Template(hTerrain, 'RFLink.Terrain', hTerrainTable)
@@ -49,19 +50,16 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode, footnoteFlag)
         stem(hAxes, d1(xFirstObstruction)/1000, wayPoints3D(xFirstObstruction,3), 'filled', 'Marker', 'square', 'MarkerSize', 8, 'MarkerFaceColor', colorObstruction, 'LineStyle', '-.', 'Color', colorObstruction, 'PickableParts', 'none', 'Tag', 'FirstObstruction');
     end
     
-    % (b) Estações TX e RX.
+    % (b) Estações TX e RX
     stem(hAxes, 0,          txAntenna, 'filled', 'MarkerFaceColor', colorStation, 'Color', colorStation,                'PickableParts', 'none', 'Tag', 'Station');
     stem(hAxes, distM/1000, rxAntenna, 'filled', 'MarkerFaceColor', colorStation, 'Color', colorStation, 'Marker', '^', 'PickableParts', 'none', 'Tag', 'Station');
-
-    text(hAxes, 0,          txAntenna, 'TX   ', 'Color', colorStation, 'HorizontalAlignment', 'right', 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
-    text(hAxes, distM/1000, rxAntenna, '  RX', 'Color', colorStation,                                 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
         
-    % (c) Linha de visada entre TX e RX.
+    % (c) Linha de visada entre TX e RX
     hLOS = plot(hAxes, d1/1000, vq, 'Color', colorLink, 'LineStyle', '-.', 'LineWidth', .5,  'Tag', 'Link');
     hLOSTable = table(d1/1000, vq, PL, 'VariableNames', {'Distance', 'Height', 'PathLoss'});
     plot.datatip.Template(hLOS, 'RFLink.LOS', hLOSTable)
 
-    % (d) 1ª Zona de Fresnel.
+    % (d) 1ª Zona de Fresnel
     images.roi.Polygon(hAxes, Position=[d1/1000, vq+Rn; flip(d1/1000), flip(vq-Rn)], ...
                               Color=colorFresnel, ...
                               Deletable=0, ...
@@ -72,17 +70,48 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode, footnoteFlag)
                               LineWidth=.5, ...
                               Tag='Fresnel');
 
-    hAxes.YLim(1) = max(hAxes.YLim(1), min(wayPoints3D(:,3))-1);
+    yLim1 = max(hAxes.YLim(1), min(wayPoints3D(:,3))-10);
+    if ~wayPoints3D(1,3) || ~wayPoints3D(end,3)
+        yLim1 = -10;
+    end
+
+    hAxes.YLim(1) = yLim1;
     hTerrain.BaseValue = hAxes.YLim(1);
 
-    % (e) Nota de rodapé.
+    % (e) Visualização do eixo (OPCIONAL) e labels das estações TX e RX
+    txLabel = 'TX   ';
+    rxLabel = '  RX';
+    txLabelAlign  = 'right';
+    rxLabelAlign  = 'left';
+    footNotePosition = 0;
+    footNoteAlign = 'left';
+
+    if rotateViewFlag
+        if txSite.Longitude <= rxSite.Longitude
+            hAxes.View = [0,90];
+        else
+            hAxes.View = [180,270];
+            txLabel = '  TX';
+            rxLabel = 'RX   ';
+
+            txLabelAlign     = 'left';
+            rxLabelAlign     = 'right';
+            footNotePosition = 1;
+            footNoteAlign    = 'right';
+        end
+    end
+
+    text(hAxes, 0,          txAntenna, txLabel, 'Color', colorStation, 'HorizontalAlignment', txLabelAlign, 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
+    text(hAxes, distM/1000, rxAntenna, rxLabel, 'Color', colorStation, 'HorizontalAlignment', rxLabelAlign, 'VerticalAlignment', 'bottom', 'FontSize', 10, 'PickableParts', 'none', 'Tag', 'StationLabel');
+
+    % (f) Nota de rodapé (OPCIONAL)
     if footnoteFlag
-        Footnote = sprintf(['\n\\bfTX\nID: %s\nFrequência: %.3f MHz\nLatitude: %.6fº, Longitude: %.6fº, Altura: %.1fm\n\n'        ...
-                            '\\bfRX\nLatitude: %.6fº, Longitude: %.6fº, Altura: %.1fm\n\n'                                        ...
-                            '\\bfTX-RX\nDistância: %.1f km\nAzimute: %.1fº\nAtenuação espaço livre: %.1f dB'],                 ...
-                            txSite.ID, txSite.TransmitterFrequency/1e+6, txSite.Latitude, txSite.Longitude, txSite.AntennaHeight, ...
-                            rxSite.Latitude, rxSite.Longitude, rxSite.AntennaHeight, distM/1000, Azimuth, PL(end));    
-        t = text(hAxes, 0, 1, Footnote, Units='normalized', FontSize=10, Interpreter='tex', VerticalAlignment='top', PickableParts='none', Tag='Footnote');
+        Footnote = sprintf(['\n\\bfTX\nID: %s\nFrequência: %.3f MHz\nLocalização: (%.6fº, %.6fº, %.1fm)\nAltura: %.1fm\n\n'                         ...
+                            '\\bfRX\nLocalização: (%.6fº, %.6fº, %.1fm)\nAltura: %.1fm\n\n'                                                         ...
+                            '\\bfTX-RX\nDistância: %.1f km\nAzimute: %.1fº\nAtenuação espaço livre: %.1f dB'],                                      ...
+                            txSite.ID, txSite.TransmitterFrequency/1e+6, txSite.Latitude, txSite.Longitude, wayPoints3D(1,3), txSite.AntennaHeight, ...
+                            rxSite.Latitude, rxSite.Longitude, wayPoints3D(end,3), rxSite.AntennaHeight, distM/1000, Azimuth, PL(end));
+        text(hAxes, footNotePosition, 1, Footnote, Units='normalized', FontSize=10, Interpreter='tex', HorizontalAlignment=footNoteAlign, VerticalAlignment='top', PickableParts='none', Tag='Footnote');
     end
 
     % ## post-Plot

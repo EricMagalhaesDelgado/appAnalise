@@ -56,7 +56,8 @@ classdef (Abstract) datatip
                                                    'winRFDataHub.Geographic' ...
                                                    'winRFDataHub.SelectedNode' ...
                                                    'RFLink.LOS', ...
-                                                   'RFLink.Terrain'})}
+                                                   'RFLink.Terrain', ...
+                                                   'AntennaPattern'})}
             end
 
             arguments (Repeating)
@@ -183,6 +184,10 @@ classdef (Abstract) datatip
                     dtParent.DataTipTemplate.DataTipRows(1) = dataTipTextRow('Lat:',  hTable.Latitude,  '%.6f');
                     dtParent.DataTipTemplate.DataTipRows(2) = dataTipTextRow('Lon:', hTable.Longitude, '%.6f');
                     dtParent.DataTipTemplate.DataTipRows(3) = dataTipTextRow('',  hTable.Elevation, '%.1f m');
+
+                case 'AntennaPattern'
+                    dtParent.DataTipTemplate.DataTipRows(1) = dataTipTextRow('', 'ThetaData', '%.0fº');
+                    dtParent.DataTipTemplate.DataTipRows(2) = dataTipTextRow('', 'RData',     '%.1fdBd');
             end
 
             if exist('dt', 'var')

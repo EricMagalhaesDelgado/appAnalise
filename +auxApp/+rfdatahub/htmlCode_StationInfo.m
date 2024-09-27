@@ -14,8 +14,10 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
     %     stationURL = sprintf('<img id="RelatorioCanalMosaico" src="data:image/%s;base64,%s" style="width:12px; height:12px; cursor: pointer;"/>', imgExt, imgString);
     % end
 
-    % ToDo: agregar o nome do serviço à informação...
-    stationService = sprintf('%d', stationInfo.Service);
+    stationService = fiscalizaGUI.serviceMapping(stationInfo.Service);
+    if strcmp(stationService, '-1')
+        stationService = '<font style="color: red;">-1</font>';
+    end
     
     mergeCount = str2double(string(stationInfo.MergeCount));
 
@@ -28,6 +30,14 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
         end
     end
 
+    stationLocation = sprintf('(%.6fº, %.6fº)', stationInfo.Latitude, stationInfo.Longitude);
+    stationHeight   = str2double(char(stationInfo.AntennaHeight));
+    if stationHeight <= 0
+        stationHeight = sprintf('<font style="color: red;">%d</font>', stationHeight);
+    else
+        stationHeight = sprintf('%.1fm', stationHeight);
+    end    
+
     % RFDataHubLOG
     stationLOG = class.RFDataHub.queryLog(rfDataHubLOG, stationInfo.Log);
     if isempty(stationLOG)
@@ -35,10 +45,11 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
     end
 
     % dataStruct2HTMLContent
-    dataStruct(1) = struct('group', 'ID',            'value', stationInfo.ID);
-    dataStruct(2) = struct('group', 'Service',       'value', stationService);
-    dataStruct(3) = struct('group', 'Station',       'value', stationNumber);
-    dataStruct(4) = struct('group', 'OUTROS ASPECTOS TÉCNICOS', 'value', rmfield(stationInfo, {'AntennaPattern', ...
+    dataStruct(1) = struct('group', 'Service', 'value', stationService);
+    dataStruct(2) = struct('group', 'Station', 'value', stationNumber);
+    dataStruct(3) = struct('group', 'Localização (Latitude, Longitude)', 'value', stationLocation);
+    dataStruct(4) = struct('group', 'Altura', 'value', stationHeight);
+    dataStruct(5) = struct('group', 'OUTROS ASPECTOS TÉCNICOS', 'value', rmfield(stationInfo, {'AntennaPattern', ...
                                                                                                'BW',             ...
                                                                                                'Description',    ...
                                                                                                'Distance',       ...
@@ -75,7 +86,7 @@ function htmlContent = htmlCode_StationInfo(rfDataHub, idxRFDataHub, rfDataHubLO
     catch
     end
 
-    htmlContent   = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; margin: 5px; color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px;">%s</p>', stationInfo.Source) ...
+    htmlContent   = [sprintf('<div><p style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; margin: 5px; color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px;">%s</p><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; display: inline-block; vertical-align: sub;">ID %s</span></div>', stationInfo.Source, stationInfo.ID) ...
                      sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; margin: 5px;"><b>%s</b></p>', stationTag)                             ...
                      sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; text-align: justify; margin: 5px; padding-bottom: 10px;">%s</p>', stationInfo.Description) ...
                      textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')];
