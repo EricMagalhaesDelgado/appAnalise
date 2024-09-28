@@ -1,6 +1,6 @@
 function mlapp2m(MLAPPFiles, showDiffApp)
     arguments
-        MLAPPFiles  cell    = {'winAppAnalise', 'winDriveTest', 'winSignalAnalysis', 'winRFDataHub'}
+        MLAPPFiles  cell    = {'winAppAnalise', 'winDriveTest', 'winSignalAnalysis', 'winRFDataHub', 'winWelcomePage'}
         showDiffApp logical = false
     end
 
@@ -62,18 +62,22 @@ function mlapp2m(MLAPPFiles, showDiffApp)
                     oldTag2 = 'function createComponents(app)';
                     oldTag3 = 'app.GridLayout = uigridlayout(app.UIFigure);';
                     oldTag4 = sprintf('function app = %s(varargin)',       oldClassName);
-
+                    
                     % VALIDAÇÃO
                     if any(cellfun(@(x) ~contains(matlabCode, x), {oldTag1, oldTag2, oldTag3, oldTag4}))
                         error('Não identificado uma das tags! :(')
                     end
 
                     % SUBSTITUIÇÃO 1: ClassName
-                    % SUBSTITUIÇÃO 2: CreateComponents
+                    matlabCode  = replace(matlabCode, oldTag1, Step1Pattern(newClassName));
+
+                    % SUBSTITUIÇÃO 2: CreateComponents+FigurePosition
+                    matCodePart = char(extractBetween(matlabCode, oldTag2, oldTag3, 'Boundaries', 'inclusive'));
+                    figPosition = regexp(matCodePart, 'app\.UIFigure\.Position = \[\d+ \d+ \d+ \d+\];', 'match', 'once');
+                    matlabCode  = replace(matlabCode, matCodePart, sprintf(Step2Pattern(), figPosition));
+
                     % SUBSTITUIÇÃO 3: ClassName+Constructor+Delete
-                    matlabCode = replace(matlabCode, oldTag1, Step1Pattern(newClassName));
-                    matlabCode = replace(matlabCode, extractBetween(matlabCode, oldTag2, oldTag3, 'Boundaries', 'inclusive'), Step2Pattern);
-                    matlabCode = replace(matlabCode, [oldTag4 extractAfter(matlabCode, oldTag4)], Step3Pattern(newClassName));
+                    matlabCode  = replace(matlabCode, [oldTag4 extractAfter(matlabCode, oldTag4)], Step3Pattern(newClassName));
 
                     writematrix(matlabCode, [fileBaseName '_exported.m'], 'FileType', 'text', 'WriteMode', 'overwrite', 'QuoteStrings', 'none')
 
@@ -103,13 +107,13 @@ end
 %-------------------------------------------------------------------------%
 function step2Pattern = Step2Pattern()
     step2Pattern  = sprintf(['function createComponents(app, Container)\n\n'                          ...
-        '            %% Get the file path for locating images\n'                                      ...
+        '            %%%% Get the file path for locating images\n'                                    ...
         '            pathToMLAPP = fileparts(mfilename(''fullpath''));\n\n'                           ...
-        '            %% Create UIFigure and hide until all components are created\n'                  ...
+        '            %%%% Create UIFigure and hide until all components are created\n'                ...
         '            if isempty(Container)\n'                                                         ...
         '                app.UIFigure = uifigure(''Visible'', ''off'');\n'                            ...
         '                app.UIFigure.AutoResizeChildren = ''off'';\n'                                ...
-        '                app.UIFigure.Position = [100 100 1244 660];\n'                               ...
+        '                %%s\n'                                                                       ... % app.UIFigure.Position = [100 100 1244 660]
         '                app.UIFigure.Name = ''appAnalise'';\n'                                       ...
         '                app.UIFigure.Icon = ''icon_48.png'';\n'                                      ...
         '                app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);\n\n' ...
@@ -122,7 +126,7 @@ function step2Pattern = Step2Pattern()
         '                app.Container = Container;\n'                                                ...
         '                app.isDocked  = true;\n'                                                     ...
         '            end\n\n'                                                                         ...
-        '            %% Create GridLayout\n'                                                          ...
+        '            %%%% Create GridLayout\n'                                                        ...
         '            app.GridLayout = uigridlayout(app.Container);']);
 end
 

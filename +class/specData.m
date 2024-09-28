@@ -23,7 +23,7 @@ classdef specData < handle
     methods
         %-----------------------------------------------------------------%
         function [obj, builtinDialog] = read(obj, metaData, callingApp)
-            builtinDialog  = appUtil.modalWindow(callingApp.UIFigure, 'progressdlg', ' ');
+            builtinDialog  = appUtil.modalWindow(callingApp.UIFigure, 'progressdlg', 'Em andamento...');
 
             obj = FileMapping(obj, metaData, callingApp.General);
             arrayfun(@(x) setProperty(x, 'callingApp', callingApp),                        obj)

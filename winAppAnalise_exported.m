@@ -4,9 +4,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                        matlab.ui.Figure
         GridLayout                      matlab.ui.container.GridLayout
-        home_Grid                       matlab.ui.container.GridLayout
-        home_GIF                        matlab.ui.control.Image
-        home_Title                      matlab.ui.control.Label
+        welcomePageGrid                 matlab.ui.container.GridLayout
+        welcomePageSplash               matlab.ui.control.Image
+        welcomePagePanel                matlab.ui.container.Panel
         menu_Grid                       matlab.ui.container.GridLayout
         AppInfo                         matlab.ui.control.Image
         FigurePosition                  matlab.ui.control.Image
@@ -543,283 +543,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     end
     
     
-    methods (Access = public)
-        %-----------------------------------------------------------------%
-        % INICIALIZAÇÃO DO APP
-        %-----------------------------------------------------------------%
-        function startup_timerCreation(app)
-            app.timerObj_startup = timer("ExecutionMode", "fixedSpacing", ...
-                                         "StartDelay",    1.5,            ...
-                                         "Period",        .1,             ...
-                                         "TimerFcn",      @(~,~)app.startup_timerFcn);
-            start(app.timerObj_startup)
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_timerFcn(app)
-            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
-                stop(app.timerObj_startup)
-
-                % PATH SEARCH
-                appName   = class.Constants.appName;
-                MFilePath = fileparts(mfilename('fullpath'));
-                
-                app.rootFolder    = appUtil.RootFolder(appName, MFilePath);
-                app.executionMode = appUtil.ExecutionMode(app.UIFigure);
-                
-                % Customiza as aspectos estéticos de alguns dos componentes da GUI 
-                % (diretamente em JS).
-                jsBackDoor_Customizations(app, 0)
-                jsBackDoor_Customizations(app, 1)
-
-                % Criação das principais variáveis, leitura de arquivos externos 
-                % ("GeneralSettings.json", por exemplo), e, posteriormente, atualização 
-                % de propriedades de alguns dos componentes da GUI.
-                startup_Files2Read(app)
-                startup_AppProperties(app)
-                startup_GUIComponents(app)
-                startup_Axes(app)
-
-                % Inicia módulo de operação paralelo...
-                % parpoolCheck()
-
-                % Libera screen... 
-                app.TabGroup.Visible = 1;
-                sendEventToHTMLSource(app.jsBackDoor, 'turningBackgroundColorInvisible', struct('componentName', 'app.home_Grid', 'componentDataTag', struct(app.home_Grid).Controller.ViewModel.Id));
-
-                app.menu_Button1.Enable = 1;
-                app.menu_Button8.Enable = 1;
-                app.menu_Button7.Enable = 1;
-                app.AppInfo.Enable = 1;
-
-                if strcmp(app.executionMode, 'webApp')
-                    sendEventToHTMLSource(app.jsBackDoor, "delProgressDialog");
-                else
-                    app.FigurePosition.Enable = 1;
-                    appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-                end
-                drawnow
-
-                % O processo "turningBackgroundColorInvisible" do splashscreen
-                % demora 1250 ms. São 50 iterações em que em cada uma delas
-                % a opacidade da imagem diminuir em 0.02. Entre cada iteração, 
-                % 25 ms. Esse último trecho, entretanto, delimitado pelo
-                % comentário "Libera screen..." demora cerca de 1600 ms.
-
-                % A diretriz abaixo é a garantia de exclusão do splashscreen. 
-                % Ao abrir o webapp SCH no iPhone, por exemplo, o splashscreen 
-                % não foi excluído, o que "travou" o app.
-                if isvalid(app.home_Grid)
-                    pause(.500)
-                    delete(app.home_Grid)
-                end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_Files2Read(app)
-            % "GeneralSettings.json"
-            [app.General, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder);
-            if ~isempty(msgWarning)
-                appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
-            end
-
-            if ~strcmp(app.General.Plot.Waterfall.Decimation, 'auto')
-                app.General.Plot.Waterfall.Decimation = 'auto';
-            end
-        
-            if isempty(app.General.Merge.Distance)
-                app.General.Merge.Distance = Inf;
-            end
-        
-            if isempty(app.General.Integration.Trace)
-                app.General.Integration.Trace = Inf;
-            end
-        
-            app.General.AppVersion = fcn.startup_Versions("Startup", app.rootFolder);
-            app.General.Models     = struct2table(jsondecode(fileread(fullfile(app.rootFolder, 'Template', 'html_General.cfg'))));
-            app.General.Report     = '';
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_AppProperties(app)
-            app.projectData = projectLib(app);
-            app.bandObj     = class.Band('appAnalise:PLAYBACK', app);
-            app.channelObj  = class.ChannelLib(class.Constants.appName, app.rootFolder);
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_GUIComponents(app)
-            % Salva na propriedade "UserData" as opções de ícone e o índice 
-            % da aba, simplificando os ajustes decorrentes de uma alteração...
-            app.menu_Button1.UserData             = struct('iconOptions', {{'OpenFile_32White.png',         'OpenFile_32Yellow.png'}},         'tabGroup', 1);
-            app.menu_Button2.UserData             = struct('iconOptions', {{'Playback_32White.png',         'Playback_32Yellow.png'}},         'tabGroup', 2);
-            app.menu_Button3.UserData             = struct('iconOptions', {{'Report_32White.png',           'Report_32Yellow.png'}},           'tabGroup', 2);
-            app.menu_Button4.UserData             = struct('iconOptions', {{'Misc_32White.png',             'Misc_32Yellow.png'}},             'tabGroup', 2);
-            app.menu_Button5.UserData             = struct('iconOptions', {{'DriveTestDensity_32White.png', 'DriveTestDensity_32Yellow.png'}}, 'tabGroup', 3);
-            app.menu_Button6.UserData             = struct('iconOptions', {{'exceptionList_32White.png',    'exceptionList_32Yellow.png'}},    'tabGroup', 4);
-            app.menu_Button7.UserData             = struct('iconOptions', {{'mosaic_32White.png',           'mosaic_32Yellow.png'}},           'tabGroup', 5);
-            app.menu_Button8.UserData             = struct('iconOptions', {{'Settings_36White.png',         'Settings_36Yellow.png'}},         'tabGroup', 6);
-                        
-            app.play_TreeSort.UserData            = 'Receiver+ID';
-            app.file_Tree.UserData                = struct('previousSelectedFileIndex', []);
-            app.play_TreePanelVisibility.UserData = struct('Mode', 'PLAYBACK', 'Height', '0x');
-            app.play_Channel_ShowPlot.UserData    = false;
-            
-            app.axesTool_Pan.UserData             = false;
-            app.axesTool_DataTip.UserData         = false;
-            app.axesTool_MinHold.UserData         = struct('Value', false, 'ImageSource', {{'MinHold_32Filled.png', 'MinHold_32.png'}});
-            app.axesTool_Average.UserData         = struct('Value', false, 'ImageSource', {{'Average_32Filled.png', 'Average_32.png'}});
-            app.axesTool_MaxHold.UserData         = struct('Value', false, 'ImageSource', {{'MaxHold_32Filled.png', 'MaxHold_32.png'}});
-            app.axesTool_Persistance.UserData     = struct('Value', false);
-            app.axesTool_Occupancy.UserData       = struct('Value', false);
-            app.axesTool_Waterfall.UserData       = struct('Value', false);
-
-            app.play_PlotPanel.UserData           = [];
-
-            % Painel "PLAYBACK > ASPECTOS GERAIS"
-            if ismember(num2str(app.General.Integration.Trace), app.play_TraceIntegration.Items)
-                app.play_TraceIntegration.Value   = num2str(app.General.Integration.Trace);
-            else
-                app.General.Integration.Trace     = Inf;
-            end
-
-            % Painel "PLAYBACK > ASPECTOS GERAIS > PERSISTÊNCIA"
-            app.play_Persistance_Interpolation.Value = app.General.Plot.Persistance.Interpolation;
-            app.play_Persistance_WindowSize.Value    = app.General.Plot.Persistance.WindowSize;
-            app.play_Persistance_Colormap.Value      = app.General.Plot.Persistance.Colormap;
-            app.play_Persistance_cLim1.Value         = app.General.Plot.Persistance.LevelLimits(1);
-            app.play_Persistance_cLim2.Value         = app.General.Plot.Persistance.LevelLimits(2);
-            play_ControlsPanelSelectionChanged(app)
-
-            % Painel "PLAYBACK > ASPECTOS GERAIS > WATERFALL"
-            app.play_Waterfall_Fcn.Value             = app.General.Plot.Waterfall.Fcn;
-            app.play_Waterfall_Colorbar.Value        = app.General.Plot.Waterfall.Colorbar;
-            app.play_Waterfall_Decimation.Value      = app.General.Plot.Waterfall.Decimation;
-            app.play_Waterfall_MeshStyle.Value       = app.General.Plot.Waterfall.MeshStyle;
-            app.play_Waterfall_Timeline.Value        = app.General.Plot.WaterfallTime.Visible;
-            app.play_Waterfall_Colormap.Value        = app.General.Plot.Waterfall.Colormap;
-            app.play_Waterfall_cLim1.Value           = app.General.Plot.Waterfall.LevelLimits(1);
-            app.play_Waterfall_cLim2.Value           = app.General.Plot.Waterfall.LevelLimits(2);
-
-            % Painel "PLAYBACK > CANAIS"
-            channelList = {};
-            for ii = 1:numel(app.channelObj.Channel)
-                channelList{end+1} = sprintf('%d: %.3f - %.3f MHz (%s)', ii, app.channelObj.Channel(ii).Band(1), ...
-                                                                             app.channelObj.Channel(ii).Band(2),     ...
-                                                                             app.channelObj.Channel(ii).Name);
-            end
-            app.play_Channel_List.Items = channelList;
-            play_Channel_RadioGroupSelectionChanged(app)
-            
-            % Painel "PLAYBACK > EMISSÕES"
-            app.play_FindPeaks_Class.Items = app.channelObj.FindPeaks.Name;
-            play_FindPeaks_ClassValueChanged(app)
-
-            play_FindPeaks_RadioGroupSelectionChanged(app)
-            play_FindPeaks_AlgorithmValueChanged(app)
-
-            % Painel "REPORT >> PROJECT"
-            app.report_ThreadAlgorithms.HTMLSource = fullfile(app.rootFolder, 'Icons', 'Warning.html');
-            app.report_ModelName.Items             = [{''}; app.General.Models.Name];
-
-            % Painel "MISC >> antennaKFactor"
-            measCalibration = jsondecode(fileread(fullfile(app.rootFolder, 'Settings', 'measCalibration.json')));
-            app.misc_Edit_kFactor.Items = {measCalibration.Name};
-
-            % Painel "CONFIG >> PASTAS"
-            switch app.executionMode
-                case 'webApp'
-                    % Webapp não suporta uigetdir, então o mapeamento das pastas
-                    % POST/GET deve ser feito em arquivo externo de configuração...
-                    app.config_Option_Folder.Enable   = 0;
-
-                    % Webapp também não suporta outras janelas, de forma que os 
-                    % módulos auxiliares devem ser abertos na própria janela
-                    % do appAnalise.
-                    app.drivetest_Undock.Visible      = 0;
-                    app.signalanalysis_Undock.Visible = 0;
-                    app.rfdatahub_Undock.Visible      = 0;
-                    set(app.config_openAuxiliarAppAsDocked,     'Value', 1, 'Enable', 0)
-                    set(app.config_openAuxiliarApp2Debug, 'Value', 0, 'Enable', 0)
-
-                otherwise
-                    % A versão desktop do app, contudo, possibilita a definição 
-                    % do local onde deve ser renderizado os módulos auxiliares.
-                    app.config_openAuxiliarAppAsDocked.Value = app.General.AuxiliarAppDockState;
-
-                    % E a pasta do usuário é configurável.
-                    userPaths = appUtil.UserPaths(app.General.fileFolder.userPath);
-                    set(app.config_Folder_userPath, 'Items', userPaths, 'Value', userPaths{end})
-                    app.General.fileFolder.userPath = userPaths{end};
-            end
-
-            pythonPath = app.General.fileFolder.pythonPath;
-            if isfile(pythonPath)
-                pyenv('Version', pythonPath);
-                app.config_Folder_pythonPath.Value = pythonPath;
-            else
-                pyEnv = pyenv;
-                app.config_Folder_pythonPath.Value = pyEnv.Executable;
-            end
-
-            % Painel "CONFIG >> FISCALIZA" com impacto em "REPORT >> FISCALIZA"
-            switch app.General.fiscaliza.systemVersion
-                case 'PROD'
-                    app.config_FiscalizaPD.Value = 1;
-                case 'HOM'
-                    app.config_FiscalizaHM.Value = 1;
-            end
-            fiscalizaLibConnection.config_SystemMode(app)
-            fiscalizaLibConnection.config_DefaultValues(app)
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_Axes(app)
-            % Axes creation:
-            hParent     = tiledlayout(app.play_PlotPanel, 4, 1, "Padding", "compact", "TileSpacing", "compact");
-            app.UIAxes1 = plot.axes.Creation(hParent, 'Cartesian', {'UserData', struct('CLimMode', 'auto', 'Colormap', '')});
-            app.UIAxes1.Layout.Tile = 1;
-            app.UIAxes1.Layout.TileSpan = [2 1];
-            
-            app.UIAxes2 = plot.axes.Creation(hParent, 'Cartesian', {'YScale', 'log'});
-            app.UIAxes2.Layout.Tile = 3;
-            
-            app.UIAxes3 = plot.axes.Creation(hParent, 'Cartesian', {'Layer', 'top', 'Box', 'on', 'XGrid', 'off', 'XMinorGrid', 'off', 'YGrid', 'off', 'YMinorGrid', 'off', 'UserData', struct('CLimMode', 'auto', 'Colormap', '')});
-            app.UIAxes3.Layout.Tile = 4;            
-
-            % Axes colormap:
-            plot.axes.Colormap(app.UIAxes1, app.play_Persistance_Colormap.Value)
-            plot.axes.Colormap(app.UIAxes3, app.play_Waterfall_Colormap.Value)
-
-            % Axes colorbar:
-            play_Waterfall_ColorbarValueChanged(app)
-
-            % Axes fixed labels:
-            ylabel(app.UIAxes1, 'Nível (dB)')
-            ysecondarylabel(app.UIAxes1, Visible='on')
-
-            ylabel(app.UIAxes2, 'Ocupação (%)')
-            xlabel(app.UIAxes3, 'Frequência (MHz)')
-            ylabel(app.UIAxes3, 'Instante')
-            plot.axes.Layout.XLabel([app.UIAxes1, app.UIAxes2, app.UIAxes3], app.axesTool_Occupancy.UserData.Value, app.axesTool_Waterfall.UserData.Value)
-            plot.axes.Layout.RatioAspect([app.UIAxes1, app.UIAxes2, app.UIAxes3], app.axesTool_Occupancy.UserData.Value, app.axesTool_Waterfall.UserData.Value, app.play_LayoutRatio)
-
-            % Axes listeners:
-            linkaxes([app.UIAxes1, app.UIAxes2, app.UIAxes3], 'x')
-            addlistener(app.UIAxes1, 'XLim', 'PostSet', @app.plot_AxesLimitsChanged);
-            addlistener(app.UIAxes1, 'YLim', 'PostSet', @app.plot_AxesLimitsChanged);
-
-            % Axes interactions:
-            plot.axes.Interactivity.DefaultCreation([app.UIAxes1, app.UIAxes2, app.UIAxes3], [dataTipInteraction, regionZoomInteraction])
-
-            try
-                eval(sprintf('opengl %s', app.General.openGL))
-            catch
-            end
-        end
-
-
+    methods (Access = private)
         %-----------------------------------------------------------------%
         % JSBACKDOOR
         %-----------------------------------------------------------------%
@@ -831,12 +555,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function jsBackDoor_Listener(app, event)
             switch event.HTMLEventName
-                case 'credentialDialog'
-                    fiscalizaLibConnection.report_Connect(app, event.HTMLEventData, 'OpenConnection')
-                case 'BackgroundColorTurnedInvisible'
-                    if isvalid(app.home_Grid)
-                        delete(app.home_Grid)
-                    end
                 case 'app.file_Tree'
                     file_ContextMenu_delTree1NodeSelected(app)
                 case 'app.file_FilteringTree'
@@ -849,6 +567,19 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     play_FindPeaks_delEmission(app)
                 case 'app.report_Tree'
                     report_ContextMenu_delSelected(app)
+                case 'credentialDialog'
+                    fiscalizaLibConnection.report_Connect(app, event.HTMLEventData, 'OpenConnection')
+                case 'BackgroundColorTurnedInvisible'
+                    switch event.HTMLEventData
+                        case 'SplashScreen'
+                            if isvalid(app.welcomePageSplash)
+                                delete(app.welcomePageSplash)
+                            end
+                        case 'WelcomePage'
+                            if isvalid(app.welcomePageGrid)
+                                delete(app.welcomePageGrid)
+                            end
+                    end
             end
             drawnow
         end
@@ -861,7 +592,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Lembrando que o MATLAB renderiza em tela apenas as abas visíveis.
             % Por isso as customizações de abas e suas subabas somente é possível 
             % após a renderização da aba.
-
             switch tabIndex
                 case 0 % STARTUP
                     app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
@@ -915,8 +645,287 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
             end
         end
+    end
 
+
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        % INICIALIZAÇÃO DO APP
+        %-----------------------------------------------------------------%
+        function startup_timerCreation(app)
+            app.timerObj_startup = timer("ExecutionMode", "fixedSpacing", ...
+                                         "StartDelay",    1.5,            ...
+                                         "Period",        .1,             ...
+                                         "TimerFcn",      @(~,~)app.startup_timerFcn);
+            start(app.timerObj_startup)
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_timerFcn(app)
+            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
+                stop(app.timerObj_startup)
+
+                % WELCOMEPAGE
+                % 1/7: Insere estilo ao container do auxApp.winWelcomePage.
+                sendEventToHTMLSource(app.jsBackDoor, "panelDialog", struct('componentDataTag', struct(app.welcomePagePanel).Controller.ViewModel.Id)) 
+                
+                % 2/7: Adiciona transparência ao Grid do Container, que confere 
+                %      o efeito de janela modal à auxApp.winWelcomePage.
+                ccTools.compCustomizationV2(app.jsBackDoor, app.welcomePageGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
+                drawnow
+
+                % 3/7: Inicia auxApp.winWelcomePage.
+                auxApp.winWelcomePage_exported(app.welcomePagePanel, app)
+                app.welcomePagePanel.Visible = 1;                
+
+                % OUTROS ASPECTOS IMPORTANTES
+                appName           = class.Constants.appName;
+                MFilePath         = fileparts(mfilename('fullpath'));
+                app.rootFolder    = appUtil.RootFolder(appName, MFilePath);
+                app.executionMode = appUtil.ExecutionMode(app.UIFigure);
+                
+                % Customiza as aspectos estéticos de alguns dos componentes da GUI 
+                % (diretamente em JS).
+                jsBackDoor_Customizations(app, 0)
+                jsBackDoor_Customizations(app, 1)
+
+                % Leitura do arquivo "GeneralSettings.json".
+                startup_ConfigFileRead(app)
+                startup_AppProperties(app)
+                startup_GUIComponents(app)
+
+                switch app.executionMode
+                    case 'webApp'
+                        % Força a exclusão do SplashScreen do MATLAB WebDesigner.
+                        sendEventToHTMLSource(app.jsBackDoor, "delProgressDialog");
+    
+                        % Webapp não suporta uigetdir, então o mapeamento das pastas
+                        % POST/GET deve ser feito em arquivo externo de configuração...
+                        app.config_Option_Folder.Enable   = 0;
+    
+                        % Webapp também não suporta outras janelas, de forma que os 
+                        % módulos auxiliares devem ser abertos na própria janela
+                        % do appAnalise.
+                        app.drivetest_Undock.Visible      = 0;
+                        app.signalanalysis_Undock.Visible = 0;
+                        app.rfdatahub_Undock.Visible      = 0;
+                        set(app.config_openAuxiliarAppAsDocked, 'Value', 1, 'Enable', 0)
+                        set(app.config_openAuxiliarApp2Debug,   'Value', 0, 'Enable', 0)
+    
+                    otherwise
+                        % Configura o tamanho mínimo da janela. 
+                        app.FigurePosition.Enable = 1;
+                        appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+    
+                        % A versão desktop do app, contudo, possibilita a definição 
+                        % do local onde deve ser renderizado os módulos auxiliares.
+                        app.config_openAuxiliarAppAsDocked.Value = app.General.AuxiliarAppDockState;
+    
+                        % E a pasta do usuário é configurável.
+                        userPaths = appUtil.UserPaths(app.General.fileFolder.userPath);
+                        set(app.config_Folder_userPath, 'Items', userPaths, 'Value', userPaths{end})
+                        app.General.fileFolder.userPath = userPaths{end};
+                end
+                
+                % WELCOMEPAGE (continuação)
+                % 4/7: Diminui a opacidade do SplashScreen. Esse processo dura
+                %      cerca de 1250 ms. São 50 iterações em que em cada uma 
+                %      delas a opacidade da imagem diminuir em 0.02. Entre cada 
+                %      iteração, 25 ms. E executa drawnow, forçando a renderização 
+                %      em tela dos componentes.
+                sendEventToHTMLSource(app.jsBackDoor, 'turningBackgroundColorInvisible', struct('componentName', 'SplashScreen', 'componentDataTag', struct(app.welcomePageSplash).Controller.ViewModel.Id));
+                drawnow
+
+                % 5/7: Torna visível o container do auxApp.winWelcomePage, forçando
+                %      a exclusão do SplashScreen.
+                app.welcomePagePanel.Visible = 1;
+                if isvalid(app.welcomePageSplash)
+                    pause(1)
+                    delete(app.welcomePageSplash)
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_ConfigFileRead(app)
+            % "GeneralSettings.json"
+            [app.General, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder);
+            if ~isempty(msgWarning)
+                appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
+            end
+
+            if ~strcmp(app.General.Plot.Waterfall.Decimation, 'auto')
+                app.General.Plot.Waterfall.Decimation = 'auto';
+            end
         
+            if isempty(app.General.Merge.Distance)
+                app.General.Merge.Distance = Inf;
+            end
+        
+            if isempty(app.General.Integration.Trace)
+                app.General.Integration.Trace = Inf;
+            end
+        
+            app.General.AppVersion = fcn.startup_Versions("Startup", app.rootFolder);
+            app.General.Models     = struct2table(jsondecode(fileread(fullfile(app.rootFolder, 'Template', 'html_General.cfg'))));
+            app.General.Report     = '';
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_AppProperties(app)
+            app.projectData = projectLib(app);
+            app.bandObj     = class.Band('appAnalise:PLAYBACK', app);
+            app.channelObj  = class.ChannelLib(class.Constants.appName, app.rootFolder);
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_GUIComponents(app)
+            % Salva na propriedade "UserData" as opções de ícone e o índice 
+            % da aba, simplificando os ajustes decorrentes de uma alteração...
+            app.menu_Button1.UserData                = struct('iconOptions', {{'OpenFile_32White.png',         'OpenFile_32Yellow.png'}},         'tabGroup', 1);
+            app.menu_Button2.UserData                = struct('iconOptions', {{'Playback_32White.png',         'Playback_32Yellow.png'}},         'tabGroup', 2);
+            app.menu_Button3.UserData                = struct('iconOptions', {{'Report_32White.png',           'Report_32Yellow.png'}},           'tabGroup', 2);
+            app.menu_Button4.UserData                = struct('iconOptions', {{'Misc_32White.png',             'Misc_32Yellow.png'}},             'tabGroup', 2);
+            app.menu_Button5.UserData                = struct('iconOptions', {{'DriveTestDensity_32White.png', 'DriveTestDensity_32Yellow.png'}}, 'tabGroup', 3);
+            app.menu_Button6.UserData                = struct('iconOptions', {{'exceptionList_32White.png',    'exceptionList_32Yellow.png'}},    'tabGroup', 4);
+            app.menu_Button7.UserData                = struct('iconOptions', {{'mosaic_32White.png',           'mosaic_32Yellow.png'}},           'tabGroup', 5);
+            app.menu_Button8.UserData                = struct('iconOptions', {{'Settings_36White.png',         'Settings_36Yellow.png'}},         'tabGroup', 6);
+                        
+            app.play_TreeSort.UserData               = 'Receiver+ID';
+            app.file_Tree.UserData                   = struct('previousSelectedFileIndex', []);
+            app.play_TreePanelVisibility.UserData    = struct('Mode', 'PLAYBACK', 'Height', '0x');
+            app.play_Channel_ShowPlot.UserData       = false;
+            
+            app.axesTool_Pan.UserData                = false;
+            app.axesTool_DataTip.UserData            = false;
+            app.axesTool_MinHold.UserData            = struct('Value', false, 'ImageSource', {{'MinHold_32Filled.png', 'MinHold_32.png'}});
+            app.axesTool_Average.UserData            = struct('Value', false, 'ImageSource', {{'Average_32Filled.png', 'Average_32.png'}});
+            app.axesTool_MaxHold.UserData            = struct('Value', false, 'ImageSource', {{'MaxHold_32Filled.png', 'MaxHold_32.png'}});
+            app.axesTool_Persistance.UserData        = struct('Value', false);
+            app.axesTool_Occupancy.UserData          = struct('Value', false);
+            app.axesTool_Waterfall.UserData          = struct('Value', false);
+
+            app.play_PlotPanel.UserData              = [];
+
+            % Painel "PLAYBACK > ASPECTOS GERAIS"
+            if ismember(num2str(app.General.Integration.Trace), app.play_TraceIntegration.Items)
+                app.play_TraceIntegration.Value      = num2str(app.General.Integration.Trace);
+            else
+                app.General.Integration.Trace        = Inf;
+            end
+
+            % Painel "PLAYBACK > ASPECTOS GERAIS > PERSISTÊNCIA"
+            app.play_Persistance_Interpolation.Value = app.General.Plot.Persistance.Interpolation;
+            app.play_Persistance_WindowSize.Value    = app.General.Plot.Persistance.WindowSize;
+            app.play_Persistance_Colormap.Value      = app.General.Plot.Persistance.Colormap;
+            app.play_Persistance_cLim1.Value         = app.General.Plot.Persistance.LevelLimits(1);
+            app.play_Persistance_cLim2.Value         = app.General.Plot.Persistance.LevelLimits(2);
+            play_ControlsPanelSelectionChanged(app)
+
+            % Painel "PLAYBACK > ASPECTOS GERAIS > WATERFALL"
+            app.play_Waterfall_Fcn.Value             = app.General.Plot.Waterfall.Fcn;
+            app.play_Waterfall_Colorbar.Value        = app.General.Plot.Waterfall.Colorbar;
+            app.play_Waterfall_Decimation.Value      = app.General.Plot.Waterfall.Decimation;
+            app.play_Waterfall_MeshStyle.Value       = app.General.Plot.Waterfall.MeshStyle;
+            app.play_Waterfall_Timeline.Value        = app.General.Plot.WaterfallTime.Visible;
+            app.play_Waterfall_Colormap.Value        = app.General.Plot.Waterfall.Colormap;
+            app.play_Waterfall_cLim1.Value           = app.General.Plot.Waterfall.LevelLimits(1);
+            app.play_Waterfall_cLim2.Value           = app.General.Plot.Waterfall.LevelLimits(2);
+
+            % Painel "PLAYBACK > CANAIS"
+            channelList = {};
+            for ii = 1:numel(app.channelObj.Channel)
+                channelList{end+1} = sprintf('%d: %.3f - %.3f MHz (%s)', ii, app.channelObj.Channel(ii).Band(1), ...
+                                                                             app.channelObj.Channel(ii).Band(2),     ...
+                                                                             app.channelObj.Channel(ii).Name);
+            end
+            app.play_Channel_List.Items = channelList;
+            play_Channel_RadioGroupSelectionChanged(app)
+            
+            % Painel "PLAYBACK > EMISSÕES"
+            app.play_FindPeaks_Class.Items = app.channelObj.FindPeaks.Name;
+            play_FindPeaks_ClassValueChanged(app)
+
+            play_FindPeaks_RadioGroupSelectionChanged(app)
+            play_FindPeaks_AlgorithmValueChanged(app)
+
+            % Painel "REPORT >> PROJECT"
+            app.report_ThreadAlgorithms.HTMLSource   = fullfile(app.rootFolder, 'Icons', 'Warning.html');
+            app.report_ModelName.Items               = [{''}; app.General.Models.Name];
+
+            % Painel "MISC >> antennaKFactor"
+            measCalibration = jsondecode(fileread(fullfile(app.rootFolder, 'Settings', 'measCalibration.json')));
+            app.misc_Edit_kFactor.Items = {measCalibration.Name};
+
+            % Painel "CONFIG >> PYTHON"
+            pythonPath = app.General.fileFolder.pythonPath;
+            if isfile(pythonPath)
+                pyenv('Version', pythonPath);
+                app.config_Folder_pythonPath.Value   = pythonPath;
+            else
+                pyEnv = pyenv;
+                app.config_Folder_pythonPath.Value   = pyEnv.Executable;
+            end
+
+            % Painel "CONFIG >> FISCALIZA" com impacto em "REPORT >> FISCALIZA"
+            switch app.General.fiscaliza.systemVersion
+                case 'PROD'
+                    app.config_FiscalizaPD.Value     = 1;
+                case 'HOM'
+                    app.config_FiscalizaHM.Value     = 1;
+            end
+            fiscalizaLibConnection.config_SystemMode(app)
+            fiscalizaLibConnection.config_DefaultValues(app)
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_Axes(app)
+            % Axes creation:
+            hParent     = tiledlayout(app.play_PlotPanel, 4, 1, "Padding", "compact", "TileSpacing", "compact");
+            app.UIAxes1 = plot.axes.Creation(hParent, 'Cartesian', {'UserData', struct('CLimMode', 'auto', 'Colormap', '')});
+            app.UIAxes1.Layout.Tile = 1;
+            app.UIAxes1.Layout.TileSpan = [2 1];
+            
+            app.UIAxes2 = plot.axes.Creation(hParent, 'Cartesian', {'YScale', 'log'});
+            app.UIAxes2.Layout.Tile = 3;
+            
+            app.UIAxes3 = plot.axes.Creation(hParent, 'Cartesian', {'Layer', 'top', 'Box', 'on', 'XGrid', 'off', 'XMinorGrid', 'off', 'YGrid', 'off', 'YMinorGrid', 'off', 'UserData', struct('CLimMode', 'auto', 'Colormap', '')});
+            app.UIAxes3.Layout.Tile = 4;            
+
+            % Axes colormap:
+            plot.axes.Colormap(app.UIAxes1, app.play_Persistance_Colormap.Value)
+            plot.axes.Colormap(app.UIAxes3, app.play_Waterfall_Colormap.Value)
+
+            % Axes colorbar:
+            play_Waterfall_ColorbarValueChanged(app)
+
+            % Axes fixed labels:
+            ylabel(app.UIAxes1, 'Nível (dB)')
+            ysecondarylabel(app.UIAxes1, Visible='on')
+
+            ylabel(app.UIAxes2, 'Ocupação (%)')
+            xlabel(app.UIAxes3, 'Frequência (MHz)')
+            ylabel(app.UIAxes3, 'Instante')
+            plot.axes.Layout.XLabel([app.UIAxes1, app.UIAxes2, app.UIAxes3], app.axesTool_Occupancy.UserData.Value, app.axesTool_Waterfall.UserData.Value)
+            plot.axes.Layout.RatioAspect([app.UIAxes1, app.UIAxes2, app.UIAxes3], app.axesTool_Occupancy.UserData.Value, app.axesTool_Waterfall.UserData.Value, app.play_LayoutRatio)
+
+            % Axes listeners:
+            linkaxes([app.UIAxes1, app.UIAxes2, app.UIAxes3], 'x')
+            addlistener(app.UIAxes1, 'XLim', 'PostSet', @app.plot_AxesLimitsChanged);
+            addlistener(app.UIAxes1, 'YLim', 'PostSet', @app.plot_AxesLimitsChanged);
+
+            % Axes interactions:
+            plot.axes.Interactivity.DefaultCreation([app.UIAxes1, app.UIAxes2, app.UIAxes3], [dataTipInteraction, regionZoomInteraction])
+
+            try
+                eval(sprintf('opengl %s', app.General.openGL))
+            catch
+            end
+        end
+    end
+
+
+    methods
         %-----------------------------------------------------------------%
         % CUSTOMIZAÇÃO DECORRENTE DA TROCA DO MODO DE OPERAÇÃO
         %-----------------------------------------------------------------%
@@ -3153,6 +3162,27 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function appBackDoor(app, callingApp, operationType, varargin)
             try
                 switch class(callingApp)
+                    case {'auxApp.winWelcomePage', 'auxApp.winWelcomePage_exported'}
+                        pushedButtonTag = varargin{1};
+                        simulationFlag  = varargin{2};
+
+                        % WELCOMEPAGE (continuação)
+                        % 6/7: Executa callback, a depender da escolha do usuário.
+                        app.config_openData2Simulate.Value = simulationFlag;
+                        switch pushedButtonTag
+                            case 'Open'
+                                file_ButtonPushed_OpenFile(app)
+                            case 'RFDataHub'
+                                menu_OpenRFDataHubModule(app, struct('Source', app.menu_Button7, 'PreviousValue', false))
+                            case 'Config'
+                                menu_mainButtonPushed(app, struct('Source', app.menu_Button8, 'PreviousValue', false))
+                            case 'Close'
+                                % ...
+                        end
+
+                        % 7/7: Finaliza o processo de inicialização.
+                        delete(app.welcomePageGrid)
+
                     case {'auxApp.winSignalAnalysis', 'auxApp.winSignalAnalysis_exported'}
                         switch operationType
                             case 'closeFcn'
@@ -3225,15 +3255,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             try
                 % WARNING MESSAGES
                 appUtil.disablingWarningMessages()
-                
-                % GUI STARTUP
-                app.home_Title.Text = sprintf('<p><font  style="font-size: 16px; color: black;"><b>appAnalise </b></font><br>v. %s </p></div>', class.Constants.appVersion);
 
                 % !! ÁREA DE AJUSTES DA GUI (EM AMBIENTE DE DESENVOLVIMENTO)
                 % E EXPERIMENTOS !!
                 app.UIFigure.Position(4) = 660;
-                app.TabGroup.Visible     = 0;
-                app.home_Grid.Layout.Row = 2;
+                app.welcomePageGrid.Layout.Row = [1,2];
                 app.GridLayout.RowHeight = {44, '1x'};
                 app.play_TreeGrid.RowHeight(4:9) = {0,0,0,0,0,0};
                 config_ButtonGroupSelectionChanged(app)
@@ -3425,6 +3451,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         % Button pushed function: file_SpecReadButton
         function file_ButtonPushed_SpecRead(app, event)
+                        
             % <ReviewNote> EMD - 22/08/2024</ReviewNote>
             % Verificar se há ao menos um fluxo a ser lido...
             flag = false;
@@ -3463,6 +3490,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             builtinDialog = [];
             try
                 [app.specData, builtinDialog] = read(app.specData, app.metaData, app);
+
+                if isempty(app.UIAxes1)
+                    startup_Axes(app)
+                end
 
                 % Constroi a árvore de fluxos espectrais, deixando selecionado
                 % o primeiro dos fluxos. E constroi a árvore de fluxos espectrais
@@ -5978,7 +6009,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.AutoResizeChildren = 'off';
             app.UIFigure.Color = [0.9412 0.9412 0.9412];
-            app.UIFigure.Position = [300 180 1244 4000];
+            app.UIFigure.Position = [100 100 1244 4000];
             app.UIFigure.Name = 'appAnaliseV2 R2024a';
             app.UIFigure.Icon = fullfile(pathToMLAPP, 'Icons', 'icon_48.png');
             app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -6564,7 +6595,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_MinPlotTime.FontSize = 11;
             app.play_MinPlotTime.Layout.Row = 2;
             app.play_MinPlotTime.Layout.Column = 3;
-            app.play_MinPlotTime.Value = 50;
+            app.play_MinPlotTime.Value = 100;
 
             % Create play_TraceIntegrationLabel
             app.play_TraceIntegrationLabel = uilabel(app.play_OthersGrid);
@@ -9120,7 +9151,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create drivetest_Grid
             app.drivetest_Grid = uigridlayout(app.Tab3_DriveTest);
-            app.drivetest_Grid.ColumnWidth = {'1x', 16, 16};
+            app.drivetest_Grid.ColumnWidth = {'1x', 22, 22};
             app.drivetest_Grid.RowHeight = {20, '1x'};
             app.drivetest_Grid.ColumnSpacing = 2;
             app.drivetest_Grid.RowSpacing = 0;
@@ -9142,16 +9173,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.drivetest_Undock.Tooltip = {'Abre módulo em outra janela'};
             app.drivetest_Undock.Layout.Row = 1;
             app.drivetest_Undock.Layout.Column = 2;
-            app.drivetest_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18Gray.png');
+            app.drivetest_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
 
             % Create drivetest_Close
             app.drivetest_Close = uiimage(app.drivetest_Grid);
+            app.drivetest_Close.ScaleMethod = 'none';
             app.drivetest_Close.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
             app.drivetest_Close.Tag = 'DRIVETEST';
             app.drivetest_Close.Tooltip = {'Fecha módulo'};
             app.drivetest_Close.Layout.Row = 1;
             app.drivetest_Close.Layout.Column = 3;
-            app.drivetest_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_32Gray.png');
+            app.drivetest_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_12SVG.svg');
 
             % Create Tab4_SignalAnalysis
             app.Tab4_SignalAnalysis = uitab(app.TabGroup);
@@ -9159,7 +9191,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create signalanalysis_Grid
             app.signalanalysis_Grid = uigridlayout(app.Tab4_SignalAnalysis);
-            app.signalanalysis_Grid.ColumnWidth = {'1x', 16, 16};
+            app.signalanalysis_Grid.ColumnWidth = {'1x', 22, 22};
             app.signalanalysis_Grid.RowHeight = {20, '1x'};
             app.signalanalysis_Grid.ColumnSpacing = 2;
             app.signalanalysis_Grid.RowSpacing = 0;
@@ -9180,16 +9212,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.signalanalysis_Undock.Tooltip = {'Abre módulo em outra janela'};
             app.signalanalysis_Undock.Layout.Row = 1;
             app.signalanalysis_Undock.Layout.Column = 2;
-            app.signalanalysis_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18Gray.png');
+            app.signalanalysis_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
 
             % Create signalanalysis_Close
             app.signalanalysis_Close = uiimage(app.signalanalysis_Grid);
+            app.signalanalysis_Close.ScaleMethod = 'none';
             app.signalanalysis_Close.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
             app.signalanalysis_Close.Tag = 'SIGNALANALYSIS';
             app.signalanalysis_Close.Tooltip = {'Fecha módulo'};
             app.signalanalysis_Close.Layout.Row = 1;
             app.signalanalysis_Close.Layout.Column = 3;
-            app.signalanalysis_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_32Gray.png');
+            app.signalanalysis_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_12SVG.svg');
 
             % Create Tab5_RFDataHub
             app.Tab5_RFDataHub = uitab(app.TabGroup);
@@ -9197,7 +9230,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create rfdatahub_Grid
             app.rfdatahub_Grid = uigridlayout(app.Tab5_RFDataHub);
-            app.rfdatahub_Grid.ColumnWidth = {'1x', 16, 16};
+            app.rfdatahub_Grid.ColumnWidth = {'1x', 22, 22};
             app.rfdatahub_Grid.RowHeight = {20, '1x'};
             app.rfdatahub_Grid.ColumnSpacing = 2;
             app.rfdatahub_Grid.RowSpacing = 0;
@@ -9218,16 +9251,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.rfdatahub_Undock.Tooltip = {'Abre módulo em outra janela'};
             app.rfdatahub_Undock.Layout.Row = 1;
             app.rfdatahub_Undock.Layout.Column = 2;
-            app.rfdatahub_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18Gray.png');
+            app.rfdatahub_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
 
             % Create rfdatahub_Close
             app.rfdatahub_Close = uiimage(app.rfdatahub_Grid);
+            app.rfdatahub_Close.ScaleMethod = 'none';
             app.rfdatahub_Close.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
             app.rfdatahub_Close.Tag = 'RFDATAHUB';
             app.rfdatahub_Close.Tooltip = {'Fecha módulo'};
             app.rfdatahub_Close.Layout.Row = 1;
             app.rfdatahub_Close.Layout.Column = 3;
-            app.rfdatahub_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_32Gray.png');
+            app.rfdatahub_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_12SVG.svg');
 
             % Create Tab6_Config
             app.Tab6_Config = uitab(app.TabGroup);
@@ -9482,21 +9516,21 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.config_openAuxiliarAppAsDocked = uicheckbox(app.Panel_5);
             app.config_openAuxiliarAppAsDocked.Text = 'DOCKED MODE: Abertas as versões M dos apps auxiliares.';
             app.config_openAuxiliarAppAsDocked.WordWrap = 'on';
-            app.config_openAuxiliarAppAsDocked.Position = [9 139 312 35];
+            app.config_openAuxiliarAppAsDocked.Position = [9 140 312 35];
             app.config_openAuxiliarAppAsDocked.Value = true;
 
             % Create config_openAuxiliarApp2Debug
             app.config_openAuxiliarApp2Debug = uicheckbox(app.Panel_5);
             app.config_openAuxiliarApp2Debug.Text = 'DEBUG MODE: São abertas as versões MLAPP dos apps auxiliares), quando não selecionado DOCKED MODE.';
             app.config_openAuxiliarApp2Debug.WordWrap = 'on';
-            app.config_openAuxiliarApp2Debug.Position = [13 64 304 44];
+            app.config_openAuxiliarApp2Debug.Position = [13 65 304 44];
             app.config_openAuxiliarApp2Debug.Value = true;
 
             % Create config_openData2Simulate
             app.config_openData2Simulate = uicheckbox(app.Panel_5);
             app.config_openData2Simulate.ValueChangedFcn = createCallbackFcn(app, @config_openData2SimulateValueChanged, true);
             app.config_openData2Simulate.Text = 'Modo simulação';
-            app.config_openData2Simulate.Position = [28 20 242 22];
+            app.config_openData2Simulate.Position = [28 21 242 22];
 
             % Create config_Option3Grid
             app.config_Option3Grid = uigridlayout(app.config_mainGrid);
@@ -9662,8 +9696,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button1 = uibutton(app.menu_Grid, 'state');
             app.menu_Button1.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button1.Tag = 'FILE';
-            app.menu_Button1.Enable = 'off';
-            app.menu_Button1.Tooltip = {''};
+            app.menu_Button1.Tooltip = {'ARQUIVO'};
             app.menu_Button1.Icon = fullfile(pathToMLAPP, 'Icons', 'OpenFile_32Yellow.png');
             app.menu_Button1.IconAlignment = 'top';
             app.menu_Button1.Text = '';
@@ -9686,7 +9719,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button2.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button2.Tag = 'PLAYBACK';
             app.menu_Button2.Enable = 'off';
-            app.menu_Button2.Tooltip = {''};
+            app.menu_Button2.Tooltip = {'PLAYBACK'};
             app.menu_Button2.Icon = fullfile(pathToMLAPP, 'Icons', 'Playback_32White.png');
             app.menu_Button2.IconAlignment = 'top';
             app.menu_Button2.Text = '';
@@ -9700,7 +9733,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button3.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button3.Tag = 'REPORT';
             app.menu_Button3.Enable = 'off';
-            app.menu_Button3.Tooltip = {''};
+            app.menu_Button3.Tooltip = {'RELATÓRIO'};
             app.menu_Button3.Icon = fullfile(pathToMLAPP, 'Icons', 'Report_32White.png');
             app.menu_Button3.IconAlignment = 'top';
             app.menu_Button3.Text = '';
@@ -9714,7 +9747,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button4.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button4.Tag = 'MISC';
             app.menu_Button4.Enable = 'off';
-            app.menu_Button4.Tooltip = {''};
+            app.menu_Button4.Tooltip = {'MISCELÂNEAS'};
             app.menu_Button4.Icon = fullfile(pathToMLAPP, 'Icons', 'Misc_32White.png');
             app.menu_Button4.IconAlignment = 'top';
             app.menu_Button4.Text = '';
@@ -9736,7 +9769,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button5.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button5.Tag = 'DRIVETEST';
             app.menu_Button5.Enable = 'off';
-            app.menu_Button5.Tooltip = {''};
+            app.menu_Button5.Tooltip = {'DRIVE-TEST'};
             app.menu_Button5.Icon = fullfile(pathToMLAPP, 'Icons', 'DriveTestDensity_32White.png');
             app.menu_Button5.IconAlignment = 'top';
             app.menu_Button5.Text = '';
@@ -9750,7 +9783,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button6.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button6.Tag = 'SIGNALANALYSIS';
             app.menu_Button6.Enable = 'off';
-            app.menu_Button6.Tooltip = {''};
+            app.menu_Button6.Tooltip = {'ANÁLISE DE SINAIS'};
             app.menu_Button6.Icon = fullfile(pathToMLAPP, 'Icons', 'exceptionList_32White.png');
             app.menu_Button6.IconAlignment = 'top';
             app.menu_Button6.Text = '';
@@ -9763,8 +9796,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button7 = uibutton(app.menu_Grid, 'state');
             app.menu_Button7.ValueChangedFcn = createCallbackFcn(app, @menu_OpenRFDataHubModule, true);
             app.menu_Button7.Tag = 'RFDATAHUB';
-            app.menu_Button7.Enable = 'off';
-            app.menu_Button7.Tooltip = {''};
+            app.menu_Button7.Tooltip = {'RFDATAHUB'};
             app.menu_Button7.Icon = fullfile(pathToMLAPP, 'Icons', 'mosaic_32White.png');
             app.menu_Button7.IconAlignment = 'top';
             app.menu_Button7.Text = '';
@@ -9777,8 +9809,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button8 = uibutton(app.menu_Grid, 'state');
             app.menu_Button8.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button8.Tag = 'CONFIG';
-            app.menu_Button8.Enable = 'off';
-            app.menu_Button8.Tooltip = {''};
+            app.menu_Button8.Tooltip = {'CONFIGURAÇÕES'};
             app.menu_Button8.Icon = fullfile(pathToMLAPP, 'Icons', 'Settings_36White.png');
             app.menu_Button8.IconAlignment = 'top';
             app.menu_Button8.Text = '';
@@ -9803,37 +9834,33 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create AppInfo
             app.AppInfo = uiimage(app.menu_Grid);
             app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @menu_ToolbarImageCliced, true);
-            app.AppInfo.Enable = 'off';
             app.AppInfo.Layout.Row = 2;
             app.AppInfo.Layout.Column = 14;
             app.AppInfo.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Dots_32White.png');
 
-            % Create home_Grid
-            app.home_Grid = uigridlayout(app.GridLayout);
-            app.home_Grid.ColumnWidth = {'1x', 300, '1x'};
-            app.home_Grid.RowHeight = {'1x', 300, '1x'};
-            app.home_Grid.Layout.Row = 3;
-            app.home_Grid.Layout.Column = 1;
-            app.home_Grid.BackgroundColor = [1 1 1];
+            % Create welcomePageGrid
+            app.welcomePageGrid = uigridlayout(app.GridLayout);
+            app.welcomePageGrid.ColumnWidth = {'1x', 960, '1x'};
+            app.welcomePageGrid.RowHeight = {'1x', 480, '1x'};
+            app.welcomePageGrid.ColumnSpacing = 0;
+            app.welcomePageGrid.RowSpacing = 0;
+            app.welcomePageGrid.Padding = [13 10 0 10];
+            app.welcomePageGrid.Layout.Row = 3;
+            app.welcomePageGrid.Layout.Column = 1;
+            app.welcomePageGrid.BackgroundColor = [1 1 1];
 
-            % Create home_Title
-            app.home_Title = uilabel(app.home_Grid);
-            app.home_Title.HorizontalAlignment = 'right';
-            app.home_Title.VerticalAlignment = 'bottom';
-            app.home_Title.FontSize = 11;
-            app.home_Title.FontColor = [0.502 0.502 0.502];
-            app.home_Title.Layout.Row = 3;
-            app.home_Title.Layout.Column = 3;
-            app.home_Title.Interpreter = 'html';
-            app.home_Title.Text = '<p><font  style="font-size: 16px; color: black;"><b>appAnalise </b></font><br>v. 1.80 </p></div>';
+            % Create welcomePagePanel
+            app.welcomePagePanel = uipanel(app.welcomePageGrid);
+            app.welcomePagePanel.Visible = 'off';
+            app.welcomePagePanel.BackgroundColor = [1 1 1];
+            app.welcomePagePanel.Layout.Row = 2;
+            app.welcomePagePanel.Layout.Column = 2;
 
-            % Create home_GIF
-            app.home_GIF = uiimage(app.home_Grid);
-            app.home_GIF.ScaleMethod = 'fill';
-            app.home_GIF.Enable = 'off';
-            app.home_GIF.Layout.Row = 2;
-            app.home_GIF.Layout.Column = 2;
-            app.home_GIF.ImageSource = fullfile(pathToMLAPP, 'Icons', 'SplashScreen.gif');
+            % Create welcomePageSplash
+            app.welcomePageSplash = uiimage(app.welcomePageGrid);
+            app.welcomePageSplash.Layout.Row = 2;
+            app.welcomePageSplash.Layout.Column = 2;
+            app.welcomePageSplash.ImageSource = fullfile(pathToMLAPP, 'Icons', 'SplashScreen.gif');
 
             % Create file_ContextMenu_Tree1
             app.file_ContextMenu_Tree1 = uicontextmenu(app.UIFigure);

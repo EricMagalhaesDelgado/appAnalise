@@ -22,7 +22,10 @@ function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
         dataStruct = struct('group', 'RECEPTOR', 'value', specData(1).Receiver);
     end    
     
+    htmlContent = {};
     if isscalar(specData)
+        threadTag = sprintf('%.3f - %.3f MHz', specData.MetaData.FreqStart/1e+6, specData.MetaData.FreqStop/1e+6);
+
         % Tempo de observação:
         if isa(dataSource, 'class.specData')
             dataStruct(end+1) = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData.Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData.Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));
@@ -31,7 +34,7 @@ function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
         % Metadados:
         dataStruct(end+1) = struct('group', 'METADADOS', 'value', rmfield(specData.MetaData, {'DataType', 'FreqStart', 'FreqStop'}));        
         if specData.MetaData.Resolution ~= -1
-            dataStruct(end).value.Resolution = sprintf('%.3f kHz', dataStruct(end).value.Resolution/1000);
+            dataStruct(end).value.Resolution = sprintf('%.1f kHz', dataStruct(end).value.Resolution/1000);
         end
 
         if specData.MetaData.VBW ~= -1
@@ -56,7 +59,10 @@ function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
                                                        'nSweeps',         specData.RelatedFiles.nSweeps(ii),          ...
                                                        'RevisitTime',     sprintf('%.3f segundos', specData.RelatedFiles.RevisitTime(ii))));
         end
+
+        htmlContent{end+1} = sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', threadTag);
     end
 
-    htmlContent = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete');
+    htmlContent{end+1} = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete');
+    htmlContent        = strjoin(htmlContent);
 end

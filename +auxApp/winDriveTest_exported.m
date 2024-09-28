@@ -1060,6 +1060,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             plot.draw2D.OrdinaryLineUpdate(app.hClearWrite, app.tempBandObj, idxThread, 'ClearWrite')
             plot_Car(app, 'Update')
             plot_Timeline(app, 'Update', idxThread, nSweeps)
+            drawnow
         end
 
         %-----------------------------------------------------------------%
@@ -3117,7 +3118,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create config_geoAxesGrid
             app.config_geoAxesGrid = uigridlayout(app.config_geoAxesPanel);
-            app.config_geoAxesGrid.ColumnWidth = {60, 70, 36, 36, '1x'};
+            app.config_geoAxesGrid.ColumnWidth = {56, 70, 36, 36, '1x'};
             app.config_geoAxesGrid.RowHeight = {17, 64, 22, 22, 22};
             app.config_geoAxesGrid.RowSpacing = 5;
             app.config_geoAxesGrid.Padding = [10 10 10 5];
@@ -3139,7 +3140,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create config_geoAxesSubGrid
             app.config_geoAxesSubGrid = uigridlayout(app.config_geoAxesSubPanel);
-            app.config_geoAxesSubGrid.ColumnWidth = {'1x', 94};
+            app.config_geoAxesSubGrid.ColumnWidth = {'1x', 93};
             app.config_geoAxesSubGrid.RowHeight = {17, 22};
             app.config_geoAxesSubGrid.RowSpacing = 5;
             app.config_geoAxesSubGrid.Padding = [10 10 10 5];
@@ -3318,7 +3319,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create config_xyAxesGrid
             app.config_xyAxesGrid = uigridlayout(app.config_xyAxesPanel);
-            app.config_xyAxesGrid.ColumnWidth = {60, 70, 36, '1x', '1x'};
+            app.config_xyAxesGrid.ColumnWidth = {56, 70, 36, '1x', '1x'};
             app.config_xyAxesGrid.RowHeight = {22, 22, 22, 22, '1x'};
             app.config_xyAxesGrid.RowSpacing = 5;
             app.config_xyAxesGrid.BackgroundColor = [1 1 1];
@@ -3461,7 +3462,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create config_BandGuardGrid
             app.config_BandGuardGrid = uigridlayout(app.config_BandGuardPanel);
-            app.config_BandGuardGrid.ColumnWidth = {'1x', 94};
+            app.config_BandGuardGrid.ColumnWidth = {'1x', 93};
             app.config_BandGuardGrid.RowHeight = {17, 22, '1x'};
             app.config_BandGuardGrid.RowSpacing = 5;
             app.config_BandGuardGrid.Padding = [10 10 10 5];
