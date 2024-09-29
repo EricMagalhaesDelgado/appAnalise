@@ -101,13 +101,13 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
                                     MM = height(SpecInfo(jj).UserData.Emissions);
                                     for ll = 1:MM
                                         reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', ll);
-                                        reportInfo.General.Parameters.DriveTest = SpecInfo(jj).UserData.Emissions.UserData{ll};
+                                        reportInfo.General.Parameters.DriveTest = SpecInfo(jj).UserData.Emissions.UserData(ll).DriveTest;
 
                                         % Verifica se o plot requerido é apenas DriveTest... em sendo,
                                         % evita a criação do subtítulo da emissão, caso não tenha
                                         % informação de DriveTest.
                                         if ismember('DriveTest', {plotInfo.Name})
-                                            if isempty(SpecInfo(jj).UserData.Emissions.UserData{ll})
+                                            if isempty(SpecInfo(jj).UserData.Emissions.UserData(ll).DriveTest)
                                                 continue
                                             end
                                         end

@@ -92,6 +92,40 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         UIAxes2
         restoreView = struct('ID', {}, 'xLim', {}, 'yLim', {}, 'cLim', {})
     end
+
+
+    methods
+        %-----------------------------------------------------------------%
+        function undockingApp(app)
+            % Executa operacões que não são realizadas quando um app está
+            % em modo DOCK.
+            % (a) Cria figura, configurando o seu tamanho mínimo.
+            [xPosition, ...
+             yPosition]  = appUtil.winXYPosition(1244, 660);
+            app.UIFigure = uifigure('Name',               'appAnalise',                   ...
+                                    'Icon',               'icon_48.png',                  ...
+                                    'Position',           [xPosition yPosition 1244 660], ...
+                                    'AutoResizeChildren', 'off',                          ...
+                                    'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
+            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+
+            % (b) Move os componentes do container antigo para o novo, ajustando
+            %     o modo de visualização da tabela.
+            app.Container.Children.Parent = app.UIFigure;
+            drawnow 
+
+            if ~isempty(app.UITable.Selection)
+                scroll(app.UITable, 'Row', app.UITable.Selection(1))
+            end
+            
+            % (c) Reinicia as propriedades "Container" e "isDocked".
+            app.Container = app.UIFigure;
+            app.isDocked  = false;
+
+            % (d) Customiza aspectos estéticos da janela.
+            jsBackDoor_Customizations(app)
+        end
+    end
     
 
     methods (Access = private)
@@ -401,7 +435,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 [txObj, rxObj] = RFLinkObjects(app, idxPrjPeaks, idxThread, idxStation);
     
                 % ELEVAÇÃO DO LINK TX-RX
-                [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj);
+                [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj, app.General.Elevation.Points, false, app.General.Elevation.Server);
                 if ~isempty(msgWarning)
                     appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                 end

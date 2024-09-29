@@ -1,5 +1,10 @@
 {
-    "version": 0.57,
+    "version": 0.60,
+    "operationMode": {
+        "Debug": false,
+        "Dock": false,
+        "Simulation": false
+    },
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -337,6 +342,5 @@
     "Elevation": {
         "Server": "Open-Elevation",
         "Points": 64
-    },
-    "AuxiliarAppDockState": false
+    }
 }

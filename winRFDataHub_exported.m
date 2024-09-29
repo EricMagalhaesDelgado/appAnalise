@@ -208,6 +208,43 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                                'VariableNames', {'Order', 'ID', 'RelatedID', 'Type', 'Operation', 'Column', 'Value', 'Enable', 'uuid'})
     end
 
+
+    methods
+        %-----------------------------------------------------------------%
+        function undockingApp(app)
+            % Executa operacões que não são realizadas quando um app está
+            % em modo DOCK.
+            % (a) Cria figura, configurando o seu tamanho mínimo.
+            [xPosition, ...
+             yPosition]  = appUtil.winXYPosition(1244, 660);
+            app.UIFigure = uifigure('Name',               'appAnalise',                   ...
+                                    'Icon',               'icon_48.png',                  ...
+                                    'Position',           [xPosition yPosition 1244 660], ...
+                                    'AutoResizeChildren', 'off',                          ...
+                                    'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
+            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+
+            % (b) Move os componentes do container antigo para o novo, ajustando
+            %     o modo de visualização da tabela.
+            app.Container.Children.Parent = app.UIFigure;
+            drawnow 
+
+            if ~isempty(app.UITable.Selection)
+                scroll(app.UITable, 'Row', app.UITable.Selection(1))
+            end
+            
+            % (c) Reinicia as propriedades "Container", "isDocked" e "jsBackDoorFlag".
+            app.Container = app.UIFigure;
+            app.isDocked  = false;
+            app.jsBackDoorFlag  = {true, true, true};
+
+            % (d) Customiza aspectos estéticos da janela.
+            [~, idxSelectedTab] = ismember(app.ControlTabGroup.SelectedTab, app.ControlTabGroup.Children);
+            jsBackDoor_Customizations(app, 0)
+            jsBackDoor_Customizations(app, idxSelectedTab)
+        end
+    end
+
     
     methods (Access = private)
         %-----------------------------------------------------------------%
@@ -1544,66 +1581,73 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         function UITableSelectionChanged(app, event)
             
             [idxRFDataHub, idxSelectedRow] = getRFDataHubIndex(app);
-            
-            if isequal(app.stationInfo.UserData, idxRFDataHub)
-                return
-            end
 
-            % Reinicializa componentes da GUI.
-            layout_AddNewTableStyle(app, 'RowSelectionChanged', idxSelectedRow)
-            cla(app.UIAxes3)
-
-            app.stationInfo.UserData = idxRFDataHub;
-            
+            % Caso nenhum registro atenda aos critérios de filtragem,
+            % reinicializa a área de visualização do app.
             if isempty(idxRFDataHub)
+                % Painel:
                 app.referenceTX_Refresh.Visible     = 0;
                 app.referenceTX_EditionMode.Visible = 0;
                 app.referenceTX_Latitude.Value      = -1;
                 app.referenceTX_Longitude.Value     = -1;
                 app.referenceTX_Height.Value        = 0;
+                app.stationInfo.HTMLSource          = 'Warning3.html';
 
-                app.stationInfo.HTMLSource      = '';
-                layout_restartChannelReport(app)
+                % Área de plot/PDF:
                 delete(findobj(app.UIAxes1.Children, 'Tag', 'TX'))
                 cla(app.UIAxes2)
+                cla(app.UIAxes3)
 
-            else
-                % Estação transmissora - TX
-                referenceTX_UpdatePanel(app, idxRFDataHub)
-                if app.referenceTX_EditionMode.UserData
-                    referenceTX_EditionModeImageClicked(app, struct('Source', app.referenceTX_EditionMode))
-                end
+                plot_PolarAxesVisibility(app)
+                layout_restartChannelReport(app)
+                return
 
-                % Painel HTML
-                htmlContent = auxApp.rfdatahub.htmlCode_StationInfo(app.rfDataHub, idxRFDataHub, app.rfDataHubLOG, app.General);
-                app.stationInfo.HTMLSource = htmlContent;
-
-                % Painel PDF
-                if app.rfDataHub.Source(idxRFDataHub) == "MOSAICO-SRD"
-                    misc_getChannelReport(app, 'Cache+RealTime')
-                else
-                    layout_restartChannelReport(app)
-                end
-                    
-                % Plot "AntennaPattern"
-                % O bloco try/catch protege possível erro no parser da informação
-                % do Mosaico. Como exposto em class.RFDataHub.parsingAntennaPattern
-                % foram identificados quatro formas de armazenar a informação.
-                if app.rfDataHub.AntennaPattern(idxRFDataHub) ~= "-1"
-                    try
-                        [angle, gain] = class.RFDataHub.parsingAntennaPattern(app.rfDataHub.AntennaPattern(idxRFDataHub), 360);
-                        hAntennaPattern = polarplot(app.UIAxes3, angle, gain, 'Tag', 'AntennaPattern');
-                        plot.datatip.Template(hAntennaPattern, "AntennaPattern")
-                    catch
-                    end
-                end
-
-                % Plot "TX"
-                plot_TX(app, idxRFDataHub, idxSelectedRow)
-
-                % Plot "RFLink"
-                plot_createRFLinkPlot(app)
+            % Caso a alteração na seleção da tabela seja restrita à coluna,
+            % por exemplo, mantendo-se selecionada a mesma linha, não será 
+            % realizado um novo plot.
+            elseif isequal(app.stationInfo.UserData, idxRFDataHub)
+                return
             end
+
+            app.stationInfo.UserData = idxRFDataHub;
+            layout_AddNewTableStyle(app, 'RowSelectionChanged', idxSelectedRow)
+            
+            % Estação transmissora - TX
+            referenceTX_UpdatePanel(app, idxRFDataHub)
+            if app.referenceTX_EditionMode.UserData
+                referenceTX_EditionModeImageClicked(app, struct('Source', app.referenceTX_EditionMode))
+            end
+
+            % Painel HTML
+            htmlContent = auxApp.rfdatahub.htmlCode_StationInfo(app.rfDataHub, idxRFDataHub, app.rfDataHubLOG, app.General);
+            app.stationInfo.HTMLSource = htmlContent;
+
+            % Painel PDF
+            if app.rfDataHub.Source(idxRFDataHub) == "MOSAICO-SRD"
+                misc_getChannelReport(app, 'Cache+RealTime')
+            else
+                layout_restartChannelReport(app)
+            end
+                
+            % Plot "AntennaPattern"
+            % O bloco try/catch protege possível erro no parser da informação
+            % do Mosaico. Como exposto em class.RFDataHub.parsingAntennaPattern
+            % foram identificados quatro formas de armazenar a informação.
+            cla(app.UIAxes3)
+            if app.rfDataHub.AntennaPattern(idxRFDataHub) ~= "-1"
+                try
+                    [angle, gain] = class.RFDataHub.parsingAntennaPattern(app.rfDataHub.AntennaPattern(idxRFDataHub), 360);
+                    hAntennaPattern = polarplot(app.UIAxes3, angle, gain, 'Tag', 'AntennaPattern');
+                    plot.datatip.Template(hAntennaPattern, "AntennaPattern")
+                catch
+                end
+            end
+
+            % Plot "TX"
+            plot_TX(app, idxRFDataHub, idxSelectedRow)
+
+            % Plot "RFLink"
+            plot_createRFLinkPlot(app)
             
         end
 
@@ -2005,6 +2049,40 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 case app.config_RX_Size
                     set(findobj(app.UIAxes1.Children,                    'Tag', 'RX'),       'SizeData', 44*event.Value)
             end
+
+        end
+
+        % Image clicked function: config_Refresh
+        function config_RefreshImageClicked(app, event)
+            
+            % ToDo: Pendente finalizar a implementação dessa funcionalidade.
+            % Não gostei de plotar novamente a coisa... preciso identificar
+            % os parâmetros que foram alterados, chamando individualmente
+            % os callbacks de cada parâmetro. O botão ficará invisível até 
+            % ajuste desses pontos.
+
+            if ~app.standaloneFlag
+                app.General = app.CallingApp.General;
+
+                app.misc_ElevationAPISource.Value = app.General.Elevation.Server;
+                app.misc_PointsPerLink.Value      = num2str(app.General.Elevation.Points);
+            end
+
+            % % Eixo geográfico - app.UIAxes1
+            app.config_Colormap.Value             = 'turbo';            
+            app.config_Station_Color.Value        = [0 1 1];
+            app.config_Station_Size.Value         = 1;
+            app.config_TX_Color.Value             = [0.7882 0.2784 0.3412];
+            app.config_TX_Size.Value              = 1;
+            app.config_TX_DataTipVisibility.Value = 'off';
+            app.config_RX_Color.Value             = [0.7882 0.2784 0.3373];
+            app.config_RX_Size.Value              = 1;
+            
+            % % Atualiza o plot...
+            app.stationInfo.UserData = [];
+            filter_TableFiltering(app)            
+
+            app.config_Refresh.Visible = 0;
 
         end
     end
@@ -2694,6 +2772,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create config_Refresh
             app.config_Refresh = uiimage(app.Tab3_Grid);
+            app.config_Refresh.ImageClickedFcn = createCallbackFcn(app, @config_RefreshImageClicked, true);
             app.config_Refresh.Visible = 'off';
             app.config_Refresh.Tooltip = {'Volta à configuração inicial'};
             app.config_Refresh.Layout.Row = 1;
@@ -2965,7 +3044,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.menu_Button1Icon.Layout.Row = 1;
             app.menu_Button1Icon.Layout.Column = [1 2];
             app.menu_Button1Icon.HorizontalAlignment = 'left';
-            app.menu_Button1Icon.ImageSource = 'mosaic_18Gray.png';
+            app.menu_Button1Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'mosaic_18Gray.png');
 
             % Create menu_Button2Grid
             app.menu_Button2Grid = uigridlayout(app.menu_MainGrid);

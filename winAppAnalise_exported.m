@@ -52,9 +52,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_Grid                       matlab.ui.container.GridLayout
         play_toolGrid                   matlab.ui.container.GridLayout
         tool_LayoutRight                matlab.ui.control.Image
-        tool_MiscRefresh                matlab.ui.control.Image
-        tool_MiscCancel                 matlab.ui.control.Image
-        tool_MiscEdit                   matlab.ui.control.Image
         tool_FiscalizaUpdate            matlab.ui.control.Image
         tool_FiscalizaAutoFill          matlab.ui.control.Image
         tool_ReportGenerator            matlab.ui.control.Image
@@ -72,32 +69,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_ControlsTab1Image          matlab.ui.control.Image
         play_ControlsTab1Label          matlab.ui.control.Label
         misc_ControlsTab1Info           matlab.ui.container.GridLayout
-        Panel_4                         matlab.ui.container.Panel
-        GridLayout3                     matlab.ui.container.GridLayout
-        Label                           matlab.ui.control.Label
-        edit_unitPanel                  matlab.ui.container.Panel
-        misc_Edit_unitGrid              matlab.ui.container.GridLayout
-        edit_unitRefresh                matlab.ui.control.Image
-        misc_Edit_kFactorTree           matlab.ui.container.Tree
-        misc_Edit_kFactorAdd            matlab.ui.control.Image
-        misc_Edit_kFactor               matlab.ui.control.DropDown
-        misc_Edit_kFactorLabel          matlab.ui.control.Label
-        misc_Edit_unitRaw               matlab.ui.control.EditField
-        misc_Edit_unitRawLabel          matlab.ui.control.Label
-        edit_gpsPanel                   matlab.ui.container.Panel
-        edit_gpsGrid                    matlab.ui.container.GridLayout
-        edit_gpsCityButton              matlab.ui.control.Image
-        edit_gpsCityPanel               matlab.ui.container.Panel
-        edit_gpsCityGrid                matlab.ui.container.GridLayout
-        edit_gpsCity                    matlab.ui.control.EditField
-        edit_gpsCitySource              matlab.ui.control.EditField
-        edit_gpsLocationLabel2          matlab.ui.control.Label
-        edit_gpsLocationPanel           matlab.ui.container.Panel
-        edit_gpsLocationGrid            matlab.ui.container.GridLayout
-        edit_gpsLongitude               matlab.ui.control.NumericEditField
-        edit_gpsLatitude                matlab.ui.control.NumericEditField
-        edit_gpsSource                  matlab.ui.control.EditField
-        edit_gpsLocationLabel1          matlab.ui.control.Label
         misc_Panel1                     matlab.ui.container.Panel
         misc_Grid1                      matlab.ui.container.GridLayout
         misc_DeleteAllLabel             matlab.ui.control.Label
@@ -392,59 +363,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         rfdatahub_Undock                matlab.ui.control.Image
         rfdatahub_Container             matlab.ui.container.Panel
         Tab6_Config                     matlab.ui.container.Tab
-        config_mainGrid                 matlab.ui.container.GridLayout
-        config_Option3Grid              matlab.ui.container.GridLayout
-        config_DefaultIssueValuesPanel  matlab.ui.container.Panel
-        config_DefaultIssueValuesGrid   matlab.ui.container.GridLayout
-        config_ServicoInspecao          matlab.ui.container.CheckBoxTree
-        config_ServicoInspecaoLabel     matlab.ui.control.Label
-        config_MotivoLAI                matlab.ui.container.CheckBoxTree
-        config_MotivoLAILabel           matlab.ui.control.Label
-        config_TipoPLAI                 matlab.ui.control.DropDown
-        config_TipoPLAILabel            matlab.ui.control.Label
-        config_GerarPLAI                matlab.ui.control.DropDown
-        config_GerarPLAILabel           matlab.ui.control.Label
-        config_CadastroSTEL             matlab.ui.control.DropDown
-        config_CadastroSTELLabel        matlab.ui.control.Label
-        config_DefaultIssueValuesLock   matlab.ui.control.Image
-        config_DefaultIssueValuesLabel  matlab.ui.control.Label
-        config_FiscalizaVersion         matlab.ui.container.ButtonGroup
-        config_FiscalizaHM              matlab.ui.control.RadioButton
-        config_FiscalizaPD              matlab.ui.control.RadioButton
-        config_FiscalizaVersionLabel    matlab.ui.control.Label
-        config_Option2Grid              matlab.ui.container.GridLayout
-        Panel_5                         matlab.ui.container.Panel
-        config_openData2Simulate        matlab.ui.control.CheckBox
-        config_openAuxiliarApp2Debug    matlab.ui.control.CheckBox
-        config_openAuxiliarAppAsDocked  matlab.ui.control.CheckBox
-        config_SearchModeLabel          matlab.ui.control.Label
-        config_Option1Grid              matlab.ui.container.GridLayout
-        config_FolderMapPanel           matlab.ui.container.Panel
-        config_FolderMapGrid            matlab.ui.container.GridLayout
-        config_Folder_userPathButton    matlab.ui.control.Image
-        config_Folder_userPath          matlab.ui.control.DropDown
-        config_Folder_userPathLabel     matlab.ui.control.Label
-        config_Folder_pythonPathButton  matlab.ui.control.Image
-        config_Folder_pythonPath        matlab.ui.control.EditField
-        config_Folder_pythonPathLabel   matlab.ui.control.Label
-        config_Folder_DataHubPOSTButton  matlab.ui.control.Image
-        config_Folder_DataHubPOST       matlab.ui.control.EditField
-        config_Folder_DataHubPOSTLabel  matlab.ui.control.Label
-        config_Folder_DataHubGETButton  matlab.ui.control.Image
-        config_Folder_DataHubGET        matlab.ui.control.EditField
-        config_Folder_DataHubGETLabel   matlab.ui.control.Label
-        config_FolderMapLabel           matlab.ui.control.Label
-        config_Control                  matlab.ui.container.GridLayout
-        config_ButtonGroup              matlab.ui.container.ButtonGroup
-        config_Option_Folder            matlab.ui.control.RadioButton
-        config_Option_Fiscaliza         matlab.ui.control.RadioButton
-        config_Option_Search            matlab.ui.control.RadioButton
-        config_Label                    matlab.ui.control.Label
-        config_ControlMenu              matlab.ui.container.GridLayout
-        config_menuBtn1Grid             matlab.ui.container.GridLayout
-        config_menuBtn1Icon             matlab.ui.control.Image
-        config_menuBtn1Label            matlab.ui.control.Label
-        config_menuUnderline            matlab.ui.control.Image
+        config_Grid                     matlab.ui.container.GridLayout
+        config_Close                    matlab.ui.control.Image
+        config_Undock                   matlab.ui.control.Image
+        config_Container                matlab.ui.container.Panel
         file_ContextMenu_Tree1          matlab.ui.container.ContextMenu
         file_ContextMenu_delTree1Node   matlab.ui.container.Menu
         file_ContextMenu_Tree2          matlab.ui.container.ContextMenu
@@ -463,8 +385,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         report_ContextMenu_ExternalFiles  matlab.ui.container.Menu
         play_BandLimits_ContextMenu     matlab.ui.container.ContextMenu
         play_BandLimits_ContextMenu_del  matlab.ui.container.Menu
-        edit_ContextMenu                matlab.ui.container.ContextMenu
-        edit_ContextMenu_del            matlab.ui.container.Menu
     end
 
     
@@ -676,7 +596,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 % 3/7: Inicia auxApp.winWelcomePage.
                 auxApp.winWelcomePage_exported(app.welcomePagePanel, app)
-                app.welcomePagePanel.Visible = 1;                
 
                 % OUTROS ASPECTOS IMPORTANTES
                 appName           = class.Constants.appName;
@@ -699,32 +618,31 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         % Força a exclusão do SplashScreen do MATLAB WebDesigner.
                         sendEventToHTMLSource(app.jsBackDoor, "delProgressDialog");
     
-                        % Webapp não suporta uigetdir, então o mapeamento das pastas
-                        % POST/GET deve ser feito em arquivo externo de configuração...
-                        app.config_Option_Folder.Enable   = 0;
-    
                         % Webapp também não suporta outras janelas, de forma que os 
                         % módulos auxiliares devem ser abertos na própria janela
                         % do appAnalise.
                         app.drivetest_Undock.Visible      = 0;
                         app.signalanalysis_Undock.Visible = 0;
                         app.rfdatahub_Undock.Visible      = 0;
-                        set(app.config_openAuxiliarAppAsDocked, 'Value', 1, 'Enable', 0)
-                        set(app.config_openAuxiliarApp2Debug,   'Value', 0, 'Enable', 0)
+
+                        app.General.operationMode.Debug   = false;
+                        app.General.operationMode.Dock    = true;
     
                     otherwise
                         % Configura o tamanho mínimo da janela. 
                         app.FigurePosition.Enable = 1;
                         appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
     
-                        % A versão desktop do app, contudo, possibilita a definição 
-                        % do local onde deve ser renderizado os módulos auxiliares.
-                        app.config_openAuxiliarAppAsDocked.Value = app.General.AuxiliarAppDockState;
-    
-                        % E a pasta do usuário é configurável.
+                        % E resgata a pasta de trabalho do usuário.
                         userPaths = appUtil.UserPaths(app.General.fileFolder.userPath);
-                        set(app.config_Folder_userPath, 'Items', userPaths, 'Value', userPaths{end})
                         app.General.fileFolder.userPath = userPaths{end};
+
+                        switch app.executionMode
+                            case 'desktopStandaloneApp'
+                                app.General.operationMode.Debug = false;
+                            case 'MATLABEnvironment'
+                                app.General.operationMode.Debug = true;
+                        end
                 end
                 
                 % WELCOMEPAGE (continuação)
@@ -853,29 +771,19 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ThreadAlgorithms.HTMLSource   = fullfile(app.rootFolder, 'Icons', 'Warning.html');
             app.report_ModelName.Items               = [{''}; app.General.Models.Name];
 
-            % Painel "MISC >> antennaKFactor"
-            measCalibration = jsondecode(fileread(fullfile(app.rootFolder, 'Settings', 'measCalibration.json')));
-            app.misc_Edit_kFactor.Items = {measCalibration.Name};
-
             % Painel "CONFIG >> PYTHON"
             pythonPath = app.General.fileFolder.pythonPath;
             if isfile(pythonPath)
                 pyenv('Version', pythonPath);
-                app.config_Folder_pythonPath.Value   = pythonPath;
-            else
-                pyEnv = pyenv;
-                app.config_Folder_pythonPath.Value   = pyEnv.Executable;
             end
 
-            % Painel "CONFIG >> FISCALIZA" com impacto em "REPORT >> FISCALIZA"
+            % Painel "REPORT >> FISCALIZA"
             switch app.General.fiscaliza.systemVersion
                 case 'PROD'
-                    app.config_FiscalizaPD.Value     = 1;
+                    app.report_ControlsTab2Label.Text   = 'API FISCALIZA';        
                 case 'HOM'
-                    app.config_FiscalizaHM.Value     = 1;
+                    app.report_ControlsTab2Label.Text   = 'API FISCALIZA HOMOLOGAÇÃO';
             end
-            fiscalizaLibConnection.config_SystemMode(app)
-            fiscalizaLibConnection.config_DefaultValues(app)
         end
 
         %-----------------------------------------------------------------%
@@ -936,8 +844,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 case 2 % PLAYBACK, REPORT, MISC
                     if app.menu_Button2.Value
-                        app.play_Tree.SelectedNodes       = app.play_PlotPanel.UserData;                            
-                        app.play_Tree.Multiselect         = "off";
+                        set(app.play_Tree, 'SelectedNodes', app.play_PlotPanel.UserData, 'Multiselect', 'off')
 
                         app.play_TreePanelVisibility.Visible       = 1;
                         app.play_TreePanelVisibility.UserData.Mode = 'PLAYBACK';
@@ -946,22 +853,20 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=1)
                         set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=0)
                         set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=0)
-                        set(findobj(app.play_toolGrid, 'Tag', 'MISC'),      Visible=0)
 
                     elseif app.menu_Button3.Value
-                        app.play_Tree.Multiselect         = "on";
+                        app.play_Tree.Multiselect = "on";
                         
                         app.play_TreePanelVisibility.Visible       = 0;
                         app.play_TreePanelVisibility.UserData.Mode = 'REPORT';
 
-                        app.play_ControlsGrid.RowHeight   = {0,0,0,0,0,0,22,'1x',22,0,0,0};
+                        app.play_ControlsGrid.RowHeight = {0,0,0,0,0,0,22,'1x',22,0,0,0};
                         set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=0)
                         set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=1)
                         set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=1, Enable=0)
-                        set(findobj(app.play_toolGrid, 'Tag', 'MISC'),      Visible=0)
 
                     elseif app.menu_Button4.Value
-                        app.play_Tree.Multiselect         = "on";
+                        app.play_Tree.Multiselect = "on";
                         
                         switch app.play_TreePanelVisibility.UserData.Mode
                             case 'PLAYBACK'
@@ -974,7 +879,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=0)
                         set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=0)
                         set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=0)
-                        set(findobj(app.play_toolGrid, 'Tag', 'MISC'),      Visible=1, Enable=0)
                     end
 
                     play_TreeSecundaryPanelVisibility(app)
@@ -990,7 +894,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             arguments
                 app
                 auxiliarApp   char {mustBeMember(auxiliarApp,   {'DRIVETEST', 'SIGNALANALYSIS', 'RFDATAHUB'})}
-                operationType char {mustBeMember(operationType, {'Open', 'Close'})}
+                operationType char {mustBeMember(operationType, {'Open', 'Close', 'Undocking'})}
             end
 
             arguments (Repeating)
@@ -1035,7 +939,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         app.progressDialog.Visible = 'visible';
 
                         varargin = horzcat({app}, varargin{:});
-                        if app.config_openAuxiliarAppAsDocked.Value
+                        if app.General.operationMode.Dock
                             app.(propertyName) = FileHandle_MFILE(dockContainer, varargin{:});
 
                             set(dockMenuButton, 'Enable', 1, 'Value', 1)
@@ -1043,7 +947,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         else
                             dockMenuButton.Value = 0;
 
-                            if app.config_openAuxiliarApp2Debug.Value
+                            if app.General.operationMode.Debug
                                 app.(propertyName) = FileHandle_MLAPP(varargin{:});
                             else
                                 app.(propertyName) = FileHandle_MFILE([], varargin{:});
@@ -1061,41 +965,35 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
                     end
 
-                case 'Close'
-                    if app.(propertyName).isDocked
-                        delete(app.(propertyName))
-
-                        if dockMenuButtonEnable
-                            dockMenuButton.Enable = 0;
-                        end
-
-                        if dockMenuButton.Value
-                            if ~docRefMenuButton.Enable
-                                docRefMenuButton = app.menu_Button1;
-                            end
-    
-                            docRefMenuButton.Value = 1;
-                            menu_mainButtonPushed(app, struct('Source', docRefMenuButton, 'PreviousValue', 0))
-                        end
+                otherwise % 'Close' | 'Undocking'
+                    if strcmp(operationType, 'Undocking')
+                        app.progressDialog.Visible = 'visible';
                     end
-                    app.(propertyName) = [];
-            end
-        end
 
-        %-----------------------------------------------------------------%
-        function inputArguments = menu_LayoutUndockingAuxiliarApp(app, auxiliarApp)
-            arguments
-                app
-                auxiliarApp   char {mustBeMember(auxiliarApp,   {'DRIVETEST', 'SIGNALANALYSIS', 'RFDATAHUB'})}
-            end
+                    if dockMenuButtonEnable
+                        dockMenuButton.Enable = 0;
+                    end
 
-            switch auxiliarApp
-                case 'DRIVETEST'
-                    compatibilityMode = app.hDriveTest.compatibilityMode;
-                    [idxThread, idxEmission] = specDataIndex(app.hDriveTest, 'EmissionShowed');
-                    inputArguments = {compatibilityMode, idxThread, idxEmission};
-                otherwise
-                    inputArguments = {};
+                    if dockMenuButton.Value
+                        if ~docRefMenuButton.Enable
+                            docRefMenuButton = app.menu_Button1;
+                        end
+
+                        docRefMenuButton.Value = 1;
+                        menu_mainButtonPushed(app, struct('Source', docRefMenuButton, 'PreviousValue', 0))
+                    end
+
+                    switch operationType
+                        case 'Close'
+                            delete(app.(propertyName))
+                            app.(propertyName) = [];
+                        case 'Undocking'
+                            undockingApp(app.(propertyName))
+                    end
+
+                    if strcmp(app.progressDialog.Visible, 'visible')
+                        app.progressDialog.Visible = 'hidden';
+                    end
             end
         end
 
@@ -2857,169 +2755,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
 
         %-----------------------------------------------------------------%
-        % EDIT
-        %-----------------------------------------------------------------%
-        function SelectedNodesTextList = edit_SelectedNodesText(app)
-            SelectedNodesTextList = {};
-            for ii = 1:numel(app.play_Tree.SelectedNodes)
-                generation = misc_findGenerationOfTreeNode(app, app.play_Tree.SelectedNodes(ii));
-
-                switch generation
-                    case 0
-                        NN = numel(app.play_Tree.SelectedNodes(ii).Children);
-                        SelectedNodesTextList(end+1:end+NN) = {app.play_Tree.SelectedNodes(ii).Text};
-                    case 1
-                        SelectedNodesTextList{end+1} = app.play_Tree.SelectedNodes(ii).Text;
-                    case 2
-                        SelectedNodesTextList{end+1} = app.play_Tree.SelectedNodes(ii).Parent.Text;
-                    case 3
-                        SelectedNodesTextList{end+1} = app.play_Tree.SelectedNodes(ii).Parent.Parent.Text;
-                end
-
-            end
-            SelectedNodesTextList = unique(SelectedNodesTextList);
-        end
-
-        %-----------------------------------------------------------------%
-        function idx = edit_gpsFindIndex(app)
-
-            % Identifica os fluxos espectrais selecionados, verificando se 
-            % o local de monitoração que gerou a informação é único.
-            idx = unique([app.play_Tree.SelectedNodes.NodeData]);
-
-            if ~isempty(idx)
-                gpsArray = arrayfun(@(x) x.GPS, app.specData(idx));
-                for ii = numel(gpsArray):-1:2
-                    if isequal(gpsArray(ii), gpsArray(1))
-                        gpsArray(ii) = [];
-                    end
-                end
-
-                if numel(gpsArray) > 1
-                    idx = [];                
-                end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function edit_gpsLayout(app, clickEffect)
-            idx = edit_gpsFindIndex(app);
-            SelectedNodesTextList = edit_SelectedNodesText(app);
-            
-            if ~isempty(idx)    
-                % gpsPanel
-                switch app.specData(idx(1)).GPS.Status
-                    case -1;   app.edit_gpsSource.Value = 'manual';
-                    otherwise; app.edit_gpsSource.Value = 'auto';
-                end
-                app.edit_gpsLatitude.Value    = app.specData(idx(1)).GPS.Latitude;
-                app.edit_gpsLongitude.Value   = app.specData(idx(1)).GPS.Longitude;                
-    
-                % gpsCityPanel
-                app.edit_gpsCitySource.Value  = app.specData(idx(1)).GPS.LocationSource;
-                app.edit_gpsCity.Value        = app.specData(idx(1)).GPS.Location;
-
-                app.tool_MiscEdit.Enable     = 1;
-                app.edit_gpsCityButton.Enable = 1;
-
-                switch clickEffect
-                    case 'City'
-                        hComp = [app.edit_gpsCitySource, ...
-                                 app.edit_gpsCity];
-                        play_TreeRebuilding(app, SelectedNodesTextList, hComp)
-
-                    case 'City+Latitude+Longitude'
-                        hComp = [app.edit_gpsSource,     ...
-                                 app.edit_gpsLatitude,   ...
-                                 app.edit_gpsLongitude,  ...
-                                 app.edit_gpsCitySource, ...
-                                 app.edit_gpsCity];
-                        play_TreeRebuilding(app, SelectedNodesTextList, hComp)
-
-                    case 'Latitude+Longitude'
-                        hComp = [app.edit_gpsSource,     ...
-                                 app.edit_gpsLatitude,   ...
-                                 app.edit_gpsLongitude];
-                        play_TreeRebuilding(app, SelectedNodesTextList, hComp)
-                end                
-            else
-                app.edit_gpsSource.Value      = '';
-                app.edit_gpsLatitude.Value    = -1;
-                app.edit_gpsLongitude.Value   = -1;
-                app.edit_gpsCitySource.Value  = '';
-                app.edit_gpsCity.Value        = '';
-
-                app.tool_MiscEdit.Enable     = 0;
-                app.edit_gpsCityButton.Enable = 0;
-            end
-
-            if ismember('manual', {app.edit_gpsSource.Value, app.edit_gpsCitySource.Value})
-                app.tool_MiscRefresh.Enable = 1;
-            else
-                app.tool_MiscRefresh.Enable = 0;
-            end
-
-            set(findobj(app.edit_gpsLocationGrid, '-not', {'Type', 'uilabel', '-or', 'Type', 'uibutton', '-or', 'Type', 'uigridlayout'}), Editable=0)
-            set(findobj(app.edit_gpsCityGrid,     '-not', {'Type', 'uilabel', '-or', 'Type', 'uibutton', '-or', 'Type', 'uigridlayout'}), Editable=0)
-        end
-
-        %-----------------------------------------------------------------%
-        function edit_gpsUpdate(app, idx, Latitude, Longitude)
-            app.specData(idx).GPS.Status        = -1;
-            app.specData(idx).GPS.Count         = 1;
-            app.specData(idx).GPS.Latitude      = Latitude;
-            app.specData(idx).GPS.Longitude     = Longitude;
-            app.specData(idx).GPS.Latitude_std  = 0;
-            app.specData(idx).GPS.Longitude_std = 0;
-            app.specData(idx).GPS.stdRange      = [100 100 100];
-        end
-
-        %-----------------------------------------------------------------%
-        function edit_unitLevelLayout(app)
-            if ~isempty(app.misc_Edit_kFactorTree.Children)
-                delete(app.misc_Edit_kFactorTree.Children)
-            end
-
-            idx = unique([app.play_Tree.SelectedNodes.NodeData]);
-
-            if isscalar(idx)
-                measCalibration = app.specData(idx).UserData.measCalibration;
-                if ~isempty(measCalibration)
-                    app.misc_Edit_unitRaw.Value = measCalibration.oldUnitLevel{1};
-
-                    for ii = 1:height(measCalibration)
-                        uitreenode(app.misc_Edit_kFactorTree, 'Text', sprintf('%s → %s: "%s"', measCalibration.oldUnitLevel{ii}, ...
-                                                                                               measCalibration.newUnitLevel{ii}, ...
-                                                                                               measCalibration.Name{ii}),        ...
-                                                              'NodeData', ii, 'ContextMenu', app.edit_ContextMenu);
-                    end
-                else
-                    app.misc_Edit_unitRaw.Value = app.specData(idx).MetaData.LevelUnit;
-                end
-                app.misc_Edit_kFactorAdd.Enable = 1;
-            else
-                app.misc_Edit_unitRaw.Value     = '';
-                app.misc_Edit_kFactorAdd.Enable = 0;
-            end
-
-            if ~isempty(app.misc_Edit_kFactorTree.Children)
-                app.edit_unitRefresh.Enable = 1;
-            else
-                app.edit_unitRefresh.Enable = 0;
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function edit_unitLevelCorrection(app, OperationType, idx1, idx2, Name)
-            try
-                fcn.measCalibration(app, OperationType, idx1, idx2, Name)
-            catch ME
-                appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
-            end
-        end
-
-
-        %-----------------------------------------------------------------%
         % FUNÇÕES QUE ATENDEM MAIS DE UM MÓDULO
         %-----------------------------------------------------------------%
         function nodeText = misc_nodeTreeText(app, idx)
@@ -3085,7 +2820,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % MODO "MISCELÂNEAS"
         %-----------------------------------------------------------------%
         function misc_SaveSpectralData(app, idx)
-            defaultFilename = class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'SpectralData', -1);
+            defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'SpectralData', -1);
             nameFormatMap   = {'*.mat',    'appAnalise (*.mat)'; ...
                                '*.bin',    'Logger (*.bin)';     ...
                                '*.sm1809', 'SM1809 (*.sm1809)'};
@@ -3130,7 +2865,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function misc_ExportUserData(app, idx)
-            defaultFilename = class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'UserData', -1);
+            defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'UserData', -1);
             nameFormatMap   = {'*.mat', 'appAnalise (*.mat)'};
 
             [fileName, filePath, fileIndex] = uiputfile(nameFormatMap, '', defaultFilename);
@@ -3156,6 +2891,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             fileReader.MAT_UserData(app, fileFullPath)
         end
 
+
         %-----------------------------------------------------------------%
         % AUXILIAR FUNCTIONS TO OTHERS APPS OR EXTERNAL FUNCTIONS
         %-----------------------------------------------------------------%
@@ -3168,7 +2904,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                         % WELCOMEPAGE (continuação)
                         % 6/7: Executa callback, a depender da escolha do usuário.
-                        app.config_openData2Simulate.Value = simulationFlag;
+                        app.General.operationMode.Simulation = simulationFlag;
+                        if simulationFlag
+                            app.General.fiscaliza.systemVersion = 'HOM';
+                        end
+
                         switch pushedButtonTag
                             case 'Open'
                                 file_ButtonPushed_OpenFile(app)
@@ -3256,14 +2996,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 % WARNING MESSAGES
                 appUtil.disablingWarningMessages()
 
-                % !! ÁREA DE AJUSTES DA GUI (EM AMBIENTE DE DESENVOLVIMENTO)
-                % E EXPERIMENTOS !!
+                % <GUI>
                 app.UIFigure.Position(4) = 660;
                 app.welcomePageGrid.Layout.Row = [1,2];
                 app.GridLayout.RowHeight = {44, '1x'};
                 app.play_TreeGrid.RowHeight(4:9) = {0,0,0,0,0,0};
-                config_ButtonGroupSelectionChanged(app)
-                % !! APAGAR ISSO DEPOIS !!
+                % </GUI>
 
                 appUtil.winPosition(app.UIFigure)
                 jsBackDoor_Initialization(app)
@@ -3290,10 +3028,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             % DELETE TEMP FILES
-            delete(fullfile(app.General.fileFolder.tempPath,  '~Report*.html'))
-            delete(fullfile(app.config_Folder_userPath.Value, '~Report*.html'))            
-            delete(fullfile(app.General.fileFolder.tempPath,  '~Image*.*'))
-            delete(fullfile(app.config_Folder_userPath.Value, '~Image*.*'))
+            delete(fullfile(app.General.fileFolder.tempPath, '~Report*.html'))
+            delete(fullfile(app.General.fileFolder.userPath, '~Report*.html'))
+            delete(fullfile(app.General.fileFolder.tempPath, '~Image*.*'))
+            delete(fullfile(app.General.fileFolder.userPath, '~Image*.*'))
 
             % DELETE AUXILIAR APPS
             delete(app.hDriveTest)
@@ -3352,18 +3090,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             switch event.Source
                 case {app.drivetest_Undock, app.signalanalysis_Undock, app.rfdatahub_Undock}
-                    initialConfig = app.config_openAuxiliarAppAsDocked.Value;
-                    app.config_openAuxiliarAppAsDocked.Value = false;
-
-                    inputArguments = menu_LayoutUndockingAuxiliarApp(app, auxiliarApp);
-                    menu_LayoutAuxiliarApp(app, auxiliarApp, 'Close')
-                    menu_LayoutAuxiliarApp(app, auxiliarApp, 'Open', inputArguments{:})
-
-                    app.config_openAuxiliarAppAsDocked.Value = initialConfig;
-
-                case {app.drivetest_Close, app.signalanalysis_Close, app.rfdatahub_Close}
-                    menu_LayoutAuxiliarApp(app, auxiliarApp, 'Close')
+                    operationType = 'Undocking';
+                case {app.drivetest_Close,  app.signalanalysis_Close,  app.rfdatahub_Close}
+                    operationType = 'Close';
             end
+
+            menu_LayoutAuxiliarApp(app, auxiliarApp, operationType)
 
         end
 
@@ -3424,7 +3156,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             
             focus(app.file_Tree)
 
-            if app.config_openData2Simulate.Value
+            if app.General.operationMode.Simulation
                 filePath = fullfile(app.rootFolder, 'Simulation');
 
                 listOfFiles = dir(filePath);
@@ -3804,8 +3536,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
 
             elseif app.menu_Button4.Value
-                edit_gpsLayout(app, '')
-                edit_unitLevelLayout(app)
+
             end
             drawnow
             
@@ -4961,58 +4692,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             
         end
 
-        % Callback function
-        function play_FindPeaks_Classification(app, event)
-            
-            global RFDataHub
-
-            idx1 = app.play_PlotPanel.UserData.NodeData;
-            idx2 = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
-
-            % Inicialmente, trunca-se a frequência da emissão selecionada, 
-            % caso aplicável.            
-            if app.specData(idx1).UserData.Emissions.isTruncated(idx2)
-                Truncated = TruncatedFrequency(app.channelObj, app.specData(idx1), idx2);
-            else
-                Truncated = app.specData(idx1).UserData.Emissions.Frequency(idx2);
-            end            
-
-            % Identifica na base de dados offline (anateldb) aqueles registros 
-            % que possuem a mesma frequência (tolerância: 1e-5).
-            idx3 = find(abs(RFDataHub.Frequency - Truncated) <= class.Constants.floatDiffTolerance);
-            if ~isempty(idx3)
-                auxDistance      = deg2km(distance(app.specData(idx1).GPS.Latitude, app.specData(idx1).GPS.Longitude, RFDataHub.Latitude(idx3), RFDataHub.Longitude(idx3)));
-                [Distance, idx4] = min(auxDistance);
-                Description      = class.RFDataHub.Description(RFDataHub, idx3(idx4));
-
-                if app.specData(idx1).UserData.Emissions.isTruncated(idx2)
-                    msg = sprintf(['A frequência central da emissão (%.3f MHz) foi truncada em <b>%.5f MHz</b>.\n\n'                            ...
-                                   'Foram identificados <b>%d registros</b> de estações cujas frequências centrais coincidem com %.3f MHz.\n\n' ...
-                                   'A estação mais próxima do local de monitoração está a <b>%.1f km</b>, tendo como descrição "<b>%s</b>"'],   ...
-                                   app.specData(idx1).UserData.Emissions.Frequency(idx2), Truncated, numel(idx3), Truncated, Distance, Description);
-                else
-                    msg = sprintf(['A frequência central da emissão (%.3f MHz) não foi truncada.\n\n'                                           ...
-                                   'Foram identificados <b>%d registros</b> de estações cujas frequências centrais coincidem com %.3f MHz.\n\n' ...
-                                   'A estação mais próxima do local de monitoração está a <b>%.1f km</b>, tendo como descrição "<b>%s</b>"'],   ...
-                                   app.specData(idx1).UserData.Emissions.Frequency(idx2), numel(idx3), Truncated, Distance, Description);
-                end
-
-            else
-                if app.specData(idx1).UserData.Emissions.isTruncated(idx2)
-                    msg = sprintf(['A frequência central da emissão (%.3f MHz) foi truncada em <b>%.5f MHz</b>.\n\n'           ...
-                                   'Não foi identificado registro de estação cuja frequência central coincide com %.5f MHz.'], ...
-                                   app.specData(idx1).UserData.Emissions.Frequency(idx2), Truncated, Truncated);
-                else
-                    msg = sprintf(['A frequência central da emissão (%.3f MHz) não foi truncada.\n\n'                          ...
-                                   'Não foi identificado registro de estação cuja frequência central coincide com %.5f MHz.'], ...
-                                   app.specData(idx1).UserData.Emissions.Frequency(idx2), Truncated);
-                end
-            end
-
-            appUtil.modalWindow(app.UIFigure, 'warning', msg);
-
-        end
-
         % Value changed function: play_FindPeaks_maxOCC, 
         % ...and 1 other component
         function play_FindPeaks_OCCValueChanged(app, event)
@@ -5185,17 +4864,186 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Button pushed function: misc_DeleteAll
-        function misc_DeleteAllButtonPushed(app, event)
+        % Image clicked function: tool_RFDataHub
+        function play_RFDataHubButtonPushed(app, event)
+            
+            global RFDataHub
 
-            msgQuestion   = ['Confirma a exclusão dos fluxos espectrais e das informações auxiliares ' ...
-                             'a cada um dos fluxos, dentre elas a lista de exceções?'];
-            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-            if userSelection == "Não"
-                return
+            idxThread = app.play_PlotPanel.UserData.NodeData;
+            idxEmission = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
+
+            % Inicialmente, trunca-se a frequência da emissão selecionada, 
+            % caso aplicável.            
+            if app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
+                Truncated = TruncatedFrequency(app.channelObj, app.specData(idxThread), idxEmission);
+            else
+                Truncated = app.specData(idxThread).UserData.Emissions.Frequency(idxEmission);
+            end            
+
+            % Identifica na base de dados offline (anateldb) aqueles registros 
+            % que possuem a mesma frequência (tolerância: 1e-5).
+            idxRFDataHub = find(abs(RFDataHub.Frequency - Truncated) <= class.Constants.floatDiffTolerance);
+            if ~isempty(idxRFDataHub)
+                auxDistance      = deg2km(distance(app.specData(idxThread).GPS.Latitude, app.specData(idxThread).GPS.Longitude, RFDataHub.Latitude(idxRFDataHub), RFDataHub.Longitude(idxRFDataHub)));
+                [Distance, idx4] = min(auxDistance);
+                Description      = class.RFDataHub.Description(RFDataHub, idxRFDataHub(idx4));
+
+                if app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
+                    msg = sprintf(['A frequência central da emissão (%.3f MHz) foi truncada em <b>%.5f MHz</b>.\n\n'                            ...
+                                   'Foram identificados <b>%d registros</b> de estações cujas frequências centrais coincidem com %.3f MHz.\n\n' ...
+                                   'A estação mais próxima do local de monitoração está a <b>%.1f km</b>, tendo como descrição "<b>%s</b>"'],   ...
+                                   app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), Truncated, numel(idxRFDataHub), Truncated, Distance, Description);
+                else
+                    msg = sprintf(['A frequência central da emissão (%.3f MHz) não foi truncada.\n\n'                                           ...
+                                   'Foram identificados <b>%d registros</b> de estações cujas frequências centrais coincidem com %.3f MHz.\n\n' ...
+                                   'A estação mais próxima do local de monitoração está a <b>%.1f km</b>, tendo como descrição "<b>%s</b>"'],   ...
+                                   app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), numel(idxRFDataHub), Truncated, Distance, Description);
+                end
+
+            else
+                if app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
+                    msg = sprintf(['A frequência central da emissão (%.3f MHz) foi truncada em <b>%.5f MHz</b>.\n\n'           ...
+                                   'Não foi identificado registro de estação cuja frequência central coincide com %.5f MHz.'], ...
+                                   app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), Truncated, Truncated);
+                else
+                    msg = sprintf(['A frequência central da emissão (%.3f MHz) não foi truncada.\n\n'                          ...
+                                   'Não foi identificado registro de estação cuja frequência central coincide com %.5f MHz.'], ...
+                                   app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), Truncated);
+                end
             end
 
-            DeleteAll(app)
+            appUtil.modalWindow(app.UIFigure, 'warning', msg);
+
+        end
+
+        % Image clicked function: tool_DriveTest
+        function play_DriveTestButtonPushed(app, event)
+            
+            if isempty(app.hDriveTest) || ~isvalid(app.hDriveTest)
+                idxThread = app.play_PlotPanel.UserData.NodeData;
+
+                if ~app.specData(idxThread).GPS.Status
+                    msgError = ['Monitoração não registrou coordenadas geográficas válidas. Neste caso, para abrir o módulo ' ...
+                                '"DRIVE-TEST" em modo de compatibilidade, deve-se editar manualmente as coordenadas '         ...
+                                'geográficas do local da monitoração.'];
+                    appUtil.modalWindow(app.UIFigure, 'error', msgError);
+                    return
+                end
+    
+                msgWarning = {};
+                if ~ismember(app.specData(idxThread).MetaData.DataType, [1, 2])
+                    msgWarning{end+1} = 'Monitoração não conduzida pelo appColeta.';
+                end
+
+                if app.specData(idxThread).GPS.Count ~= numel(app.specData(idxThread).Data{1})
+                    msgWarning{end+1} = 'Número de coordenadas geográficas registradas diferente do número de varreduras.';
+                end
+
+                if ~ismember(app.specData(idxThread).MetaData.LevelUnit, {'dBm', 'dBµV'})
+                    msgWarning{end+1} = 'Monitoração não apresenta uma das unidades esperadas ("dBm" ou "dBµV") para que a potência do canal seja expressa em "dBm".';
+                end
+
+                compatibilityMode = false;
+                if ~isempty(msgWarning)
+                    msgQuestion   = sprintf(['O módulo "DRIVE-TEST" foi construído para possibilitar a visualização em '      ...
+                                             'mapa de dados obtidos em monitorações móveis conduzidas pelo appColeta.\n\nA '  ...
+                                             'emissão selecionada, contudo, está relacionada ao(s) seguinte(s) aspecto(s):\n' ...
+                                             '%s\n\nDeseja continuar, abrindo o módulo em modo de compatibilidade?'], textFormatGUI.cellstr2Bullets(msgWarning));
+                    userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+                    if strcmp(userSelection, 'Não')
+                        return
+                    end
+
+                    compatibilityMode = true;
+                end
+
+                idxEmission = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
+                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open', compatibilityMode, idxThread, idxEmission)
+                
+            else
+                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open')
+            end
+
+        end
+
+        % Image clicked function: play_LimitsRefresh
+        function play_LimitsRefreshImageClicked(app, event)
+            
+            idx = app.play_PlotPanel.UserData.NodeData;
+
+            % Para que o eixo volte às configurações automáticas de
+            % XLim e YLim, e considerando como foi construída a classe Band, 
+            % em especial o seu método Limits, apaga-se temporariamente 
+            % a informação de customização... 
+            app.specData(idx).UserData.customPlayback = struct('Type', 'auto', 'Parameters', []);
+
+            prePlot_updatingRestoreView(app, idx)
+            set(app.UIAxes1, 'XLim', app.restoreView(1).xLim, 'YLim', app.restoreView(1).yLim)
+
+            % E após os ajustes do eixo e do painel de spinners (que é atualizado
+            % automaticamente), recria-se a informação de customização, caso aplicável.
+            prePlot_updatingGeneralSettings(app)
+            prePlot_updatingCustomProperties(app, idx)
+
+        end
+
+        % Callback function: play_Channel_FileTemplate, 
+        % ...and 1 other component
+        function play_DownloadFileTemplate(app, event)
+            
+            switch event.Source
+                case app.play_Channel_FileTemplate
+                    msgQuestion   = ['O arquivo genérico que possibilita a inclusão de canais é composto por uma estrutura com nove campos:<br>'            ...
+                                     '<font style="font-size: 11px;">•&thinsp;Campo 1: Identificador;<br>'                                                  ...
+                                     '•&thinsp;Campo 2: Faixa de frequência, em kHZ;<br>'                                                                   ...
+                                     '•&thinsp;Campos 3-4: Frequências centrais de canais - o primeiro e o último, respectivamente -, em MHz;<br>'          ...
+                                     '•&thinsp;Campo 5: Distância entre frequências centrais de canais adjacentes, em MHz;<br>'                             ...
+                                     '•&thinsp;Campo 6: Largura dos canais, em MHz;<br>'                                                                    ...
+                                     '•&thinsp;Campo 7: Lista de frequências centrais dos canais, caso não sejam regularmente espaçados;<br>'               ...
+                                     '•&thinsp;Campo 8: Referência textual sobre a canalização;<br>'                                                        ...
+                                     '•&thinsp;Campo 9: Natureza das emissões, podendo ser "Aircraft", "Cellular", "FM", "TV" ou "Unknown".</font><br><br>' ...
+                                     'Deseja fazer download do arquivo modelo?'];
+                    fileName      = 'appAnaliseTemplate - addChannelList.json';
+
+                case app.play_FindPeaks_FileTemplate
+                    msgQuestion   = ['O arquivo genérico que possibilita a inclusão de emissões é composto por uma tabela com três colunas:<br>' ...
+                                     '<font style="font-size: 11px;">•&thinsp;Coluna 1: Frequência, em MHZ;<br>'                                 ...
+                                     '•&thinsp;Coluna 2: Largura ocupada, em kHZ; e<br>'                                                         ...
+                                     '•&thinsp;Coluna 3: Descrição textual da emissão.</font><br><br>'                                           ...
+                                     'Deseja fazer download dos arquivos modelos?'];
+                    fileName      = 'appAnaliseTemplate - addEmission.zip';
+            end
+
+            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+            if userSelection == "Sim"
+                try
+                    originFileName  = fullfile(app.rootFolder, 'Template', fileName);
+                    finalFolderName = app.General.fileFolder.userPath;
+                    copyfile(originFileName, finalFolderName, 'f')
+                    
+                    appUtil.modalWindow(app.UIFigure, 'info', sprintf('Arquivo "<b>%s</b>" salvo na pasta "%s".', fileName, finalFolderName));
+
+                catch ME
+                    appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                end
+            end
+
+        end
+
+        % Image clicked function: play_Channel_ShowPlot
+        function play_Channel_ShowPlotImageClicked(app, event)
+            
+            app.play_Channel_ShowPlot.UserData = ~app.play_Channel_ShowPlot.UserData;
+            
+            if app.play_Channel_ShowPlot.UserData
+                app.play_Channel_ShowPlot.ImageSource = 'Eye_32.png';
+            else
+                app.play_Channel_ShowPlot.ImageSource = 'EyeNegative_32.png';
+                app.play_Channel_ShowPlotWarn.Visible = 0;                
+            end
+
+            idx = app.play_PlotPanel.UserData.NodeData;
+            plot_Draw_Channels(app, idx)
 
         end
 
@@ -5209,7 +5057,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
             
             if isempty(app.report_ProjectName.Value{1})
-                defaultFilename = class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'ProjectData', app.report_Issue.Value);
+                defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'ProjectData', app.report_Issue.Value);
             else
                 defaultFilename = app.report_ProjectName.Value{1};
             end
@@ -5430,222 +5278,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: edit_gpsCity, edit_gpsCityButton, 
-        % ...and 4 other components
-        function edit_gpsCallbacks(app, event)
-            
-            idx = edit_gpsFindIndex(app);
-            if isempty(idx)
-                return
-            end
-
-            switch event.Source
-                %---------------------------------------------------------%
-                case app.tool_MiscRefresh
-                    fcn.gpsProperty(app.specData, idx)
-                    edit_gpsLayout(app, 'City+Latitude+Longitude')
-                
-                %---------------------------------------------------------%
-                case app.tool_MiscEdit
-                    app.edit_gpsLatitude.Editable  = 1;
-                    app.edit_gpsLongitude.Editable = 1;
-                    focus(app.edit_gpsLatitude)
-
-                %---------------------------------------------------------%
-                case app.edit_gpsLatitude
-                    focus(app.edit_gpsLongitude)
-                    
-                %---------------------------------------------------------%
-                case app.edit_gpsLongitude
-                
-                    gps = struct('Latitude',  app.edit_gpsLatitude.Value, ...
-                                 'Longitude', app.edit_gpsLongitude.Value);
-
-                    if ~strcmp(app.edit_gpsCitySource.Value, 'manual')
-                        [cityName, ~, locInfo] = fcn.gpsFindCity(gps);
-                    end
-
-                    for ii = idx
-                        edit_gpsUpdate(app, ii, gps.Latitude, gps.Longitude)
-
-                        if ~strcmp(app.edit_gpsCitySource.Value, 'manual')
-                            app.specData(ii).GPS.Location       = cityName;
-                            app.specData(ii).GPS.LocationSource = locInfo.infoSource;
-                        end
-                        
-                        app.specData(ii).GPS.Edited = true;
-                    end
-                    edit_gpsLayout(app, 'Latitude+Longitude')
-
-                %---------------------------------------------------------%
-                case app.edit_gpsCityButton
-                    app.edit_gpsCity.Editable = 1;
-                    focus(app.edit_gpsCity)
-
-                %---------------------------------------------------------%
-                case app.edit_gpsCity
-                    [cityName, Latitude, Longitude] = fcn.gpsFindCoordinates(event.Value);                    
-                    if ~isempty(cityName)        
-                        msgQuestion   = sprintf(['Coordenadas geográficas atuais:\n•&thinsp;Latitude: %.6f\n•&thinsp;Longitude: %.6f\n\n'               ...
-                                                 'Coordenadas geográficas da sede de <b>%s</b>:\n•&thinsp;Latitude: %.6f\n•&thinsp;Longitude: %.6f\n\n' ...
-                                                 'Deseja atualizar, além da localidade, as informações de Latitude e Longitude?'],        ...
-                                                 app.edit_gpsLatitude.Value, app.edit_gpsLongitude.Value, cityName, Latitude, Longitude);
-                        userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não', 'Cancelar'}, 1, 3);
-                        if userSelection == "Cancelar"
-                            set(app.edit_gpsCity, Editable=0, Value=event.PreviousValue)
-                            return
-                        end
-
-                        for ii = idx
-                            if selection == "Sim"
-                                edit_gpsUpdate(app, ii, Latitude, Longitude)
-                            end
-                            
-                            app.specData(ii).GPS.Location       = cityName;
-                            app.specData(ii).GPS.LocationSource = 'manual';                            
-                            app.specData(ii).GPS.Edited         = true;
-                        end
-
-                        switch selection
-                            case 'Sim'; edit_gpsLayout(app, 'City+Latitude+Longitude')
-                            case 'Não'; edit_gpsLayout(app, 'City')
-                        end
-                        
-                    else
-                        set(app.edit_gpsCity, Editable=0, Value=event.PreviousValue)
-                        
-                        msg = sprintf(['Não encontrada em base do IBGE o município <b>"%s"</b>. Favor corrigir ' ...
-                                       'eventual erro na grafia, inserindo os acentos, no formato Município/UF'], event.Value);
-                        appUtil.modalWindow(app.UIFigure, 'warning', msg);                        
-                    end
-            end
-
-        end
-
-        % Callback function: edit_ContextMenu_del, edit_unitRefresh, 
-        % ...and 1 other component
-        function edit_unitLevelCallbacks(app, event)
-            
-            focus(app.misc_Edit_kFactorTree)
-
-            idx1 = unique([app.play_Tree.SelectedNodes.NodeData]);
-            if numel(idx1) ~= 1
-                return
-            end
-
-            switch event.Source
-                %---------------------------------------------------------%
-                case app.edit_unitRefresh
-                    idx2 = 1:height(app.specData(idx1).UserData.measCalibration);
-                    Name = app.specData(idx1).UserData.measCalibration.Name;
-                    edit_unitLevelCorrection(app, 'Remove', idx1, idx2, Name)
-
-                %---------------------------------------------------------%
-                case app.misc_Edit_kFactorAdd
-                    Name = app.misc_Edit_kFactor.Value;
-                    edit_unitLevelCorrection(app, 'Add', idx1, [], Name)
-
-                %---------------------------------------------------------%
-                case app.edit_ContextMenu_del
-                    idx2 = app.misc_Edit_kFactorTree.SelectedNodes.NodeData;
-                    Name = app.specData(idx1).UserData.measCalibration.Name(idx2);
-                    edit_unitLevelCorrection(app, 'Remove', idx1, idx2, Name)
-            end
-            edit_unitLevelLayout(app)
-
-        end
-
-        % Button pushed function: misc_Del, misc_Duplicate, misc_Export, 
-        % ...and 3 other components
-        function misc_OperationsCallbacks(app, event)
-            
-            if app.plotFlag
-                play_PlaybackToolbarButtonCallback(app, struct('Source', app.tool_Play))
-            end
-
-            idxThreads = unique([app.play_Tree.SelectedNodes.NodeData]);
-            try
-                switch event.Source
-                    %-----------------------------------------------------%
-                    case app.misc_Save
-                        misc_SaveSpectralData(app, idxThreads)
-
-                    %-----------------------------------------------------%
-                    case app.misc_Duplicate
-                        for ii = 1:numel(idxThreads)
-                            app.specData(end+1) = copy(app.specData(idxThreads(ii)), {});
-                        end
-                        
-                        sortType     = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.play_TreeSort.UserData));
-                        app.specData = sort(app.specData, sortType);                    
-                    
-                    %-----------------------------------------------------%
-                    case app.misc_Merge
-                        if strcmp(misc_checkIfAuxiliarAppIsOpen(app, 'MESCLAR FLUXOS'), 'Não')
-                            return
-                        end
-                        
-                        app.specData = merge(app.specData, idxThreads, app.UIFigure);
-
-                        % Reinicia os valores de ocupação...
-                        idxThreads = idxThreads(1);
-                        if ~isempty(app.specData(idxThreads).UserData.occCache)
-                            app.specData(idxThreads).UserData.occCache  = struct('Info', {}, 'THR', {}, 'Data', {});
-                            app.specData(idxThreads).UserData.occMethod.CacheIndex = [];
-
-                            if ~isempty(app.specData(idxThreads).UserData.reportOCC)
-                                app.specData(idxThreads).UserData.reportOCC = [];
-                                class.userData.reportProperties_DefaultValues(app, idxThreads)
-                            end
-                        end
-    
-                    %-----------------------------------------------------%
-                    case app.misc_Del
-                        if strcmp(misc_checkIfAuxiliarAppIsOpen(app, 'DELETAR FLUXO'), 'Não')
-                            return
-                        end
-
-                        delete(app.specData(idxThreads))
-                        app.specData(idxThreads) = [];
-
-                        if isempty(app.specData)
-                            DeleteAll(app)
-                            return
-                        end
-    
-                    %-----------------------------------------------------%
-                    case app.misc_Export
-                        misc_ExportUserData(app, idxThreads)
-    
-                    %-----------------------------------------------------%
-                    case app.misc_Import
-                        misc_ImportUserData(app)
-                end
-
-                SelectedNodesTextList = edit_SelectedNodesText(app);
-                play_TreeRebuilding(app, SelectedNodesTextList)
-
-            catch ME
-                appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
-            end
-
-        end
-
-        % Selection changed function: config_ButtonGroup
-        function config_ButtonGroupSelectionChanged(app, event)
-            
-            selectedButton = app.config_ButtonGroup.SelectedObject;
-            switch selectedButton
-                case app.config_Option_Search
-                    app.config_mainGrid.ColumnWidth(2:4) = {'1x',0,0};
-                case app.config_Option_Fiscaliza
-                    app.config_mainGrid.ColumnWidth(2:4) = {0,'1x',0};
-                case app.config_Option_Folder
-                    app.config_mainGrid.ColumnWidth(2:4) = {0,0,'1x'};
-            end
-
-        end
-
         % Image clicked function: report_ProjectNew, report_ProjectOpen, 
         % ...and 1 other component
         function report_ProjectToolbarImageClicked(app, event)
@@ -5726,7 +5358,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     if ~isempty(app.report_ProjectName.Value{1})
                         defaultFilename = app.report_ProjectName.Value{1};
                     else
-                        defaultFilename = class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'ProjectData', app.report_Issue.Value);
+                        defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'ProjectData', app.report_Issue.Value);
                     end
 
                     [fileName, filePath] = uiputfile({'*.mat', 'appAnalise (*.mat)'}, '', defaultFilename);
@@ -5782,87 +5414,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: play_LimitsRefresh
-        function play_LimitsRefreshImageClicked(app, event)
-            
-            idx = app.play_PlotPanel.UserData.NodeData;
-
-            % Para que o eixo volte às configurações automáticas de
-            % XLim e YLim, e considerando como foi construída a classe Band, 
-            % em especial o seu método Limits, apaga-se temporariamente 
-            % a informação de customização... 
-            app.specData(idx).UserData.customPlayback = struct('Type', 'auto', 'Parameters', []);
-
-            prePlot_updatingRestoreView(app, idx)
-            set(app.UIAxes1, 'XLim', app.restoreView(1).xLim, 'YLim', app.restoreView(1).yLim)
-
-            % E após os ajustes do eixo e do painel de spinners (que é atualizado
-            % automaticamente), recria-se a informação de customização, caso aplicável.
-            prePlot_updatingGeneralSettings(app)
-            prePlot_updatingCustomProperties(app, idx)
-
-        end
-
-        % Callback function: play_Channel_FileTemplate, 
-        % ...and 1 other component
-        function config_DownloadFileTemplate(app, event)
-            
-            switch event.Source
-                case app.play_Channel_FileTemplate
-                    msgQuestion   = ['O arquivo genérico que possibilita a inclusão de canais é composto por uma estrutura com nove campos:<br>'            ...
-                                     '<font style="font-size: 11px;">•&thinsp;Campo 1: Identificador;<br>'                                                  ...
-                                     '•&thinsp;Campo 2: Faixa de frequência, em kHZ;<br>'                                                                   ...
-                                     '•&thinsp;Campos 3-4: Frequências centrais de canais - o primeiro e o último, respectivamente -, em MHz;<br>'          ...
-                                     '•&thinsp;Campo 5: Distância entre frequências centrais de canais adjacentes, em MHz;<br>'                             ...
-                                     '•&thinsp;Campo 6: Largura dos canais, em MHz;<br>'                                                                    ...
-                                     '•&thinsp;Campo 7: Lista de frequências centrais dos canais, caso não sejam regularmente espaçados;<br>'               ...
-                                     '•&thinsp;Campo 8: Referência textual sobre a canalização;<br>'                                                        ...
-                                     '•&thinsp;Campo 9: Natureza das emissões, podendo ser "Aircraft", "Cellular", "FM", "TV" ou "Unknown".</font><br><br>' ...
-                                     'Deseja fazer download do arquivo modelo?'];
-                    fileName      = 'appAnaliseTemplate - addChannelList.json';
-
-                case app.play_FindPeaks_FileTemplate
-                    msgQuestion   = ['O arquivo genérico que possibilita a inclusão de emissões é composto por uma tabela com três colunas:<br>' ...
-                                     '<font style="font-size: 11px;">•&thinsp;Coluna 1: Frequência, em MHZ;<br>'                                 ...
-                                     '•&thinsp;Coluna 2: Largura ocupada, em kHZ; e<br>'                                                         ...
-                                     '•&thinsp;Coluna 3: Descrição textual da emissão.</font><br><br>'                                           ...
-                                     'Deseja fazer download dos arquivos modelos?'];
-                    fileName      = 'appAnaliseTemplate - addEmission.zip';
-            end
-
-            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-            if userSelection == "Sim"
-                try
-                    originFileName  = fullfile(app.rootFolder, 'Template', fileName);
-                    finalFolderName = app.General.fileFolder.userPath;
-                    copyfile(originFileName, finalFolderName, 'f')
-                    
-                    appUtil.modalWindow(app.UIFigure, 'info', sprintf('Arquivo "<b>%s</b>" salvo na pasta "%s".', fileName, finalFolderName));
-
-                catch ME
-                    appUtil.modalWindow(app.UIFigure, 'error', ME.message);
-                end
-            end
-
-        end
-
-        % Image clicked function: play_Channel_ShowPlot
-        function play_Channel_ShowPlotImageClicked(app, event)
-            
-            app.play_Channel_ShowPlot.UserData = ~app.play_Channel_ShowPlot.UserData;
-            
-            if app.play_Channel_ShowPlot.UserData
-                app.play_Channel_ShowPlot.ImageSource = 'Eye_32.png';
-            else
-                app.play_Channel_ShowPlot.ImageSource = 'EyeNegative_32.png';
-                app.play_Channel_ShowPlotWarn.Visible = 0;                
-            end
-
-            idx = app.play_PlotPanel.UserData.NodeData;
-            plot_Draw_Channels(app, idx)
-
-        end
-
         % Image clicked function: report_ThreadAlgorithmsRefresh
         function report_ThreadAlgorithmsRefreshImageClicked(app, event)
             
@@ -5881,116 +5432,92 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: tool_RFDataHub
-        function play_RFDataHubButtonPushed(app, event)
-            
-            global RFDataHub
+        % Button pushed function: misc_DeleteAll
+        function misc_DeleteAllButtonPushed(app, event)
 
-            idxThread = app.play_PlotPanel.UserData.NodeData;
-            idxEmission = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
-
-            % Inicialmente, trunca-se a frequência da emissão selecionada, 
-            % caso aplicável.            
-            if app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
-                Truncated = TruncatedFrequency(app.channelObj, app.specData(idxThread), idxEmission);
-            else
-                Truncated = app.specData(idxThread).UserData.Emissions.Frequency(idxEmission);
-            end            
-
-            % Identifica na base de dados offline (anateldb) aqueles registros 
-            % que possuem a mesma frequência (tolerância: 1e-5).
-            idxRFDataHub = find(abs(RFDataHub.Frequency - Truncated) <= class.Constants.floatDiffTolerance);
-            if ~isempty(idxRFDataHub)
-                auxDistance      = deg2km(distance(app.specData(idxThread).GPS.Latitude, app.specData(idxThread).GPS.Longitude, RFDataHub.Latitude(idxRFDataHub), RFDataHub.Longitude(idxRFDataHub)));
-                [Distance, idx4] = min(auxDistance);
-                Description      = class.RFDataHub.Description(RFDataHub, idxRFDataHub(idx4));
-
-                if app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
-                    msg = sprintf(['A frequência central da emissão (%.3f MHz) foi truncada em <b>%.5f MHz</b>.\n\n'                            ...
-                                   'Foram identificados <b>%d registros</b> de estações cujas frequências centrais coincidem com %.3f MHz.\n\n' ...
-                                   'A estação mais próxima do local de monitoração está a <b>%.1f km</b>, tendo como descrição "<b>%s</b>"'],   ...
-                                   app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), Truncated, numel(idxRFDataHub), Truncated, Distance, Description);
-                else
-                    msg = sprintf(['A frequência central da emissão (%.3f MHz) não foi truncada.\n\n'                                           ...
-                                   'Foram identificados <b>%d registros</b> de estações cujas frequências centrais coincidem com %.3f MHz.\n\n' ...
-                                   'A estação mais próxima do local de monitoração está a <b>%.1f km</b>, tendo como descrição "<b>%s</b>"'],   ...
-                                   app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), numel(idxRFDataHub), Truncated, Distance, Description);
-                end
-
-            else
-                if app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
-                    msg = sprintf(['A frequência central da emissão (%.3f MHz) foi truncada em <b>%.5f MHz</b>.\n\n'           ...
-                                   'Não foi identificado registro de estação cuja frequência central coincide com %.5f MHz.'], ...
-                                   app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), Truncated, Truncated);
-                else
-                    msg = sprintf(['A frequência central da emissão (%.3f MHz) não foi truncada.\n\n'                          ...
-                                   'Não foi identificado registro de estação cuja frequência central coincide com %.5f MHz.'], ...
-                                   app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), Truncated);
-                end
+            msgQuestion   = ['Confirma a exclusão dos fluxos espectrais e das informações auxiliares ' ...
+                             'a cada um dos fluxos, dentre elas a lista de exceções?'];
+            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+            if userSelection == "Não"
+                return
             end
 
-            appUtil.modalWindow(app.UIFigure, 'warning', msg);
+            DeleteAll(app)
 
         end
 
-        % Image clicked function: tool_DriveTest
-        function play_DriveTestButtonPushed(app, event)
+        % Button pushed function: misc_Del, misc_Duplicate, misc_Export, 
+        % ...and 3 other components
+        function misc_OperationsCallbacks(app, event)
             
-            if isempty(app.hDriveTest) || ~isvalid(app.hDriveTest)
-                idxThread = app.play_PlotPanel.UserData.NodeData;
+            if app.plotFlag
+                play_PlaybackToolbarButtonCallback(app, struct('Source', app.tool_Play))
+            end
 
-                if ~app.specData(idxThread).GPS.Status
-                    msgError = ['Monitoração não registrou coordenadas geográficas válidas. Neste caso, para abrir o módulo ' ...
-                                '"DRIVE-TEST" em modo de compatibilidade, deve-se editar manualmente as coordenadas '         ...
-                                'geográficas do local da monitoração.'];
-                    appUtil.modalWindow(app.UIFigure, 'error', msgError);
-                    return
-                end
+            idxThreads = unique([app.play_Tree.SelectedNodes.NodeData]);
+            try
+                switch event.Source
+                    %-----------------------------------------------------%
+                    case app.misc_Save
+                        misc_SaveSpectralData(app, idxThreads)
+
+                    %-----------------------------------------------------%
+                    case app.misc_Duplicate
+                        for ii = 1:numel(idxThreads)
+                            app.specData(end+1) = copy(app.specData(idxThreads(ii)), {});
+                        end
+                        
+                        sortType     = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.play_TreeSort.UserData));
+                        app.specData = sort(app.specData, sortType);                    
+                    
+                    %-----------------------------------------------------%
+                    case app.misc_Merge
+                        if strcmp(misc_checkIfAuxiliarAppIsOpen(app, 'MESCLAR FLUXOS'), 'Não')
+                            return
+                        end
+                        
+                        app.specData = merge(app.specData, idxThreads, app.UIFigure);
+
+                        % Reinicia os valores de ocupação...
+                        idxThreads = idxThreads(1);
+                        if ~isempty(app.specData(idxThreads).UserData.occCache)
+                            app.specData(idxThreads).UserData.occCache  = struct('Info', {}, 'THR', {}, 'Data', {});
+                            app.specData(idxThreads).UserData.occMethod.CacheIndex = [];
+
+                            if ~isempty(app.specData(idxThreads).UserData.reportOCC)
+                                app.specData(idxThreads).UserData.reportOCC = [];
+                                class.userData.reportProperties_DefaultValues(app, idxThreads)
+                            end
+                        end
     
-                msgWarning = {};
-                if ~ismember(app.specData(idxThread).MetaData.DataType, [1, 2])
-                    msgWarning{end+1} = 'Monitoração não conduzida pelo appColeta.';
+                    %-----------------------------------------------------%
+                    case app.misc_Del
+                        if strcmp(misc_checkIfAuxiliarAppIsOpen(app, 'DELETAR FLUXO'), 'Não')
+                            return
+                        end
+
+                        delete(app.specData(idxThreads))
+                        app.specData(idxThreads) = [];
+
+                        if isempty(app.specData)
+                            DeleteAll(app)
+                            return
+                        end
+    
+                    %-----------------------------------------------------%
+                    case app.misc_Export
+                        misc_ExportUserData(app, idxThreads)
+    
+                    %-----------------------------------------------------%
+                    case app.misc_Import
+                        misc_ImportUserData(app)
                 end
 
-                if app.specData(idxThread).GPS.Count ~= numel(app.specData(idxThread).Data{1})
-                    msgWarning{end+1} = 'Número de coordenadas geográficas registradas diferente do número de varreduras.';
-                end
+                SelectedNodesTextList = misc_SelectedNodesText(app);
+                play_TreeRebuilding(app, SelectedNodesTextList)
 
-                if ~ismember(app.specData(idxThread).MetaData.LevelUnit, {'dBm', 'dBµV'})
-                    msgWarning{end+1} = 'Monitoração não apresenta uma das unidades esperadas ("dBm" ou "dBµV") para que a potência do canal seja expressa em "dBm".';
-                end
-
-                compatibilityMode = false;
-                if ~isempty(msgWarning)
-                    msgQuestion   = sprintf(['O módulo "DRIVE-TEST" foi construído para possibilitar a visualização em '      ...
-                                             'mapa de dados obtidos em monitorações móveis conduzidas pelo appColeta.\n\nA '  ...
-                                             'emissão selecionada, contudo, está relacionada ao(s) seguinte(s) aspecto(s):\n' ...
-                                             '%s\n\nDeseja continuar, abrindo o módulo em modo de compatibilidade?'], textFormatGUI.cellstr2Bullets(msgWarning));
-                    userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                    if strcmp(userSelection, 'Não')
-                        return
-                    end
-
-                    compatibilityMode = true;
-                end
-
-                idxEmission = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
-                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open', compatibilityMode, idxThread, idxEmission)
-                
-            else
-                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open')
-            end
-
-        end
-
-        % Value changed function: config_openData2Simulate
-        function config_openData2SimulateValueChanged(app, event)
-            
-            if app.config_openData2Simulate.Value
-                app.config_FiscalizaHM.Value  = 1;
-                app.config_FiscalizaPD.Enable = 0;
-            else
-                app.config_FiscalizaPD.Enable = 1;
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
             end
 
         end
@@ -6010,7 +5537,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.UIFigure.AutoResizeChildren = 'off';
             app.UIFigure.Color = [0.9412 0.9412 0.9412];
             app.UIFigure.Position = [100 100 1244 4000];
-            app.UIFigure.Name = 'appAnaliseV2 R2024a';
+            app.UIFigure.Name = 'appAnalise R2024b';
             app.UIFigure.Icon = fullfile(pathToMLAPP, 'Icons', 'icon_48.png');
             app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
             app.UIFigure.HandleVisibility = 'on';
@@ -7631,7 +7158,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_Channel_FileTemplate
             app.play_Channel_FileTemplate = uihyperlink(app.play_Channel_ExternalFileGrid);
-            app.play_Channel_FileTemplate.HyperlinkClickedFcn = createCallbackFcn(app, @config_DownloadFileTemplate, true);
+            app.play_Channel_FileTemplate.HyperlinkClickedFcn = createCallbackFcn(app, @play_DownloadFileTemplate, true);
             app.play_Channel_FileTemplate.VerticalAlignment = 'top';
             app.play_Channel_FileTemplate.FontSize = 10;
             app.play_Channel_FileTemplate.Layout.Row = 3;
@@ -8182,7 +7709,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_FindPeaks_FileTemplate
             app.play_FindPeaks_FileTemplate = uihyperlink(app.play_FindPeaks_ExternalFileGrid);
-            app.play_FindPeaks_FileTemplate.HyperlinkClickedFcn = createCallbackFcn(app, @config_DownloadFileTemplate, true);
+            app.play_FindPeaks_FileTemplate.HyperlinkClickedFcn = createCallbackFcn(app, @play_DownloadFileTemplate, true);
             app.play_FindPeaks_FileTemplate.VerticalAlignment = 'top';
             app.play_FindPeaks_FileTemplate.FontSize = 10;
             app.play_FindPeaks_FileTemplate.Layout.Row = 3;
@@ -8513,7 +8040,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create misc_ControlsTab1Info
             app.misc_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
             app.misc_ControlsTab1Info.ColumnWidth = {'1x'};
-            app.misc_ControlsTab1Info.RowHeight = {22, 240, 151, '1x', '1x'};
+            app.misc_ControlsTab1Info.RowHeight = {22, '1x'};
             app.misc_ControlsTab1Info.ColumnSpacing = 5;
             app.misc_ControlsTab1Info.RowSpacing = 5;
             app.misc_ControlsTab1Info.Padding = [0 0 0 0];
@@ -8639,7 +8166,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create misc_Export
             app.misc_Export = uibutton(app.misc_Grid1, 'push');
             app.misc_Export.ButtonPushedFcn = createCallbackFcn(app, @misc_OperationsCallbacks, true);
-            app.misc_Export.Icon = fullfile(pathToMLAPP, 'Icons', 'Export_24.png');
+            app.misc_Export.Icon = fullfile(pathToMLAPP, 'Icons', 'Export_16.png');
             app.misc_Export.IconAlignment = 'top';
             app.misc_Export.BackgroundColor = [1 1 1];
             app.misc_Export.FontSize = 10;
@@ -8660,7 +8187,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create misc_Import
             app.misc_Import = uibutton(app.misc_Grid1, 'push');
             app.misc_Import.ButtonPushedFcn = createCallbackFcn(app, @misc_OperationsCallbacks, true);
-            app.misc_Import.Icon = fullfile(pathToMLAPP, 'Icons', 'Import_24.png');
+            app.misc_Import.Icon = fullfile(pathToMLAPP, 'Icons', 'Import_16.png');
             app.misc_Import.IconAlignment = 'top';
             app.misc_Import.BackgroundColor = [1 1 1];
             app.misc_Import.FontSize = 10;
@@ -8750,213 +8277,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.misc_DeleteAllLabel.Layout.Row = 9;
             app.misc_DeleteAllLabel.Layout.Column = [1 3];
             app.misc_DeleteAllLabel.Text = 'Reiniciar análise';
-
-            % Create edit_gpsPanel
-            app.edit_gpsPanel = uipanel(app.misc_ControlsTab1Info);
-            app.edit_gpsPanel.AutoResizeChildren = 'off';
-            app.edit_gpsPanel.Title = 'LOCAL DA MONITORAÇÃO';
-            app.edit_gpsPanel.Layout.Row = 3;
-            app.edit_gpsPanel.Layout.Column = 1;
-
-            % Create edit_gpsGrid
-            app.edit_gpsGrid = uigridlayout(app.edit_gpsPanel);
-            app.edit_gpsGrid.ColumnWidth = {'1x', 20};
-            app.edit_gpsGrid.RowHeight = {6, 16, 42, 6, 16, 42};
-            app.edit_gpsGrid.ColumnSpacing = 5;
-            app.edit_gpsGrid.RowSpacing = 5;
-            app.edit_gpsGrid.Padding = [10 10 10 5];
-            app.edit_gpsGrid.BackgroundColor = [1 1 1];
-
-            % Create edit_gpsLocationLabel1
-            app.edit_gpsLocationLabel1 = uilabel(app.edit_gpsGrid);
-            app.edit_gpsLocationLabel1.VerticalAlignment = 'bottom';
-            app.edit_gpsLocationLabel1.FontSize = 11;
-            app.edit_gpsLocationLabel1.Layout.Row = [1 2];
-            app.edit_gpsLocationLabel1.Layout.Column = 1;
-            app.edit_gpsLocationLabel1.Interpreter = 'html';
-            app.edit_gpsLocationLabel1.Text = {'Coordenadas geográficas:'; '<p style="line-height:10px; font-size:9px; color:gray;">(Fonte | Latitude | Longitude)</p>'};
-
-            % Create edit_gpsLocationPanel
-            app.edit_gpsLocationPanel = uipanel(app.edit_gpsGrid);
-            app.edit_gpsLocationPanel.AutoResizeChildren = 'off';
-            app.edit_gpsLocationPanel.Layout.Row = 3;
-            app.edit_gpsLocationPanel.Layout.Column = [1 2];
-
-            % Create edit_gpsLocationGrid
-            app.edit_gpsLocationGrid = uigridlayout(app.edit_gpsLocationPanel);
-            app.edit_gpsLocationGrid.ColumnWidth = {75, '1x', '1x'};
-            app.edit_gpsLocationGrid.RowHeight = {22};
-            app.edit_gpsLocationGrid.BackgroundColor = [1 1 1];
-
-            % Create edit_gpsSource
-            app.edit_gpsSource = uieditfield(app.edit_gpsLocationGrid, 'text');
-            app.edit_gpsSource.Editable = 'off';
-            app.edit_gpsSource.FontSize = 11;
-            app.edit_gpsSource.Layout.Row = 1;
-            app.edit_gpsSource.Layout.Column = 1;
-            app.edit_gpsSource.Value = 'auto';
-
-            % Create edit_gpsLatitude
-            app.edit_gpsLatitude = uieditfield(app.edit_gpsLocationGrid, 'numeric');
-            app.edit_gpsLatitude.Limits = [-90 90];
-            app.edit_gpsLatitude.ValueDisplayFormat = '%.6f';
-            app.edit_gpsLatitude.ValueChangedFcn = createCallbackFcn(app, @edit_gpsCallbacks, true);
-            app.edit_gpsLatitude.Editable = 'off';
-            app.edit_gpsLatitude.FontSize = 11;
-            app.edit_gpsLatitude.Layout.Row = 1;
-            app.edit_gpsLatitude.Layout.Column = 2;
-            app.edit_gpsLatitude.Value = -1;
-
-            % Create edit_gpsLongitude
-            app.edit_gpsLongitude = uieditfield(app.edit_gpsLocationGrid, 'numeric');
-            app.edit_gpsLongitude.Limits = [-180 180];
-            app.edit_gpsLongitude.ValueDisplayFormat = '%.6f';
-            app.edit_gpsLongitude.ValueChangedFcn = createCallbackFcn(app, @edit_gpsCallbacks, true);
-            app.edit_gpsLongitude.Editable = 'off';
-            app.edit_gpsLongitude.FontSize = 11;
-            app.edit_gpsLongitude.Layout.Row = 1;
-            app.edit_gpsLongitude.Layout.Column = 3;
-            app.edit_gpsLongitude.Value = -1;
-
-            % Create edit_gpsLocationLabel2
-            app.edit_gpsLocationLabel2 = uilabel(app.edit_gpsGrid);
-            app.edit_gpsLocationLabel2.VerticalAlignment = 'bottom';
-            app.edit_gpsLocationLabel2.FontSize = 11;
-            app.edit_gpsLocationLabel2.Layout.Row = [4 5];
-            app.edit_gpsLocationLabel2.Layout.Column = 1;
-            app.edit_gpsLocationLabel2.Interpreter = 'html';
-            app.edit_gpsLocationLabel2.Text = {'Localidade:'; '<p style="line-height:10px; font-size:9px; color:gray;">(Fonte | Município/UF)</p>'};
-
-            % Create edit_gpsCityPanel
-            app.edit_gpsCityPanel = uipanel(app.edit_gpsGrid);
-            app.edit_gpsCityPanel.AutoResizeChildren = 'off';
-            app.edit_gpsCityPanel.Layout.Row = 6;
-            app.edit_gpsCityPanel.Layout.Column = [1 2];
-
-            % Create edit_gpsCityGrid
-            app.edit_gpsCityGrid = uigridlayout(app.edit_gpsCityPanel);
-            app.edit_gpsCityGrid.ColumnWidth = {75, '1x', 22};
-            app.edit_gpsCityGrid.RowHeight = {22};
-            app.edit_gpsCityGrid.BackgroundColor = [1 1 1];
-
-            % Create edit_gpsCitySource
-            app.edit_gpsCitySource = uieditfield(app.edit_gpsCityGrid, 'text');
-            app.edit_gpsCitySource.Editable = 'off';
-            app.edit_gpsCitySource.FontSize = 11;
-            app.edit_gpsCitySource.Layout.Row = 1;
-            app.edit_gpsCitySource.Layout.Column = 1;
-            app.edit_gpsCitySource.Value = 'API';
-
-            % Create edit_gpsCity
-            app.edit_gpsCity = uieditfield(app.edit_gpsCityGrid, 'text');
-            app.edit_gpsCity.ValueChangedFcn = createCallbackFcn(app, @edit_gpsCallbacks, true);
-            app.edit_gpsCity.Editable = 'off';
-            app.edit_gpsCity.FontSize = 11;
-            app.edit_gpsCity.Layout.Row = 1;
-            app.edit_gpsCity.Layout.Column = [2 3];
-
-            % Create edit_gpsCityButton
-            app.edit_gpsCityButton = uiimage(app.edit_gpsGrid);
-            app.edit_gpsCityButton.ImageClickedFcn = createCallbackFcn(app, @edit_gpsCallbacks, true);
-            app.edit_gpsCityButton.Tooltip = {'Habilita edição do campo "Município/UF"'};
-            app.edit_gpsCityButton.Layout.Row = 5;
-            app.edit_gpsCityButton.Layout.Column = 2;
-            app.edit_gpsCityButton.HorizontalAlignment = 'right';
-            app.edit_gpsCityButton.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Edit_32.png');
-
-            % Create edit_unitPanel
-            app.edit_unitPanel = uipanel(app.misc_ControlsTab1Info);
-            app.edit_unitPanel.AutoResizeChildren = 'off';
-            app.edit_unitPanel.Title = 'UNIDADE DE MEDIDA';
-            app.edit_unitPanel.Layout.Row = 4;
-            app.edit_unitPanel.Layout.Column = 1;
-
-            % Create misc_Edit_unitGrid
-            app.misc_Edit_unitGrid = uigridlayout(app.edit_unitPanel);
-            app.misc_Edit_unitGrid.ColumnWidth = {85, '1x', 16};
-            app.misc_Edit_unitGrid.RowHeight = {26, 22, 8, '1x'};
-            app.misc_Edit_unitGrid.RowSpacing = 5;
-            app.misc_Edit_unitGrid.Padding = [10 10 10 5];
-            app.misc_Edit_unitGrid.BackgroundColor = [1 1 1];
-
-            % Create misc_Edit_unitRawLabel
-            app.misc_Edit_unitRawLabel = uilabel(app.misc_Edit_unitGrid);
-            app.misc_Edit_unitRawLabel.VerticalAlignment = 'bottom';
-            app.misc_Edit_unitRawLabel.WordWrap = 'on';
-            app.misc_Edit_unitRawLabel.FontSize = 11;
-            app.misc_Edit_unitRawLabel.Layout.Row = 1;
-            app.misc_Edit_unitRawLabel.Layout.Column = [1 3];
-            app.misc_Edit_unitRawLabel.Interpreter = 'html';
-            app.misc_Edit_unitRawLabel.Text = {'Unidade original:'; '<p style="line-height:10px; font-size:9px; color:gray;">(coleta)</p>'};
-
-            % Create misc_Edit_unitRaw
-            app.misc_Edit_unitRaw = uieditfield(app.misc_Edit_unitGrid, 'text');
-            app.misc_Edit_unitRaw.Editable = 'off';
-            app.misc_Edit_unitRaw.FontSize = 11;
-            app.misc_Edit_unitRaw.Layout.Row = 2;
-            app.misc_Edit_unitRaw.Layout.Column = 1;
-
-            % Create misc_Edit_kFactorLabel
-            app.misc_Edit_kFactorLabel = uilabel(app.misc_Edit_unitGrid);
-            app.misc_Edit_kFactorLabel.VerticalAlignment = 'bottom';
-            app.misc_Edit_kFactorLabel.FontSize = 11;
-            app.misc_Edit_kFactorLabel.Layout.Row = 1;
-            app.misc_Edit_kFactorLabel.Layout.Column = [2 3];
-            app.misc_Edit_kFactorLabel.Interpreter = 'html';
-            app.misc_Edit_kFactorLabel.Text = {'Curva de correção:'; '<p style="line-height:10px; font-size:9px; color:gray;">(calibração, fator-k)</p>'};
-
-            % Create misc_Edit_kFactor
-            app.misc_Edit_kFactor = uidropdown(app.misc_Edit_unitGrid);
-            app.misc_Edit_kFactor.Items = {'', 'CRFS Low Band (10 MHz - 1.2 GHz)', 'CRFS High Band (750 MHz - 6 GHz)', 'Rohde & Schwarz ADDx07 (Argus)', 'Rohde & Schwarz ADD107 (20 MHz - 1.3 GHz)', 'Rohde & Schwarz ADD207 (690 MHz - 6 GHz)'};
-            app.misc_Edit_kFactor.FontSize = 11;
-            app.misc_Edit_kFactor.BackgroundColor = [1 1 1];
-            app.misc_Edit_kFactor.Layout.Row = 2;
-            app.misc_Edit_kFactor.Layout.Column = [2 3];
-            app.misc_Edit_kFactor.Value = '';
-
-            % Create misc_Edit_kFactorAdd
-            app.misc_Edit_kFactorAdd = uiimage(app.misc_Edit_unitGrid);
-            app.misc_Edit_kFactorAdd.ScaleMethod = 'scaledown';
-            app.misc_Edit_kFactorAdd.ImageClickedFcn = createCallbackFcn(app, @edit_unitLevelCallbacks, true);
-            app.misc_Edit_kFactorAdd.Layout.Row = 3;
-            app.misc_Edit_kFactorAdd.Layout.Column = 3;
-            app.misc_Edit_kFactorAdd.HorizontalAlignment = 'right';
-            app.misc_Edit_kFactorAdd.VerticalAlignment = 'bottom';
-            app.misc_Edit_kFactorAdd.ImageSource = fullfile(pathToMLAPP, 'Icons', 'addSymbol_32.png');
-
-            % Create misc_Edit_kFactorTree
-            app.misc_Edit_kFactorTree = uitree(app.misc_Edit_unitGrid);
-            app.misc_Edit_kFactorTree.FontSize = 10;
-            app.misc_Edit_kFactorTree.Layout.Row = 4;
-            app.misc_Edit_kFactorTree.Layout.Column = [1 3];
-
-            % Create edit_unitRefresh
-            app.edit_unitRefresh = uiimage(app.misc_Edit_unitGrid);
-            app.edit_unitRefresh.ImageClickedFcn = createCallbackFcn(app, @edit_unitLevelCallbacks, true);
-            app.edit_unitRefresh.Layout.Row = 1;
-            app.edit_unitRefresh.Layout.Column = 3;
-            app.edit_unitRefresh.VerticalAlignment = 'bottom';
-            app.edit_unitRefresh.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Refresh_18.png');
-
-            % Create Panel_4
-            app.Panel_4 = uipanel(app.misc_ControlsTab1Info);
-            app.Panel_4.Title = 'Panel';
-            app.Panel_4.Layout.Row = 5;
-            app.Panel_4.Layout.Column = 1;
-
-            % Create GridLayout3
-            app.GridLayout3 = uigridlayout(app.Panel_4);
-            app.GridLayout3.ColumnWidth = {'1x'};
-            app.GridLayout3.RowHeight = {'1x'};
-
-            % Create Label
-            app.Label = uilabel(app.GridLayout3);
-            app.Label.WordWrap = 'on';
-            app.Label.FontSize = 36;
-            app.Label.FontColor = [0.7176 0.2745 1];
-            app.Label.Layout.Row = 1;
-            app.Label.Layout.Column = 1;
-            app.Label.Text = 'filtro temporal. datepicker, spinner e árvore registrando os vários filtros temporais';
 
             % Create play_ControlsTab1Grid
             app.play_ControlsTab1Grid = uigridlayout(app.play_ControlsGrid);
@@ -9111,33 +8431,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_FiscalizaUpdate.Layout.Column = 18;
             app.tool_FiscalizaUpdate.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Up_24.png');
 
-            % Create tool_MiscEdit
-            app.tool_MiscEdit = uiimage(app.play_toolGrid);
-            app.tool_MiscEdit.ImageClickedFcn = createCallbackFcn(app, @edit_gpsCallbacks, true);
-            app.tool_MiscEdit.Tag = 'MISC';
-            app.tool_MiscEdit.Visible = 'off';
-            app.tool_MiscEdit.Tooltip = {'Habilita edição dos campos "Latitude" e "Longitude"'};
-            app.tool_MiscEdit.Layout.Row = 2;
-            app.tool_MiscEdit.Layout.Column = 16;
-            app.tool_MiscEdit.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Edit_32.png');
-
-            % Create tool_MiscCancel
-            app.tool_MiscCancel = uiimage(app.play_toolGrid);
-            app.tool_MiscCancel.Tag = 'MISC';
-            app.tool_MiscCancel.Visible = 'off';
-            app.tool_MiscCancel.Layout.Row = 2;
-            app.tool_MiscCancel.Layout.Column = 17;
-            app.tool_MiscCancel.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_32Red.png');
-
-            % Create tool_MiscRefresh
-            app.tool_MiscRefresh = uiimage(app.play_toolGrid);
-            app.tool_MiscRefresh.ImageClickedFcn = createCallbackFcn(app, @edit_gpsCallbacks, true);
-            app.tool_MiscRefresh.Tag = 'MISC';
-            app.tool_MiscRefresh.Visible = 'off';
-            app.tool_MiscRefresh.Layout.Row = 2;
-            app.tool_MiscRefresh.Layout.Column = 18;
-            app.tool_MiscRefresh.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Refresh_18.png');
-
             % Create tool_LayoutRight
             app.tool_LayoutRight = uiimage(app.play_toolGrid);
             app.tool_LayoutRight.ImageClickedFcn = createCallbackFcn(app, @play_PanelsVisibility, true);
@@ -9267,418 +8560,38 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.Tab6_Config = uitab(app.TabGroup);
             app.Tab6_Config.Title = 'CONFIG';
 
-            % Create config_mainGrid
-            app.config_mainGrid = uigridlayout(app.Tab6_Config);
-            app.config_mainGrid.ColumnWidth = {330, '1x', '1x', '1x'};
-            app.config_mainGrid.RowHeight = {'1x'};
-            app.config_mainGrid.Padding = [5 5 5 24];
-            app.config_mainGrid.BackgroundColor = [1 1 1];
+            % Create config_Grid
+            app.config_Grid = uigridlayout(app.Tab6_Config);
+            app.config_Grid.ColumnWidth = {'1x', 22, 22};
+            app.config_Grid.RowHeight = {20, '1x'};
+            app.config_Grid.ColumnSpacing = 2;
+            app.config_Grid.RowSpacing = 0;
+            app.config_Grid.Padding = [0 0 0 20];
 
-            % Create config_Control
-            app.config_Control = uigridlayout(app.config_mainGrid);
-            app.config_Control.ColumnWidth = {'1x'};
-            app.config_Control.RowHeight = {12, 24, 21, 5, 100, 120, '1x', 1};
-            app.config_Control.ColumnSpacing = 0;
-            app.config_Control.RowSpacing = 0;
-            app.config_Control.Padding = [0 0 0 0];
-            app.config_Control.Layout.Row = 1;
-            app.config_Control.Layout.Column = 1;
-            app.config_Control.BackgroundColor = [1 1 1];
+            % Create config_Container
+            app.config_Container = uipanel(app.config_Grid);
+            app.config_Container.BorderType = 'none';
+            app.config_Container.Title = ' ';
+            app.config_Container.Layout.Row = [1 2];
+            app.config_Container.Layout.Column = [1 3];
 
-            % Create config_ControlMenu
-            app.config_ControlMenu = uigridlayout(app.config_Control);
-            app.config_ControlMenu.ColumnWidth = {'1x'};
-            app.config_ControlMenu.RowHeight = {'1x', 3};
-            app.config_ControlMenu.ColumnSpacing = 5;
-            app.config_ControlMenu.RowSpacing = 0;
-            app.config_ControlMenu.Padding = [0 0 0 0];
-            app.config_ControlMenu.Layout.Row = [1 2];
-            app.config_ControlMenu.Layout.Column = 1;
-            app.config_ControlMenu.BackgroundColor = [1 1 1];
+            % Create config_Undock
+            app.config_Undock = uiimage(app.config_Grid);
+            app.config_Undock.ScaleMethod = 'none';
+            app.config_Undock.Tag = 'CONFIG';
+            app.config_Undock.Tooltip = {'Abre módulo em outra janela'};
+            app.config_Undock.Layout.Row = 1;
+            app.config_Undock.Layout.Column = 2;
+            app.config_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
 
-            % Create config_menuUnderline
-            app.config_menuUnderline = uiimage(app.config_ControlMenu);
-            app.config_menuUnderline.ScaleMethod = 'scaleup';
-            app.config_menuUnderline.Layout.Row = 2;
-            app.config_menuUnderline.Layout.Column = 1;
-            app.config_menuUnderline.HorizontalAlignment = 'right';
-            app.config_menuUnderline.ImageSource = fullfile(pathToMLAPP, 'Icons', 'LineH.png');
-
-            % Create config_menuBtn1Grid
-            app.config_menuBtn1Grid = uigridlayout(app.config_ControlMenu);
-            app.config_menuBtn1Grid.ColumnWidth = {18, '1x'};
-            app.config_menuBtn1Grid.RowHeight = {'1x'};
-            app.config_menuBtn1Grid.ColumnSpacing = 3;
-            app.config_menuBtn1Grid.Padding = [2 0 0 0];
-            app.config_menuBtn1Grid.Layout.Row = 1;
-            app.config_menuBtn1Grid.Layout.Column = 1;
-            app.config_menuBtn1Grid.BackgroundColor = [0.9608 0.9608 0.9608];
-
-            % Create config_menuBtn1Label
-            app.config_menuBtn1Label = uilabel(app.config_menuBtn1Grid);
-            app.config_menuBtn1Label.FontSize = 11;
-            app.config_menuBtn1Label.FontWeight = 'bold';
-            app.config_menuBtn1Label.Layout.Row = 1;
-            app.config_menuBtn1Label.Layout.Column = 2;
-            app.config_menuBtn1Label.Text = 'Configurações';
-
-            % Create config_menuBtn1Icon
-            app.config_menuBtn1Icon = uiimage(app.config_menuBtn1Grid);
-            app.config_menuBtn1Icon.ScaleMethod = 'none';
-            app.config_menuBtn1Icon.Tag = '1';
-            app.config_menuBtn1Icon.Layout.Row = 1;
-            app.config_menuBtn1Icon.Layout.Column = [1 2];
-            app.config_menuBtn1Icon.HorizontalAlignment = 'left';
-            app.config_menuBtn1Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Settings_18.png');
-
-            % Create config_Label
-            app.config_Label = uilabel(app.config_Control);
-            app.config_Label.VerticalAlignment = 'bottom';
-            app.config_Label.FontSize = 10;
-            app.config_Label.Layout.Row = 3;
-            app.config_Label.Layout.Column = 1;
-            app.config_Label.Text = 'PARÂMETROS A CONFIGURAR';
-
-            % Create config_ButtonGroup
-            app.config_ButtonGroup = uibuttongroup(app.config_Control);
-            app.config_ButtonGroup.SelectionChangedFcn = createCallbackFcn(app, @config_ButtonGroupSelectionChanged, true);
-            app.config_ButtonGroup.BackgroundColor = [1 1 1];
-            app.config_ButtonGroup.Layout.Row = 5;
-            app.config_ButtonGroup.Layout.Column = 1;
-            app.config_ButtonGroup.FontSize = 11;
-
-            % Create config_Option_Search
-            app.config_Option_Search = uiradiobutton(app.config_ButtonGroup);
-            app.config_Option_Search.Text = 'Pesquisa';
-            app.config_Option_Search.FontSize = 11;
-            app.config_Option_Search.Position = [11 70 67 22];
-            app.config_Option_Search.Value = true;
-
-            % Create config_Option_Fiscaliza
-            app.config_Option_Fiscaliza = uiradiobutton(app.config_ButtonGroup);
-            app.config_Option_Fiscaliza.Text = 'API Fiscaliza';
-            app.config_Option_Fiscaliza.FontSize = 11;
-            app.config_Option_Fiscaliza.Position = [11 48 86 22];
-
-            % Create config_Option_Folder
-            app.config_Option_Folder = uiradiobutton(app.config_ButtonGroup);
-            app.config_Option_Folder.Text = 'Mapeamento de pastas';
-            app.config_Option_Folder.FontSize = 11;
-            app.config_Option_Folder.Position = [11 26 137 22];
-
-            % Create config_Option1Grid
-            app.config_Option1Grid = uigridlayout(app.config_mainGrid);
-            app.config_Option1Grid.ColumnWidth = {'1x'};
-            app.config_Option1Grid.RowHeight = {22, 5, '1x', 1};
-            app.config_Option1Grid.RowSpacing = 0;
-            app.config_Option1Grid.Padding = [0 0 0 0];
-            app.config_Option1Grid.Layout.Row = 1;
-            app.config_Option1Grid.Layout.Column = 4;
-            app.config_Option1Grid.BackgroundColor = [1 1 1];
-
-            % Create config_FolderMapLabel
-            app.config_FolderMapLabel = uilabel(app.config_Option1Grid);
-            app.config_FolderMapLabel.VerticalAlignment = 'bottom';
-            app.config_FolderMapLabel.FontSize = 10;
-            app.config_FolderMapLabel.Layout.Row = 1;
-            app.config_FolderMapLabel.Layout.Column = 1;
-            app.config_FolderMapLabel.Text = 'MAPEAMENTO DE PASTAS';
-
-            % Create config_FolderMapPanel
-            app.config_FolderMapPanel = uipanel(app.config_Option1Grid);
-            app.config_FolderMapPanel.AutoResizeChildren = 'off';
-            app.config_FolderMapPanel.Layout.Row = 3;
-            app.config_FolderMapPanel.Layout.Column = 1;
-
-            % Create config_FolderMapGrid
-            app.config_FolderMapGrid = uigridlayout(app.config_FolderMapPanel);
-            app.config_FolderMapGrid.ColumnWidth = {'1x', 20};
-            app.config_FolderMapGrid.RowHeight = {17, 22, 17, 22, 17, 22, 17, 22, '1x', '1x'};
-            app.config_FolderMapGrid.ColumnSpacing = 5;
-            app.config_FolderMapGrid.RowSpacing = 5;
-            app.config_FolderMapGrid.BackgroundColor = [1 1 1];
-
-            % Create config_Folder_DataHubGETLabel
-            app.config_Folder_DataHubGETLabel = uilabel(app.config_FolderMapGrid);
-            app.config_Folder_DataHubGETLabel.VerticalAlignment = 'bottom';
-            app.config_Folder_DataHubGETLabel.FontSize = 11;
-            app.config_Folder_DataHubGETLabel.Layout.Row = 1;
-            app.config_Folder_DataHubGETLabel.Layout.Column = 1;
-            app.config_Folder_DataHubGETLabel.Text = 'DataHub - GET:';
-
-            % Create config_Folder_DataHubGET
-            app.config_Folder_DataHubGET = uieditfield(app.config_FolderMapGrid, 'text');
-            app.config_Folder_DataHubGET.Editable = 'off';
-            app.config_Folder_DataHubGET.FontSize = 11;
-            app.config_Folder_DataHubGET.Layout.Row = 2;
-            app.config_Folder_DataHubGET.Layout.Column = 1;
-
-            % Create config_Folder_DataHubGETButton
-            app.config_Folder_DataHubGETButton = uiimage(app.config_FolderMapGrid);
-            app.config_Folder_DataHubGETButton.Tag = 'DataHub_GET';
-            app.config_Folder_DataHubGETButton.Layout.Row = 2;
-            app.config_Folder_DataHubGETButton.Layout.Column = 2;
-            app.config_Folder_DataHubGETButton.ImageSource = fullfile(pathToMLAPP, 'Icons', 'OpenFile_36x36.png');
-
-            % Create config_Folder_DataHubPOSTLabel
-            app.config_Folder_DataHubPOSTLabel = uilabel(app.config_FolderMapGrid);
-            app.config_Folder_DataHubPOSTLabel.VerticalAlignment = 'bottom';
-            app.config_Folder_DataHubPOSTLabel.FontSize = 11;
-            app.config_Folder_DataHubPOSTLabel.Layout.Row = 3;
-            app.config_Folder_DataHubPOSTLabel.Layout.Column = 1;
-            app.config_Folder_DataHubPOSTLabel.Text = 'DataHub - POST:';
-
-            % Create config_Folder_DataHubPOST
-            app.config_Folder_DataHubPOST = uieditfield(app.config_FolderMapGrid, 'text');
-            app.config_Folder_DataHubPOST.Editable = 'off';
-            app.config_Folder_DataHubPOST.FontSize = 11;
-            app.config_Folder_DataHubPOST.Layout.Row = 4;
-            app.config_Folder_DataHubPOST.Layout.Column = 1;
-
-            % Create config_Folder_DataHubPOSTButton
-            app.config_Folder_DataHubPOSTButton = uiimage(app.config_FolderMapGrid);
-            app.config_Folder_DataHubPOSTButton.Tag = 'DataHub_POST';
-            app.config_Folder_DataHubPOSTButton.Layout.Row = 4;
-            app.config_Folder_DataHubPOSTButton.Layout.Column = 2;
-            app.config_Folder_DataHubPOSTButton.ImageSource = fullfile(pathToMLAPP, 'Icons', 'OpenFile_36x36.png');
-
-            % Create config_Folder_pythonPathLabel
-            app.config_Folder_pythonPathLabel = uilabel(app.config_FolderMapGrid);
-            app.config_Folder_pythonPathLabel.VerticalAlignment = 'bottom';
-            app.config_Folder_pythonPathLabel.FontSize = 11;
-            app.config_Folder_pythonPathLabel.Layout.Row = 5;
-            app.config_Folder_pythonPathLabel.Layout.Column = 1;
-            app.config_Folder_pythonPathLabel.Text = 'Pasta do ambiente virtual Python (lib fiscaliza):';
-
-            % Create config_Folder_pythonPath
-            app.config_Folder_pythonPath = uieditfield(app.config_FolderMapGrid, 'text');
-            app.config_Folder_pythonPath.Editable = 'off';
-            app.config_Folder_pythonPath.FontSize = 11;
-            app.config_Folder_pythonPath.Layout.Row = 6;
-            app.config_Folder_pythonPath.Layout.Column = 1;
-
-            % Create config_Folder_pythonPathButton
-            app.config_Folder_pythonPathButton = uiimage(app.config_FolderMapGrid);
-            app.config_Folder_pythonPathButton.Tag = 'pythonPath';
-            app.config_Folder_pythonPathButton.Layout.Row = 6;
-            app.config_Folder_pythonPathButton.Layout.Column = 2;
-            app.config_Folder_pythonPathButton.ImageSource = fullfile(pathToMLAPP, 'Icons', 'OpenFile_36x36.png');
-
-            % Create config_Folder_userPathLabel
-            app.config_Folder_userPathLabel = uilabel(app.config_FolderMapGrid);
-            app.config_Folder_userPathLabel.VerticalAlignment = 'bottom';
-            app.config_Folder_userPathLabel.FontSize = 11;
-            app.config_Folder_userPathLabel.Layout.Row = 7;
-            app.config_Folder_userPathLabel.Layout.Column = 1;
-            app.config_Folder_userPathLabel.Text = 'Pasta do usuário:';
-
-            % Create config_Folder_userPath
-            app.config_Folder_userPath = uidropdown(app.config_FolderMapGrid);
-            app.config_Folder_userPath.Items = {''};
-            app.config_Folder_userPath.FontSize = 11;
-            app.config_Folder_userPath.BackgroundColor = [1 1 1];
-            app.config_Folder_userPath.Layout.Row = 8;
-            app.config_Folder_userPath.Layout.Column = 1;
-            app.config_Folder_userPath.Value = '';
-
-            % Create config_Folder_userPathButton
-            app.config_Folder_userPathButton = uiimage(app.config_FolderMapGrid);
-            app.config_Folder_userPathButton.Tag = 'userPath';
-            app.config_Folder_userPathButton.Layout.Row = 8;
-            app.config_Folder_userPathButton.Layout.Column = 2;
-            app.config_Folder_userPathButton.ImageSource = fullfile(pathToMLAPP, 'Icons', 'OpenFile_36x36.png');
-
-            % Create config_Option2Grid
-            app.config_Option2Grid = uigridlayout(app.config_mainGrid);
-            app.config_Option2Grid.ColumnWidth = {'1x'};
-            app.config_Option2Grid.RowHeight = {22, 180, 22, '1x'};
-            app.config_Option2Grid.RowSpacing = 5;
-            app.config_Option2Grid.Padding = [0 0 0 0];
-            app.config_Option2Grid.Layout.Row = 1;
-            app.config_Option2Grid.Layout.Column = 2;
-            app.config_Option2Grid.BackgroundColor = [1 1 1];
-
-            % Create config_SearchModeLabel
-            app.config_SearchModeLabel = uilabel(app.config_Option2Grid);
-            app.config_SearchModeLabel.VerticalAlignment = 'bottom';
-            app.config_SearchModeLabel.FontSize = 10;
-            app.config_SearchModeLabel.Layout.Row = 1;
-            app.config_SearchModeLabel.Layout.Column = 1;
-            app.config_SearchModeLabel.Text = 'MODO';
-
-            % Create Panel_5
-            app.Panel_5 = uipanel(app.config_Option2Grid);
-            app.Panel_5.BackgroundColor = [1 1 1];
-            app.Panel_5.Layout.Row = 2;
-            app.Panel_5.Layout.Column = 1;
-
-            % Create config_openAuxiliarAppAsDocked
-            app.config_openAuxiliarAppAsDocked = uicheckbox(app.Panel_5);
-            app.config_openAuxiliarAppAsDocked.Text = 'DOCKED MODE: Abertas as versões M dos apps auxiliares.';
-            app.config_openAuxiliarAppAsDocked.WordWrap = 'on';
-            app.config_openAuxiliarAppAsDocked.Position = [9 140 312 35];
-            app.config_openAuxiliarAppAsDocked.Value = true;
-
-            % Create config_openAuxiliarApp2Debug
-            app.config_openAuxiliarApp2Debug = uicheckbox(app.Panel_5);
-            app.config_openAuxiliarApp2Debug.Text = 'DEBUG MODE: São abertas as versões MLAPP dos apps auxiliares), quando não selecionado DOCKED MODE.';
-            app.config_openAuxiliarApp2Debug.WordWrap = 'on';
-            app.config_openAuxiliarApp2Debug.Position = [13 65 304 44];
-            app.config_openAuxiliarApp2Debug.Value = true;
-
-            % Create config_openData2Simulate
-            app.config_openData2Simulate = uicheckbox(app.Panel_5);
-            app.config_openData2Simulate.ValueChangedFcn = createCallbackFcn(app, @config_openData2SimulateValueChanged, true);
-            app.config_openData2Simulate.Text = 'Modo simulação';
-            app.config_openData2Simulate.Position = [28 21 242 22];
-
-            % Create config_Option3Grid
-            app.config_Option3Grid = uigridlayout(app.config_mainGrid);
-            app.config_Option3Grid.ColumnWidth = {'1x', 20};
-            app.config_Option3Grid.RowHeight = {22, 5, 68, 15, 12, 5, '1x', 1};
-            app.config_Option3Grid.RowSpacing = 0;
-            app.config_Option3Grid.Padding = [0 0 0 0];
-            app.config_Option3Grid.Layout.Row = 1;
-            app.config_Option3Grid.Layout.Column = 3;
-            app.config_Option3Grid.BackgroundColor = [1 1 1];
-
-            % Create config_FiscalizaVersionLabel
-            app.config_FiscalizaVersionLabel = uilabel(app.config_Option3Grid);
-            app.config_FiscalizaVersionLabel.VerticalAlignment = 'bottom';
-            app.config_FiscalizaVersionLabel.FontSize = 10;
-            app.config_FiscalizaVersionLabel.Layout.Row = 1;
-            app.config_FiscalizaVersionLabel.Layout.Column = 1;
-            app.config_FiscalizaVersionLabel.Text = 'VERSÃO DO SISTEMA';
-
-            % Create config_FiscalizaVersion
-            app.config_FiscalizaVersion = uibuttongroup(app.config_Option3Grid);
-            app.config_FiscalizaVersion.BackgroundColor = [1 1 1];
-            app.config_FiscalizaVersion.Layout.Row = 3;
-            app.config_FiscalizaVersion.Layout.Column = [1 2];
-
-            % Create config_FiscalizaPD
-            app.config_FiscalizaPD = uiradiobutton(app.config_FiscalizaVersion);
-            app.config_FiscalizaPD.Text = 'FISCALIZA PRODUÇÃO';
-            app.config_FiscalizaPD.FontSize = 11;
-            app.config_FiscalizaPD.Position = [10 36 146 22];
-
-            % Create config_FiscalizaHM
-            app.config_FiscalizaHM = uiradiobutton(app.config_FiscalizaVersion);
-            app.config_FiscalizaHM.Text = 'FISCALIZA <font style="color: red;">HOMOLOGAÇÃO</font> (versão destinada a testes)';
-            app.config_FiscalizaHM.FontSize = 11;
-            app.config_FiscalizaHM.Interpreter = 'html';
-            app.config_FiscalizaHM.Position = [10 10 310 22];
-            app.config_FiscalizaHM.Value = true;
-
-            % Create config_DefaultIssueValuesLabel
-            app.config_DefaultIssueValuesLabel = uilabel(app.config_Option3Grid);
-            app.config_DefaultIssueValuesLabel.VerticalAlignment = 'bottom';
-            app.config_DefaultIssueValuesLabel.FontSize = 10;
-            app.config_DefaultIssueValuesLabel.Layout.Row = [4 5];
-            app.config_DefaultIssueValuesLabel.Layout.Column = 1;
-            app.config_DefaultIssueValuesLabel.Text = 'VALORES PADRÕES DE CAMPOS DA INSPEÇÃO';
-
-            % Create config_DefaultIssueValuesLock
-            app.config_DefaultIssueValuesLock = uiimage(app.config_Option3Grid);
-            app.config_DefaultIssueValuesLock.Layout.Row = [5 6];
-            app.config_DefaultIssueValuesLock.Layout.Column = 2;
-            app.config_DefaultIssueValuesLock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'lockClose_18Gray.png');
-
-            % Create config_DefaultIssueValuesPanel
-            app.config_DefaultIssueValuesPanel = uipanel(app.config_Option3Grid);
-            app.config_DefaultIssueValuesPanel.Layout.Row = 7;
-            app.config_DefaultIssueValuesPanel.Layout.Column = [1 2];
-
-            % Create config_DefaultIssueValuesGrid
-            app.config_DefaultIssueValuesGrid = uigridlayout(app.config_DefaultIssueValuesPanel);
-            app.config_DefaultIssueValuesGrid.ColumnWidth = {150, '1x'};
-            app.config_DefaultIssueValuesGrid.RowHeight = {17, 22, 17, 22, 17, '1x', 17, '1x'};
-            app.config_DefaultIssueValuesGrid.RowSpacing = 5;
-            app.config_DefaultIssueValuesGrid.BackgroundColor = [1 1 1];
-
-            % Create config_CadastroSTELLabel
-            app.config_CadastroSTELLabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_CadastroSTELLabel.VerticalAlignment = 'bottom';
-            app.config_CadastroSTELLabel.FontSize = 11;
-            app.config_CadastroSTELLabel.Layout.Row = 1;
-            app.config_CadastroSTELLabel.Layout.Column = [1 2];
-            app.config_CadastroSTELLabel.Text = 'Entidade com cadastro STEL?';
-
-            % Create config_CadastroSTEL
-            app.config_CadastroSTEL = uidropdown(app.config_DefaultIssueValuesGrid);
-            app.config_CadastroSTEL.Items = {};
-            app.config_CadastroSTEL.Enable = 'off';
-            app.config_CadastroSTEL.FontSize = 11;
-            app.config_CadastroSTEL.BackgroundColor = [1 1 1];
-            app.config_CadastroSTEL.Layout.Row = 2;
-            app.config_CadastroSTEL.Layout.Column = 1;
-            app.config_CadastroSTEL.Value = {};
-
-            % Create config_GerarPLAILabel
-            app.config_GerarPLAILabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_GerarPLAILabel.VerticalAlignment = 'bottom';
-            app.config_GerarPLAILabel.FontSize = 11;
-            app.config_GerarPLAILabel.Layout.Row = 3;
-            app.config_GerarPLAILabel.Layout.Column = 1;
-            app.config_GerarPLAILabel.Text = 'Gerar PLAI?';
-
-            % Create config_GerarPLAI
-            app.config_GerarPLAI = uidropdown(app.config_DefaultIssueValuesGrid);
-            app.config_GerarPLAI.Items = {};
-            app.config_GerarPLAI.Enable = 'off';
-            app.config_GerarPLAI.FontSize = 11;
-            app.config_GerarPLAI.BackgroundColor = [1 1 1];
-            app.config_GerarPLAI.Layout.Row = 4;
-            app.config_GerarPLAI.Layout.Column = 1;
-            app.config_GerarPLAI.Value = {};
-
-            % Create config_TipoPLAILabel
-            app.config_TipoPLAILabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_TipoPLAILabel.VerticalAlignment = 'bottom';
-            app.config_TipoPLAILabel.FontSize = 11;
-            app.config_TipoPLAILabel.Layout.Row = 3;
-            app.config_TipoPLAILabel.Layout.Column = 2;
-            app.config_TipoPLAILabel.Text = 'Tipo do PLAI:';
-
-            % Create config_TipoPLAI
-            app.config_TipoPLAI = uidropdown(app.config_DefaultIssueValuesGrid);
-            app.config_TipoPLAI.Items = {};
-            app.config_TipoPLAI.Enable = 'off';
-            app.config_TipoPLAI.FontSize = 11;
-            app.config_TipoPLAI.BackgroundColor = [1 1 1];
-            app.config_TipoPLAI.Layout.Row = 4;
-            app.config_TipoPLAI.Layout.Column = 2;
-            app.config_TipoPLAI.Value = {};
-
-            % Create config_MotivoLAILabel
-            app.config_MotivoLAILabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_MotivoLAILabel.VerticalAlignment = 'bottom';
-            app.config_MotivoLAILabel.FontSize = 11;
-            app.config_MotivoLAILabel.Layout.Row = 5;
-            app.config_MotivoLAILabel.Layout.Column = 1;
-            app.config_MotivoLAILabel.Text = 'Motivo de LAI:';
-
-            % Create config_MotivoLAI
-            app.config_MotivoLAI = uitree(app.config_DefaultIssueValuesGrid, 'checkbox');
-            app.config_MotivoLAI.Enable = 'off';
-            app.config_MotivoLAI.FontSize = 11;
-            app.config_MotivoLAI.Layout.Row = 6;
-            app.config_MotivoLAI.Layout.Column = [1 2];
-
-            % Create config_ServicoInspecaoLabel
-            app.config_ServicoInspecaoLabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_ServicoInspecaoLabel.VerticalAlignment = 'bottom';
-            app.config_ServicoInspecaoLabel.FontSize = 11;
-            app.config_ServicoInspecaoLabel.Layout.Row = 7;
-            app.config_ServicoInspecaoLabel.Layout.Column = 1;
-            app.config_ServicoInspecaoLabel.Text = 'Serviços da Inspeção:';
-
-            % Create config_ServicoInspecao
-            app.config_ServicoInspecao = uitree(app.config_DefaultIssueValuesGrid, 'checkbox');
-            app.config_ServicoInspecao.Enable = 'off';
-            app.config_ServicoInspecao.FontSize = 11;
-            app.config_ServicoInspecao.Layout.Row = 8;
-            app.config_ServicoInspecao.Layout.Column = [1 2];
+            % Create config_Close
+            app.config_Close = uiimage(app.config_Grid);
+            app.config_Close.ScaleMethod = 'none';
+            app.config_Close.Tag = 'CONFIG';
+            app.config_Close.Tooltip = {'Fecha módulo'};
+            app.config_Close.Layout.Row = 1;
+            app.config_Close.Layout.Column = 3;
+            app.config_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_12SVG.svg');
 
             % Create menu_Grid
             app.menu_Grid = uigridlayout(app.GridLayout);
@@ -9840,7 +8753,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create welcomePageGrid
             app.welcomePageGrid = uigridlayout(app.GridLayout);
-            app.welcomePageGrid.ColumnWidth = {'1x', 960, '1x'};
+            app.welcomePageGrid.ColumnWidth = {'1x', 880, '1x'};
             app.welcomePageGrid.RowHeight = {'1x', 480, '1x'};
             app.welcomePageGrid.ColumnSpacing = 0;
             app.welcomePageGrid.RowSpacing = 0;
@@ -9940,14 +8853,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_BandLimits_ContextMenu_del = uimenu(app.play_BandLimits_ContextMenu);
             app.play_BandLimits_ContextMenu_del.MenuSelectedFcn = createCallbackFcn(app, @play_BandLimits_ContextMenu_delSelected, true);
             app.play_BandLimits_ContextMenu_del.Text = 'Excluir';
-
-            % Create edit_ContextMenu
-            app.edit_ContextMenu = uicontextmenu(app.UIFigure);
-
-            % Create edit_ContextMenu_del
-            app.edit_ContextMenu_del = uimenu(app.edit_ContextMenu);
-            app.edit_ContextMenu_del.MenuSelectedFcn = createCallbackFcn(app, @edit_unitLevelCallbacks, true);
-            app.edit_ContextMenu_del.Text = 'Excluir';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

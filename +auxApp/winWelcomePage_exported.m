@@ -10,11 +10,11 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
         releaseNotes       matlab.ui.control.HTML
         SimulationMode     matlab.ui.control.CheckBox
         btnConfigLabel     matlab.ui.control.Label
-        btnConfig          matlab.ui.control.Image
+        btnConfig          matlab.ui.control.Button
         btnRFDataHubLabel  matlab.ui.control.Label
-        btnRFDataHub       matlab.ui.control.Image
+        btnRFDataHub       matlab.ui.control.Button
         btnOpenLabel       matlab.ui.control.Label
-        btnOpen            matlab.ui.control.Image
+        btnOpen            matlab.ui.control.Button
         appTitle           matlab.ui.control.Label
     end
 
@@ -35,7 +35,7 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
             app.CallingApp = mainapp;
             app.appTitle.Text = sprintf(['<p style="margin-right: 10px;"><font style="font-size: 18px; ' ...
                                          'color: #262626;"><b>appAnalise</b></font><br>%s (v. %s)</p>'], class.Constants.appRelease, class.Constants.appVersion);
-            app.releaseNotes.HTMLSource = auxApp.welcomepage.htmlCode_ReleaseNotes;
+            app.releaseNotes.HTMLSource = auxApp.welcomepage.htmlCode_ReleaseNotes(app.CallingApp.rootFolder);
 
         end
 
@@ -46,8 +46,7 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: btnClose, btnConfig, btnOpen, 
-        % ...and 1 other component
+        % Callback function: btnClose, btnConfig, btnOpen, btnRFDataHub
         function ButtonPushed(app, event)
             
             pushedButtonTag = event.Source.Tag;
@@ -89,8 +88,8 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {5, 22, 38, '1x', 40, 240, 22, 5};
-            app.GridLayout.RowHeight = {32, 44, 44, 44, 44, 140, '1x', 17, 22, 5};
+            app.GridLayout.ColumnWidth = {5, 22, 38, '1x', 40, 325, 22, 5};
+            app.GridLayout.RowHeight = {32, 44, 44, 1, 44, 1, 44, 140, '1x', 17, 22, 5};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [0 0 0 0];
@@ -106,53 +105,56 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
             app.appTitle.Text = '<p style="margin-right: 10px;"><font style="font-size: 18px; color: #262626;"><b>appAnalise</b></font><br>R2024b (v. 1.80)</p>';
 
             % Create btnOpen
-            app.btnOpen = uiimage(app.GridLayout);
-            app.btnOpen.ScaleMethod = 'none';
-            app.btnOpen.ImageClickedFcn = createCallbackFcn(app, @ButtonPushed, true);
+            app.btnOpen = uibutton(app.GridLayout, 'push');
+            app.btnOpen.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
             app.btnOpen.Tag = 'Open';
+            app.btnOpen.Icon = 'Import_24.png';
+            app.btnOpen.BackgroundColor = [1 1 1];
             app.btnOpen.Layout.Row = 3;
-            app.btnOpen.Layout.Column = [3 4];
-            app.btnOpen.HorizontalAlignment = 'left';
-            app.btnOpen.ImageSource = 'Import_24.png';
+            app.btnOpen.Layout.Column = 3;
+            app.btnOpen.Text = '';
 
             % Create btnOpenLabel
             app.btnOpenLabel = uilabel(app.GridLayout);
+            app.btnOpenLabel.VerticalAlignment = 'bottom';
             app.btnOpenLabel.Layout.Row = 3;
             app.btnOpenLabel.Layout.Column = 4;
             app.btnOpenLabel.Interpreter = 'html';
-            app.btnOpenLabel.Text = {'Arquivos'; '<p style="color: gray; font-size: 10px;">appColeta, Logger, CellWireless e Argus</p>'};
+            app.btnOpenLabel.Text = {'Leitura de arquivos'; '<p style="color: gray; font-size: 10px;">appColeta, Logger, CellWireless e Argus</p>'};
 
             % Create btnRFDataHub
-            app.btnRFDataHub = uiimage(app.GridLayout);
-            app.btnRFDataHub.ScaleMethod = 'none';
-            app.btnRFDataHub.ImageClickedFcn = createCallbackFcn(app, @ButtonPushed, true);
+            app.btnRFDataHub = uibutton(app.GridLayout, 'push');
+            app.btnRFDataHub.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
             app.btnRFDataHub.Tag = 'RFDataHub';
-            app.btnRFDataHub.Layout.Row = 4;
-            app.btnRFDataHub.Layout.Column = [3 4];
-            app.btnRFDataHub.HorizontalAlignment = 'left';
-            app.btnRFDataHub.ImageSource = 'mosaic_32.png';
+            app.btnRFDataHub.Icon = 'mosaic_32.png';
+            app.btnRFDataHub.BackgroundColor = [1 1 1];
+            app.btnRFDataHub.Layout.Row = 5;
+            app.btnRFDataHub.Layout.Column = 3;
+            app.btnRFDataHub.Text = '';
 
             % Create btnRFDataHubLabel
             app.btnRFDataHubLabel = uilabel(app.GridLayout);
+            app.btnRFDataHubLabel.VerticalAlignment = 'bottom';
             app.btnRFDataHubLabel.WordWrap = 'on';
-            app.btnRFDataHubLabel.Layout.Row = 4;
+            app.btnRFDataHubLabel.Layout.Row = 5;
             app.btnRFDataHubLabel.Layout.Column = 4;
             app.btnRFDataHubLabel.Interpreter = 'html';
             app.btnRFDataHubLabel.Text = {'RFDataHub'; '<p style="color: gray; font-size: 10px;">MOSAICO, STEL, SRD, ICAO, AISWEB, GEOAIS e REDEMET</p>'};
 
             % Create btnConfig
-            app.btnConfig = uiimage(app.GridLayout);
-            app.btnConfig.ScaleMethod = 'none';
-            app.btnConfig.ImageClickedFcn = createCallbackFcn(app, @ButtonPushed, true);
+            app.btnConfig = uibutton(app.GridLayout, 'push');
+            app.btnConfig.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
             app.btnConfig.Tag = 'Config';
-            app.btnConfig.Layout.Row = 5;
-            app.btnConfig.Layout.Column = [3 4];
-            app.btnConfig.HorizontalAlignment = 'left';
-            app.btnConfig.ImageSource = 'Settings_32.png';
+            app.btnConfig.Icon = 'Settings_32.png';
+            app.btnConfig.BackgroundColor = [1 1 1];
+            app.btnConfig.Layout.Row = 7;
+            app.btnConfig.Layout.Column = 3;
+            app.btnConfig.Text = '';
 
             % Create btnConfigLabel
             app.btnConfigLabel = uilabel(app.GridLayout);
-            app.btnConfigLabel.Layout.Row = 5;
+            app.btnConfigLabel.VerticalAlignment = 'bottom';
+            app.btnConfigLabel.Layout.Row = 7;
             app.btnConfigLabel.Layout.Column = 4;
             app.btnConfigLabel.Text = 'Configurações gerais';
 
@@ -161,13 +163,13 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
             app.SimulationMode.Text = 'Abre o app em modo de simulação.';
             app.SimulationMode.FontSize = 11;
             app.SimulationMode.FontColor = [0.149 0.149 0.149];
-            app.SimulationMode.Layout.Row = [9 10];
+            app.SimulationMode.Layout.Row = [11 12];
             app.SimulationMode.Layout.Column = [2 4];
 
             % Create releaseNotesPanel
             app.releaseNotesPanel = uipanel(app.GridLayout);
             app.releaseNotesPanel.AutoResizeChildren = 'off';
-            app.releaseNotesPanel.Layout.Row = [2 9];
+            app.releaseNotesPanel.Layout.Row = [2 11];
             app.releaseNotesPanel.Layout.Column = [6 7];
 
             % Create releaseNotesGrid

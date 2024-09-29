@@ -226,6 +226,38 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
     methods
         %-----------------------------------------------------------------%
+        function undockingApp(app)
+            % Executa operacões que não são realizadas quando um app está
+            % em modo DOCK.
+            % (a) Cria figura, configurando o seu tamanho mínimo.
+            [xPosition, ...
+             yPosition]  = appUtil.winXYPosition(1244, 660);
+            app.UIFigure = uifigure('Name',               'appAnalise',                   ...
+                                    'Icon',               'icon_48.png',                  ...
+                                    'Position',           [xPosition yPosition 1244 660], ...
+                                    'AutoResizeChildren', 'off',                          ...
+                                    'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
+            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+
+            % (b) Move os componentes do container antigo para o novo.
+            app.Container.Children.Parent = app.UIFigure;
+            drawnow 
+            
+            % (c) Reinicia as propriedades "Container", "isDocked" e "jsBackDoorFlag".
+            app.Container = app.UIFigure;
+            app.isDocked  = false;
+            app.jsBackDoorFlag  = {true, true, true, true};
+
+            % (d) Customiza aspectos estéticos da janela.
+            [~, idxSelectedTab] = ismember(app.ControlTabGroup.SelectedTab, app.ControlTabGroup.Children);
+            jsBackDoor_Customizations(app, 0)
+            jsBackDoor_Customizations(app, idxSelectedTab)
+        end
+    end
+
+
+    methods
+        %-----------------------------------------------------------------%
         % ÍNDICES DO FLUXO ESPECTRAL E DA EMISSÃO
         %-----------------------------------------------------------------%
         function [idxThread, idxEmission] = specDataIndex(app, operationType)

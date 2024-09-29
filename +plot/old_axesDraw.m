@@ -34,7 +34,7 @@ classdef (Abstract) old_axesDraw
             MinHold  = Parameters.MinHold;
             Average  = Parameters.Average;
             MaxHold  = Parameters.MaxHold;
-            ROI      = Parameters.ROI;
+            ROI      = Parameters.EmissionROI;
             Axes     = Parameters.Axes;
 
             % PRÉ-PLOT
@@ -241,7 +241,7 @@ classdef (Abstract) old_axesDraw
                 NN = height(pks);
                 pksLabel = string((1:NN)'); % Opcionalmente: "P_" + string((1:NN)')
                 text(hAxes, pks.Frequency, repmat(yLim(1)+ROI.LabelOffset, NN, 1), pksLabel, ...
-                           'Color', ROI.LabelColor, 'BackgroundColor', ROI.LabelColor,       ...
+                           'Color', ROI.LabelColor, 'BackgroundColor', ROI.Color,            ...
                            'FontSize', ROI.LabelFontSize, 'FontWeight', 'bold',              ...
                            'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'PickableParts', 'none', 'Tag', 'mkrLabels');
             end
@@ -410,18 +410,14 @@ classdef (Abstract) old_axesDraw
                 otherwise;   markerSize = 8*Parameters.route_MarkerSize;
             end
 
-            hOutRoute   = geoplot(hAxes, OutTable.Latitude, OutTable.Longitude, 'Marker', '.', 'Color', Parameters.route_OutColor, 'MarkerFaceColor', Parameters.route_OutColor, 'MarkerEdgeColor', Parameters.route_OutColor, 'MarkerSize', markerSize, 'LineStyle', 'none',                     'Tag', 'OutRoute');
-            hInRoute    = geoplot(hAxes,  InTable.Latitude,  InTable.Longitude, 'Marker', '.', 'Color', Parameters.route_InColor,  'MarkerFaceColor', Parameters.route_InColor,  'MarkerEdgeColor', Parameters.route_InColor,  'MarkerSize', markerSize, 'LineStyle', Parameters.route_LineStyle, 'Tag', 'InRoute');
-
-            plot.datatip.Template(hOutRoute, 'Coordinates')
-            plot.datatip.Template(hInRoute, 'Coordinates')
+            geoplot(hAxes, OutTable.Latitude, OutTable.Longitude, 'Marker', '.', 'Color', Parameters.route_OutColor, 'MarkerFaceColor', Parameters.route_OutColor, 'MarkerEdgeColor', Parameters.route_OutColor, 'MarkerSize', markerSize, 'LineStyle', 'none',                     'Tag', 'OutRoute');
+            geoplot(hAxes,  InTable.Latitude,  InTable.Longitude, 'Marker', '.', 'Color', Parameters.route_InColor,  'MarkerFaceColor', Parameters.route_InColor,  'MarkerEdgeColor', Parameters.route_InColor,  'MarkerSize', markerSize, 'LineStyle', Parameters.route_LineStyle, 'Tag', 'InRoute');
         end
 
         %-----------------------------------------------------------------%
-        function hDistortion = DriveTestDistortionlPlot(hAxes, srcTable, Parameters, hDistortionVisibility)
-            hDistortion = geoscatter(hAxes, srcTable.Latitude, srcTable.Longitude, [], srcTable.ChannelPower,  ...
-                                            'filled', 'SizeData', 20*Parameters.plotSize, 'Tag', 'Distortion', 'Visible', hDistortionVisibility);
-            plot.datatip.Template(hDistortion, 'SweepID+ChannelPower+Coordinates')
+        function DriveTestDistortionlPlot(hAxes, srcTable, Parameters, hDistortionVisibility)
+            geoscatter(hAxes, srcTable.Latitude, srcTable.Longitude, [], srcTable.ChannelPower, ...
+                'filled', 'SizeData', 20*Parameters.plotSize, 'Tag', 'Distortion', 'Visible', hDistortionVisibility);
         end
 
 
@@ -432,17 +428,15 @@ classdef (Abstract) old_axesDraw
                 weights = weights+abs(min(weights));
             end
 
-            hDensity = geodensityplot(hAxes, srcTable.Latitude, srcTable.Longitude, weights,          ...
-                                             'FaceColor','interp', 'Radius', 100*Parameters.plotSize, ...
-                                             'PickableParts', 'none', 'Tag', 'Density', 'Visible', hDensityVisibility);
+            geodensityplot(hAxes, srcTable.Latitude, srcTable.Longitude, weights, ...
+                'FaceColor','interp', 'Radius', 100*Parameters.plotSize,          ...
+                'PickableParts', 'none', 'Tag', 'Density', 'Visible', hDensityVisibility);
         end
 
 
         %-----------------------------------------------------------------%
         function DriveTestPointsPlot(hAxes, Parameters)
             delete(findobj(hAxes.Children, 'Tag', 'Points'))
-
-            global RFDataHub
             pointsTable = Parameters.pointsTable;
 
             for ii = 1:height(pointsTable)
@@ -450,17 +444,13 @@ classdef (Abstract) old_axesDraw
                     continue
                 end
 
-                rowIndex    = pointsTable.value(ii).idx;
                 Coordinates = pointsTable.value(ii).Coordinates;
-
                 switch pointsTable.type{ii}
                     case 'RFDataHub'
                         hStation = geoplot(hAxes, Coordinates(:,1), Coordinates(:,2),                                                        ...
                                                   'LineStyle', 'none', 'Color', Parameters.points_Color, 'Marker', Parameters.points_Marker, ...
                                                   'MarkerSize', Parameters.points_Size, 'MarkerFaceColor', Parameters.points_Color,          ...
                                                   'MarkerEdgeColor', Parameters.points_Color, 'Tag', 'Points');
-                        plot.datatip.Template(hStation, 'Coordinates+Frequency', RFDataHub(rowIndex,1:2))
-
                     case 'FindPeaks'
                         geoplot(hAxes, Coordinates(:,1), Coordinates(:,2),                                                                          ...
                                        'LineStyle', 'none', 'Color', Parameters.points_Color, 'Marker', Parameters.points_Marker,                   ...
@@ -488,7 +478,7 @@ classdef (Abstract) old_axesDraw
                 idxDriveTest = find(strcmp({plotInfo.Name}, 'DriveTest'));
                 idxEmission  = reportInfo.General.Parameters.Plot.emissionIndex;
                 
-                if ~isempty(idxDriveTest) && isempty(SpecInfo.UserData.Emissions.UserData{idxEmission})
+                if ~isempty(idxDriveTest) && isempty(SpecInfo.UserData.Emissions.UserData(idxEmission).DriveTest)
                     plotInfo(idxDriveTest) = [];
                 end
             end
