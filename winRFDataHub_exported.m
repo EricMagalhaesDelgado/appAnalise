@@ -360,10 +360,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             switch app.executionMode
                 case 'webApp'
-                    % Webapp não suporta uigetdir, então o mapeamento das pastas
-                    % POST/GET deve ser feito em arquivo externo de configuração...
-                    app.config_Folder_userPathButton.Enable = 0;
-
+                    % ...
                 otherwise
                     % Define tamanho mínimo do app (não aplicável à versão webapp).
                     if ~app.isDocked
@@ -1524,25 +1521,25 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
         % Image clicked function: tool_ExportButton
         function tool_exportButtonPushed(app, event)
-            
-                defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'RFDataHub', -1);
 
-                [fileName, filePath, fileIndex] = uiputfile({'*.xlsx', 'Excel (*.xlsx)'}, '', defaultFilename);
-                figure(app.UIFigure)
-                
-                if fileIndex
-                    app.progressDialog.Visible = 'visible';
-
-                    try
-                        idxRFDataHubArray = app.UITable.UserData;
-                        tempRFDataHub = class.RFDataHub.ColumnNames(app.rfDataHub(idxRFDataHubArray,1:29), 'eng2port');
-                        writetable(tempRFDataHub, fullfile(filePath, fileName), 'WriteMode', 'overwritesheet')
-                    catch ME
-                        appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
-                    end
-
-                    app.progressDialog.Visible = 'hidden';
+                nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
+                defaultName   = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'RFDataHub', -1); 
+                fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+                if isempty(fileFullPath)
+                    return
                 end
+                
+                app.progressDialog.Visible = 'visible';
+
+                try
+                    idxRFDataHubArray = app.UITable.UserData;
+                    tempRFDataHub = class.RFDataHub.ColumnNames(app.rfDataHub(idxRFDataHubArray,1:29), 'eng2port');
+                    writetable(tempRFDataHub, fileFullPath, 'WriteMode', 'overwritesheet')
+                catch ME
+                    appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
+                end
+
+                app.progressDialog.Visible = 'hidden';
 
         end
 
@@ -3152,21 +3149,19 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.chReportHotDownload = uiimage(app.GridLayout);
             app.chReportHotDownload.ScaleMethod = 'none';
             app.chReportHotDownload.ImageClickedFcn = createCallbackFcn(app, @tool_chReportPanelImageClicked, true);
-            app.chReportHotDownload.Visible = 'off';
             app.chReportHotDownload.Tooltip = {'Baixa versão atual do documento'};
             app.chReportHotDownload.Layout.Row = 2;
             app.chReportHotDownload.Layout.Column = 9;
-            app.chReportHotDownload.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Import_16.png');
+            app.chReportHotDownload.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Refresh_18White.png');
 
             % Create chReportUndock
             app.chReportUndock = uiimage(app.GridLayout);
             app.chReportUndock.ScaleMethod = 'none';
             app.chReportUndock.ImageClickedFcn = createCallbackFcn(app, @tool_chReportPanelImageClicked, true);
-            app.chReportUndock.Visible = 'off';
             app.chReportUndock.Tooltip = {'Abre documento em leitor externo'};
             app.chReportUndock.Layout.Row = 2;
             app.chReportUndock.Layout.Column = 10;
-            app.chReportUndock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18Gray.png');
+            app.chReportUndock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18White.png');
 
             % Create UITable
             app.UITable = uitable(app.GridLayout);

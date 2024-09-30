@@ -464,12 +464,10 @@ classdef (Abstract) old_axesDraw
         %-----------------------------------------------------------------%
         % FUNÇÕES AUXILIARES
         %-----------------------------------------------------------------%
-        function [imgFileName, hFig] = plot2report(hFig, SpecInfo, reportInfo, plotInfo)
-            % Criação da figura.
-            if isempty(hFig)
-                hFig = plot.old_axesDraw.FigureCreation();
-            else
-                delete(hFig.Children)
+        function [imgFileName, hContainer] = plot2report(hContainer, SpecInfo, reportInfo, plotInfo)
+            % Limpa container.
+            if ~isempty(hContainer.Children)
+                delete(hContainer.Children)
             end
 
             % Criação dos eixos e disposição no layout indicado no JSON do
@@ -490,7 +488,7 @@ classdef (Abstract) old_axesDraw
             tiledPos  = 1;
             tiledSpan = [plotInfo.Layout];
 
-            t = tiledlayout(hFig, sum(tiledSpan), 1, "Padding", "tight", "TileSpacing", "tight");
+            t = tiledlayout(hContainer, sum(tiledSpan), 1, "Padding", "tight", "TileSpacing", "tight");
            
             axesType = plot.old_DataAxesTypeMapping({plotInfo.Name});
 
@@ -500,27 +498,17 @@ classdef (Abstract) old_axesDraw
                     otherwise;        Parameters = reportInfo.General.Parameters;
                 end
 
-                % Customizações do eixo
-                switch axesType{ii}
-                    case 'Cartesian'
-                        customAxesProperties = {'XColor', [0,0,0], 'YColor', [0,0,0]};
-                    case 'Geographic'
-                        customAxesProperties = {};
-                end
-                hAxes     = plot.axes.Creation(t, axesType{ii}, customAxesProperties);
+                hAxes     = plot.axes.Creation(t, axesType{ii});
                 xTickFlag = true;
 
                 switch axesType{ii}
                     case 'Geographic'
                         geolimits(hAxes, 'auto')
-
                     case 'Cartesian'
                         if (numel(plotInfo) > 1) && (ii < numel(plotInfo)) && any(strcmp(axesType(2:end), 'Cartesian'))
                             xTickFlag = false;
                         end
                 end
-
-                disableDefaultInteractivity(hAxes)
 
                 hAxes.Layout.Tile     = tiledPos;
                 hAxes.Layout.TileSpan = [tiledSpan(ii) 1];
@@ -541,7 +529,7 @@ classdef (Abstract) old_axesDraw
                 imgFileName = replace(imgFileName, 'Image', '~Image');
             end
             
-            exportgraphics(hFig, imgFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
+            exportgraphics(hContainer, imgFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
             drawnow nocallbacks
             while true
                 pause(.100)
@@ -550,23 +538,6 @@ classdef (Abstract) old_axesDraw
                 end
             end
         end
-
-
-        %-----------------------------------------------------------------%
-        function f = FigureCreation()
-            mainMonitor     = get(0, 'MonitorPositions');
-            [~, indMonitor] = max(mainMonitor(:,3));
-            mainMonitor     = mainMonitor(indMonitor,:);
-        
-            xPixels = class.Constants.windowSize(1);
-            yPixels = class.Constants.windowSize(2);
-        
-            f = uifigure('Visible', false,                                                                         ...
-                         'Position', [mainMonitor(1) + round((mainMonitor(3)-xPixels)/2),                          ...
-                                      mainMonitor(2) + round((mainMonitor(4)+48-yPixels-30)/2), xPixels, yPixels], ...
-                         'Icon', 'icon_48.png', 'Tag', 'ReportGenerator');
-        end
-
 
         %-----------------------------------------------------------------%
         function PostPlotConfig(hAxes, SpecInfo, Axes, xUnit, yUnit)

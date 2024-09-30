@@ -1,6 +1,6 @@
 <deployment-project plugin="plugin.webdeploy" plugin-version="1.0">
   <configuration file="D:\InovaFiscaliza\appAnaliseV2\appAnalise_webappCompiler.prj" location="D:\InovaFiscaliza\appAnaliseV2" name="appAnalise_webappCompiler" target="target.webdeploy" target-name="Web App Compiler">
-    <param.appname>winAppAnalise</param.appname>
+    <param.appname>appAnalise</param.appname>
     <param.intermediate>${PROJECT_ROOT}\appAnalise_webappCompiler</param.intermediate>
     <param.files.only>${PROJECT_ROOT}\appAnalise_webappCompiler</param.files.only>
     <param.output />
@@ -37,13 +37,18 @@
       <file>${PROJECT_ROOT}\DataBase</file>
       <file>${PROJECT_ROOT}\IBGE.mat</file>
       <file>${PROJECT_ROOT}\Icons</file>
+      <file>${PROJECT_ROOT}\ReleaseNotes.txt</file>
       <file>${PROJECT_ROOT}\Settings</file>
+      <file>${PROJECT_ROOT}\Simulation</file>
       <file>${PROJECT_ROOT}\Template</file>
     </fileset.resources>
-    <fileset.depfun />
+    <fileset.depfun>
+      <file>${PROJECT_ROOT}\winRFDataHub.mlapp</file>
+      <file>${PROJECT_ROOT}\winRFDataHub_exported.m</file>
+    </fileset.depfun>
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\appAnalise_webappCompiler" name="winAppAnalise.ctf" optional="false">D:\InovaFiscaliza\appAnaliseV2\appAnalise_webappCompiler\winAppAnalise.ctf</file>
+      <file location="${PROJECT_ROOT}\appAnalise_webappCompiler" name="appAnalise.ctf" optional="false">D:\InovaFiscaliza\appAnaliseV2\appAnalise_webappCompiler\appAnalise.ctf</file>
     </build-deliverables>
     <workflow />
     <matlab>

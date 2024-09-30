@@ -1,7 +1,4 @@
 function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo, d)
-
-    global hFig
-
     global ID_img
     global ID_tab
 
@@ -26,7 +23,8 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
     
     SpecInfo      = app.specData(idxThreads);
     exceptionList = app.projectData.exceptionList;
-    peaksTable    = Fcn_Peaks(app, idxThreads, reportInfo.DetectionMode, exceptionList);    
+    peaksTable    = Fcn_Peaks(app, idxThreads, reportInfo.DetectionMode, exceptionList);
+    hFigure       = app.UIFigure;
     
     % HTML header (style)    
     if strcmp(reportInfo.General.Version, 'Preliminar')
@@ -126,7 +124,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
                                         emissionTitle.Data.String = Fcn_FillWords(SpecInfo, jj, reportInfo, emissionTitle);                        
                                         htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(emissionTitle));
 
-                                        opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo);
+                                        opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
                                         htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                                     end
 
@@ -138,7 +136,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
                                         reportInfo.General.Parameters.specData = SpecInfo(1);
                                     end                                    
                                     
-                                    opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo);
+                                    opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
                                     htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                             end
 
@@ -202,10 +200,6 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
     if reportInfo.General.Version == "Preliminar"
         htmlReport = sprintf('%s</body>\n</html>', htmlReport);
     end
-
-    delete(hFig)
-    clear global hFig
-
 end
 
 
@@ -368,14 +362,18 @@ end
 
 
 %-------------------------------------------------------------------------%
-function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plotInfo)
+function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plotInfo, hFigure)
     global ID_imgExt
-    global hFig
+    global hContainer
 
     Image = '';
     switch Children.Data.Origin
         case 'Internal'
-            [Image, hFig] = plot.old_axesDraw.plot2report(hFig, SpecInfo(idx), reportInfo, plotInfo);
+            if isempty(hContainer) || ~isvalid(hContainer)
+                hContainer = PlotContainer(hFigure);
+            end
+
+            [Image, hContainer] = plot.old_axesDraw.plot2report(hContainer, SpecInfo(idx), reportInfo, plotInfo);
 
         case 'External'
             if Recurrence
@@ -393,6 +391,18 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plot
     if ~isfile(Image)
         error('Configuration file error message: %s', Children.Data.Error)
     end
+end
+
+
+%-------------------------------------------------------------------------%
+function hContainer = PlotContainer(hFigure)
+    xWidth     = class.Constants.windowSize(1);
+    yHeight    = class.Constants.windowSize(2);    
+    hContainer = uipanel(hFigure, AutoResizeChildren='off',          ...
+                                  Position=[100 100 xWidth yHeight], ...
+                                  BorderType='none',                 ...
+                                  BackgroundColor=[0 0 0],           ...
+                                  Visible=0);
 end
 
 

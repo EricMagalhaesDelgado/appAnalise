@@ -627,6 +627,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                         app.General.operationMode.Debug   = false;
                         app.General.operationMode.Dock    = true;
+
+                        % A pasta do usuário não é configurável, mas obtida por 
+                        % meio de chamada a uiputfile. Para criação de arquivos 
+                        % temporários, cria-se uma pasta da sessão.
+                        tempDir = tempname;
+                        mkdir(tempDir)
+                        app.General.fileFolder.userPath   = tempDir;
     
                     otherwise
                         % Configura o tamanho mínimo da janela. 
@@ -2755,7 +2762,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
 
         %-----------------------------------------------------------------%
-        % FUNÇÕES QUE ATENDEM MAIS DE UM MÓDULO
+        % MISCELÂNEAS
         %-----------------------------------------------------------------%
         function nodeText = misc_nodeTreeText(app, idx)
             ThreadID  = app.specData(idx).RelatedFiles.ID(1);
@@ -2815,33 +2822,51 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
         end
 
-
         %-----------------------------------------------------------------%
-        % MODO "MISCELÂNEAS"
+        function SelectedNodesTextList = misc_SelectedNodesText(app)
+            SelectedNodesTextList = {};
+            for ii = 1:numel(app.play_Tree.SelectedNodes)
+                generation = misc_findGenerationOfTreeNode(app, app.play_Tree.SelectedNodes(ii));
+
+                switch generation
+                    case 0
+                        NN = numel(app.play_Tree.SelectedNodes(ii).Children);
+                        SelectedNodesTextList(end+1:end+NN) = {app.play_Tree.SelectedNodes(ii).Text};
+                    case 1
+                        SelectedNodesTextList{end+1} = app.play_Tree.SelectedNodes(ii).Text;
+                    case 2
+                        SelectedNodesTextList{end+1} = app.play_Tree.SelectedNodes(ii).Parent.Text;
+                    case 3
+                        SelectedNodesTextList{end+1} = app.play_Tree.SelectedNodes(ii).Parent.Parent.Text;
+                end
+
+            end
+            SelectedNodesTextList = unique(SelectedNodesTextList);
+        end
+
         %-----------------------------------------------------------------%
         function misc_SaveSpectralData(app, idx)
-            defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'SpectralData', -1);
-            nameFormatMap   = {'*.mat',    'appAnalise (*.mat)'; ...
-                               '*.bin',    'Logger (*.bin)';     ...
-                               '*.sm1809', 'SM1809 (*.sm1809)'};
-
-            [fileName, filePath, fileIndex] = uiputfile(nameFormatMap, '', defaultFilename);
-            figure(app.UIFigure)
+            nameFormatMap = {'*.mat',    'appAnalise (*.mat)'; ...
+                             '*.bin',    'Logger (*.bin)';     ...
+                             '*.sm1809', 'SM1809 (*.sm1809)'};
+            defaultName   = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'SpectralData', -1); 
+            [fileFullPath, ~, fileExt] = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+            if isempty(fileFullPath)
+                return
+            end
 
             % As mensagens de erro apresentadas a seguir já explicitam as
             % limitações dos formatos "CRFS Bin" e "SM1809". O formato  "MAT",
             % por outro lado, não possui limitação.
-            switch fileIndex
-                case 0
-                    return
-
-                case 2 % CRFS Bin v. 5
+            switch fileExt
+                case '.mat'
+                    % ...
+                case '.bin'
                     receiverList = unique({app.specData(idx).Receiver});
                     if (numel(receiverList) > 1) || ~contains(receiverList, 'RFeye', 'IgnoreCase', true)
                         msgWarning = 'O formato de arquivo CRFS Bin não possibilita o armazenamento de dados gerados por mais de um sensor, ou por um sensor que não seja um RFeye.';
                     end
-
-                case 3 % SM1809
+                case '.sm1809'
                     receiverList = unique({app.specData(idx).Receiver});
                     if (numel(receiverList) > 1)
                         msgWarning = 'O formato de arquivo SM1809 não possibilita o armazenamento de dados gerados por mais de um sensor.';
@@ -2855,29 +2880,31 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 return
             end
 
-            fileName = fullfile(filePath, fileName);
-            switch fileIndex
-                case 1; fileWriter.MAT(fileName, 'SpectralData', app.specData(idx));
-                case 2; fileWriter.CRFSBin(fileName, app.specData(idx));
-                case 3; fileWriter.SM1809(fileName, app.specData(idx));
+            app.progressDialog.Visible = 'visible';
+
+            switch fileExt
+                case '.mat'
+                    fileWriter.MAT(    fileFullPath, 'SpectralData', app.specData(idx));
+                case '.bin'
+                    fileWriter.CRFSBin(fileFullPath, app.specData(idx));
+                case '.sm1809'
+                    fileWriter.SM1809( fileFullPath, app.specData(idx));
             end
+
+            app.progressDialog.Visible = 'hidden';
         end
 
         %-----------------------------------------------------------------%
         function misc_ExportUserData(app, idx)
-            defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'UserData', -1);
-            nameFormatMap   = {'*.mat', 'appAnalise (*.mat)'};
-
-            [fileName, filePath, fileIndex] = uiputfile(nameFormatMap, '', defaultFilename);
-            figure(app.UIFigure)
-
-            if ~fileIndex
+            nameFormatMap = {'*.mat', 'appAnalise (*.mat)'};
+            defaultName   = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'UserData', -1); 
+            fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+            if isempty(fileFullPath)
                 return
             end
             
             prjInfo  = struct('exceptionList', app.projectData.exceptionList);
-            fileName = fullfile(filePath, fileName);
-            fileWriter.MAT(fileName, 'UserData', app.specData(idx), prjInfo);
+            fileWriter.MAT(fileFullPath, 'UserData', app.specData(idx), prjInfo);
         end
 
         %-----------------------------------------------------------------%
@@ -3028,10 +3055,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             % DELETE TEMP FILES
-            delete(fullfile(app.General.fileFolder.tempPath, '~Report*.html'))
-            delete(fullfile(app.General.fileFolder.userPath, '~Report*.html'))
-            delete(fullfile(app.General.fileFolder.tempPath, '~Image*.*'))
-            delete(fullfile(app.General.fileFolder.userPath, '~Image*.*'))
+            switch app.executionMode
+                case 'webApp'
+                    rmdir(app.General.fileFolder.userPath, 's');
+                otherwise
+                    delete(fullfile(app.General.fileFolder.userPath, '~Report*.html'))
+                    delete(fullfile(app.General.fileFolder.userPath, '~Image*.*'))
+            end
 
             % DELETE AUXILIAR APPS
             delete(app.hDriveTest)
@@ -3157,6 +3187,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             focus(app.file_Tree)
 
             if app.General.operationMode.Simulation
+                app.General.operationMode.Simulation = false;
                 filePath = fullfile(app.rootFolder, 'Simulation');
 
                 listOfFiles = dir(filePath);
@@ -5003,7 +5034,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                      '•&thinsp;Campo 8: Referência textual sobre a canalização;<br>'                                                        ...
                                      '•&thinsp;Campo 9: Natureza das emissões, podendo ser "Aircraft", "Cellular", "FM", "TV" ou "Unknown".</font><br><br>' ...
                                      'Deseja fazer download do arquivo modelo?'];
-                    fileName      = 'appAnaliseTemplate - addChannelList.json';
+                    templateName  = 'appAnaliseTemplate - addChannelList.json';
+                    templateExt   = '.json';
 
                 case app.play_FindPeaks_FileTemplate
                     msgQuestion   = ['O arquivo genérico que possibilita a inclusão de emissões é composto por uma tabela com três colunas:<br>' ...
@@ -5011,18 +5043,23 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                      '•&thinsp;Coluna 2: Largura ocupada, em kHZ; e<br>'                                                         ...
                                      '•&thinsp;Coluna 3: Descrição textual da emissão.</font><br><br>'                                           ...
                                      'Deseja fazer download dos arquivos modelos?'];
-                    fileName      = 'appAnaliseTemplate - addEmission.zip';
+                    templateName  = 'appAnaliseTemplate - addEmission.zip';
+                    templateExt   = '.zip';
             end
 
             userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
             if userSelection == "Sim"
-                try
-                    originFileName  = fullfile(app.rootFolder, 'Template', fileName);
-                    finalFolderName = app.General.fileFolder.userPath;
-                    copyfile(originFileName, finalFolderName, 'f')
-                    
-                    appUtil.modalWindow(app.UIFigure, 'info', sprintf('Arquivo "<b>%s</b>" salvo na pasta "%s".', fileName, finalFolderName));
+                nameFormatMap = {['*' templateExt], sprintf('appAnalise (*%s)', templateExt)};
+                defaultName   = fullfile(app.General.fileFolder.userPath, templateName); 
+                fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
 
+                if isempty(fileFullPath)
+                    return
+                end
+
+                try
+                    templateFullFile = fullfile(app.rootFolder, 'Template', templateName);
+                    copyfile(templateFullFile, fileFullPath, 'f')
                 catch ME
                     appUtil.modalWindow(app.UIFigure, 'error', ME.message);
                 end
@@ -5057,31 +5094,31 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
             
             if isempty(app.report_ProjectName.Value{1})
-                defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'ProjectData', app.report_Issue.Value);
+                defaultName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'ProjectData', app.report_Issue.Value);
             else
-                defaultFilename = app.report_ProjectName.Value{1};
+                defaultName = app.report_ProjectName.Value{1};
+            end
+
+            nameFormatMap = {'*.mat', 'appAnalise (*.mat)'};
+            fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+            if isempty(fileFullPath)
+                return
             end
             
-            [fileName, filePath, fileIndex] = uiputfile({'*.mat', 'appAnalise (*.mat)'}, '', defaultFilename);
-            figure(app.UIFigure)
+            app.progressDialog.Visible = 'visible';
+
+            reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
+            [idx, reportInfo] = report.GeneralInfo(app, 'Report', reportTemplateIndex);
+            prjInfo = struct('reportInfo',    rmfield(reportInfo, 'Filename'), ...
+                             'peaksTable',    app.projectData.peaksTable,                  ...
+                             'exceptionList', app.projectData.exceptionList);
             
-            if fileIndex
-                app.progressDialog.Visible = 'visible';
+            fileWriter.MAT(fileFullPath, 'ProjectData', app.specData(idx), prjInfo)
+            
+            app.report_ProjectName.Value = fileName;
+            app.report_ProjectWarnIcon.Visible   = 0;
 
-                reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
-                [idx, reportInfo] = report.GeneralInfo(app, 'Report', reportTemplateIndex);
-                prjInfo = struct('reportInfo',    rmfield(reportInfo, 'Filename'), ...
-                                 'peaksTable',    app.projectData.peaksTable,                  ...
-                                 'exceptionList', app.projectData.exceptionList);
-                
-                fileName = fullfile(filePath, fileName);
-                fileWriter.MAT(fileName, 'ProjectData', app.specData(idx), prjInfo)
-                
-                app.report_ProjectName.Value = fileName;
-                app.report_ProjectWarnIcon.Visible   = 0;
-
-                app.progressDialog.Visible = 'hidden';
-            end
+            app.progressDialog.Visible = 'hidden';
 
         end
 
@@ -5356,60 +5393,61 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
 
                     if ~isempty(app.report_ProjectName.Value{1})
-                        defaultFilename = app.report_ProjectName.Value{1};
+                        defaultName = app.report_ProjectName.Value{1};
                     else
-                        defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'ProjectData', app.report_Issue.Value);
+                        defaultName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'ProjectData', app.report_Issue.Value);
                     end
 
-                    [fileName, filePath] = uiputfile({'*.mat', 'appAnalise (*.mat)'}, '', defaultFilename);
-                    figure(app.UIFigure)
+                    nameFormatMap = {'*.mat', 'appAnalise (*.mat)'};
+                    fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+                    if isempty(fileFullPath)
+                        return
+                    end
+
+                    app.progressDialog.Visible = 'visible';
+
+                    variables = struct('listOfProducts', app.listOfProducts,           ...
+                                       'projectName',    fullfile(filePath, fileName), ...
+                                       'projectIssue',   app.report_Issue.Value,       ...
+                                       'entityName',     app.report_Entity.Value,      ...
+                                       'entityID',       app.report_EntityID.Value,    ...
+                                       'entityType',     app.report_EntityType.Value);
+                    userData  = [];
+
+                    msgError  = writeFile.MAT(fullfile(filePath, fileName), 'ProjectData', 'SCH', variables, userData);
+                    if ~isempty(msgError)
+                        appUtil.modalWindow(app.UIFigure, 'error', msgError);
+                        return
+                    end
+
+                % !! PENDENTE !! GERAR DOIS ARQUIVOS. UM MAT SPECTRAL
+                % DATA. E OUTRO PROJECT DATA, DA NOVA VERSÃO, QUE SÓ
+                % TEM OS DADOS ANALISADOS, E UM PONTEIRO COM A LISTA DE
+                % ARQUIVOS BRUTOS. ELES PODEM POSSUIR O MESMO NOME, MAS
+                % COM UMA EXTENSÃO DIFERENTE. .MAT E .PRJ (POR
+                % EXEMPLO).
+
+                    reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
+                    [idx, reportInfo]   = report.GeneralInfo(app, 'Report', reportTemplateIndex);
+                    prjInfo = struct('projectName',   fullfile(filePath, fileName),    ...
+                                     'projectIssue',  app.report_Issue.Value,          ...
+                                     'entityType',    app.report_EntityType.Value,     ...
+                                     'entityID',      app.report_EntityID.Value,       ...
+                                     'entityName',    app.report_Entity.Value,         ...
+                                     'docModel',      app.report_ModelName.Value,      ...
+                                     'reportInfo',    rmfield(reportInfo, 'Filename'), ...
+                                     'projData',      app.projData,                    ...
+                                     'peaksTable',    app.projectData.peaksTable,                  ...
+                                     'exceptionList', app.projectData.exceptionList);
                     
-                    if fileName
-                        app.progressDialog.Visible = 'visible';
+                    fileName = fullfile(filePath, fileName);
+                    fileWriter.MAT([fileName '.prj'], 'ProjectData', prjInfo)
+                    fileWriter.MAT([fileName '.mat'], 'ProjectData', app.specData(idx))
 
-                        variables = struct('listOfProducts', app.listOfProducts,           ...
-                                           'projectName',    fullfile(filePath, fileName), ...
-                                           'projectIssue',   app.report_Issue.Value,       ...
-                                           'entityName',     app.report_Entity.Value,      ...
-                                           'entityID',       app.report_EntityID.Value,    ...
-                                           'entityType',     app.report_EntityType.Value);
-                        userData  = [];
+                    app.report_ProjectName.Value = fullfile(filePath, fileName);
+                    app.report_ProjectWarnIcon.Visible = 0;
 
-                        msgError  = writeFile.MAT(fullfile(filePath, fileName), 'ProjectData', 'SCH', variables, userData);
-                        if ~isempty(msgError)
-                            appUtil.modalWindow(app.UIFigure, 'error', msgError);
-                            return
-                        end
-
-                    % !! PENDENTE !! GERAR DOIS ARQUIVOS. UM MAT SPECTRAL
-                    % DATA. E OUTRO PROJECT DATA, DA NOVA VERSÃO, QUE SÓ
-                    % TEM OS DADOS ANALISADOS, E UM PONTEIRO COM A LISTA DE
-                    % ARQUIVOS BRUTOS. ELES PODEM POSSUIR O MESMO NOME, MAS
-                    % COM UMA EXTENSÃO DIFERENTE. .MAT E .PRJ (POR
-                    % EXEMPLO).
-
-                        reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
-                        [idx, reportInfo]   = report.GeneralInfo(app, 'Report', reportTemplateIndex);
-                        prjInfo = struct('projectName',   fullfile(filePath, fileName),    ...
-                                         'projectIssue',  app.report_Issue.Value,          ...
-                                         'entityType',    app.report_EntityType.Value,     ...
-                                         'entityID',      app.report_EntityID.Value,       ...
-                                         'entityName',    app.report_Entity.Value,         ...
-                                         'docModel',      app.report_ModelName.Value,      ...
-                                         'reportInfo',    rmfield(reportInfo, 'Filename'), ...
-                                         'projData',      app.projData,                    ...
-                                         'peaksTable',    app.projectData.peaksTable,                  ...
-                                         'exceptionList', app.projectData.exceptionList);
-                        
-                        fileName = fullfile(filePath, fileName);
-                        fileWriter.MAT([fileName '.prj'], 'ProjectData', prjInfo)
-                        fileWriter.MAT([fileName '.mat'], 'ProjectData', app.specData(idx))
-
-                        app.report_ProjectName.Value = fullfile(filePath, fileName);
-                        app.report_ProjectWarnIcon.Visible = 0;
-
-                        app.progressDialog.Visible = 'hidden';
-                    end
+                    app.progressDialog.Visible = 'hidden';
             end
 
         end
@@ -8754,7 +8792,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create welcomePageGrid
             app.welcomePageGrid = uigridlayout(app.GridLayout);
             app.welcomePageGrid.ColumnWidth = {'1x', 880, '1x'};
-            app.welcomePageGrid.RowHeight = {'1x', 480, '1x'};
+            app.welcomePageGrid.RowHeight = {'1x', 90, 300, 90, '1x'};
             app.welcomePageGrid.ColumnSpacing = 0;
             app.welcomePageGrid.RowSpacing = 0;
             app.welcomePageGrid.Padding = [13 10 0 10];
@@ -8766,12 +8804,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.welcomePagePanel = uipanel(app.welcomePageGrid);
             app.welcomePagePanel.Visible = 'off';
             app.welcomePagePanel.BackgroundColor = [1 1 1];
-            app.welcomePagePanel.Layout.Row = 2;
+            app.welcomePagePanel.Layout.Row = [2 4];
             app.welcomePagePanel.Layout.Column = 2;
 
             % Create welcomePageSplash
             app.welcomePageSplash = uiimage(app.welcomePageGrid);
-            app.welcomePageSplash.Layout.Row = 2;
+            app.welcomePageSplash.Layout.Row = 3;
             app.welcomePageSplash.Layout.Column = 2;
             app.welcomePageSplash.ImageSource = fullfile(pathToMLAPP, 'Icons', 'SplashScreen.gif');
 

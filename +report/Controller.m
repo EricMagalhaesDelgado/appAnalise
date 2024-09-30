@@ -26,27 +26,46 @@ function Controller(app, Mode)
 
                 switch app.report_Version.Value
                     case 'Definitiva'
-                        fileName = [class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'Report', app.report_Issue.Value) '.html'];
-                        fileID   = fopen(fileName, 'w', 'native', 'ISO-8859-1');
+                        BaseFileName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'Report', app.report_Issue.Value);
+                        HTMLDocFullPath = [BaseFileName '.html'];
+                        fileID = fopen(HTMLDocFullPath, 'w', 'native', 'ISO-8859-1');
  
                     case 'Preliminar'
-                        fileName = [class.Constants.DefaultFileName(app.config_Folder_userPath.Value, '~Report', app.report_Issue.Value) '.html'];
-                        fileID   = fopen(fileName, 'w');
+                        BaseFileName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, '~Report', app.report_Issue.Value);
+                        HTMLDocFullPath = [BaseFileName '.html'];
+                        fileID = fopen(HTMLDocFullPath, 'w');
                 end
                 
                 fprintf(fileID, '%s', htmlReport);
                 fclose(fileID);
     
-                if strcmp(app.report_Version.Value, 'Definitiva')
-                    app.General.Report = fileName;
-                    
-                    [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo);
-                    save(replace(fileName, '.html', '.mat'), 'ReportProject', '-mat', '-v7.3')
-                    writematrix(tableStr, replace(fileName, '.html', '.json'), "FileType", "text", "QuoteStrings", "none")
-                end
-                web(fileName, '-new')
+                switch app.report_Version.Value
+                    case 'Definitiva'
+                        JSONFile = [BaseFileName '.json'];
+                        MATFile  = [BaseFileName '.mat'];
+                        ZIPFile  = [BaseFileName '.zip'];
+                        
+                        [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo);
+                        save(MATFile, 'ReportProject', '-mat', '-v7.3')
+                        writematrix(tableStr, JSONFile, "FileType", "text", "QuoteStrings", "none")
+    
+                        app.General.fiscaliza.lastHTMLDocFullPath = HTMLDocFullPath;
+                        app.General.fiscaliza.lastTableFullPath   = JSONFile;
+                        app.General.fiscaliza.lastMATFullPath     = MATFile;
 
+                        nameFormatMap = {'*.zip', 'appAnalise (*.zip)'};
+                        fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, ZIPFile);
+                        if isempty(fileFullPath)
+                            return
+                        end
+                        
+                        zip(fileFullPath, {HTMLDocFullPath, JSONFile, MATFile})
+
+                    case 'Preliminar'
+                        web(HTMLDocFullPath, '-new')
+                end
             
+
             case {'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission'}
                 app.progressDialog.Visible = 'visible';
 
@@ -60,14 +79,14 @@ function Controller(app, Mode)
                 [~, countTable] = report.ReportGenerator_Table_Summary(app.projectData.peaksTable, app.projectData.exceptionList);
                 tableStr = ReportGenerator_Aux3(app, idx, countTable);
 
-                defaultFilename = class.Constants.DefaultFileName(app.CallingApp.config_Folder_userPath.Value, 'preReport', app.CallingApp.report_Issue.Value);
-
-                [fileName, filePath, fileIndex] = uiputfile({'*.json', 'appAnalise (*.json)'}, '', defaultFilename);
-                figure(app.UIFigure)
-                
-                if fileIndex
-                    writematrix(tableStr, fullfile(filePath, fileName), "FileType", "text", "QuoteStrings", "none")
+                nameFormatMap   = {'*.json', 'appAnalise (*.json)'};
+                defaultFilename = class.Constants.DefaultFileName(app.CallingApp.General.fileFolder.userPath, 'preReport', app.CallingApp.report_Issue.Value);
+                fileFullPath    = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultFilename);
+                if isempty(fileFullPath)
+                    return
                 end
+                
+                writematrix(tableStr, fileFullPath, "FileType", "text", "QuoteStrings", "none")
         end
         
     catch ME

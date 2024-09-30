@@ -1799,21 +1799,21 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % Image clicked function: filter_DataBinningExport
         function tool_ExportFileButtonPushed(app, event)
             
-            msgQuestion   = 'Deseja exportar os resultados da análise em arquivos XLSX e KML?';
-            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-            if userSelection == "Não"
+            nameFormatMap = {'*.zip', 'appAnalise (*.zip)'};
+            Basename      = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'DriveTest', app.CallingApp.report_Issue.Value);
+            fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, Basename);
+            if isempty(fileFullPath)
                 return
             end
 
             app.progressDialog.Visible = 'visible';
 
-            Basename   = class.Constants.DefaultFileName(app.CallingApp.config_Folder_userPath.Value, 'Drive-test', app.CallingApp.report_Issue.Value);
             dataSource = checkDataSource(app);
             hPlot      = findobj(app.UIAxes1.Children, 'Tag', 'Distortion');
             channelTag = sprintf('%.3f MHz ⌂ %.1f kHz', app.general_chFrequency.Value, app.general_chBW.Value);
 
             try
-                msgWarning = auxApp.drivetest.exportFiles(app.specRawTable, app.specFilteredTable, app.specBinTable, Basename, dataSource, hPlot, channelTag);
+                msgWarning = auxApp.drivetest.exportFiles(app.specRawTable, app.specFilteredTable, app.specBinTable, Basename, fileFullPath, dataSource, hPlot, channelTag);
                 appUtil.modalWindow(app.UIFigure, 'info', msgWarning);
             catch ME
                 appUtil.modalWindow(app.UIFigure, 'error', ME.message);

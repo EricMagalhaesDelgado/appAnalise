@@ -18,7 +18,7 @@ function hAxes = Creation(hParent, axesType, varargin)
                                     Interactions=[], Toolbar=[]);
             if nargin == 3
                 othersParameters = varargin{1};
-                set(hAxes, othersParameters{:})
+                set(hAxes, othersParameters{:});
             end            
 
         case 'Geographic'
@@ -30,7 +30,7 @@ function hAxes = Creation(hParent, axesType, varargin)
 
             if nargin == 3
                 othersParameters = varargin{1};
-                set(hAxes, othersParameters{:})
+                set(hAxes, othersParameters{:});
             end
     end
 
