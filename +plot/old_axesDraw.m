@@ -352,6 +352,10 @@ classdef (Abstract) old_axesDraw
             gpsPerFile = vertcat(specData.RelatedFiles.GPS{:});
             gpsMatrix  = vertcat(gpsPerFile.Matrix);
 
+            if hAxes.Basemap == "none"
+                hAxes.Basemap = 'streets-light';
+            end
+
             geoplot(hAxes, gpsMatrix(:,1), gpsMatrix(:,2));
             geolimits(hAxes, 'auto')
         end
@@ -422,7 +426,7 @@ classdef (Abstract) old_axesDraw
 
 
         %-----------------------------------------------------------------%
-        function hDensity = DriveTestDensityPlot(hAxes, srcTable, Parameters, hDensityVisibility)
+        function DriveTestDensityPlot(hAxes, srcTable, Parameters, hDensityVisibility)
             weights = srcTable.ChannelPower;
             if min(weights) < 0
                 weights = weights+abs(min(weights));
@@ -437,27 +441,13 @@ classdef (Abstract) old_axesDraw
         %-----------------------------------------------------------------%
         function DriveTestPointsPlot(hAxes, Parameters)
             delete(findobj(hAxes.Children, 'Tag', 'Points'))
+            
             pointsTable = Parameters.pointsTable;
+            MarkerStyle = Parameters.points_Marker;
+            MarkerColor = Parameters.points_Color;
+            MarkerSize  = Parameters.points_Size;
 
-            for ii = 1:height(pointsTable)
-                if ~pointsTable.visible(ii)
-                    continue
-                end
-
-                Coordinates = pointsTable.value(ii).Coordinates;
-                switch pointsTable.type{ii}
-                    case 'RFDataHub'
-                        hStation = geoplot(hAxes, Coordinates(:,1), Coordinates(:,2),                                                        ...
-                                                  'LineStyle', 'none', 'Color', Parameters.points_Color, 'Marker', Parameters.points_Marker, ...
-                                                  'MarkerSize', Parameters.points_Size, 'MarkerFaceColor', Parameters.points_Color,          ...
-                                                  'MarkerEdgeColor', Parameters.points_Color, 'Tag', 'Points');
-                    case 'FindPeaks'
-                        geoplot(hAxes, Coordinates(:,1), Coordinates(:,2),                                                                          ...
-                                       'LineStyle', 'none', 'Color', Parameters.points_Color, 'Marker', Parameters.points_Marker,                   ...
-                                       'MarkerSize', Parameters.points_Size, 'MarkerFaceColor', 'none', 'MarkerEdgeColor', Parameters.points_Color, ...
-                                       'PickableParts', 'none', 'Tag', 'Points');
-                end
-            end
+            plot.DriveTest.Points(hAxes, pointsTable, MarkerStyle, MarkerColor, MarkerSize)
         end
 
 

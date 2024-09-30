@@ -1568,7 +1568,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     misc_getChannelReport(app, 'RealTime')
 
                 case app.chReportUndock
-                    ccTools.fcn.OperationSystem('openFile', app.chReportHTML.HTMLSource)
+                    switch app.executionMode
+                        case 'webApp'
+                            idxRFDataHub = getRFDataHubIndex(app);
+                            URL = char(app.rfDataHub.URL(idxRFDataHub));
+                            web(URL, '-new')
+                        otherwise
+                            ccTools.fcn.OperationSystem('openFile', app.chReportHTML.HTMLSource)
+                    end                    
                     tool_InteractionImageClicked(app, struct('Source', app.tool_PDFButton))
             end
 
