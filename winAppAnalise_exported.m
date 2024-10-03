@@ -726,7 +726,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         
             app.play_TreeSort.UserData               = 'Receiver+Frequency';
             app.file_Tree.UserData                   = struct('previousSelectedFileIndex', []);
-            app.play_TreePanelVisibility.UserData    = struct('Mode', 'PLAYBACK', 'Height', '0x');
+            app.play_TreePanelVisibility.UserData    = struct('Mode', 'PLAYBACK', 'Visible', true);
             app.play_Channel_ShowPlot.UserData       = false;
             
             app.axesTool_Pan.UserData                = false;
@@ -1556,12 +1556,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function play_TreeSecundaryPanelVisibility(app)
             switch app.play_TreePanelVisibility.UserData.Mode
                 case 'PLAYBACK'
-                    switch app.play_TreePanelVisibility.UserData.Height
-                        case '0x'
-                            app.play_TreeGrid.RowHeight(4:10) = {0,0,0,0,0,0,0};
-                        otherwise
-                            app.play_TreeGrid.RowHeight(4:10)  = {22,app.play_TreePanelVisibility.UserData.Height,22,0,0,0,0};
+                    if app.play_TreePanelVisibility.UserData.Visible
+                        app.play_TreeGrid.RowHeight(4:10)  = {22,'1x',42,0,0,0,0};
+                    else
+                        app.play_TreeGrid.RowHeight(4:10) = {0,0,0,0,0,0,0};
                     end
+
                 case 'REPORT'
                     app.play_TreeGrid.RowHeight(4:10)  = {0,0,0,22,'1x',15,22};
             end
@@ -2756,33 +2756,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function report_Algorithms(app, idx)
             if isscalar(idx) && app.specData(idx).UserData.reportFlag
-                % Depois insere informações no painel de algoritmos.
-                if app.specData(idx).UserData.bandLimitsStatus && height(app.specData(idx).UserData.bandLimitsTable)
-                    detectionBands = strjoin(arrayfun(@(x,y) sprintf('%.3f - %.3f MHz', x, y), app.specData(idx).UserData.bandLimitsTable.FreqStart, ...
-                                                                                               app.specData(idx).UserData.bandLimitsTable.FreqStop, 'UniformOutput', false), ', ');
-                else
-                    detectionBands = sprintf('%.3f - %.3f MHz', app.specData(idx).MetaData.FreqStart/1e+6, ...
-                                                                app.specData(idx).MetaData.FreqStop /1e+6);
-                end
-
-                % Organização da informação que é apresentada no painel de
-                % algoritmos.
-                dataStruct            = struct('group', 'OCUPAÇÃO',               'value', app.specData(idx).UserData.reportOCC);
-                dataStruct(2)         = struct('group', 'DETECÇÃO ASSISTIDA',     'value', struct('Origin',     'PLAYBACK', ...
-                                                                                                  'BandLimits', detectionBands));
-                if ~app.specData(idx).UserData.reportDetection.ManualMode
-                    dataStruct(end+1) = struct('group', 'DETECÇÃO NÃO ASSISTIDA', 'value', struct('Origin',     'RELATÓRIO', ...
-                                                                                                  'BandLimits',  detectionBands,     ...
-                                                                                                  'Algorithm',   app.specData(idx).UserData.reportDetection.Algorithm, ...
-                                                                                                  'Parameters',  jsonencode(app.specData(idx).UserData.reportDetection.Parameters)));
-                end
-                dataStruct(end+1)     = struct('group', 'CLASSIFICAÇÃO',          'value', struct('Algorithm',   app.specData(idx).UserData.reportClassification.Algorithm, ...
-                                                                                                  'Parameters',  app.specData(idx).UserData.reportClassification.Parameters));
-                
-                app.report_ThreadAlgorithms.HTMLSource = textFormatGUI.struct2PrettyPrintList(dataStruct);
-                app.report_EditDetection.Enable        = 1;
-                app.report_EditClassification.Enable   = 1;
+                app.report_ThreadAlgorithms.HTMLSource = fcn.htmlCode_ReportAlgorithms(app.specData(idx));
                 set(app.report_DetectionManualMode, Value=app.specData(idx).UserData.reportDetection.ManualMode, Enable=1)
+                app.report_EditClassification.Enable = 1;
+                if app.specData(idx).UserData.reportDetection.ManualMode
+                    app.report_EditDetection.Enable  = 0;
+                else
+                    app.report_EditDetection.Enable  = 1;
+                end                
 
             else
                 app.report_ThreadAlgorithms.HTMLSource = fullfile(app.rootFolder, 'Icons', 'Warning.html');
@@ -3029,6 +3010,19 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         switch operationType
                             case 'closeFcn'
                                 menu_LayoutAuxiliarApp(app, 'CONFIG', 'Close')
+                            case 'FiscalizaModeChanged'
+                                % Reinicia o objeto, caso necessário...
+                                if ~isempty(app.fiscalizaObj)
+                                    delete(app.fiscalizaObj)
+                                    app.fiscalizaObj = [];
+
+                                    if app.menu_Button3.Value
+                                        play_TabGroupVisibility(app, struct('Source', app.report_ControlsTab1Image))
+                                        
+                                        app.tool_FiscalizaAutoFill.Enable = 0;
+                                        app.tool_FiscalizaUpdate.Enable   = 0;
+                                    end
+                                end
                             otherwise
                                 error('UnexpectedCall')
                         end
@@ -3091,7 +3085,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.UIFigure.Position(4) = 660;
                 app.popupContainerGrid.Layout.Row = [1,2];
                 app.GridLayout.RowHeight = {44, '1x'};
-                app.play_TreeGrid.RowHeight(4:11) = {0,0,0,0,0,0,0,0};
+                app.play_TreeGrid.RowHeight(4:10) = {0,0,0,0,0,0,0};
                 % </GUI>
 
                 if ~isdeployed
@@ -3179,16 +3173,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: drivetest_Close, drivetest_Undock, 
-        % ...and 4 other components
+        % Image clicked function: config_Close, config_Undock, 
+        % ...and 6 other components
         function menu_DockButtonPushed(app, event)
             
             auxiliarApp = event.Source.Tag;
 
             switch event.Source
-                case {app.drivetest_Undock, app.signalanalysis_Undock, app.rfdatahub_Undock}
+                case {app.drivetest_Undock, app.signalanalysis_Undock, app.rfdatahub_Undock, app.config_Undock}
                     operationType = 'Undocking';
-                case {app.drivetest_Close,  app.signalanalysis_Close,  app.rfdatahub_Close}
+                case {app.drivetest_Close,  app.signalanalysis_Close,  app.rfdatahub_Close, app.config_Close}
                     operationType = 'Close';
             end
 
@@ -3529,10 +3523,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             switch event.Source
                 %---------------------------------------------------------%
                 case app.play_TreePanelVisibility
-                    switch app.play_TreePanelVisibility.UserData.Height
-                        case '0x'; app.play_TreePanelVisibility.UserData.Height = '1x';
-                        case '1x'; app.play_TreePanelVisibility.UserData.Height = '0x';
-                    end
+                    app.play_TreePanelVisibility.UserData.Visible = ~app.play_TreePanelVisibility.UserData.Visible;
                     play_TreeSecundaryPanelVisibility(app)
 
                 %---------------------------------------------------------%
@@ -5928,7 +5919,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_TreeGrid
             app.play_TreeGrid = uigridlayout(app.play_Grid);
             app.play_TreeGrid.ColumnWidth = {64, '1x', 54, 16, 16};
-            app.play_TreeGrid.RowHeight = {22, 22, '1x', 22, '2x', 71, 22, '2x', 15, 22};
+            app.play_TreeGrid.RowHeight = {22, 22, '1x', 22, '1x', 42, 22, '1x', 15, 22};
             app.play_TreeGrid.ColumnSpacing = 5;
             app.play_TreeGrid.RowSpacing = 5;
             app.play_TreeGrid.Padding = [5 0 0 0];
@@ -8737,6 +8728,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create config_Undock
             app.config_Undock = uiimage(app.config_Grid);
             app.config_Undock.ScaleMethod = 'none';
+            app.config_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
             app.config_Undock.Tag = 'CONFIG';
             app.config_Undock.Tooltip = {'Abre módulo em outra janela'};
             app.config_Undock.Layout.Row = 1;
@@ -8746,6 +8738,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create config_Close
             app.config_Close = uiimage(app.config_Grid);
             app.config_Close.ScaleMethod = 'none';
+            app.config_Close.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
             app.config_Close.Tag = 'CONFIG';
             app.config_Close.Tooltip = {'Fecha módulo'};
             app.config_Close.Layout.Row = 1;

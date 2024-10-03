@@ -59,7 +59,6 @@ classdef (Abstract) Constants
             end
         end
 
-
         %-----------------------------------------------------------------%
         function [upYLim, strUnit] = yAxisUpLimit(Unit)
             switch lower(Unit)
@@ -68,7 +67,6 @@ classdef (Abstract) Constants
                 case {'dbµv/m', 'dbμv/m'};     upYLim = 100; strUnit = 'dBµV/m';
             end
         end
-
 
         %-----------------------------------------------------------------%
         function d = english2portuguese()
@@ -190,6 +188,14 @@ classdef (Abstract) Constants
                       "Modo de apontamento"];
         
             d = dictionary(names, values);
+        end
+
+        %-----------------------------------------------------------------%
+        function winMinSize = WindowMinSize(auxiliarApp)
+            switch auxiliarApp
+                case 'CONFIG'
+                    winMinSize = [760, 588];
+            end
         end
     end
 end

@@ -178,10 +178,10 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
     LineBreak = report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;')));
     Separator = report.ReportGenerator_HTML(struct('Type', 'Footnote',  'Data', struct('Editable', 'false', 'String', repmat('_', 1, 45))));
 
-    Footnote1 = sprintf('<b>appAnalise</b> v. %s, <b>fiscaliza</b> v. %s, <b>RFDataHub</b> %s', appVersion.(class.Constants.appName).Version, appVersion.fiscaliza, appVersion.RFDataHub.ReleaseDate);
+    Footnote1 = sprintf('<b>appAnalise</b> v. %s, <b>fiscaliza</b> v. %s, <b>RFDataHub</b> %s', appVersion.(class.Constants.appName).version, appVersion.fiscaliza, appVersion.RFDataHub.ReleaseDate);
     Footnote2 = sprintf('<b>Relatório</b>: %s',      jsonencode(rmfield(table2struct(reportInfo.Model.Type), 'Description')));
-    Footnote3 = sprintf('<b>Imagem</b>: %s',         jsonencode(rmfield(reportInfo.General.Image, 'Visibility')));
-    Footnote4 = sprintf('<b>Matlab</b> v. %s, %s',   appVersion.Matlab.Version, appVersion.Matlab.Products);
+    Footnote3 = sprintf('<b>Imagem</b>: %s',         jsonencode(reportInfo.General.Image));
+    Footnote4 = sprintf('<b>Matlab</b> v. %s, %s',   appVersion.Matlab.version, appVersion.Matlab.products);
     Footnote5 = '';
     try
         Footnote5 = sprintf('<b>Python</b> v. %s',   appVersion.Python.Version);

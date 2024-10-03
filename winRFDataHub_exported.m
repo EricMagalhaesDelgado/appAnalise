@@ -223,7 +223,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                                     'Position',           [xPosition yPosition 1244 660], ...
                                     'AutoResizeChildren', 'off',                          ...
                                     'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
-            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
 
             % (b) Move os componentes do container antigo para o novo, ajustando
             %     o modo de visualização da tabela.
@@ -243,6 +242,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             [~, idxSelectedTab] = ismember(app.ControlTabGroup.SelectedTab, app.ControlTabGroup.Children);
             jsBackDoor_Customizations(app, 0)
             jsBackDoor_Customizations(app, idxSelectedTab)
+            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
         end
     end
 

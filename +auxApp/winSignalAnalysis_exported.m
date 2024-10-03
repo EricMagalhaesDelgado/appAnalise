@@ -107,8 +107,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                                     'Position',           [xPosition yPosition 1244 660], ...
                                     'AutoResizeChildren', 'off',                          ...
                                     'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
-            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-
+            
             % (b) Move os componentes do container antigo para o novo, ajustando
             %     o modo de visualização da tabela.
             app.Container.Children.Parent = app.UIFigure;
@@ -124,6 +123,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             % (d) Customiza aspectos estéticos da janela.
             jsBackDoor_Customizations(app)
+            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
         end
     end
     

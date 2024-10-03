@@ -2,21 +2,26 @@ classdef (Abstract) RFDataHub
     
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function read(RootFolder)
+        function read(rootFolder, tempDir)
+            arguments
+                rootFolder  char
+                tempDir     char = ''
+            end
+
             global RFDataHub
             global RFDataHubLog
             global RFDataHub_info
             
             if isempty(RFDataHub) || isempty(RFDataHubLog) || isempty(RFDataHub_info)
-                filename_mat = fullfile(RootFolder, 'DataBase', 'RFDataHub.mat');
+                filename_mat = fullfile(rootFolder, 'DataBase', 'RFDataHub.mat');
         
                 if isfile(filename_mat)
                     load(filename_mat, 'RFDataHub', 'RFDataHubLog', 'RFDataHub_info', '-mat')
                 
                 else
-                    filename_parquet1  = fullfile(RootFolder, 'Temp', 'estacoes.parquet.gzip');
-                    filename_parquet2  = fullfile(RootFolder, 'Temp', 'log.parquet.gzip');
-                    filename_parquet3  = fullfile(RootFolder, 'Temp', 'Release.json');
+                    filename_parquet1  = fullfile(tempDir, 'estacoes.parquet.gzip');
+                    filename_parquet2  = fullfile(tempDir, 'log.parquet.gzip');
+                    filename_parquet3  = fullfile(tempDir, 'Release.json');
         
                     try
                         RFDataHub      = parquetread(filename_parquet1, "VariableNamingRule", "preserve");
@@ -31,7 +36,7 @@ classdef (Abstract) RFDataHub
                         save(filename_mat, 'RFDataHub', 'RFDataHubLog', 'RFDataHub_info')
                     
                     catch ME
-                        filename_mat_old = fullfile(RootFolder, 'DataBase', 'RFDataHub_old.mat');
+                        filename_mat_old = fullfile(rootFolder, 'DataBase', 'RFDataHub_old.mat');
         
                         if isfile(filename_mat_old)
                             load(filename_mat_old, 'RFDataHub', 'RFDataHubLog', 'RFDataHub_info', '-mat')
