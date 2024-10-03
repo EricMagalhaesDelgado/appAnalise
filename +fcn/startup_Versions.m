@@ -1,8 +1,8 @@
-function appVersion = startup_Versions(ReadType, RootFolder)
+function appVersion = startup_Versions(ReadType, rootFolder)
 
     appVersion = struct('OS', '', 'Matlab', '', 'OpenGL', '', class.Constants.appName, struct('Release', class.Constants.appRelease, ...
                                                                                               'Version', class.Constants.appVersion, ...
-                                                                                              'RootFolder', RootFolder),             ...
+                                                                                              'RootFolder', rootFolder),             ...
                         'Python', '', 'fiscaliza', '', 'RFDataHub', '');
 
     % OS
@@ -48,7 +48,7 @@ function appVersion = startup_Versions(ReadType, RootFolder)
     global RFDataHub_info
 
     if isempty(RFDataHub) || isempty(RFDataHub_info)
-        class.RFDataHub.read(RootFolder)
+        class.RFDataHub.read(rootFolder)
     end
     appVersion.RFDataHub = RFDataHub_info;   
 end

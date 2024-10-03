@@ -115,8 +115,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         Tab3_Grid                      matlab.ui.container.GridLayout
         misc_ElevationSourcePanel      matlab.ui.container.Panel
         misc_ElevationSourceGrid       matlab.ui.container.GridLayout
-        misc_PointsPerLink             matlab.ui.control.DropDown
-        misc_PointsPerLinkLabel        matlab.ui.control.Label
+        misc_ElevationForceSearch      matlab.ui.control.CheckBox
+        misc_ElevationNPoints          matlab.ui.control.DropDown
+        misc_ElevationNPointsLabel     matlab.ui.control.Label
         misc_ElevationAPISource        matlab.ui.control.DropDown
         misc_ElevationAPISourceLabel   matlab.ui.control.Label
         ELEVAOLabel                    matlab.ui.control.Label
@@ -487,7 +488,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Elevação:
             app.misc_ElevationAPISource.Value    = app.General.Elevation.Server;
-            app.misc_PointsPerLink.Value         = num2str(app.General.Elevation.Points);
+            app.misc_ElevationNPoints.Value      = num2str(app.General.Elevation.Points);
+            app.misc_ElevationForceSearch.Value  = app.General.Elevation.ForceSearch;
         end
     end
 
@@ -1148,7 +1150,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     [txObj, rxObj] = RFLinkObjects(app, 'TX-RX', idxRFDataHub);
         
                     % ELEVAÇÃO DO LINK TX-RX
-                    [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj, str2double(app.misc_PointsPerLink.Value), false, app.misc_ElevationAPISource.Value);
+                    [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj, str2double(app.misc_ElevationNPoints.Value), app.misc_ElevationForceSearch.Value, app.misc_ElevationAPISource.Value);
                     if ~isempty(msgWarning)
                         appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                     end
@@ -2069,7 +2071,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 app.General = app.CallingApp.General;
 
                 app.misc_ElevationAPISource.Value = app.General.Elevation.Server;
-                app.misc_PointsPerLink.Value      = num2str(app.General.Elevation.Points);
+                app.misc_ElevationNPoints.Value      = num2str(app.General.Elevation.Points);
             end
 
             % % Eixo geográfico - app.UIAxes1
@@ -2965,8 +2967,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create misc_ElevationSourceGrid
             app.misc_ElevationSourceGrid = uigridlayout(app.misc_ElevationSourcePanel);
-            app.misc_ElevationSourceGrid.ColumnWidth = {'1x', '1x', 105};
-            app.misc_ElevationSourceGrid.RowHeight = {17, 22};
+            app.misc_ElevationSourceGrid.ColumnWidth = {'1x', 130};
+            app.misc_ElevationSourceGrid.RowHeight = {17, 22, 32};
             app.misc_ElevationSourceGrid.RowSpacing = 5;
             app.misc_ElevationSourceGrid.Padding = [10 10 10 5];
             app.misc_ElevationSourceGrid.BackgroundColor = [1 1 1];
@@ -2985,25 +2987,33 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.misc_ElevationAPISource.FontSize = 11;
             app.misc_ElevationAPISource.BackgroundColor = [1 1 1];
             app.misc_ElevationAPISource.Layout.Row = 2;
-            app.misc_ElevationAPISource.Layout.Column = [1 2];
+            app.misc_ElevationAPISource.Layout.Column = 1;
             app.misc_ElevationAPISource.Value = 'Open-Elevation';
 
-            % Create misc_PointsPerLinkLabel
-            app.misc_PointsPerLinkLabel = uilabel(app.misc_ElevationSourceGrid);
-            app.misc_PointsPerLinkLabel.VerticalAlignment = 'bottom';
-            app.misc_PointsPerLinkLabel.FontSize = 10;
-            app.misc_PointsPerLinkLabel.Layout.Row = 1;
-            app.misc_PointsPerLinkLabel.Layout.Column = 3;
-            app.misc_PointsPerLinkLabel.Text = 'Pontos enlace:';
+            % Create misc_ElevationNPointsLabel
+            app.misc_ElevationNPointsLabel = uilabel(app.misc_ElevationSourceGrid);
+            app.misc_ElevationNPointsLabel.VerticalAlignment = 'bottom';
+            app.misc_ElevationNPointsLabel.FontSize = 10;
+            app.misc_ElevationNPointsLabel.Layout.Row = 1;
+            app.misc_ElevationNPointsLabel.Layout.Column = 2;
+            app.misc_ElevationNPointsLabel.Text = 'Pontos enlace:';
 
-            % Create misc_PointsPerLink
-            app.misc_PointsPerLink = uidropdown(app.misc_ElevationSourceGrid);
-            app.misc_PointsPerLink.Items = {'64', '128', '256', '512', '1024'};
-            app.misc_PointsPerLink.FontSize = 11;
-            app.misc_PointsPerLink.BackgroundColor = [1 1 1];
-            app.misc_PointsPerLink.Layout.Row = 2;
-            app.misc_PointsPerLink.Layout.Column = 3;
-            app.misc_PointsPerLink.Value = '256';
+            % Create misc_ElevationNPoints
+            app.misc_ElevationNPoints = uidropdown(app.misc_ElevationSourceGrid);
+            app.misc_ElevationNPoints.Items = {'64', '128', '256', '512', '1024'};
+            app.misc_ElevationNPoints.FontSize = 11;
+            app.misc_ElevationNPoints.BackgroundColor = [1 1 1];
+            app.misc_ElevationNPoints.Layout.Row = 2;
+            app.misc_ElevationNPoints.Layout.Column = 2;
+            app.misc_ElevationNPoints.Value = '256';
+
+            % Create misc_ElevationForceSearch
+            app.misc_ElevationForceSearch = uicheckbox(app.misc_ElevationSourceGrid);
+            app.misc_ElevationForceSearch.Text = 'Força consulta ao servidor (ignorando eventual informação em cache).';
+            app.misc_ElevationForceSearch.WordWrap = 'on';
+            app.misc_ElevationForceSearch.FontSize = 11;
+            app.misc_ElevationForceSearch.Layout.Row = 3;
+            app.misc_ElevationForceSearch.Layout.Column = [1 2];
 
             % Create menu_MainGrid
             app.menu_MainGrid = uigridlayout(app.ControlTabGrid);

@@ -1,4 +1,4 @@
-classdef winWelcomePage_exported < matlab.apps.AppBase
+classdef dockWelcomePage_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -9,8 +9,6 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
         releaseNotesGrid   matlab.ui.container.GridLayout
         releaseNotes       matlab.ui.control.HTML
         SimulationMode     matlab.ui.control.CheckBox
-        btnConfigLabel     matlab.ui.control.Label
-        btnConfig          matlab.ui.control.Button
         btnRFDataHubLabel  matlab.ui.control.Label
         btnRFDataHub       matlab.ui.control.Button
         btnOpenLabel       matlab.ui.control.Label
@@ -46,12 +44,13 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
             
         end
 
-        % Callback function: btnClose, btnConfig, btnOpen, btnRFDataHub
+        % Callback function: btnClose, btnOpen, btnRFDataHub
         function ButtonPushed(app, event)
             
             pushedButtonTag = event.Source.Tag;
             simulationFlag  = app.SimulationMode.Value;
             appBackDoor(app.CallingApp, app, 'ButtonPushed', pushedButtonTag, simulationFlag)
+            closeFcn(app)
 
         end
     end
@@ -89,7 +88,7 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {5, 22, 38, '1x', 40, 325, 22, 5};
-            app.GridLayout.RowHeight = {32, 44, 44, 1, 44, 1, 44, 140, '1x', 17, 22, 5};
+            app.GridLayout.RowHeight = {32, 44, 44, 1, 44, '1x', 22, 5};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [0 0 0 0];
@@ -141,35 +140,18 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
             app.btnRFDataHubLabel.Interpreter = 'html';
             app.btnRFDataHubLabel.Text = {'RFDataHub'; '<p style="color: gray; font-size: 10px;">MOSAICO, STEL, SRD, ICAO, AISWEB, GEOAIS e REDEMET</p>'};
 
-            % Create btnConfig
-            app.btnConfig = uibutton(app.GridLayout, 'push');
-            app.btnConfig.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
-            app.btnConfig.Tag = 'Config';
-            app.btnConfig.Icon = 'Settings_32.png';
-            app.btnConfig.BackgroundColor = [1 1 1];
-            app.btnConfig.Layout.Row = 7;
-            app.btnConfig.Layout.Column = 3;
-            app.btnConfig.Text = '';
-
-            % Create btnConfigLabel
-            app.btnConfigLabel = uilabel(app.GridLayout);
-            app.btnConfigLabel.VerticalAlignment = 'bottom';
-            app.btnConfigLabel.Layout.Row = 7;
-            app.btnConfigLabel.Layout.Column = 4;
-            app.btnConfigLabel.Text = 'Configurações gerais';
-
             % Create SimulationMode
             app.SimulationMode = uicheckbox(app.GridLayout);
             app.SimulationMode.Text = 'Abre o app em modo de simulação.';
             app.SimulationMode.FontSize = 11;
             app.SimulationMode.FontColor = [0.149 0.149 0.149];
-            app.SimulationMode.Layout.Row = [11 12];
+            app.SimulationMode.Layout.Row = [7 8];
             app.SimulationMode.Layout.Column = [2 4];
 
             % Create releaseNotesPanel
             app.releaseNotesPanel = uipanel(app.GridLayout);
             app.releaseNotesPanel.AutoResizeChildren = 'off';
-            app.releaseNotesPanel.Layout.Row = [2 11];
+            app.releaseNotesPanel.Layout.Row = [2 7];
             app.releaseNotesPanel.Layout.Column = [6 7];
 
             % Create releaseNotesGrid
@@ -202,7 +184,7 @@ classdef winWelcomePage_exported < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = winWelcomePage_exported(Container, varargin)
+        function app = dockWelcomePage_exported(Container, varargin)
 
             % Create UIFigure and components
             createComponents(app, Container)

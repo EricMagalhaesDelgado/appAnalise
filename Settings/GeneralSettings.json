@@ -1,5 +1,5 @@
 {
-    "version": 0.62,
+    "version": 0.66,
     "operationMode": {
         "Debug": false,
         "Dock": false,
@@ -193,7 +193,6 @@
         "Distance": 100
     },
     "Image": {
-        "Visibility": "on",
         "Format": "jpeg",
         "Resolution": 120
     },
@@ -341,7 +340,8 @@
         "SampleTime": 10
     },
     "Elevation": {
-        "Server": "Open-Elevation",
-        "Points": 64
+        "Points": 256,
+        "ForceSearch": false,
+        "Server": "Open-Elevation"
     }
 }

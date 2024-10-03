@@ -435,7 +435,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 [txObj, rxObj] = RFLinkObjects(app, idxPrjPeaks, idxThread, idxStation);
     
                 % ELEVAÇÃO DO LINK TX-RX
-                [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj, app.General.Elevation.Points, false, app.General.Elevation.Server);
+                [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj, app.General.Elevation.Points, app.General.Elevation.ForceSearch, app.General.Elevation.Server);
                 if ~isempty(msgWarning)
                     appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                 end

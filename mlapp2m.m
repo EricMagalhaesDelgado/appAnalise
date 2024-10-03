@@ -1,6 +1,7 @@
 function mlapp2m(MLAPPFiles, showDiffApp)
     arguments
-        MLAPPFiles  cell    = {'winAppAnalise', 'winDriveTest', 'winSignalAnalysis', 'winRFDataHub', 'winWelcomePage'}
+        MLAPPFiles  cell    = {'winAppAnalise', 'winRFDataHub', 'winDriveTest', 'winSignalAnalysis', 'winConfig', ...
+                               'dockAddFiles', 'dockClassification', 'dockDetection', 'dockMiscEdit', 'dockWelcomePage'}
         showDiffApp logical = false
     end
 

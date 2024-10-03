@@ -1,23 +1,22 @@
-function appVersion = envVersion(rootFolder, versionType, varargin)
+function appVersion = envVersion(rootFolder, versionType)
 
     arguments
-        rootFolder 
-        versionType = 'full'
-    end
-
-    arguments (Repeating)
-        varargin
+        rootFolder  char
+        versionType char {mustBeMember(versionType, {'reportLib', 'full', 'full+Python'})} = 'full'
     end
 
     appName = class.Constants.appName;
 
     switch versionType
-        case 'full'
-            appVersion = struct('Machine', '', ...
-                                'Matlab',  '', ...
-                                appName,   struct('release',    class.Constants.appRelease, ...
-                                                  'version',    class.Constants.appVersion, ...
-                                                  'rootFolder', rootFolder));
+        case {'full', 'full+Python'}
+            appVersion = struct('Machine',   '',                                              ...
+                                'Matlab',    '',                                              ...
+                                appName,     struct('release',    class.Constants.appRelease, ...
+                                                    'version',    class.Constants.appVersion, ...
+                                                    'rootFolder', rootFolder),                ...
+                                'RFDataHub', [],                                              ...
+                                'Python',    [],                                              ...
+                                'fiscaliza', []);
         
             % OS
             appVersion.Machine = struct('platform',     ccTools.fcn.OperationSystem('platform'),     ...
@@ -40,6 +39,33 @@ function appVersion = envVersion(rootFolder, versionType, varargin)
                                         'rootPath', matlabroot,                                                     ...
                                         'products', strjoin(matProducts.Name + " v. " + matProducts.Version, ', '), ...
                                         'openGL',   graphRender);
+
+            % RFDataHub
+            global RFDataHub_info
+            appVersion.RFDataHub = RFDataHub_info;   
+
+            % PYTHON
+            if versionType == "full+Python"
+                pyEnv = pyenv;
+                if isfile(pyEnv.Executable)
+                    appVersion.Python = struct('Version', pyEnv.Version, 'Path', pyEnv.Home);
+            
+                    try
+                        [~, pyPackages]  = system(fullfile(pyEnv.Home, 'Scripts', 'pip list'));
+                        pyPackages_table = struct2table(regexp(pyPackages, '(?<lib>[a-zA-Z0-9_-]*)\s*(?<ver>[0-9.]+)\n', 'names'));
+                
+                        appVersion.Python.Packages = strjoin(pyPackages_table.lib + " v. " + pyPackages_table.ver, ', ');
+        
+                        % fiscaliza
+                        idxFind = find(pyPackages_table.lib == "fiscaliza", 1);
+                        if ~isempty(idxFind)
+                            appVersion.fiscaliza = pyPackages_table.ver{idxFind};
+                        end
+                    catch
+                    end
+                end
+            end
+
         case 'reportLib'
             global RFDataHub
             global RFDataHub_info
