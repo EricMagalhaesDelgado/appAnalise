@@ -122,7 +122,7 @@ classdef winConfig_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         DefaultValues = struct('File',      struct('DataType', true, 'DataTypeLabel', 'remove', 'Antenna', true, 'AntennaLabel', 'remove', 'Distance', 100), ...
-                               'Graphics',  struct('openGL', 'hardware', 'Format', 'jpeg', 'Resolution', '120', 'Dock', true, 'Debug', false),               ...
+                               'Graphics',  struct('openGL', 'hardware', 'Format', 'jpeg', 'Resolution', '120', 'Dock', true),                               ...
                                'Elevation', struct('Points', '256', 'ForceSearch', false, 'Server', 'Open-Elevation'))
     end
 
@@ -197,13 +197,22 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_Controller(app)
+            drawnow
+            
             % Customiza as aspectos estéticos de alguns dos componentes da GUI 
             % (diretamente em JS).
             jsBackDoor_Customizations(app)
 
-            % Define tamanho mínimo do app (não aplicável à versão webapp).
-            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
-                appUtil.winMinSize(app.UIFigure, class.Constants.WindowMinSize('CONFIG'))
+            switch app.CallingApp.executionMode
+                case 'webApp'
+                    app.general_AppVersionRefresh.Enable = 0;
+                    app.openAuxiliarAppAsDocked.Enable   = 0;
+                    app.openAuxiliarApp2Debug.Enable     = 0;
+
+                otherwise
+                    if ~app.isDocked
+                        appUtil.winMinSize(app.UIFigure, class.Constants.WindowMinSize('CONFIG'))
+                    end
             end
 
             % Atualização dos painéis...
@@ -309,8 +318,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             if ~strcmp(app.gpuType.Value,            app.DefaultValues.Graphics.openGL)     || ...
                ~strcmp(app.imgFormat.Value,          app.DefaultValues.Graphics.Format)     || ...
                ~strcmp(app.imgResolution.Value,      app.DefaultValues.Graphics.Resolution) || ...
-               (app.openAuxiliarAppAsDocked.Value ~= app.DefaultValues.Graphics.Dock)       || ...
-               (app.openAuxiliarApp2Debug.Value   ~= app.DefaultValues.Graphics.Debug)
+               (app.openAuxiliarAppAsDocked.Value ~= app.DefaultValues.Graphics.Dock)
 
                 editionFlag = true;
             end
@@ -412,7 +420,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             LeftPanelRadioGroupSelectionChanged(app)
 
             if app.isDocked
-                drawnow
                 startup_Controller(app)
             else
                 appUtil.winPosition(app.UIFigure)
@@ -626,7 +633,6 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                     app.CallingApp.General.Image = struct('Format', app.DefaultValues.Graphics.Format, 'Resolution', app.DefaultValues.Graphics.Resolution);
                     app.CallingApp.General.operationMode.Dock  = app.DefaultValues.Graphics.Dock;
-                    app.CallingApp.General.operationMode.Debug = app.DefaultValues.Graphics.Debug;
             end
 
             saveGeneralSettings(app)

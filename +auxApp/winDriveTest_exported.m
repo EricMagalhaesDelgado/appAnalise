@@ -238,7 +238,11 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                     'AutoResizeChildren', 'off',                          ...
                                     'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
             
-            % (b) Move os componentes do container antigo para o novo.
+            % (b) Move os componentes do container antigo para o novo, ajustando
+            %     o modo de visualização da tabela. Antes disso, contudo, ajusta
+            %     o pai do menu de contexto.
+            app.filter_ContextMenu.Parent = app.UIFigure;
+            app.points_ContextMenu.Parent = app.UIFigure;
             app.Container.Children.Parent = app.UIFigure;
             drawnow 
             
@@ -368,7 +372,9 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function startup_Controller(app, idxThread, idxEmission)            
+        function startup_Controller(app, idxThread, idxEmission)
+            drawnow
+
             % Customiza as aspectos estéticos de alguns dos componentes da GUI 
             % (diretamente em JS).
             jsBackDoor_Customizations(app, 0)
@@ -431,9 +437,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         
                     sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
-                    
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')                    
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
 
                 otherwise
                     if any(app.jsBackDoorFlag{tabIndex})
@@ -441,13 +444,17 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
                         switch tabIndex
                             case 1 % ASPECTOS GERAIS
-                                % ...            
+                                ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')                    
+                                ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
+                            
                             case 2 % FILTRO
                                 filterTreeUUID = struct(app.filter_Tree).Controller.ViewModel.Id;
                                 sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'app.filter_Tree', 'componentDataTag', filterTreeUUID, 'keyEvents', "Delete"))
+                            
                             case 3 % PONTOS DE INTERESSE
                                 pointsTreeUUID = struct(app.points_Tree).Controller.ViewModel.Id;
                                 sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'app.points_Tree', 'componentDataTag', pointsTreeUUID, 'keyEvents', "Delete"))
+                            
                             case 4 % LAYOUT
                                 % ...
                         end
@@ -763,8 +770,16 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 % O erro aqui é controlado, e esperado apenas se após a aplicação
                 % do filtro aos dados, restar no máximo uma amostra. Neste caso,
                 % exclui-se o filtro, redesenhando-se a árvore.
-                filter_TreeBuilding(app)
-            end       
+                if ~isempty(app.filterTable)
+                    arrayfun(@(x) delete(x), [app.filterTable.roi(end).handle]); 
+                    app.filterTable(end,:) = [];
+    
+                    filter_TreeBuilding(app)
+                    filter_UpdatePlot(app)
+                else
+                    appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                end
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -1527,7 +1542,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             end
 
             if app.isDocked
-                drawnow
                 startup_Controller(app, idxThread, idxEmission)
             else
                 appUtil.winPosition(app.UIFigure)

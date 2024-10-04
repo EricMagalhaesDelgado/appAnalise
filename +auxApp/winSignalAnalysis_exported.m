@@ -109,8 +109,10 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                                     'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
             
             % (b) Move os componentes do container antigo para o novo, ajustando
-            %     o modo de visualização da tabela.
-            app.Container.Children.Parent = app.UIFigure;
+            %     o modo de visualização da tabela. Antes disso, contudo, ajusta
+            %     o pai do menu de contexto.
+            app.ContextMenu_UITable.Parent = app.UIFigure;
+            app.Container.Children.Parent  = app.UIFigure;
             drawnow 
 
             if ~isempty(app.UITable.Selection)

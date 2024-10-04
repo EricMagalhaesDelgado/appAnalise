@@ -4,7 +4,7 @@ function appInfo = htmlCode_appInfo(appGeneral, rootFolder, executionMode)
     global RFDataHub_info
 
     appName       = class.Constants.appName;
-    appVersion    = fcn.envVersion(rootFolder);
+    appVersion    = appGeneral.AppVersion;
     [~, appAnaliseLink] = fcn.PublicLinks(rootFolder);
 
     switch executionMode

@@ -225,7 +225,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                                     'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
 
             % (b) Move os componentes do container antigo para o novo, ajustando
-            %     o modo de visualização da tabela.
+            %     o modo de visualização da tabela. Antes disso, contudo, ajusta
+            %     o pai do menu de contexto.
+            app.filter_ContextMenu.Parent = app.UIFigure;
             app.Container.Children.Parent = app.UIFigure;
             drawnow 
 
@@ -289,10 +291,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     % 
                     % sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mwDialog .mwDialogTitleBar .mwCloseNode', ...
                     %                                                                        'classAttributes',  'background-color: #f0f0f0;'));
-                    
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.AntennaPatternPanelPlot,       'backgroundColor', 'transparent')
 
                 otherwise
                     if any(app.jsBackDoorFlag{tabIndex})
@@ -300,7 +298,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
                         switch tabIndex
                             case 1 % RFDATAHUB
-                                % ...            
+                                ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
+                                ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
+                                ccTools.compCustomizationV2(app.jsBackDoor, app.AntennaPatternPanelPlot,       'backgroundColor', 'transparent')
+
                             case 2 % FILTRAGEM
                                 % ...
                             case 3 % CONFIGURAÇÕES GERAIS
@@ -334,7 +335,11 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function startup_Controller(app)            
+        function startup_Controller(app)
+            % Drawnow antes das customizações, garantindo que elas terão
+            % efeito.
+            drawnow
+
             % Customiza as aspectos estéticos de alguns dos componentes da GUI 
             % (diretamente em JS).
             jsBackDoor_Customizations(app, 0)
@@ -385,8 +390,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             if ~isempty(msgWarning)
                 appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
             end
-        
-            app.General.AppVersion = fcn.startup_Versions("Startup", app.rootFolder);
+            
+            app.General.AppVersion = fcn.envVersion(app.rootFolder, 'full');
         end
 
         %-----------------------------------------------------------------%
@@ -1421,7 +1426,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 % estar em modo DOCK ou UNDOCK, o que é definido em configuração
                 % no próprio appAnalise.
                 if app.isDocked
-                    drawnow
                     startup_Controller(app)
                 else
                     appUtil.winPosition(app.UIFigure)

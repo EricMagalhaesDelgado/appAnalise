@@ -585,6 +585,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function startup_timerFcn(app)
             if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
                 stop(app.timerObj_startup)
+                drawnow
 
                 app.executionMode = appUtil.ExecutionMode(app.UIFigure);
                 switch app.executionMode
@@ -604,10 +605,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 % 2/7: Adiciona transparência ao Grid do Container, que confere 
                 %      o efeito de janela modal à auxApp.dockWelcomePage.
                 ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
-                drawnow
-
+                
                 % 3/7: Inicia auxApp.dockWelcomePage.
-                app.TabGroup.Visible = 1;
                 menu_LayoutPopupApp(app, 'WelcomePage')
 
                 % OUTROS ASPECTOS IMPORTANTES
@@ -636,6 +635,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         app.drivetest_Undock.Visible      = 0;
                         app.signalanalysis_Undock.Visible = 0;
                         app.rfdatahub_Undock.Visible      = 0;
+                        app.config_Undock.Visible         = 0;
 
                         app.General.operationMode.Debug   = false;
                         app.General.operationMode.Dock    = true;
@@ -671,7 +671,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 % 5/7: Torna visível o container do auxApp.popupContainer, forçando
                 %      a exclusão do SplashScreen.
-                app.popupContainer.Visible = 1;
+                app.TabGroup.Visible = 1;
+                app.popupContainer.Visible = 1;                
                 if isvalid(app.SplashScreen)
                     pause(1)
                     delete(app.SplashScreen)
@@ -699,7 +700,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.General.Integration.Trace = Inf;
             end
         
-            app.General.AppVersion = fcn.startup_Versions("Startup", app.rootFolder);
+            app.General.AppVersion = fcn.envVersion(app.rootFolder, 'full');
             app.General.Models     = struct2table(jsondecode(fileread(fullfile(app.rootFolder, 'Template', 'html_General.cfg'))));
             app.General.Report     = '';
         end
@@ -1042,7 +1043,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.popupContainerGrid.ColumnWidth{2} = screenWidth;
             app.popupContainerGrid.RowHeight{3}   = screenHeight-180;
 
-            % Executa o app auxiliar...
+            % Executa o app auxiliar, mas antes tenta configurar transparência
+            % do BackgroundColor do Grid (caso não tenha sido aplicada anteriormente).
+            ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
+
             switch auxiliarApp
                 case 'WelcomePage'
                     auxApp.dockWelcomePage_exported(app.popupContainer, app)
