@@ -94,92 +94,9 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
     end
 
 
-    methods
-        %-----------------------------------------------------------------%
-        function undockingApp(app)
-            % Executa operacões que não são realizadas quando um app está
-            % em modo DOCK.
-            % (a) Cria figura, configurando o seu tamanho mínimo.
-            [xPosition, ...
-             yPosition]  = appUtil.winXYPosition(1244, 660);
-            app.UIFigure = uifigure('Name',               'appAnalise',                   ...
-                                    'Icon',               'icon_48.png',                  ...
-                                    'Position',           [xPosition yPosition 1244 660], ...
-                                    'AutoResizeChildren', 'off',                          ...
-                                    'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
-            
-            % (b) Move os componentes do container antigo para o novo, ajustando
-            %     o modo de visualização da tabela. Antes disso, contudo, ajusta
-            %     o pai do menu de contexto.
-            app.ContextMenu_UITable.Parent = app.UIFigure;
-            app.Container.Children.Parent  = app.UIFigure;
-            drawnow 
-
-            if ~isempty(app.UITable.Selection)
-                scroll(app.UITable, 'Row', app.UITable.Selection(1))
-            end
-            
-            % (c) Reinicia as propriedades "Container" e "isDocked".
-            app.Container = app.UIFigure;
-            app.isDocked  = false;
-
-            % (d) Customiza aspectos estéticos da janela.
-            jsBackDoor_Customizations(app)
-            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-        end
-    end
-    
-
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function startup_timerCreation(app)            
-            % A criação desse timer tem como objetivo garantir uma renderização 
-            % mais rápida dos componentes principais da GUI, possibilitando a 
-            % visualização da sua tela inicialpelo usuário. Trata-se de aspecto 
-            % essencial quando o app é compilado como webapp.
-
-            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
-                                 "StartDelay",    1.5,            ...
-                                 "Period",        .1,             ...
-                                 "TimerFcn",      @(~,~)app.startup_timerFcn);
-            start(app.timerObj)
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_timerFcn(app)
-            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
-                stop(app.timerObj)
-                delete(app.timerObj)                
-                startup_Controller(app)
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_Controller(app)
-            % Customiza as aspectos estéticos de alguns dos componentes da GUI 
-            % (diretamente em JS).
-            jsBackDoor_Customizations(app)
-
-            % Define tamanho mínimo do app (não aplicável à versão webapp).
-            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
-                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-            end
-
-            app.progressDialog.Visible = 'visible';
-
-            % Criação do eixo e leitura dos dados...
-            startup_AppProperties(app)
-            startup_GUIComponents(app)
-            startup_Axes(app)
-            drawnow
-
-            pause(.100)
-            renderProjectDataOnScreen(app)
-            focus(app.UITable)
-
-            app.progressDialog.Visible = 'hidden';
-        end
-
+        % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
             app.jsBackDoor.HTMLSource = ccTools.fcn.jsBackDoorHTMLSource();
@@ -205,6 +122,60 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             ccTools.compCustomizationV2(app.jsBackDoor, app.TXGrid,    'backgroundColor', 'transparent')
             ccTools.compCustomizationV2(app.jsBackDoor, app.TXPanel,   'backgroundColor', 'rgba(0,0,0,0.5)')
             ccTools.compCustomizationV2(app.jsBackDoor, app.TXSubGrid, 'backgroundColor', 'transparent')
+        end
+    end
+    
+
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        function startup_timerCreation(app, idxPrjPeaks)            
+            % A criação desse timer tem como objetivo garantir uma renderização 
+            % mais rápida dos componentes principais da GUI, possibilitando a 
+            % visualização da sua tela inicialpelo usuário. Trata-se de aspecto 
+            % essencial quando o app é compilado como webapp.
+
+            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
+                                 "StartDelay",    1.5,            ...
+                                 "Period",        .1,             ...
+                                 "TimerFcn",      @(~,~)app.startup_timerFcn(idxPrjPeaks));
+            start(app.timerObj)
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_timerFcn(app, idxPrjPeaks)
+            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
+                stop(app.timerObj)
+                delete(app.timerObj)                
+                startup_Controller(app, idxPrjPeaks)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_Controller(app, idxPrjPeaks)
+            drawnow
+
+            % Customiza as aspectos estéticos de alguns dos componentes da GUI 
+            % (diretamente em JS).
+            jsBackDoor_Customizations(app)
+
+            % Define tamanho mínimo do app (não aplicável à versão webapp).
+            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
+                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+            end
+
+            app.progressDialog.Visible = 'visible';
+
+            % Criação do eixo e leitura dos dados...
+            startup_AppProperties(app)
+            startup_GUIComponents(app)
+            startup_Axes(app)
+            drawnow
+
+            pause(.100)
+            renderProjectDataOnScreen(app, idxPrjPeaks)
+            focus(app.UITable)
+
+            app.progressDialog.Visible = 'hidden';
         end
 
         %-----------------------------------------------------------------%
@@ -628,10 +599,14 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
     methods (Access = public)
         %-----------------------------------------------------------------%
-        function renderProjectDataOnScreen(app)
+        function renderProjectDataOnScreen(app, idxPrjPeaks)
             if isempty(app.projectData.peaksTable)
                 closeFcn(app)
                 return
+            end
+
+            if idxPrjPeaks > height(app.projectData.peaksTable)
+                idxPrjPeaks = height(app.projectData.peaksTable);
             end
 
             if app.progressDialog.Visible == "visible"
@@ -656,7 +631,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             % !! PONTO DE EVOLUÇÃO !!
 
             set(app.tableInfoNRows, 'Text', sprintf('# %d', height(tempData)), 'Visible', 1)
-            set(app.UITable, 'Data', tempData, 'Selection', 1)
+            set(app.UITable, 'Data', tempData, 'Selection', idxPrjPeaks)
             layout_TableStyle(app)
             FillComponents(app)
 
@@ -671,7 +646,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp)
+        function startupFcn(app, mainapp, idxPrjPeaks)
             
             global RFDataHub
 
@@ -685,12 +660,11 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             jsBackDoor_Initialization(app)
 
             if app.isDocked
-                drawnow
                 app.tool_RefreshScreenSize.Visible = 0;
-                startup_Controller(app)
+                startup_Controller(app, idxPrjPeaks)
             else
                 appUtil.winPosition(app.UIFigure)
-                startup_timerCreation(app)
+                startup_timerCreation(app, idxPrjPeaks)
             end
             
         end

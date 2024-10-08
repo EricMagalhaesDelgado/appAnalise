@@ -125,39 +125,11 @@ classdef winConfig_exported < matlab.apps.AppBase
                                'Graphics',  struct('openGL', 'hardware', 'Format', 'jpeg', 'Resolution', '120', 'Dock', true),                               ...
                                'Elevation', struct('Points', '256', 'ForceSearch', false, 'Server', 'Open-Elevation'))
     end
-
-
-    methods
-        %-----------------------------------------------------------------%
-        function undockingApp(app)
-            % Executa operacões que não são realizadas quando um app está
-            % em modo DOCK.
-            % (a) Cria figura, configurando o seu tamanho mínimo.
-            [xPosition, ...
-             yPosition]  = appUtil.winXYPosition(1244, 660);
-            app.UIFigure = uifigure('Name',               'appAnalise',                   ...
-                                    'Icon',               'icon_48.png',                  ...
-                                    'Position',           [xPosition yPosition 1244 660], ...
-                                    'AutoResizeChildren', 'off',                          ...
-                                    'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
-            
-            % (b) Move os componentes do container antigo para o novo, ajustando
-            %     o modo de visualização da tabela.
-            app.Container.Children.Parent = app.UIFigure;
-            drawnow
-            
-            % (c) Reinicia as propriedades "Container" e "isDocked".
-            app.Container = app.UIFigure;
-            app.isDocked  = false;
-
-            % (d) Customiza aspectos estéticos da janela.
-            jsBackDoor_Customizations(app)
-            appUtil.winMinSize(app.UIFigure, class.Constants.WindowMinSize('CONFIG'))
-        end
-    end
     
 
     methods (Access = private)
+        %-----------------------------------------------------------------%
+        % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
             app.jsBackDoor.HTMLSource = ccTools.fcn.jsBackDoorHTMLSource();
@@ -171,7 +143,10 @@ classdef winConfig_exported < matlab.apps.AppBase
                 app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
             end
         end
+    end
 
+
+    methods (Access = private)
         %-----------------------------------------------------------------%
         function startup_timerCreation(app)            
             % A criação desse timer tem como objetivo garantir uma renderização 
@@ -207,12 +182,15 @@ classdef winConfig_exported < matlab.apps.AppBase
                 case 'webApp'
                     app.general_AppVersionRefresh.Enable = 0;
                     app.openAuxiliarAppAsDocked.Enable   = 0;
-                    app.openAuxiliarApp2Debug.Enable     = 0;
 
                 otherwise
                     if ~app.isDocked
                         appUtil.winMinSize(app.UIFigure, class.Constants.WindowMinSize('CONFIG'))
                     end
+            end
+
+            if isdeployed
+                app.openAuxiliarApp2Debug.Enable = 0;
             end
 
             % Atualização dos painéis...

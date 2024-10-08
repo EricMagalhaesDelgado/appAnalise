@@ -593,10 +593,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         % ...
                     otherwise
                         % Configura o tamanho mínimo da janela.
-                        appUtil.winPosition(app.UIFigure)
                         app.FigurePosition.Visible = 1;
                         appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
                 end
+
+                appName           = class.Constants.appName;
+                MFilePath         = fileparts(mfilename('fullpath'));
+                app.rootFolder    = appUtil.RootFolder(appName, MFilePath);
                 
                 % WELCOMEPAGE
                 % 1/7: Insere estilo ao container do auxApp.dockWelcomePage.
@@ -608,11 +611,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 
                 % 3/7: Inicia auxApp.dockWelcomePage.
                 menu_LayoutPopupApp(app, 'WelcomePage')
-
-                % OUTROS ASPECTOS IMPORTANTES
-                appName           = class.Constants.appName;
-                MFilePath         = fileparts(mfilename('fullpath'));
-                app.rootFolder    = appUtil.RootFolder(appName, MFilePath);
                 
                 % Customiza as aspectos estéticos de alguns dos componentes da GUI 
                 % (diretamente em JS).
@@ -922,7 +920,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     propertyName         = 'hDriveTest';                    
                     dockMenuButton       = app.menu_Button5;
                     dockMenuButtonEnable = true;
-                    docRefMenuButton     = app.menu_Button2; % PLAYBACK
+                    dockRefMenuButton    = app.menu_Button2; % PLAYBACK
                     dockContainer        = app.drivetest_Container;
                     
                     FileHandle_MFILE     = @auxApp.winDriveTest_exported;
@@ -932,7 +930,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     propertyName         = 'hSignalAnalysis';
                     dockMenuButton       = app.menu_Button6;
                     dockMenuButtonEnable = true;
-                    docRefMenuButton     = app.menu_Button3; % REPORT
+                    dockRefMenuButton    = app.menu_Button3; % REPORT
                     dockContainer        = app.signalanalysis_Container;
                     
                     FileHandle_MFILE     = @auxApp.winSignalAnalysis_exported;
@@ -942,7 +940,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     propertyName         = 'hRFDataHub';
                     dockMenuButton       = app.menu_Button7;
                     dockMenuButtonEnable = false;
-                    docRefMenuButton     = app.menu_Button2; % PLAYBACK
+                    dockRefMenuButton    = app.menu_Button2; % PLAYBACK
                     dockContainer        = app.rfdatahub_Container;
                     
                     FileHandle_MFILE     = @winRFDataHub_exported;
@@ -952,7 +950,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     propertyName         = 'hConfig';
                     dockMenuButton       = app.menu_Button8;
                     dockMenuButtonEnable = false;
-                    docRefMenuButton     = app.menu_Button2; % PLAYBACK
+                    dockRefMenuButton    = app.menu_Button2; % PLAYBACK
                     dockContainer        = app.config_Container;
                     
                     FileHandle_MFILE     = @auxApp.winConfig_exported;
@@ -964,7 +962,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     if isempty(app.(propertyName)) || ~isvalid(app.(propertyName))
                         app.progressDialog.Visible = 'visible';
 
-                        varargin = horzcat({app}, varargin{:});
+                        if isempty(varargin)
+                            varargin = {app};
+                        end
+
                         if app.General.operationMode.Dock
                             app.(propertyName) = FileHandle_MFILE(dockContainer, varargin{:});
 
@@ -991,35 +992,48 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
                     end
 
-                otherwise % 'Close' | 'Undocking'
-                    if strcmp(operationType, 'Undocking')
-                        app.progressDialog.Visible = 'visible';
-                    end
-
+                otherwise % 'Close'
                     if dockMenuButtonEnable
                         dockMenuButton.Enable = 0;
                     end
 
                     if dockMenuButton.Value
-                        if ~docRefMenuButton.Enable
-                            docRefMenuButton = app.menu_Button1;
+                        if ~dockRefMenuButton.Enable
+                            dockRefMenuButton = app.menu_Button1;
                         end
 
-                        docRefMenuButton.Value = 1;
-                        menu_mainButtonPushed(app, struct('Source', docRefMenuButton, 'PreviousValue', 0))
+                        dockRefMenuButton.Value = 1;
+                        menu_mainButtonPushed(app, struct('Source', dockRefMenuButton, 'PreviousValue', 0))
                     end
 
-                    switch operationType
-                        case 'Close'
-                            delete(app.(propertyName))
-                            app.(propertyName) = [];
-                        case 'Undocking'
-                            undockingApp(app.(propertyName))
-                    end
+                    delete(app.(propertyName))
+                    app.(propertyName) = [];
+            end
+        end
 
-                    if strcmp(app.progressDialog.Visible, 'visible')
-                        app.progressDialog.Visible = 'hidden';
-                    end
+        %-----------------------------------------------------------------%
+        function inputArguments = menu_LayoutUndockingAuxiliarApp(app, auxiliarApp)
+            arguments
+                app
+                auxiliarApp   char {mustBeMember(auxiliarApp,   {'DRIVETEST', 'SIGNALANALYSIS', 'RFDATAHUB', 'CONFIG'})}
+            end
+
+            switch auxiliarApp
+                case 'DRIVETEST'
+                    compatibilityMode = app.hDriveTest.compatibilityMode;
+                    [idxThread, idxEmission] = specDataIndex(app.hDriveTest, 'EmissionShowed');
+                    inputArguments = {app, compatibilityMode, idxThread, idxEmission};
+
+                case 'SIGNALANALYSIS'
+                    idxPrjPeaks = app.hSignalAnalysis.UITable.Selection;
+                    inputArguments = {app, idxPrjPeaks};
+
+                case 'RFDATAHUB'
+                    filterTable = app.hRFDataHub.filterTable;
+                    inputArguments = {app, filterTable};
+
+                otherwise
+                    inputArguments = {app};
             end
         end
 
@@ -2111,7 +2125,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     report.Controller(app, operationType)
     
                     if ~isempty(app.hSignalAnalysis) && isvalid(app.hSignalAnalysis)
-                        renderProjectDataOnScreen(app.hSignalAnalysis)
+                        idxPrjPeaks = app.hSignalAnalysis.UITable.Selection;
+                        renderProjectDataOnScreen(app.hSignalAnalysis, idxPrjPeaks)
                     end
                 end
             end
@@ -3092,10 +3107,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.play_TreeGrid.RowHeight(4:10) = {0,0,0,0,0,0,0};
                 % </GUI>
 
-                if ~isdeployed
-                    appUtil.winPosition(app.UIFigure)
-                end
-
+                appUtil.winPosition(app.UIFigure)
                 jsBackDoor_Initialization(app)
                 startup_timerCreation(app)
 
@@ -3185,12 +3197,18 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             switch event.Source
                 case {app.drivetest_Undock, app.signalanalysis_Undock, app.rfdatahub_Undock, app.config_Undock}
-                    operationType = 'Undocking';
-                case {app.drivetest_Close,  app.signalanalysis_Close,  app.rfdatahub_Close, app.config_Close}
-                    operationType = 'Close';
-            end
+                    initialDockState = app.General.operationMode.Dock;
+                    app.General.operationMode.Dock = false;
 
-            menu_LayoutAuxiliarApp(app, auxiliarApp, operationType)
+                    inputArguments   = menu_LayoutUndockingAuxiliarApp(app, auxiliarApp);
+                    menu_LayoutAuxiliarApp(app, auxiliarApp, 'Close')
+                    menu_LayoutAuxiliarApp(app, auxiliarApp, 'Open', inputArguments{:})
+
+                    app.General.operationMode.Dock = initialDockState;
+
+                case {app.drivetest_Close,  app.signalanalysis_Close,  app.rfdatahub_Close, app.config_Close}
+                    menu_LayoutAuxiliarApp(app, auxiliarApp, 'Close')
+            end
 
         end
 
@@ -5058,7 +5076,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
 
                 idxEmission = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
-                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open', compatibilityMode, idxThread, idxEmission)
+                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open', app, compatibilityMode, idxThread, idxEmission)
                 
             else
                 menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open')
@@ -5334,7 +5352,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             report.Controller(app, Mode)
             if ~isempty(app.hSignalAnalysis) && isvalid(app.hSignalAnalysis)
-                renderProjectDataOnScreen(app.hSignalAnalysis)
+                idxPrjPeaks = app.hSignalAnalysis.UITable.Selection;
+                renderProjectDataOnScreen(app.hSignalAnalysis, idxPrjPeaks)
             end
 
             % LAYOUT:
@@ -5351,7 +5370,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function report_OpenSignalAnalysis(app, event)
             
             if ~isempty(app.projectData.peaksTable)
-                menu_LayoutAuxiliarApp(app, 'SIGNALANALYSIS', 'Open')
+                menu_LayoutAuxiliarApp(app, 'SIGNALANALYSIS', 'Open', app, 1)
             else
                 msg = 'Funcionalidade acessível apenas quando detectada ao menos uma emissão nos fluxos espectrais a processar.';
                 appUtil.modalWindow(app.UIFigure, 'warning', msg);
@@ -8526,7 +8545,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_DriveTest.ImageClickedFcn = createCallbackFcn(app, @play_DriveTestButtonPushed, true);
             app.tool_DriveTest.Tag = 'PLAYBACK';
             app.tool_DriveTest.Enable = 'off';
-            app.tool_DriveTest.Tooltip = {'Abre módulo de drive-test'};
+            app.tool_DriveTest.Tooltip = {'Abre módulo Drive-test'};
             app.tool_DriveTest.Layout.Row = 2;
             app.tool_DriveTest.Layout.Column = 18;
             app.tool_DriveTest.ImageSource = fullfile(pathToMLAPP, 'Icons', 'DriveTestDensity_32.png');
@@ -8536,7 +8555,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_ExceptionList.ImageClickedFcn = createCallbackFcn(app, @report_OpenSignalAnalysis, true);
             app.tool_ExceptionList.Tag = 'REPORT';
             app.tool_ExceptionList.Visible = 'off';
-            app.tool_ExceptionList.Tooltip = {'Edita provável emissor de emissões'};
+            app.tool_ExceptionList.Tooltip = {'Abre módulo Análise de sinais'};
             app.tool_ExceptionList.Layout.Row = 2;
             app.tool_ExceptionList.Layout.Column = 14;
             app.tool_ExceptionList.ImageSource = fullfile(pathToMLAPP, 'Icons', 'exceptionList_32.png');
@@ -8617,7 +8636,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.drivetest_Undock.ScaleMethod = 'none';
             app.drivetest_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
             app.drivetest_Undock.Tag = 'DRIVETEST';
-            app.drivetest_Undock.Tooltip = {'Abre módulo em outra janela'};
+            app.drivetest_Undock.Tooltip = {'Reabre módulo em outra janela'};
             app.drivetest_Undock.Layout.Row = 1;
             app.drivetest_Undock.Layout.Column = 2;
             app.drivetest_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
@@ -8656,7 +8675,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.signalanalysis_Undock.ScaleMethod = 'none';
             app.signalanalysis_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
             app.signalanalysis_Undock.Tag = 'SIGNALANALYSIS';
-            app.signalanalysis_Undock.Tooltip = {'Abre módulo em outra janela'};
+            app.signalanalysis_Undock.Tooltip = {'Reabre módulo em outra janela'};
             app.signalanalysis_Undock.Layout.Row = 1;
             app.signalanalysis_Undock.Layout.Column = 2;
             app.signalanalysis_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
@@ -8695,7 +8714,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.rfdatahub_Undock.ScaleMethod = 'none';
             app.rfdatahub_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
             app.rfdatahub_Undock.Tag = 'RFDATAHUB';
-            app.rfdatahub_Undock.Tooltip = {'Abre módulo em outra janela'};
+            app.rfdatahub_Undock.Tooltip = {'Reabre módulo em outra janela'};
             app.rfdatahub_Undock.Layout.Row = 1;
             app.rfdatahub_Undock.Layout.Column = 2;
             app.rfdatahub_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
@@ -8734,7 +8753,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.config_Undock.ScaleMethod = 'none';
             app.config_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
             app.config_Undock.Tag = 'CONFIG';
-            app.config_Undock.Tooltip = {'Abre módulo em outra janela'};
+            app.config_Undock.Tooltip = {'Reabre módulo em outra janela'};
             app.config_Undock.Layout.Row = 1;
             app.config_Undock.Layout.Column = 2;
             app.config_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
@@ -8765,7 +8784,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button1 = uibutton(app.menu_Grid, 'state');
             app.menu_Button1.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button1.Tag = 'FILE';
-            app.menu_Button1.Tooltip = {'ARQUIVO'};
+            app.menu_Button1.Tooltip = {'Leitura de arquivos'};
             app.menu_Button1.Icon = fullfile(pathToMLAPP, 'Icons', 'OpenFile_32Yellow.png');
             app.menu_Button1.IconAlignment = 'top';
             app.menu_Button1.Text = '';
@@ -8788,7 +8807,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button2.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button2.Tag = 'PLAYBACK';
             app.menu_Button2.Enable = 'off';
-            app.menu_Button2.Tooltip = {'PLAYBACK'};
+            app.menu_Button2.Tooltip = {'Playback'};
             app.menu_Button2.Icon = fullfile(pathToMLAPP, 'Icons', 'Playback_32White.png');
             app.menu_Button2.IconAlignment = 'top';
             app.menu_Button2.Text = '';
@@ -8802,7 +8821,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button3.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button3.Tag = 'REPORT';
             app.menu_Button3.Enable = 'off';
-            app.menu_Button3.Tooltip = {'RELATÓRIO'};
+            app.menu_Button3.Tooltip = {'Relatório'};
             app.menu_Button3.Icon = fullfile(pathToMLAPP, 'Icons', 'Report_32White.png');
             app.menu_Button3.IconAlignment = 'top';
             app.menu_Button3.Text = '';
@@ -8816,7 +8835,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button4.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button4.Tag = 'MISC';
             app.menu_Button4.Enable = 'off';
-            app.menu_Button4.Tooltip = {'MISCELÂNEAS'};
+            app.menu_Button4.Tooltip = {'Miscelâneas'};
             app.menu_Button4.Icon = fullfile(pathToMLAPP, 'Icons', 'Misc_32White.png');
             app.menu_Button4.IconAlignment = 'top';
             app.menu_Button4.Text = '';
@@ -8838,7 +8857,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button5.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button5.Tag = 'DRIVETEST';
             app.menu_Button5.Enable = 'off';
-            app.menu_Button5.Tooltip = {'DRIVE-TEST'};
+            app.menu_Button5.Tooltip = {'Drive-test'};
             app.menu_Button5.Icon = fullfile(pathToMLAPP, 'Icons', 'DriveTestDensity_32White.png');
             app.menu_Button5.IconAlignment = 'top';
             app.menu_Button5.Text = '';
@@ -8852,7 +8871,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button6.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button6.Tag = 'SIGNALANALYSIS';
             app.menu_Button6.Enable = 'off';
-            app.menu_Button6.Tooltip = {'ANÁLISE DE SINAIS'};
+            app.menu_Button6.Tooltip = {'Análise de sinais'};
             app.menu_Button6.Icon = fullfile(pathToMLAPP, 'Icons', 'exceptionList_32White.png');
             app.menu_Button6.IconAlignment = 'top';
             app.menu_Button6.Text = '';
@@ -8865,7 +8884,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button7 = uibutton(app.menu_Grid, 'state');
             app.menu_Button7.ValueChangedFcn = createCallbackFcn(app, @menu_OpenRFDataHubModule, true);
             app.menu_Button7.Tag = 'RFDATAHUB';
-            app.menu_Button7.Tooltip = {'RFDATAHUB'};
+            app.menu_Button7.Tooltip = {'RFDataHub'};
             app.menu_Button7.Icon = fullfile(pathToMLAPP, 'Icons', 'mosaic_32White.png');
             app.menu_Button7.IconAlignment = 'top';
             app.menu_Button7.Text = '';
@@ -8878,7 +8897,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.menu_Button8 = uibutton(app.menu_Grid, 'state');
             app.menu_Button8.ValueChangedFcn = createCallbackFcn(app, @menu_Button8ValueChanged, true);
             app.menu_Button8.Tag = 'CONFIG';
-            app.menu_Button8.Tooltip = {''};
+            app.menu_Button8.Tooltip = {'Configurações gerais'};
             app.menu_Button8.Icon = fullfile(pathToMLAPP, 'Icons', 'Settings_36White.png');
             app.menu_Button8.IconAlignment = 'top';
             app.menu_Button8.Text = '';

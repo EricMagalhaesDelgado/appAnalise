@@ -226,42 +226,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
     methods
         %-----------------------------------------------------------------%
-        function undockingApp(app)
-            % Executa operacões que não são realizadas quando um app está
-            % em modo DOCK.
-            % (a) Cria figura, configurando o seu tamanho mínimo.
-            [xPosition, ...
-             yPosition]  = appUtil.winXYPosition(1244, 660);
-            app.UIFigure = uifigure('Name',               'appAnalise',                   ...
-                                    'Icon',               'icon_48.png',                  ...
-                                    'Position',           [xPosition yPosition 1244 660], ...
-                                    'AutoResizeChildren', 'off',                          ...
-                                    'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
-            
-            % (b) Move os componentes do container antigo para o novo, ajustando
-            %     o modo de visualização da tabela. Antes disso, contudo, ajusta
-            %     o pai do menu de contexto.
-            app.filter_ContextMenu.Parent = app.UIFigure;
-            app.points_ContextMenu.Parent = app.UIFigure;
-            app.Container.Children.Parent = app.UIFigure;
-            drawnow 
-            
-            % (c) Reinicia as propriedades "Container", "isDocked" e "jsBackDoorFlag".
-            app.Container = app.UIFigure;
-            app.isDocked  = false;
-            app.jsBackDoorFlag  = {true, true, true, true};
-
-            % (d) Customiza aspectos estéticos da janela.
-            [~, idxSelectedTab] = ismember(app.ControlTabGroup.SelectedTab, app.ControlTabGroup.Children);
-            jsBackDoor_Customizations(app, 0)
-            jsBackDoor_Customizations(app, idxSelectedTab)
-            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-        end
-    end
-
-
-    methods
-        %-----------------------------------------------------------------%
         % ÍNDICES DO FLUXO ESPECTRAL E DA EMISSÃO
         %-----------------------------------------------------------------%
         function [idxThread, idxEmission] = specDataIndex(app, operationType)
@@ -343,59 +307,10 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         end
     end
 
-    
+
     methods (Access = private)
         %-----------------------------------------------------------------%
-        % INICIALIZAÇÃO
-        %-----------------------------------------------------------------%
-        function startup_timerCreation(app, idxThread, idxEmission)            
-            % A criação desse timer tem como objetivo garantir uma renderização 
-            % mais rápida dos componentes principais da GUI, possibilitando a 
-            % visualização da sua tela inicialpelo usuário. Trata-se de aspecto 
-            % essencial quando o app é compilado como webapp.
-
-            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
-                                 "StartDelay",    1.5,            ...
-                                 "Period",        .1,             ...
-                                 "TimerFcn",      @(~,~)startup_timerFcn(app, idxThread, idxEmission));
-            start(app.timerObj)
-        end
-
-
-        %-----------------------------------------------------------------%
-        function startup_timerFcn(app, idxThread, idxEmission)
-            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
-                stop(app.timerObj)
-                delete(app.timerObj)
-                startup_Controller(app, idxThread, idxEmission)
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_Controller(app, idxThread, idxEmission)
-            drawnow
-
-            % Customiza as aspectos estéticos de alguns dos componentes da GUI 
-            % (diretamente em JS).
-            jsBackDoor_Customizations(app, 0)
-            jsBackDoor_Customizations(app, 1)
-
-            % Define tamanho mínimo do app (não aplicável à versão webapp).
-            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
-                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-            end
-
-            app.progressDialog.Visible = 'visible';
-
-            % Criação do eixo, leitura dos dados e plot...
-            startup_AppProperties(app)
-            startup_AxesCreation(app)
-            startup_GUIComponents(app, idxThread, idxEmission)
-            prePlot_Startup(app, idxThread, idxEmission, 'AppStartup')
-
-            app.progressDialog.Visible = 'hidden';
-        end
-
+        % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
             app.jsBackDoor.HTMLSource           = ccTools.fcn.jsBackDoorHTMLSource();
@@ -438,13 +353,16 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                     sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
 
+                    ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')                    
+                    ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
+
                 otherwise
                     if any(app.jsBackDoorFlag{tabIndex})
                         app.jsBackDoorFlag{tabIndex} = false;
-
+                    
                         switch tabIndex
                             case 1 % ASPECTOS GERAIS
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')                    
+                                ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
                                 ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
                             
                             case 2 % FILTRO
@@ -460,6 +378,63 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                         end
                     end
             end
+        end
+    end
+
+    
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        % INICIALIZAÇÃO
+        %-----------------------------------------------------------------%
+        function startup_timerCreation(app, idxThread, idxEmission)
+            % A criação desse timer tem como objetivo garantir uma renderização 
+            % mais rápida dos componentes principais da GUI, possibilitando a 
+            % visualização da sua tela inicialpelo usuário. Trata-se de aspecto 
+            % essencial quando o app é compilado como webapp.
+
+            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
+                                 "StartDelay",    1.5,            ...
+                                 "Period",        .1,             ...
+                                 "TimerFcn",      @(~,~)startup_timerFcn(app, idxThread, idxEmission));
+            start(app.timerObj)
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_timerFcn(app, idxThread, idxEmission)
+            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
+                stop(app.timerObj)
+                delete(app.timerObj)
+                startup_Controller(app, idxThread, idxEmission)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_Controller(app, idxThread, idxEmission)
+            drawnow
+
+            % Customiza aspectos estéticos de alguns dos componentes da GUI 
+            % (diretamente em JS).
+            jsBackDoor_Customizations(app, 0)
+
+            % Define tamanho mínimo do app (não aplicável à versão webapp).
+            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
+                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+            end
+
+            app.progressDialog.Visible = 'visible';
+
+            % Criação do eixo, leitura dos dados e plot...
+            startup_AppProperties(app)
+            startup_AxesCreation(app)
+            startup_GUIComponents(app, idxThread, idxEmission)
+            prePlot_Startup(app, idxThread, idxEmission, 'AppStartup')
+
+            app.progressDialog.Visible = 'hidden';
+
+            % Customiza aspectos estéticos de componentes da GUI relacionados 
+            % à aba selecionada.
+            [~, idxSelectedTab] = ismember(app.ControlTabGroup.SelectedTab, app.ControlTabGroup.Children);
+            jsBackDoor_Customizations(app, idxSelectedTab)
         end
 
         %-----------------------------------------------------------------%

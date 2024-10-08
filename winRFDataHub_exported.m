@@ -209,45 +209,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                                'VariableNames', {'Order', 'ID', 'RelatedID', 'Type', 'Operation', 'Column', 'Value', 'Enable', 'uuid'})
     end
 
-
-    methods
-        %-----------------------------------------------------------------%
-        function undockingApp(app)
-            % Executa operacões que não são realizadas quando um app está
-            % em modo DOCK.
-            % (a) Cria figura, configurando o seu tamanho mínimo.
-            [xPosition, ...
-             yPosition]  = appUtil.winXYPosition(1244, 660);
-            app.UIFigure = uifigure('Name',               'appAnalise',                   ...
-                                    'Icon',               'icon_48.png',                  ...
-                                    'Position',           [xPosition yPosition 1244 660], ...
-                                    'AutoResizeChildren', 'off',                          ...
-                                    'CloseRequestFcn',    createCallbackFcn(app, @closeFcn, true));
-
-            % (b) Move os componentes do container antigo para o novo, ajustando
-            %     o modo de visualização da tabela. Antes disso, contudo, ajusta
-            %     o pai do menu de contexto.
-            app.filter_ContextMenu.Parent = app.UIFigure;
-            app.Container.Children.Parent = app.UIFigure;
-            drawnow 
-
-            if ~isempty(app.UITable.Selection)
-                scroll(app.UITable, 'Row', app.UITable.Selection(1))
-            end
-            
-            % (c) Reinicia as propriedades "Container", "isDocked" e "jsBackDoorFlag".
-            app.Container = app.UIFigure;
-            app.isDocked  = false;
-            app.jsBackDoorFlag  = {true, true, true};
-
-            % (d) Customiza aspectos estéticos da janela.
-            [~, idxSelectedTab] = ismember(app.ControlTabGroup.SelectedTab, app.ControlTabGroup.Children);
-            jsBackDoor_Customizations(app, 0)
-            jsBackDoor_Customizations(app, idxSelectedTab)
-            appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-        end
-    end
-
     
     methods (Access = private)
         %-----------------------------------------------------------------%
@@ -282,6 +243,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
 
+                    ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
+                    ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
+
                     % uialert, uiprogressdialog, uiconfirm
                     % sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mwDialog', ...
                     %                                                                        'classAttributes',  'background-color: white;'));
@@ -300,7 +264,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                             case 1 % RFDATAHUB
                                 ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
                                 ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.AntennaPatternPanelPlot,       'backgroundColor', 'transparent')
 
                             case 2 % FILTRAGEM
                                 % ...
@@ -343,8 +306,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % Customiza as aspectos estéticos de alguns dos componentes da GUI 
             % (diretamente em JS).
             jsBackDoor_Customizations(app, 0)
-            jsBackDoor_Customizations(app, 1)
-
+            
             app.progressDialog.Visible = 'visible';
 
             if app.standaloneFlag
@@ -377,10 +339,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             startup_AppProperties(app)
             startup_AxesCreation(app)
             startup_GUIComponents(app)
-
             filter_TableFiltering(app)
-
+            
             app.progressDialog.Visible = 'hidden';
+
+            % Customiza aspectos estéticos de componentes da GUI relacionados 
+            % à aba selecionada.
+            [~, idxSelectedTab] = ismember(app.ControlTabGroup.SelectedTab, app.ControlTabGroup.Children);
+            jsBackDoor_Customizations(app, idxSelectedTab)
         end
 
         %-----------------------------------------------------------------%
@@ -904,49 +870,52 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % FILTRAGEM
         %-----------------------------------------------------------------%
         function filter_getReferenceSearch(app)
-            if ~isempty(app.General.RFDataHub.lastSearch)
-                filterType      = app.General.RFDataHub.lastSearch.Filter.ColumnLabel;
-                filterValue     = app.General.RFDataHub.lastSearch.Filter.Value;
-                filterOperation = app.General.RFDataHub.lastSearch.Filter.Operation;
-
-            else
-                filterType      = app.General.RFDataHub.DefaultFilter.ColumnLabel;
-                filterValue     = app.General.RFDataHub.DefaultFilter.Value;
-                filterOperation = app.General.RFDataHub.DefaultFilter.Operation;
-            end
-
-            hFilterNames        = findobj(app.filter_SecondaryTypePanel.Children,  'Type', 'uiradiobutton');
-            hFilterOperations   = findobj(app.filter_SecondaryValuePanel.Children, 'Type', 'uitogglebutton');
-            hFilterValues       = [app.filter_SecondaryNumValue1, ...
-                                   app.filter_SecondaryNumValue2, ...
-                                   app.filter_SecondaryTextFree,  ...
-                                   app.filter_SecondaryTextList];
-
-            listOfFilterNames   = {hFilterNames.Text};
-            listOfOperations    = {hFilterOperations.Text};
-
-            [~, idxFilter]      = ismember(filterType,      listOfFilterNames);
-            [~, idxOperation]   = ismember(filterOperation, listOfOperations);
-
-            if ~isempty(idxFilter) && ~isempty(idxOperation)
-                hFilterNames(idxFilter).Value   = true;
-                filter_typePanelSelectionChanged(app)
-
-                hFilterOperations(idxOperation).Value = true;
-                filter_SecondaryValuePanelSelectionChanged(app)
-
-                hFilterValues   = hFilterValues(arrayfun(@(x) x.Visible, hFilterValues));
-                for ii = 1:numel(hFilterValues)
-                    hFilterValues(ii).Value = filterValue(ii);
+            if isempty(app.filterTable)
+                if ~isempty(app.General.RFDataHub.lastSearch)
+                    filterType      = app.General.RFDataHub.lastSearch.Filter.ColumnLabel;
+                    filterValue     = app.General.RFDataHub.lastSearch.Filter.Value;
+                    filterOperation = app.General.RFDataHub.lastSearch.Filter.Operation;
+    
+                else
+                    filterType      = app.General.RFDataHub.DefaultFilter.ColumnLabel;
+                    filterValue     = app.General.RFDataHub.DefaultFilter.Value;
+                    filterOperation = app.General.RFDataHub.DefaultFilter.Operation;
                 end
+    
+                hFilterNames        = findobj(app.filter_SecondaryTypePanel.Children,  'Type', 'uiradiobutton');
+                hFilterOperations   = findobj(app.filter_SecondaryValuePanel.Children, 'Type', 'uitogglebutton');
+                hFilterValues       = [app.filter_SecondaryNumValue1, ...
+                                       app.filter_SecondaryNumValue2, ...
+                                       app.filter_SecondaryTextFree,  ...
+                                       app.filter_SecondaryTextList];
+    
+                listOfFilterNames   = {hFilterNames.Text};
+                listOfOperations    = {hFilterOperations.Text};
+    
+                [~, idxFilter]      = ismember(filterType,      listOfFilterNames);
+                [~, idxOperation]   = ismember(filterOperation, listOfOperations);
+    
+                if ~isempty(idxFilter) && ~isempty(idxOperation)
+                    hFilterNames(idxFilter).Value   = true;
+                    filter_typePanelSelectionChanged(app)
+    
+                    hFilterOperations(idxOperation).Value = true;
+                    filter_SecondaryValuePanelSelectionChanged(app)
+    
+                    hFilterValues   = hFilterValues(arrayfun(@(x) x.Visible, hFilterValues));
+                    for ii = 1:numel(hFilterValues)
+                        hFilterValues(ii).Value = filterValue(ii);
+                    end
+                end
+    
+                columnName       = filter_FilterType2ColumnNames(app, filterType);
+                [~, columnIndex] = ismember(columnName, app.rfDataHub.Properties.VariableNames);
+    
+                newFilter = {'Node', 1, -3, filterType, filterOperation, columnIndex, filterValue, true, char(matlab.lang.internal.uuid())};
+    
+                filter_AddNewFilter(app, newFilter)
             end
-
-            columnName       = filter_FilterType2ColumnNames(app, filterType);
-            [~, columnIndex] = ismember(columnName, app.rfDataHub.Properties.VariableNames);
-
-            newFilter = {'Node', 1, -3, filterType, filterOperation, columnIndex, filterValue, true, char(matlab.lang.internal.uuid())};
-
-            filter_AddNewFilter(app, newFilter)
+            
             filter_TreeBuilding(app)
         end
 
@@ -1397,7 +1366,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp)
+        function startupFcn(app, mainapp, filterTable)
             
             try
                 % Inicialmente, verifica se foi passado mainapp como argumento 
@@ -1417,6 +1386,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     app.rootFolder    = mainapp.rootFolder;
                     app.executionMode = mainapp.executionMode;
                     app.specData      = mainapp.specData;
+
+                    if nargin == 3
+                        app.filterTable = filterTable;
+                    end
                 end
     
                 app.GridLayout.ColumnWidth(7:10) = {0,0,0,0};
