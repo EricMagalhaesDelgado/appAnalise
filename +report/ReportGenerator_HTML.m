@@ -53,7 +53,7 @@ function htmlContent = ReportGenerator_HTML(Template, opt)
                 end
                 
                 ID_img = ID_img+1;
-                [imgExt, imgString] = report.ReportGenerator_img2base64(imgFullPath);
+                [imgExt, imgString] = imageUtil.img2base64(imgFullPath);
     
                 htmlContent = sprintf(['%s<figure id="image_%.0f">\n'                                                                             ...
                                        '\t<p class="Texto_Centralizado"><img src="data:image/%s;base64,%s" style="width:%s; height:%s;" /></p>\n' ...

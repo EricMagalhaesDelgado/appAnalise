@@ -1,50 +1,42 @@
-function Peaks = ReportGenerator_Peaks(app, SpecInfo, idx, reportInfo)
+function Peaks = ReportGenerator_Peaks(app, idxThread, DetectionMode)
     
     % Detecção automática relacionada ao algoritmo escolhido no modo
-    % "RELATÓRIO". Caso o fluxo de dados não for filtrado temporalmente, o 
-    % que demanda trabalhar com uma cópia do app.specData, ao invés do próprio
-    % app.specData, as emissões aqui identificadas ficarão visíveis no
+    % "RELATÓRIO". As emissões aqui identificadas ficarão visíveis no
     % modo "PLAYBACK" também.
 
-    if strcmp(reportInfo.DetectionMode, 'Automatic+Manual') && ~SpecInfo(idx).UserData.reportDetection.ManualMode
-        Algorithm  = SpecInfo(idx).UserData.reportDetection.Algorithm;
-
-        Attributes = SpecInfo(idx).UserData.reportDetection.Parameters;
+    if strcmp(DetectionMode, 'Automatic+Manual') && ~app.specData(idxThread).UserData.reportDetection.ManualMode
+        Algorithm  = app.specData(idxThread).UserData.reportDetection.Algorithm;
+        Attributes = app.specData(idxThread).UserData.reportDetection.Parameters;
         Attributes.Algorithm = Algorithm;
 
         switch Algorithm
             case 'FindPeaks'
-                [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaks(SpecInfo, idx, Attributes);
-
+                [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaks(app.specData, idxThread, Attributes);
             case 'FindPeaks+OCC'
-                [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaksPlusOCC(app, SpecInfo, idx, Attributes);
+                [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaksPlusOCC(app, app.specData, idxThread, Attributes);
         end
         newBW  = newBW * 1000;
 
         if ~isempty(newIndex)
-            NN = numel(newIndex);
-            SpecInfo(idx).UserData.Emissions(end+1:end+NN,1:5) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), Method);
-            fcn.Detection_BandLimits(SpecInfo(idx))
+            play_AddEmission2List(app, idxThread, newIndex, newFreq, newBW, Method)
         end
     end
 
-    Peaks = SpecInfo(idx).UserData.Emissions(:,1:5);
+    Peaks = app.specData(idxThread).UserData.Emissions(:,1:5);
 
     % Outros campos...
     if ~isempty(Peaks)
-        Tag = sprintf('%s\nID %d: %.3f - %.3f MHz', SpecInfo(idx).Receiver,                  ...
-                                                    SpecInfo(idx).RelatedFiles.ID(1),        ...
-                                                    SpecInfo(idx).MetaData.FreqStart / 1e+6, ...
-                                                    SpecInfo(idx).MetaData.FreqStop  / 1e+6);
+        Tag = sprintf('%s\n%.3f - %.3f MHz', app.specData(idxThread).Receiver,                  ...
+                                             app.specData(idxThread).MetaData.FreqStart / 1e+6, ...
+                                             app.specData(idxThread).MetaData.FreqStop  / 1e+6);
      
         Peaks.Tag(:)       = {Tag};
-        Peaks.Latitude(:)  = single(SpecInfo(idx).GPS.Latitude);
-        Peaks.Longitude(:) = single(SpecInfo(idx).GPS.Longitude);
+        Peaks.Latitude(:)  = single(app.specData(idxThread).GPS.Latitude);
+        Peaks.Longitude(:) = single(app.specData(idxThread).GPS.Longitude);
         
         Peaks = movevars(Peaks, {'Tag', 'Latitude', 'Longitude'}, 'Before', 1);
 
-
         % E a classificação de cada emissão...
-        Peaks = fcn.Classification(app, SpecInfo, idx, Peaks);
+        Peaks = fcn.Classification(app, app.specData, idxThread, Peaks);
     end
 end

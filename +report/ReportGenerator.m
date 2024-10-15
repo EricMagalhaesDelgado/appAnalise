@@ -1,5 +1,4 @@
-function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
-
+function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo, d)
     global ID_img
     global ID_tab
 
@@ -22,9 +21,10 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
     RootFolder    = reportInfo.General.RootFolder;
     Template      = jsondecode(reportInfo.Model.Template);
     
-    SpecInfo      = report.TimeStampFilter(app, idx, reportInfo.TimeStamp);
-    exceptionList = app.exceptionList;
-    peaksTable    = Fcn_Peaks(app, SpecInfo, reportInfo, exceptionList);    
+    SpecInfo      = app.specData(idxThreads);
+    exceptionList = app.projectData.exceptionList;
+    peaksTable    = Fcn_Peaks(app, idxThreads, reportInfo.DetectionMode, exceptionList);
+    hFigure       = app.UIFigure;
     
     % HTML header (style)    
     if strcmp(reportInfo.General.Version, 'Preliminar')
@@ -99,13 +99,13 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
                                     MM = height(SpecInfo(jj).UserData.Emissions);
                                     for ll = 1:MM
                                         reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', ll);
-                                        reportInfo.General.Parameters.DriveTest = SpecInfo(jj).UserData.Emissions.UserData{ll};
+                                        reportInfo.General.Parameters.DriveTest = SpecInfo(jj).UserData.Emissions.UserData(ll).DriveTest;
 
                                         % Verifica se o plot requerido é apenas DriveTest... em sendo,
                                         % evita a criação do subtítulo da emissão, caso não tenha
                                         % informação de DriveTest.
                                         if ismember('DriveTest', {plotInfo.Name})
-                                            if isempty(SpecInfo(jj).UserData.Emissions.UserData{ll})
+                                            if isempty(SpecInfo(jj).UserData.Emissions.UserData(ll).DriveTest)
                                                 continue
                                             end
                                         end
@@ -124,7 +124,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
                                         emissionTitle.Data.String = Fcn_FillWords(SpecInfo, jj, reportInfo, emissionTitle);                        
                                         htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(emissionTitle));
 
-                                        opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo);
+                                        opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
                                         htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                                     end
 
@@ -136,7 +136,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
                                         reportInfo.General.Parameters.specData = SpecInfo(1);
                                     end                                    
                                     
-                                    opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo);
+                                    opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
                                     htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                             end
 
@@ -153,6 +153,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
                     end
 
                 catch ME
+                    struct2table(ME.stack)
                     msgError = extractAfter(ME.message, 'Configuration file error message: ');
 
                     if ~isempty(msgError)
@@ -177,10 +178,10 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
     LineBreak = report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;')));
     Separator = report.ReportGenerator_HTML(struct('Type', 'Footnote',  'Data', struct('Editable', 'false', 'String', repmat('_', 1, 45))));
 
-    Footnote1 = sprintf('<b>appAnalise</b> v. %s, <b>fiscaliza</b> v. %s, <b>RFDataHub</b> %s', appVersion.(class.Constants.appName).Version, appVersion.fiscaliza, appVersion.RFDataHub.ReleaseDate);
+    Footnote1 = sprintf('<b>appAnalise</b> v. %s, <b>fiscaliza</b> v. %s, <b>RFDataHub</b> %s', appVersion.(class.Constants.appName).version, appVersion.fiscaliza, appVersion.RFDataHub.ReleaseDate);
     Footnote2 = sprintf('<b>Relatório</b>: %s',      jsonencode(rmfield(table2struct(reportInfo.Model.Type), 'Description')));
-    Footnote3 = sprintf('<b>Imagem</b>: %s',         jsonencode(rmfield(reportInfo.General.Image, 'Visibility')));
-    Footnote4 = sprintf('<b>Matlab</b> v. %s, %s',   appVersion.Matlab.Version, appVersion.Matlab.Products);
+    Footnote3 = sprintf('<b>Imagem</b>: %s',         jsonencode(reportInfo.General.Image));
+    Footnote4 = sprintf('<b>Matlab</b> v. %s, %s',   appVersion.Matlab.version, appVersion.Matlab.products);
     Footnote5 = '';
     try
         Footnote5 = sprintf('<b>Python</b> v. %s',   appVersion.Python.Version);
@@ -199,7 +200,6 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idx, reportInfo, d)
     if reportInfo.General.Version == "Preliminar"
         htmlReport = sprintf('%s</body>\n</html>', htmlReport);
     end
-
 end
 
 
@@ -300,12 +300,10 @@ end
 
 
 %-------------------------------------------------------------------------%
-function peaksTable = Fcn_Peaks(app, SpecInfo, reportInfo, exceptionList)
-
+function peaksTable = Fcn_Peaks(app, idxThreads, DetectionMode, exceptionList)
     peaksTable = [];
-
-    for ii = 1:numel(SpecInfo)
-        Peaks = report.ReportGenerator_Peaks(app, SpecInfo, ii, reportInfo);
+    for ii = idxThreads
+        Peaks = report.ReportGenerator_Peaks(app, ii, DetectionMode);
 
         if ~isempty(Peaks)
             if isempty(peaksTable); peaksTable = Peaks;
@@ -314,7 +312,7 @@ function peaksTable = Fcn_Peaks(app, SpecInfo, reportInfo, exceptionList)
         end
 
         Peaks = Fcn_exceptionList(Peaks, exceptionList);
-        SpecInfo(ii).UserData.reportPeaksTable = Peaks;
+        app.specData(ii).UserData.reportPeaksTable = Peaks;
     end
 end
 
@@ -332,7 +330,7 @@ function Peaks = Fcn_exceptionList(Peaks, exceptionList)
             % - que possuem a mesma "Tag" e a mesma "Frequency".    
             idx = find(strcmp(Peaks.Tag, Tag) & (abs(Peaks.Frequency-Frequency) <= class.Constants.floatDiffTolerance));
 
-            if numel(idx) == 1
+            if isscalar(idx)
                 if Peaks.Description{idx} == "-"
                     Description = sprintf('<font style="color: #ff0000;">%s</font>', exceptionList.Description{ii});
                     Distance    = sprintf('<font style="color: #ff0000;">%s</font>', exceptionList.Distance{ii});
@@ -352,21 +350,30 @@ function Peaks = Fcn_exceptionList(Peaks, exceptionList)
         emissionIndex = find(cellfun(@(x) isfield(jsondecode(x), 'Description'), Peaks.Detection))';
         for ii = emissionIndex
             emissionInfo = jsondecode(Peaks.Detection{ii});
-            Peaks.Description{ii} = sprintf('%s <p class="Tabela_Texto_8" contenteditable="false" style="color: #808080;">(%s)', Peaks.Description{ii}, emissionInfo.Description); 
+            switch Peaks.Description{ii}
+                case '-'
+                    Peaks.Description{ii} = sprintf('<p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', strjoin(emissionInfo.Description, '<br>')); 
+                otherwise
+                    Peaks.Description{ii} = sprintf('%s <p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', Peaks.Description{ii}, strjoin(emissionInfo.Description, '<br>')); 
+            end
         end
     end
 end
 
 
 %-------------------------------------------------------------------------%
-function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plotInfo)
-
+function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plotInfo, hFigure)
     global ID_imgExt
+    global hContainer
 
     Image = '';
     switch Children.Data.Origin
         case 'Internal'
-            Image = plotFcn.axesDraw.plot2report(SpecInfo(idx), reportInfo, plotInfo);
+            if isempty(hContainer) || ~isvalid(hContainer)
+                hContainer = PlotContainer(hFigure);
+            end
+
+            [Image, hContainer] = plot.old_axesDraw.plot2report(hContainer, SpecInfo(idx), reportInfo, plotInfo);
 
         case 'External'
             if Recurrence
@@ -384,6 +391,18 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plot
     if ~isfile(Image)
         error('Configuration file error message: %s', Children.Data.Error)
     end
+end
+
+
+%-------------------------------------------------------------------------%
+function hContainer = PlotContainer(hFigure)
+    xWidth     = class.Constants.windowSize(1);
+    yHeight    = class.Constants.windowSize(2);    
+    hContainer = uipanel(hFigure, AutoResizeChildren='off',          ...
+                                  Position=[100 100 xWidth yHeight], ...
+                                  BorderType='none',                 ...
+                                  BackgroundColor=[0 0 0],           ...
+                                  Visible=0);
 end
 
 

@@ -1,27 +1,28 @@
-function icon = treeNodeIcon(Type, Value)
-
-    Value = lower(Value);
-
+function icon = treeNodeIcon(Type, iconReference)
+    icon = '';
     switch Type
         %-----------------------------------------------------------------%
         case 'Receiver'
-            if     contains(Value, 'rfeye');                            icon = 'Instr_CRFS.png';
-            elseif contains(Value, {'fsl','fsvr','fsw','eb500','etm'}); icon = 'Instr_R&S.png';
-            elseif contains(Value, {'n9344C', 'n9936B'});               icon = 'Instr_KeySight.png';
-            elseif contains(Value, 'ms2720T');                          icon = 'Instr_Anritsu.png';
-            elseif contains(Value, 'sa2500');                           icon = 'Instr_Tektronix.png';
-            elseif contains(Value, 'cwsm2');                            icon = 'Instr_CellPlan.png';
+            if     contains(iconReference, 'RFeye', 'IgnoreCase', true)
+                icon = 'logoCRFS_32.png';
+            elseif contains(iconReference, {'FSL','FSVR','FSW','EB500','ETM'}, 'IgnoreCase', true)
+                icon = 'logoR&S_32.png';
+            elseif contains(iconReference, {'N9344C', 'N9936B'}, 'IgnoreCase', true)
+                icon = 'logoKeySight_32.png';
+            elseif contains(iconReference, 'MS2720T', 'IgnoreCase', true)
+                icon = 'logoAnritsu_32.png';
+            elseif contains(iconReference, 'SA2500', 'IgnoreCase', true)
+                icon = 'logoTek_32.png';
+            elseif contains(iconReference, 'CWSM2', 'IgnoreCase', true)
+                icon = 'logoCellPlan_32.png';
             end
 
         %-----------------------------------------------------------------%
         case 'DataType'
-            switch Value
-                case 'spectraldata';                                    icon = 'LT_playback.png';
-                case 'occupancy';                                       icon = 'LT_OCC.png';
+            if     strcmpi(iconReference, 'SpectralData')
+                icon = 'Playback_32.png';
+            elseif strcmpi(iconReference, 'Occupancy')
+                icon = 'Occupancy_32.png';
             end
-    end
-
-    if ~exist('icon', 'var')
-        icon = '';
     end
 end

@@ -1,4 +1,4 @@
-function Peaks = Classification(app, SpecInfo, idx, Peaks)
+function Peaks = Classification(app, SpecInfo, idxThread, Peaks)
 
     % Trata-se de algoritmo de classificação de emissões, comparando-as com a base 
     % *anatelDB*.
@@ -10,10 +10,10 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
     % a sua classificação.
     Peaks.Truncated(:) = single(-1);
     for ii = 1:height(Peaks)
-        if SpecInfo(idx).UserData.Emissions.isTruncated(ii)
-            Peaks.Truncated(ii) = TruncatedFrequency(app.channelObj, SpecInfo(idx), ii);
+        if SpecInfo(idxThread).UserData.Emissions.isTruncated(ii)
+            Peaks.Truncated(ii) = TruncatedFrequency(app.channelObj, SpecInfo(idxThread), ii);
         else
-            Peaks.Truncated(ii) = SpecInfo(idx).UserData.Emissions.Frequency(ii);
+            Peaks.Truncated(ii) = SpecInfo(idxThread).UserData.Emissions.Frequency(ii);
         end
     end
 
@@ -21,17 +21,17 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
     % Informações relacionadas à frequência central das emissões. Ou seja,
     % o nível mínimo ou máximo, por exemplo, não se refere à EMISSÃO ou ao
     % CANAL, mas ao BIN da emissão que corresponde à sua frequência central.
-    Peaks.minLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).Data{3}(Peaks.Index,1)),                             'UniformOutput', false);
-    Peaks.meanLevel = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).Data{3}(Peaks.Index,2)),                             'UniformOutput', false);
-    Peaks.maxLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).Data{3}(Peaks.Index,3)),                             'UniformOutput', false);
+    Peaks.minLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).Data{3}(Peaks.Index,1)),                             'UniformOutput', false);
+    Peaks.meanLevel = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).Data{3}(Peaks.Index,2)),                             'UniformOutput', false);
+    Peaks.maxLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).Data{3}(Peaks.Index,3)),                             'UniformOutput', false);
 
-    occIndex = SpecInfo(idx).UserData.occMethod.CacheIndex;
-    Peaks.meanOCC   = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).UserData.occCache(occIndex).Data{3}(Peaks.Index,2)), 'UniformOutput', false);
-    Peaks.maxOCC    = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idx).UserData.occCache(occIndex).Data{3}(Peaks.Index,3)), 'UniformOutput', false);
+    occIndex = SpecInfo(idxThread).UserData.occMethod.CacheIndex;
+    Peaks.meanOCC   = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).UserData.occCache(occIndex).Data{3}(Peaks.Index,2)), 'UniformOutput', false);
+    Peaks.maxOCC    = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).UserData.occCache(occIndex).Data{3}(Peaks.Index,3)), 'UniformOutput', false);
     
 
     % Valores iniciais da classificação de cada emissão...
-    Peaks.Type(:)           = {'Pendente de identificação'};
+    Peaks.Type(:)           = {'Pendente identificação'};
     Peaks.Regulatory(:)     = {'Não licenciada'};
     Peaks.Service(:)        = int16(-1);
     Peaks.Station(:)        = int32(-1);
@@ -39,8 +39,8 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
     Peaks.Distance(:)       = {'-'};
     Peaks.Irregular(:)      = {'Sim'};
     Peaks.RiskLevel(:)      = {'Baixo'};
-    Peaks.occMethod(:)      = {jsonencode(SpecInfo(idx).UserData.reportOCC)};
-    Peaks.Classification(:) = {jsonencode(SpecInfo(idx).UserData.reportClassification)};
+    Peaks.occMethod(:)      = {jsonencode(SpecInfo(idxThread).UserData.reportOCC)};
+    Peaks.Classification(:) = {jsonencode(SpecInfo(idxThread).UserData.reportClassification)};
 
 
     % Organização da tabela, de forma que fique idêntica à app.peaksTable.
@@ -56,10 +56,10 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
     %     dados sob análise.
     % (b) Parâmetros relacionados ao algoritmo de classificação
     %     implementado - "Contour", "ClassMultiplier" e "bwFactors".
-    findPeaks       = FindPeaksOfPrimaryBand(app.channelObj, SpecInfo(idx)); 
-    RuralContour    = SpecInfo(idx).UserData.reportClassification.Parameters.Contour;
-    classMultiplier = SpecInfo(idx).UserData.reportClassification.Parameters.ClassMultiplier;
-    bwFactors       = SpecInfo(idx).UserData.reportClassification.Parameters.bwFactors / 100;
+    findPeaks       = FindPeaksOfPrimaryBand(app.channelObj, SpecInfo(idxThread)); 
+    RuralContour    = SpecInfo(idxThread).UserData.reportClassification.Parameters.Contour;
+    classMultiplier = SpecInfo(idxThread).UserData.reportClassification.Parameters.ClassMultiplier;
+    bwFactors       = SpecInfo(idxThread).UserData.reportClassification.Parameters.bwFactors / 100;
 
 
     % Classificação...        
@@ -77,7 +77,7 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
             auxDistance = [];
             
             if ~isempty(idx2)
-                auxDistance = fcn.gpsDistance(struct('lat', SpecInfo(idx).GPS.Latitude, 'lon', SpecInfo(idx).GPS.Longitude), RFDataHub(idx2, 6:7));
+                auxDistance = deg2km(distance(SpecInfo(idxThread).GPS.Latitude, SpecInfo(idxThread).GPS.Longitude, RFDataHub.Latitude(idx2), RFDataHub.Longitude(idx2)));
             end
 
             % Como referência de BW, usa-se a BW da própria emissão. Caso o
@@ -89,17 +89,16 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
                 classContour = [];
                 
                 [Distance, idx3] = min(auxDistance);
-                if ~isempty(idx3)
-                    Service     = RFDataHub.Service(idx2(idx3));
-                    Station     = RFDataHub.Station(idx2(idx3));
-                    Description = class.RFDataHub.Description(RFDataHub, idx2(idx3));
-
-                    if RFDataHub.BW(idx2(idx3)) > 0
-                        BW = RFDataHub.BW(idx2(idx3));
-                    end
-
-                else
+                if isempty(Distance)
                     break
+                end
+
+                Service     = RFDataHub.Service(idx2(idx3));
+                Station     = RFDataHub.Station(idx2(idx3));
+                Description = class.RFDataHub.Description(RFDataHub, idx2(idx3));
+
+                if RFDataHub.BW(idx2(idx3)) > 0
+                    BW = RFDataHub.BW(idx2(idx3));
                 end
 
                 if isempty(findPeaks)
@@ -161,7 +160,7 @@ function Peaks = Classification(app, SpecInfo, idx, Peaks)
                 RuralContour = classMultiplier * classContour;
             end
                 
-            if (Distance > RuralContour) | (BW < (1-bwFactors(1))*Peaks.BW(ii)) | (BW > (1+bwFactors(2))*Peaks.BW(ii))
+            if ~isempty(Distance) && ((Distance > RuralContour) || (BW < (1-bwFactors(1))*Peaks.BW(ii)) || (BW > (1+bwFactors(2))*Peaks.BW(ii)))
                 Distance = [];
             end
         end

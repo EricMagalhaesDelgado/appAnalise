@@ -26,61 +26,71 @@ function Controller(app, Mode)
 
                 switch app.report_Version.Value
                     case 'Definitiva'
-                        fileName = [class.Constants.DefaultFileName(app.menu_userPath.Value, 'Report', app.report_Issue.Value) '.html'];
-                        fileID   = fopen(fileName, 'w', 'native', 'ISO-8859-1');
-
+                        BaseFileName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'Report', app.report_Issue.Value);
+                        HTMLDocFullPath = [BaseFileName '.html'];
+                        fileID = fopen(HTMLDocFullPath, 'w', 'native', 'ISO-8859-1');
+ 
                     case 'Preliminar'
-                        fileName = [class.Constants.DefaultFileName(app.menu_userPath.Value, '~Report', app.report_Issue.Value) '.html'];
-                        fileID   = fopen(fileName, 'w');
+                        BaseFileName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, '~Report', app.report_Issue.Value);
+                        HTMLDocFullPath = [BaseFileName '.html'];
+                        fileID = fopen(HTMLDocFullPath, 'w');
                 end
                 
                 fprintf(fileID, '%s', htmlReport);
                 fclose(fileID);
     
-                if strcmp(app.report_Version.Value, 'Definitiva')
-                    app.General.Report = fileName;
-                    
-                    [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo);
-                    save(replace(fileName, '.html', '.mat'), 'ReportProject', '-mat', '-v7.3')
-                    writematrix(tableStr, replace(fileName, '.html', '.json'), "FileType", "text", "QuoteStrings", "none")
+                switch app.report_Version.Value
+                    case 'Definitiva'
+                        JSONFile = [BaseFileName '.json'];
+                        MATFile  = [BaseFileName '.mat'];
+                        ZIPFile  = [BaseFileName '.zip'];
+                        
+                        [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo);
+                        save(MATFile, 'ReportProject', '-mat', '-v7.3')
+                        writematrix(tableStr, JSONFile, "FileType", "text", "QuoteStrings", "none")
+    
+                        app.General.fiscaliza.lastHTMLDocFullPath = HTMLDocFullPath;
+                        app.General.fiscaliza.lastTableFullPath   = JSONFile;
+                        app.General.fiscaliza.lastMATFullPath     = MATFile;
+
+                        nameFormatMap = {'*.zip', 'appAnalise (*.zip)'};
+                        fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, ZIPFile);
+                        if isempty(fileFullPath)
+                            return
+                        end
+                        
+                        zip(fileFullPath, {HTMLDocFullPath, JSONFile, MATFile})
+
+                    case 'Preliminar'
+                        web(HTMLDocFullPath, '-new')
                 end
-                web(fileName, '-new')
+            
 
+            case {'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission'}
+                app.progressDialog.Visible = 'visible';
 
-            case {'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
-                Peaks = report.PreviewGenerator(app, idx, reportInfo);
+                Peaks = report.PreviewGenerator(app, idx, reportInfo.DetectionMode);
                 report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
 
-
-            case 'auxApp.winTemplate'
-                d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'on', 'Interpreter', 'html');
-                d.Message = ['<font style="font-size:12;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
-                             'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações...</font>'];
-
-                reportInfo.General.Version          = 'Preliminar';
-                reportInfo.General.Image.Visibility = 'off';
-
-                htmlReport = report.ReportGenerator(app.CallingApp, idx, reportInfo);
-                app.HTML.HTMLSource = htmlReport;
+                app.progressDialog.Visible = 'hidden';
 
 
-            case 'auxApp.winSignalAnalysis'
-                [~, countTable] = report.ReportGenerator_Table_Summary(app.CallingApp.peaksTable, app.CallingApp.exceptionList);
-                tableStr = ReportGenerator_Aux3(app.CallingApp, idx, countTable);
+            case 'signalAnalysis.externalJSON'
+                [~, countTable] = report.ReportGenerator_Table_Summary(app.projectData.peaksTable, app.projectData.exceptionList);
+                tableStr = ReportGenerator_Aux3(app, idx, countTable);
 
-                defaultFilename = class.Constants.DefaultFileName(app.CallingApp.menu_userPath.Value, 'preReport', app.CallingApp.report_Issue.Value);
-
-                [fileName, filePath, fileIndex] = uiputfile({'*.json', 'appAnalise (*.json)'}, '', defaultFilename);
-                figure(app.UIFigure)
-                
-                if fileIndex
-                    writematrix(tableStr, fullfile(filePath, fileName), "FileType", "text", "QuoteStrings", "none")
+                nameFormatMap   = {'*.json', 'appAnalise (*.json)'};
+                defaultFilename = class.Constants.DefaultFileName(app.CallingApp.General.fileFolder.userPath, 'preReport', app.CallingApp.report_Issue.Value);
+                fileFullPath    = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultFilename);
+                if isempty(fileFullPath)
+                    return
                 end
+                
+                writematrix(tableStr, fileFullPath, "FileType", "text", "QuoteStrings", "none")
         end
         
     catch ME
-        fprintf('%s\n', jsonencode(ME))
-        layoutFcn.modalWindow(app.UIFigure, 'ccTools.MessageBox', getReport(ME));
+        appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
     end
 
     if exist('d', 'var')
@@ -92,20 +102,16 @@ end
 %-------------------------------------------------------------------------%
 function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
     switch Mode
-        case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread'}
-            if isempty(app.General.version.fiscaliza)
-                app.General.version = fcn.startup_Versions("Full", app.RootFolder);
+        case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission'}
+            if isempty(app.General.AppVersion.fiscaliza) && strcmp(Mode, 'Report')
+                app.General.AppVersion = fcn.envVersion(app.rootFolder, 'full+Python');
             end
         
-            reportTemplateIndex = find(strcmp(app.report_Type.Items, app.report_Type.Value), 1);
+            reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
             [idx, reportInfo]   = report.GeneralInfo(app, Mode, reportTemplateIndex);
 
-        case 'auxApp.winTemplate'
-            reportTemplateIndex = app.Tree1.SelectedNodes.NodeData;
-            [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
-
-        case 'auxApp.winSignalAnalysis'
-            reportTemplateIndex = find(strcmp(app.CallingApp.report_Type.Items, app.CallingApp.report_Type.Value), 1);
+        case 'signalAnalysis.externalJSON'
+            reportTemplateIndex = find(strcmp(app.CallingApp.report_ModelName.Items, app.CallingApp.report_ModelName.Value), 1) - 1;
             [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
     end
 end
@@ -156,7 +162,7 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
     % Juntar numa mesma variável a informação gerada pelo algoritmo
     % embarcado no appAnálise (app.peaksTable) com a informação
     % gerada pelo fiscal (app.exceptionList).
-    [infoTable, countTable] = report.ReportGenerator_Table_Summary(app.peaksTable, app.exceptionList);
+    [infoTable, countTable] = report.ReportGenerator_Table_Summary(app.projectData.peaksTable, app.projectData.exceptionList);
 
     ReportProject.emissionsValue1 = sum(infoTable{:,2:4}, 'all');                               % Qtd. emissões
     ReportProject.emissionsValue2 = sum(infoTable{:,2});                                        % Qtd. emissões licenciadas
@@ -220,12 +226,11 @@ function tableStr = ReportGenerator_Aux3(app, idx, countTable)
                                   app.specData(ii).RelatedFiles.Description{1}, ...
                                   strjoin(app.specData(ii).RelatedFiles.File, ', ')};
             
-            Tag = sprintf('%s\nID %d: %.3f - %.3f MHz', app.specData(ii).Receiver,                  ...
-                                                        app.specData(ii).RelatedFiles.ID(1),        ...
-                                                        app.specData(ii).MetaData.FreqStart / 1e+6, ...
-                                                        app.specData(ii).MetaData.FreqStop  / 1e+6);
+            Tag = sprintf('%s\n%.3f - %.3f MHz', app.specData(ii).Receiver,                  ...
+                                                 app.specData(ii).MetaData.FreqStart / 1e+6, ...
+                                                 app.specData(ii).MetaData.FreqStop  / 1e+6);
             
-            idx1 = find(strcmp(app.peaksTable.Tag, Tag));
+            idx1 = find(strcmp(app.projectData.peaksTable.Tag, Tag));
             if ~isempty(idx1)
                 PeakTable.FK1(idx1) = uint16(jj);
             end

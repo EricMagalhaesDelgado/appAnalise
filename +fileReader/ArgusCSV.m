@@ -211,7 +211,7 @@ function specData = Fcn_SpecDataReader(specData)
         nSweeps     = specData.RelatedFiles.nSweeps(1);    
     
         % E, por fim, preenche o vetor de timestamp e a matriz de níveis...
-        specData              = PreAllocationData(specData);
+        PreAllocationData(specData)
     
         specData.Data{1}(:)   = datetime(DateTimePreProcess(rawTable.Time(idxSweeps)), 'InputFormat', InputFormat)';
         specData.Data{2}(:,:) = reshape(rawTable{:,3}, [DataPoints, nSweeps]);

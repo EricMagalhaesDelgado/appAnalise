@@ -82,7 +82,7 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
     
     specData.MetaData.Resolution = str2double(extractBefore(MetaStruct.Resolution, ' kHz'))*1000;
     if isfield(MetaStruct, 'VBW')
-        specData.MetaData.Resolution = str2double(extractBefore(MetaStruct.VBW, ' kHz'))*1000;
+        specData.MetaData.VBW = str2double(extractBefore(MetaStruct.VBW, ' kHz'))*1000;
     end
 
     specData.MetaData.TraceMode  = MetaStruct.TraceMode;
@@ -165,7 +165,7 @@ function specData = Fcn_SpecDataReader(specData, rawData, fileFormat)
     end
 
     if specData.Enable
-        specData      = specData.PreAllocationData(1, fileFormat);
+        PreAllocationData(specData, 1, fileFormat)
         nSweeps       = specData.RelatedFiles.nSweeps;
         DataPoints    = specData.MetaData.DataPoints;
         OFFSET        = [];

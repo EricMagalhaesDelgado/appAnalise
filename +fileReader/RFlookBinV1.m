@@ -121,7 +121,7 @@ function specData = Fcn_SpecDataReader(specData)
     end
 
     if specData.Enable
-        specData          = specData.PreAllocationData();
+        PreAllocationData(specData)
     
         nSweeps           = specData.RelatedFiles.nSweeps;
         BitsPerPoint      = specData.FileMap.BitsPerPoint;

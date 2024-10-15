@@ -1,8 +1,27 @@
 function fLogical = TableFiltering(hTable, filterTable)
+
+    % Essa função foi a base da filtragem implantada no webapp SCH, que
+    % acabou sendo modularizada na classe de "SupportPackages" chamada
+    % "tableFiltering".
+
+    % Aqui tem a peculiaridade do ROI, mas que pode constar como possível
+    % filtro que não tem serventia no webapp SCH, mas teria no appAnalise.
+
+    % Eis um trabalho a fazer no futuro! :(
         
     if any(filterTable.Enable)
+        % Identifica "filtros nós".
         idx1 = find(strcmp(filterTable.Order, 'Node'))';
 
+        % Descarta filtros nós cujos membros foram desativados na GUI.
+        for ii = idx1
+            idx2 = [ii, find(filterTable.RelatedID == ii)'];
+            if all(~filterTable.Enable(idx2))
+                idx1(idx1 == ii) = [];
+            end
+        end
+
+        % Cria vetor lógico.
         fLogical   = ones(height(hTable), 1, 'logical');
         fTolerance = class.Constants.floatDiffTolerance;
 
@@ -10,24 +29,22 @@ function fLogical = TableFiltering(hTable, filterTable)
             tempLogical = zeros(height(hTable), 1, 'logical');
     
             idx2 = [ii, find(filterTable.RelatedID == ii)'];
-            if any(filterTable.Enable(idx2))
-                for jj = idx2
-                    if (jj ~= ii) && ~filterTable.Enable(jj)
-                        continue
-                    end
-    
-                    switch filterTable.Type{jj}
-                        case 'ROI'
-                            tempLogical = or(tempLogical, inROI(filterTable.Value{jj}{1}, hTable.Latitude, hTable.Longitude));
-                            
-                        otherwise
-                            Fcn = filterFcn(filterTable.Operation{jj}, filterTable.Value{jj}, fTolerance);
-                            tempLogical = or(tempLogical, Fcn(hTable{:, filterTable.Column(jj)}));
-                    end
+            for jj = idx2
+                if ~filterTable.Enable(jj)
+                    continue
                 end
-        
-                fLogical = and(fLogical, tempLogical);
+
+                switch filterTable.Type{jj}
+                    case 'ROI'
+                        tempLogical = or(tempLogical, inROI(filterTable.Value{jj}{1}, hTable.Latitude, hTable.Longitude));
+                        
+                    otherwise
+                        Fcn = filterFcn(filterTable.Operation{jj}, filterTable.Value{jj}, fTolerance);
+                        tempLogical = or(tempLogical, Fcn(hTable{:, filterTable.Column(jj)}));
+                end
             end
+    
+            fLogical = and(fLogical, tempLogical);
         end
 
     else
@@ -51,6 +68,8 @@ function Fcn = filterFcn(filterOperation, filterValue, fTolerance)
         end
 
     elseif ischar(filterValue)
+        filterValue = strtrim(filterValue);
+        
         switch filterOperation
             case '=';  Fcn = @(x)  strcmpi(string(x),  filterValue);
             case '≠';  Fcn = @(x) ~strcmpi(string(x),  filterValue);
@@ -59,6 +78,6 @@ function Fcn = filterFcn(filterOperation, filterValue, fTolerance)
         end
 
     else
-        error('Unexpected filter value')
+        error('fcn:TableFiltering:UnexpectedFilterValue', 'Unexpected filter value')
     end
 end

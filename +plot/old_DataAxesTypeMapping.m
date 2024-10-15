@@ -1,0 +1,26 @@
+function axesType = old_DataAxesTypeMapping(plotName)
+
+    axesType = {};
+
+    for ii = 1:numel(plotName)
+        switch plotName{ii}
+            case {'DriveTest', 'Stations', 'DriveTestRoute'}
+                axesType{ii} = 'Geographic';
+            
+            case {'Spectrum',         ...
+                  'Persistance',      ...
+                  'OccupancyPerBin',  ...
+                  'Waterfall',        ...
+                  'OccupancyPerHour', ...
+                  'OccupancyPerDay',  ...
+                  'SamplesPerLevel',  ...
+                  'ChannelPower',     ...
+                  'Link'}
+                axesType{ii} = 'Cartesian';
+
+            otherwise
+                error('Unexpected plotName %s', plotName)
+        end
+    end
+
+end
