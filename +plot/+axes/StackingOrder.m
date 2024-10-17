@@ -17,18 +17,21 @@ classdef (Abstract) StackingOrder
         %-----------------------------------------------------------------%
         function execute(hAxes, clientID)
             switch clientID
-                case 'appAnalise:PLAYBACK'
+                case {'appAnalise:PLAYBACK', 'appAnalise:REPORT', 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION'}
                     refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
-                case 'appAnalise:REPORT'
-                    refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
+
                 case 'appAnalise:RFDATAHUB'
                     refStackingOrder = plot.axes.StackingOrder.winRFDataHub;
+
                 case 'appAnalise:DRIVETEST'
                     refStackingOrder = plot.axes.StackingOrder.winDriveTest;
+
                 case 'appAnalise:SIGNALANALYSIS'
                     refStackingOrder = plot.axes.StackingOrder.winSignalAnalysis;
+
                 case 'RFLink'
                     refStackingOrder = plot.axes.StackingOrder.RFLink;
+
                 otherwise
                     error('Unexpected option.')
             end

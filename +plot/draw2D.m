@@ -279,7 +279,7 @@ classdef (Abstract) draw2D
                     emissionInfo = jsondecode(app.specData(idx1).UserData.Emissions.Detection{idx2});
                     emissionInfo.Algorithm = 'Manual';
                     
-                    app.specData(idx1).UserData.Emissions(idx2,[1:3, 5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value, jsonencode(emissionInfo)};
+                    app.specData(idx1).UserData.Emissions(idx2,[1:3, 5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value, jsonencode(emissionInfo, 'ConvertInfAndNaN', false)};
                     play_BandLimits_updateEmissions(app, idx1, newIndex)
                     play_UpdatePeaksTable(app, idx1, 'playback.AddEditOrDeleteEmission')
             end

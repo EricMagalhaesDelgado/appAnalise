@@ -140,7 +140,7 @@ classdef ChannelLib < handle
                 end
             end
 
-            refFindPeaksName = unique({obj.Channel.FindPeaksName});
+            refFindPeaksName = unique(obj.FindPeaks.Name);
             if ~ismember(FindPeaksName, refFindPeaksName)
                 error('ChannelLib:checkIfNewChannelIsValid', 'Campo "FindPeaksName" deve ser membro da lista %s.', textFormatGUI.cellstr2ListWithQuotes(refFindPeaksName))
             end

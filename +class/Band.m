@@ -2,7 +2,7 @@ classdef Band < handle
 
     properties
         %-----------------------------------------------------------------%
-        Context     char {mustBeMember(Context, {'appAnalise:PLAYBACK', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'})} = 'appAnalise:PLAYBACK' % 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION'
+        Context     char {mustBeMember(Context, {'appAnalise:PLAYBACK', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST', 'appAnalise:REPORT', 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION'})} = 'appAnalise:PLAYBACK'
         callingApp
         
         Receiver

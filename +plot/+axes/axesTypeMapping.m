@@ -1,11 +1,13 @@
-function axesType = old_DataAxesTypeMapping(plotName)
+function [axesType, axesXLabel] = axesTypeMapping(plotName)
 
-    axesType = {};
+    axesType   = {};
+    axesXLabel = {};
 
     for ii = 1:numel(plotName)
         switch plotName{ii}
             case {'DriveTest', 'Stations', 'DriveTestRoute'}
-                axesType{ii} = 'Geographic';
+                axesType{ii}   = 'Geographic';
+                axesXLabel{ii} = '';
             
             case {'Spectrum',         ...
                   'Persistance',      ...
@@ -13,11 +15,15 @@ function axesType = old_DataAxesTypeMapping(plotName)
                   'Waterfall',        ...
                   'OccupancyPerHour', ...
                   'OccupancyPerDay',  ...
-                  'SamplesPerLevel',  ...
-                  'ChannelPower',     ...
-                  'Link'}
-                axesType{ii} = 'Cartesian';
+                  'SamplesPerLevel'}
+                axesType{ii}   = 'Cartesian';
+                axesXLabel{ii} = 'Frequência (MHz)';
 
+            case {'ChannelPower',     ...
+                  'Link'}
+                axesType{ii}   = 'Cartesian';
+                axesXLabel{ii} = '';
+            
             otherwise
                 error('Unexpected plotName %s', plotName)
         end

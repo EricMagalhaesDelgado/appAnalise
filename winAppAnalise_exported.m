@@ -290,6 +290,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_Persistance_Colormap       matlab.ui.control.DropDown
         play_Persistance_ColormapLabel  matlab.ui.control.Label
         play_Persistance_WindowSize     matlab.ui.control.DropDown
+        play_Persistance_WindowSizeValue  matlab.ui.control.Label
         play_Persistance_WindowSizeLabel  matlab.ui.control.Label
         play_Persistance_Interpolation  matlab.ui.control.DropDown
         play_Persistance_InterpolationLabel  matlab.ui.control.Label
@@ -714,55 +715,56 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function startup_GUIComponents(app)
             % Salva na propriedade "UserData" as opções de ícone e o índice 
             % da aba, simplificando os ajustes decorrentes de uma alteração...
-            app.menu_Button1.UserData                = struct('iconOptions', {{'OpenFile_32White.png',         'OpenFile_32Yellow.png'}},         'tabGroup', 1);
-            app.menu_Button2.UserData                = struct('iconOptions', {{'Playback_32White.png',         'Playback_32Yellow.png'}},         'tabGroup', 2);
-            app.menu_Button3.UserData                = struct('iconOptions', {{'Report_32White.png',           'Report_32Yellow.png'}},           'tabGroup', 2);
-            app.menu_Button4.UserData                = struct('iconOptions', {{'Misc_32White.png',             'Misc_32Yellow.png'}},             'tabGroup', 2);
-            app.menu_Button5.UserData                = struct('iconOptions', {{'DriveTestDensity_32White.png', 'DriveTestDensity_32Yellow.png'}}, 'tabGroup', 3);
-            app.menu_Button6.UserData                = struct('iconOptions', {{'exceptionList_32White.png',    'exceptionList_32Yellow.png'}},    'tabGroup', 4);
-            app.menu_Button7.UserData                = struct('iconOptions', {{'mosaic_32White.png',           'mosaic_32Yellow.png'}},           'tabGroup', 5);
-            app.menu_Button8.UserData                = struct('iconOptions', {{'Settings_36White.png',         'Settings_36Yellow.png'}},         'tabGroup', 6);
+            app.menu_Button1.UserData                 = struct('iconOptions', {{'OpenFile_32White.png',         'OpenFile_32Yellow.png'}},         'tabGroup', 1);
+            app.menu_Button2.UserData                 = struct('iconOptions', {{'Playback_32White.png',         'Playback_32Yellow.png'}},         'tabGroup', 2);
+            app.menu_Button3.UserData                 = struct('iconOptions', {{'Report_32White.png',           'Report_32Yellow.png'}},           'tabGroup', 2);
+            app.menu_Button4.UserData                 = struct('iconOptions', {{'Misc_32White.png',             'Misc_32Yellow.png'}},             'tabGroup', 2);
+            app.menu_Button5.UserData                 = struct('iconOptions', {{'DriveTestDensity_32White.png', 'DriveTestDensity_32Yellow.png'}}, 'tabGroup', 3);
+            app.menu_Button6.UserData                 = struct('iconOptions', {{'exceptionList_32White.png',    'exceptionList_32Yellow.png'}},    'tabGroup', 4);
+            app.menu_Button7.UserData                 = struct('iconOptions', {{'mosaic_32White.png',           'mosaic_32Yellow.png'}},           'tabGroup', 5);
+            app.menu_Button8.UserData                 = struct('iconOptions', {{'Settings_36White.png',         'Settings_36Yellow.png'}},         'tabGroup', 6);
                         
-            app.play_TreeSort.UserData               = 'Receiver+Frequency';
-            app.file_Tree.UserData                   = struct('previousSelectedFileIndex', []);
-            app.play_TreePanelVisibility.UserData    = struct('Mode', 'PLAYBACK', 'Visible', true);
-            app.play_Channel_ShowPlot.UserData       = false;
+            app.play_TreeSort.UserData                = 'Receiver+Frequency';
+            app.file_Tree.UserData                    = struct('previousSelectedFileIndex', []);
+            app.play_TreePanelVisibility.UserData     = struct('Mode', 'PLAYBACK', 'Visible', true);
+            app.play_Channel_ShowPlot.UserData        = false;
             
-            app.axesTool_Pan.UserData                = false;
-            app.axesTool_DataTip.UserData            = false;
-            app.axesTool_MinHold.UserData            = struct('Value', false, 'ImageSource', {{'MinHold_32Filled.png', 'MinHold_32.png'}});
-            app.axesTool_Average.UserData            = struct('Value', false, 'ImageSource', {{'Average_32Filled.png', 'Average_32.png'}});
-            app.axesTool_MaxHold.UserData            = struct('Value', false, 'ImageSource', {{'MaxHold_32Filled.png', 'MaxHold_32.png'}});
-            app.axesTool_Persistance.UserData        = struct('Value', false);
-            app.axesTool_Occupancy.UserData          = struct('Value', false);
-            app.axesTool_Waterfall.UserData          = struct('Value', false);
+            app.axesTool_Pan.UserData                 = false;
+            app.axesTool_DataTip.UserData             = false;
+            app.axesTool_MinHold.UserData             = struct('Value', false, 'ImageSource', {{'MinHold_32Filled.png', 'MinHold_32.png'}});
+            app.axesTool_Average.UserData             = struct('Value', false, 'ImageSource', {{'Average_32Filled.png', 'Average_32.png'}});
+            app.axesTool_MaxHold.UserData             = struct('Value', false, 'ImageSource', {{'MaxHold_32Filled.png', 'MaxHold_32.png'}});
+            app.axesTool_Persistance.UserData         = struct('Value', false);
+            app.axesTool_Occupancy.UserData           = struct('Value', false);
+            app.axesTool_Waterfall.UserData           = struct('Value', false);
 
-            app.play_PlotPanel.UserData              = [];
+            app.play_PlotPanel.UserData               = [];
 
             % Painel "PLAYBACK > ASPECTOS GERAIS"
             if ismember(num2str(app.General.Integration.Trace), app.play_TraceIntegration.Items)
-                app.play_TraceIntegration.Value      = num2str(app.General.Integration.Trace);
+                app.play_TraceIntegration.Value       = num2str(app.General.Integration.Trace);
             else
-                app.General.Integration.Trace        = Inf;
+                app.General.Integration.Trace         = Inf;
             end
 
             % Painel "PLAYBACK > ASPECTOS GERAIS > PERSISTÊNCIA"
-            app.play_Persistance_Interpolation.Value = app.General.Plot.Persistance.Interpolation;
-            app.play_Persistance_WindowSize.Value    = app.General.Plot.Persistance.WindowSize;
-            app.play_Persistance_Colormap.Value      = app.General.Plot.Persistance.Colormap;
-            app.play_Persistance_cLim1.Value         = app.General.Plot.Persistance.LevelLimits(1);
-            app.play_Persistance_cLim2.Value         = app.General.Plot.Persistance.LevelLimits(2);
+            app.play_Persistance_Interpolation.Value  = app.General.Plot.Persistance.Interpolation;
+            app.play_Persistance_WindowSize.Value     = app.General.Plot.Persistance.WindowSize;
+            app.play_Persistance_WindowSizeValue.Text = app.General.Plot.Persistance.WindowSize;
+            app.play_Persistance_Colormap.Value       = app.General.Plot.Persistance.Colormap;
+            app.play_Persistance_cLim1.Value          = app.General.Plot.Persistance.LevelLimits(1);
+            app.play_Persistance_cLim2.Value          = app.General.Plot.Persistance.LevelLimits(2);
             play_ControlsPanelSelectionChanged(app)
 
             % Painel "PLAYBACK > ASPECTOS GERAIS > WATERFALL"
-            app.play_Waterfall_Fcn.Value             = app.General.Plot.Waterfall.Fcn;
-            app.play_Waterfall_Colorbar.Value        = app.General.Plot.Waterfall.Colorbar;
-            app.play_Waterfall_Decimation.Value      = app.General.Plot.Waterfall.Decimation;
-            app.play_Waterfall_MeshStyle.Value       = app.General.Plot.Waterfall.MeshStyle;
-            app.play_Waterfall_Timeline.Value        = app.General.Plot.WaterfallTime.Visible;
-            app.play_Waterfall_Colormap.Value        = app.General.Plot.Waterfall.Colormap;
-            app.play_Waterfall_cLim1.Value           = app.General.Plot.Waterfall.LevelLimits(1);
-            app.play_Waterfall_cLim2.Value           = app.General.Plot.Waterfall.LevelLimits(2);
+            app.play_Waterfall_Fcn.Value              = app.General.Plot.Waterfall.Fcn;
+            app.play_Waterfall_Colorbar.Value         = app.General.Plot.Waterfall.Colorbar;
+            app.play_Waterfall_Decimation.Value       = app.General.Plot.Waterfall.Decimation;
+            app.play_Waterfall_MeshStyle.Value        = app.General.Plot.Waterfall.MeshStyle;
+            app.play_Waterfall_Timeline.Value         = app.General.Plot.WaterfallTime.Visible;
+            app.play_Waterfall_Colormap.Value         = app.General.Plot.Waterfall.Colormap;
+            app.play_Waterfall_cLim1.Value            = app.General.Plot.Waterfall.LevelLimits(1);
+            app.play_Waterfall_cLim2.Value            = app.General.Plot.Waterfall.LevelLimits(2);
 
             % Painel "PLAYBACK > CANAIS"
             channelList = {};
@@ -2168,8 +2170,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function play_Layout_WaterfallPanel(app)
             % Lista de componentes passíveis de mudança no seus status, a
             % depender do plot Waterfall.
-            hComponents = [app.play_Waterfall_Decimation, ...
-                           app.play_Waterfall_MeshStyle,  ...
+            hComponents = [app.play_Waterfall_MeshStyle,  ...
+                           app.play_Waterfall_Decimation, ...
                            app.play_Waterfall_Colorbar,   ...
                            app.play_Waterfall_cLim1,      ...                           
                            app.play_Waterfall_cLim2,      ...
@@ -2178,9 +2180,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             if app.axesTool_Waterfall.UserData.Value
                 switch app.play_Waterfall_Fcn.Value
                     case 'image'
-                        set(hComponents(3:end), 'Enable', 1)
-                        app.play_Waterfall_Decimation.Value = 'auto';
-
+                        set(hComponents(2:end), 'Enable', 1)
                     case 'mesh'
                         set(hComponents, 'Enable', 1)
                 end    
@@ -2301,37 +2301,38 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case 'manual'
                     app.play_Customization.Value = 1;
 
-                    app.axesTool_MinHold.UserData.Value      = app.specData(idx).UserData.customPlayback.Parameters.Controls.MinHold;
-                    app.axesTool_Average.UserData.Value      = app.specData(idx).UserData.customPlayback.Parameters.Controls.Average;
-                    app.axesTool_MaxHold.UserData.Value      = app.specData(idx).UserData.customPlayback.Parameters.Controls.MaxHold;
-                    app.axesTool_Persistance.UserData.Value  = app.specData(idx).UserData.customPlayback.Parameters.Controls.Persistance;
-                    app.axesTool_Occupancy.UserData.Value    = app.specData(idx).UserData.customPlayback.Parameters.Controls.Occupancy;
-                    app.axesTool_Waterfall.UserData.Value    = app.specData(idx).UserData.customPlayback.Parameters.Controls.Waterfall;
+                    app.axesTool_MinHold.UserData.Value       = app.specData(idx).UserData.customPlayback.Parameters.Controls.MinHold;
+                    app.axesTool_Average.UserData.Value       = app.specData(idx).UserData.customPlayback.Parameters.Controls.Average;
+                    app.axesTool_MaxHold.UserData.Value       = app.specData(idx).UserData.customPlayback.Parameters.Controls.MaxHold;
+                    app.axesTool_Persistance.UserData.Value   = app.specData(idx).UserData.customPlayback.Parameters.Controls.Persistance;
+                    app.axesTool_Occupancy.UserData.Value     = app.specData(idx).UserData.customPlayback.Parameters.Controls.Occupancy;
+                    app.axesTool_Waterfall.UserData.Value     = app.specData(idx).UserData.customPlayback.Parameters.Controls.Waterfall;
         
-                    app.play_LayoutRatio.Items   = {app.specData(idx).UserData.customPlayback.Parameters.Controls.LayoutRatio};
+                    app.play_LayoutRatio.Items                = {app.specData(idx).UserData.customPlayback.Parameters.Controls.LayoutRatio};
                     plot.axes.Layout.RatioAspect([app.UIAxes1, app.UIAxes2, app.UIAxes3], app.axesTool_Occupancy.UserData.Value, app.axesTool_Waterfall.UserData.Value, app.play_LayoutRatio)
                     
-                    app.play_Persistance_Interpolation.Value = app.specData(idx).UserData.customPlayback.Parameters.Persistance.Interpolation;
-                    app.play_Persistance_WindowSize.Value    = app.specData(idx).UserData.customPlayback.Parameters.Persistance.WindowSize;
-                    app.play_Persistance_Transparency.Value  = app.specData(idx).UserData.customPlayback.Parameters.Persistance.Transparency;
-                    app.play_Persistance_Colormap.Value      = app.specData(idx).UserData.customPlayback.Parameters.Persistance.Colormap;
+                    app.play_Persistance_Interpolation.Value  = app.specData(idx).UserData.customPlayback.Parameters.Persistance.Interpolation;
+                    app.play_Persistance_WindowSize.Value     = app.specData(idx).UserData.customPlayback.Parameters.Persistance.WindowSize;
+                    app.play_Persistance_WindowSizeValue.Text = app.specData(idx).UserData.customPlayback.Parameters.Persistance.WindowSize;
+                    app.play_Persistance_Transparency.Value   = app.specData(idx).UserData.customPlayback.Parameters.Persistance.Transparency;
+                    app.play_Persistance_Colormap.Value       = app.specData(idx).UserData.customPlayback.Parameters.Persistance.Colormap;
         
                     if app.play_Persistance_WindowSize.Value == "full"
-                        app.play_Persistance_cLim1.Value = app.specData(idx).UserData.customPlayback.Parameters.Persistance.LevelLimits(1);
-                        app.play_Persistance_cLim2.Value = app.specData(idx).UserData.customPlayback.Parameters.Persistance.LevelLimits(2);
+                        app.play_Persistance_cLim1.Value      = app.specData(idx).UserData.customPlayback.Parameters.Persistance.LevelLimits(1);
+                        app.play_Persistance_cLim2.Value      = app.specData(idx).UserData.customPlayback.Parameters.Persistance.LevelLimits(2);
                     end
 
                     % A visibilidade e posição da Colobar não é tratada como 
                     % customização do playback... e por isso o componente
                     % específico não é atualizado com a informação presente
                     % em app.specData.
-                    app.play_Waterfall_Fcn.Value         = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.Fcn;
-                    app.play_Waterfall_Decimation.Value  = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.Decimation;
-                    app.play_Waterfall_MeshStyle.Value   = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.MeshStyle;            
-                    app.play_Waterfall_Colormap.Value    = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.Colormap;
-                    app.play_Waterfall_cLim1.Value       = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.LevelLimits(1);
-                    app.play_Waterfall_cLim2.Value       = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.LevelLimits(2);        
-                    app.play_Waterfall_Timeline.Value    = app.specData(idx).UserData.customPlayback.Parameters.WaterfallTime.Visible;
+                    app.play_Waterfall_Fcn.Value              = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.Fcn;
+                    app.play_Waterfall_Decimation.Value       = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.Decimation;
+                    app.play_Waterfall_MeshStyle.Value        = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.MeshStyle;            
+                    app.play_Waterfall_Colormap.Value         = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.Colormap;
+                    app.play_Waterfall_cLim1.Value            = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.LevelLimits(1);
+                    app.play_Waterfall_cLim2.Value            = app.specData(idx).UserData.customPlayback.Parameters.Waterfall.LevelLimits(2);        
+                    app.play_Waterfall_Timeline.Value         = app.specData(idx).UserData.customPlayback.Parameters.WaterfallTime.Visible;
             end
         end
 
@@ -2545,35 +2546,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function plot_Draw_Persistance(app, operationType, idx)
             switch operationType
                 case 'Creation'
-                    if strcmp(app.play_Persistance_WindowSize.Value, 'full')
-                        nPersistancePoints    = app.bandObj.DataPoints * app.bandObj.nSweeps;
-                        nMaxPersistancePoints = class.Constants.nMaxPersistancePoints;
-
-                        if nPersistancePoints > nMaxPersistancePoints
-                            msgQuestion   = sprintf(['A persistência do fluxo espectral selecionado demanda o cálculo do histograma bidimensional com mais de %.0f milhões de pontos, '  ...
-                                                     'superior ao limite recomendado (cerca de %.0f milhões pontos).\n\nDeseja alterar a janela da persistência para computar apenas '   ...
-                                                     'as últimos 512 varreduras?! Em caso negativo, o plot poderá demorar mais de 10 segundos para ser finalizado.'],                    ...
-                                                     nPersistancePoints/1e+6, nMaxPersistancePoints/1e+6);
-                            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                            if userSelection == "Sim"
-                                app.play_Persistance_WindowSize.Value = '512';
-                                play_Persistance_Callbacks(app, struct('Source', app.play_Persistance_WindowSize))
-
-                                if app.idxTime < 512
-                                    app.idxTime = 512;
-                                    app.tool_TimestampSlider.Value = 100 * app.idxTime/app.bandObj.nSweeps;
-                                    tool_TimestampSliderValueChanging(app, struct('Value', app.tool_TimestampSlider.Value))
-                                end
-                                return
-                            end
-                        end
-                    end
-
-                    app.hPersistanceObj = plot.draw3D.Persistance('Creation', app.hPersistanceObj, app.UIAxes1, app.bandObj, idx);
+                    [app.hPersistanceObj, app.play_Persistance_WindowSizeValue.Text] = plot.draw3D.Persistance('Creation', app.hPersistanceObj, app.UIAxes1, app.bandObj, idx);
                     play_Layout_PersistancePanel(app)
 
                 case 'Update'
-                    if app.axesTool_Persistance.UserData.Value && ~strcmp(app.play_Persistance_WindowSize.Value, 'full')
+                    if app.axesTool_Persistance.UserData.Value && ~strcmp(app.play_Persistance_WindowSizeValue.Text, 'full')
                         app.hPersistanceObj = plot.draw3D.Persistance('Update', app.hPersistanceObj, app.UIAxes1, app.bandObj, idx);
                         play_Layout_PersistancePanel(app)
                     end
@@ -6482,6 +6459,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_Persistance_WindowSizeLabel.Layout.Row = 1;
             app.play_Persistance_WindowSizeLabel.Layout.Column = 2;
             app.play_Persistance_WindowSizeLabel.Text = 'Janela:';
+
+            % Create play_Persistance_WindowSizeValue
+            app.play_Persistance_WindowSizeValue = uilabel(app.play_PersistanceGrid);
+            app.play_Persistance_WindowSizeValue.HorizontalAlignment = 'right';
+            app.play_Persistance_WindowSizeValue.VerticalAlignment = 'bottom';
+            app.play_Persistance_WindowSizeValue.FontSize = 10;
+            app.play_Persistance_WindowSizeValue.FontColor = [0.8 0.8 0.8];
+            app.play_Persistance_WindowSizeValue.Layout.Row = 1;
+            app.play_Persistance_WindowSizeValue.Layout.Column = 2;
+            app.play_Persistance_WindowSizeValue.Text = 'full';
 
             % Create play_Persistance_WindowSize
             app.play_Persistance_WindowSize = uidropdown(app.play_PersistanceGrid);

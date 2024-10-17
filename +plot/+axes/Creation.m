@@ -27,6 +27,7 @@ function hAxes = Creation(hParent, axesType, varargin)
                                      Interactions=[], Toolbar=[]);
             hAxes.LatitudeLabel.String  = '';
             hAxes.LongitudeLabel.String = '';
+            hAxes.Scalebar.Visible = 0;
 
             if nargin == 3
                 othersParameters = varargin{1};

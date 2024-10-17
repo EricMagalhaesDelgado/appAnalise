@@ -299,6 +299,15 @@
       "maxOCC": 67
     },
     {
+      "Name": "Satellite",
+      "Distance": 10,
+      "BW": 10,
+      "Prominence1": 6,
+      "Prominence2": 10,
+      "meanOCC": 10,
+      "maxOCC": 67
+    },
+    {
       "Name": "Unknown",
       "Distance": 0.025,
       "BW": 0.010,

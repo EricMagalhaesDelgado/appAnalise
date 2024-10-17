@@ -27,23 +27,7 @@ classdef (Abstract) draw3D
                     set(hAxes, 'CLimMode', 'auto')
                     switch Fcn
                         case 'mesh'
-                            switch Decimation
-                                case 'auto'
-                                    nWaterFallPoints    = bandObj.DataPoints * nSweeps;
-                                    nMaxWaterFallPoints = class.Constants.nMaxWaterFallPoints;
-                                    if nWaterFallPoints > nMaxWaterFallPoints; nDecimation = ceil(nWaterFallPoints/nMaxWaterFallPoints);
-                                    else;                                      nDecimation = 1;
-                                    end
-                                otherwise
-                                    nDecimation = str2double(Decimation);
-                            end
-                
-                            while true
-                                tArray = specData.Data{1}(1:nDecimation:end);
-                                if numel(tArray) > 1; break
-                                else;                 nDecimation = round(nDecimation/2);
-                                end
-                            end
+                            [nDecimation, tArray] = plot.draw3D.checkDecimation(specData, bandObj, Decimation, 1);
                 
                             if tArray(1) == tArray(end)
                                 tArray(end) = tArray(1)+seconds(1);
@@ -52,16 +36,23 @@ classdef (Abstract) draw3D
                             plot.axes.Ruler(hAxes, xLim, yLim)
                 
                             [X, Y] = meshgrid(xArray, tArray);
-                            hWaterfall = mesh(hAxes, X, Y, specData.Data{2}(:,1:nDecimation:end)', plotConfig{:});
-                            Decimation = num2str(nDecimation);
+                            hWaterfall = mesh(hAxes, X, Y, specData.Data{2}(:,1:nDecimation:end)', plotConfig{:});                            
 
                         case 'image'
+                            nDecimation = plot.draw3D.checkDecimation(specData, bandObj, Decimation, 16);
+
+                            idxTimeArray = 1:nDecimation:nSweeps;
+                            if idxTimeArray(end) ~= nSweeps
+                                idxTimeArray(end+1) = nSweeps;
+                            end
+
                             yLim = [1, nSweeps];
                             plot.axes.Ruler(hAxes, xLim, yLim)
 
-                            hWaterfall = image(hAxes, xArray, 1:nSweeps, specData.Data{2}', plotConfig{:});
-                            Decimation = 'auto';
+                            hWaterfall = image(hAxes, xArray, idxTimeArray, specData.Data{2}(:, idxTimeArray)', plotConfig{:});
                     end
+
+                    Decimation = num2str(nDecimation);
 
                     if isempty(cLimits)
                         cLimits = bandObj.callingApp.restoreView(3).cLim;
@@ -71,6 +62,10 @@ classdef (Abstract) draw3D
                     end
                     
                     postPlotConfig = {'YLim', yLim, 'CLim', cLimits};
+                    if ismember(bandObj.Context, {'appAnalise:REPORT', 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION'})
+                        postPlotConfig = [postPlotConfig, {'XLim', xLim}];
+                        ylabel(hAxes, 'Varredura')
+                    end
                     set(hAxes, postPlotConfig{:})
         
                     plot.axes.Colormap(hAxes, colormapName)
@@ -88,9 +83,45 @@ classdef (Abstract) draw3D
             end
         end
 
+        %-----------------------------------------------------------------%
+        function [nDecimation, tArray] = checkDecimation(specData, bandObj, DecimationType, DecimationFactor)
+            switch DecimationType
+                case 'auto'
+                    nWaterFallPoints    = bandObj.DataPoints * bandObj.nSweeps;
+                    nMaxWaterFallPoints = DecimationFactor * class.Constants.nMaxWaterFallPoints;
 
-        %---------------------------------------------------------------------%
-        function hPersistanceObj = Persistance(operationType, hPersistanceObj, varargin)
+                    if nWaterFallPoints > nMaxWaterFallPoints
+                        nDecimation = ceil(nWaterFallPoints/nMaxWaterFallPoints);
+                    else
+                        nDecimation = 1;
+                    end
+
+                otherwise
+                    nDecimation = str2double(DecimationType);
+            end
+
+            while true
+                tArray = specData.Data{1}(1:nDecimation:end);
+                if numel(tArray) > 1; break
+                else;                 nDecimation = round(nDecimation/2);
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function windowSize = checkWindowSize(bandObj, windowSize)
+            if windowSize == "full"
+                nPersistancePoints    = bandObj.DataPoints * bandObj.nSweeps;
+                nMaxPersistancePoints = class.Constants.nMaxPersistancePoints;
+
+                if nPersistancePoints > nMaxPersistancePoints
+                    windowSize = num2str(min(bandObj.nSweeps, 512));
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function [hPersistanceObj, windowSize] = Persistance(operationType, hPersistanceObj, varargin)
             switch operationType
                 case {'Creation', 'Update'}
                     hAxes       = varargin{1};
@@ -98,7 +129,6 @@ classdef (Abstract) draw3D
                     idx         = varargin{3}; 
 
                     specData    = bandObj.callingApp.specData(idx);
-                    idxTime     = bandObj.callingApp.idxTime;
 
                     defaultProp = bandObj.callingApp.General;
                     customProp  = bandObj.callingApp.specData(idx).UserData.customPlayback.Parameters;
@@ -108,6 +138,7 @@ classdef (Abstract) draw3D
                      colormapName, ...
                      Transparency, ...
                      cLimits]   = plot.Config('Persistance', defaultProp, customProp);
+                    windowSize  = plot.draw3D.checkWindowSize(bandObj, windowSize);
 
                     switch operationType
                         case 'Creation'    
@@ -154,21 +185,30 @@ classdef (Abstract) draw3D
                             nSweeps = numel(specData.Data{1});
                             switch windowSize
                                 case 'full'
-                                    idx1 = 1;
-                                    idx2 = nSweeps;    
+                                    idxTimeArray = 1:nSweeps;
+
                                 otherwise
-                                    idx2 = idxTime;
-                                    idx1 = idx2-nSweeps+1;
-                                    if idx1 < 1
-                                        idx1 = 1;
-                                    end                            
+                                    winSize = str2double(windowSize);
+
+                                    switch bandObj.Context
+                                        case {'appAnalise:PLAYBACK', 'appAnalise:DRIVETEST'}
+                                            idxTime = bandObj.callingApp.idxTime;
+                                            idxTimeArray = max(1,idxTime-winSize+1):idxTime;
+
+                                        case {'appAnalise:REPORT', 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION'}
+                                            idxTimeArray = round(linspace(1, nSweeps, winSize));
+                                    end                          
                             end
+
+                            nTimeArray = numel(idxTimeArray);
         
-                            specHist = histcounts2(specData.Data{2}(:, idx1:idx2), repmat(bandObj.xArray', 1, idx2-idx1+1), hPersistanceObj.yEdges, hPersistanceObj.xEdges);
+                            specHist = histcounts2(specData.Data{2}(:, idxTimeArray), repmat(bandObj.xArray', 1, nTimeArray), hPersistanceObj.yEdges, hPersistanceObj.xEdges);
                             set(hPersistanceObj.handle, 'CData', (100 * specHist ./ sum(specHist)), 'AlphaData', double(logical(specHist))*Transparency)
                     end
 
                 case 'Delete'
+                    windowSize = '';
+
                     if ~isempty(hPersistanceObj)
                         delete(hPersistanceObj.handle)
                         hPersistanceObj = [];

@@ -21,10 +21,11 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
     RootFolder    = reportInfo.General.RootFolder;
     Template      = jsondecode(reportInfo.Model.Template);
     
-    SpecInfo      = app.specData(idxThreads);
     exceptionList = app.projectData.exceptionList;
     peaksTable    = Fcn_Peaks(app, idxThreads, reportInfo.DetectionMode, exceptionList);
     hFigure       = app.UIFigure;
+
+    tempBandObj   = class.Band('appAnalise:REPORT:BAND', app);
     
     % HTML header (style)    
     if strcmp(reportInfo.General.Version, 'Preliminar')
@@ -47,7 +48,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
 
         NN = 1;
         if Template(ii).Recurrence
-            NN = numel(SpecInfo);
+            NN = numel(idxThreads);
         end
 
         for jj = 1:NN
@@ -55,6 +56,8 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
                 d.Message = sprintf(['<p style="font-size: 12px; text-align: justify;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
                                      'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações.\n\n%d de %d</p>'], jj, NN);
             end
+
+            update(tempBandObj, idxThreads(jj));
 
             % Insere uma quebra de linha, caso exista recorrência no item
             % (iterando SpecInfo).
@@ -77,7 +80,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
                         case {'Subitem', 'ItemN2', 'ItemN3', 'Paragraph', 'List', 'Footnote'}
                             for ll = 1:numel(Children.Data)
                                 if ~isempty(Children.Data(ll).Settings)
-                                    Children.Data(ll).String = Fcn_FillWords(SpecInfo, jj, reportInfo, Children);
+                                    Children.Data(ll).String = Fcn_FillWords(app.specData(idxThreads), jj, reportInfo, Children);
                                 end
                             end
 
@@ -96,16 +99,16 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
 
                             switch plotType
                                 case 'Emission'
-                                    MM = height(SpecInfo(jj).UserData.Emissions);
+                                    MM = height(app.specData(idxThreads(jj)).UserData.Emissions);
                                     for ll = 1:MM
                                         reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', ll);
-                                        reportInfo.General.Parameters.DriveTest = SpecInfo(jj).UserData.Emissions.UserData(ll).DriveTest;
+                                        reportInfo.General.Parameters.DriveTest = app.specData(idxThreads(jj)).UserData.Emissions.UserData(ll).DriveTest;
 
                                         % Verifica se o plot requerido é apenas DriveTest... em sendo,
                                         % evita a criação do subtítulo da emissão, caso não tenha
                                         % informação de DriveTest.
                                         if ismember('DriveTest', {plotInfo.Name})
-                                            if isempty(SpecInfo(jj).UserData.Emissions.UserData(ll).DriveTest)
+                                            if isempty(app.specData(idxThreads(jj)).UserData.Emissions.UserData(ll).DriveTest)
                                                 continue
                                             end
                                         end
@@ -121,10 +124,10 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
                                                                               'Settings', struct('Source',     'emissionTitle', ...
                                                                                                  'Precision',  '%s',            ...
                                                                                                  'Multiplier', 1)));
-                                        emissionTitle.Data.String = Fcn_FillWords(SpecInfo, jj, reportInfo, emissionTitle);                        
+                                        emissionTitle.Data.String = Fcn_FillWords(app.specData(idxThreads), jj, reportInfo, emissionTitle);                        
                                         htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(emissionTitle));
 
-                                        opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
+                                        opt1 = Fcn_Image(app.specData, idxThreads(jj), tempBandObj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
                                         htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                                     end
 
@@ -133,15 +136,15 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
                                     
                                     % Jeitinho pra plotar a rota fora do loop de recorrência...
                                     if ismember('DriveTestRoute', {plotInfo.Name})
-                                        reportInfo.General.Parameters.specData = SpecInfo(1);
+                                        reportInfo.General.Parameters.specData = app.specData(idxThreads(1));
                                     end                                    
                                     
-                                    opt1 = Fcn_Image(SpecInfo, jj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
+                                    opt1 = Fcn_Image(app.specData, idxThreads(jj), tempBandObj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
                                     htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
                             end
 
                         case 'Table'
-                            opt1 = Fcn_Table(SpecInfo, jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
+                            opt1 = Fcn_Table(app.specData(idxThreads), jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
                             opt2 = Children.Data.Intro;
                             opt3 = Children.Data.Error;
                             opt4 = Children.Data.LineBreak;
@@ -362,7 +365,7 @@ end
 
 
 %-------------------------------------------------------------------------%
-function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plotInfo, hFigure)
+function Image = Fcn_Image(specData, idxThread, tempBandObj, reportInfo, Recurrence, Children, plotInfo, hFigure)
     global ID_imgExt
     global hContainer
 
@@ -373,11 +376,11 @@ function Image = Fcn_Image(SpecInfo, idx, reportInfo, Recurrence, Children, plot
                 hContainer = PlotContainer(hFigure);
             end
 
-            [Image, hContainer] = plot.old_axesDraw.plot2report(hContainer, SpecInfo(idx), reportInfo, plotInfo);
+            [Image, hContainer] = plot.old_axesDraw.plot2report(hContainer, specData, idxThread, tempBandObj, reportInfo, plotInfo);
 
         case 'External'
             if Recurrence
-                Image     = SpecInfo(idx).UserData.reportAttachments.image;
+                Image     = specData(idxThread).UserData.reportAttachments.image;
             else
                 ID_imgExt = ID_imgExt+1;    
                 try

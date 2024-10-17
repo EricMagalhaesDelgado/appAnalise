@@ -1,5 +1,5 @@
 {
-    "version": 0.67,
+    "version": 0.70,
     "operationMode": {
         "Debug": false,
         "Dock": false,
@@ -180,7 +180,7 @@
     "openGL": "hardware",
     "Merge": {
         "DataType": "remove",
-        "Antenna": "remove",
+        "Antenna": "keep",
         "AntennaAttributes": [
             "Name",
             "Azimuth",
@@ -243,7 +243,7 @@
             "LevelLimits": [0, 1]
         },
         "Waterfall": {
-            "Fcn": "mesh",
+            "Fcn": "image",
             "Decimation": "auto",
             "MeshStyle": "both",
             "Colormap": "winter",
