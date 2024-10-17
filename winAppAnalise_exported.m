@@ -2594,32 +2594,39 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function plot_Draw_Channels(app, idx)
             if ~isempty(app.play_Channel_Tree.SelectedNodes) && app.play_Channel_ShowPlot.UserData
-                srcChannel = app.play_Channel_Tree.SelectedNodes.NodeData.src;
-                idxChannel = app.play_Channel_Tree.SelectedNodes.NodeData.idx;
+                srcTable = table('Size', [0, 2], 'VariableNames', {'FreqStart', 'FreqStop'}, 'VariableTypes', {'double', 'double'});
 
-                switch srcChannel
-                    case 'channelLib'
-                        srcRawTable = app.channelObj.Channel(idxChannel);
-                    case 'manual'
-                        srcRawTable = app.specData(idx).UserData.channelManual(idxChannel);
-                end
-                
-                if ~isempty(srcRawTable)
-                    channelBW = srcRawTable.ChannelBW; % MHz
-                    if channelBW <= 0
-                        app.play_Channel_ShowPlotWarn.Visible = 1;
-                        return
-                    else
-                        app.play_Channel_ShowPlotWarn.Visible = 0;
-                    end
+                for ii = 1:numel(app.play_Channel_Tree.SelectedNodes)
+                    srcChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.src;
+                    idxChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.idx;
     
-                    if ~isempty(srcRawTable.FreqList)
-                        FreqList = srcRawTable.FreqList;
-                    else
-                        FreqList = (srcRawTable.FirstChannel:srcRawTable.StepWidth:srcRawTable.LastChannel)';
+                    switch srcChannel
+                        case 'channelLib'
+                            srcRawTable = app.channelObj.Channel(idxChannel);
+                        case 'manual'
+                            srcRawTable = app.specData(idx).UserData.channelManual(idxChannel);
                     end
+                    
+                    if ~isempty(srcRawTable)
+                        channelBW = srcRawTable.ChannelBW; % MHz
+                        if channelBW <= 0
+                            app.play_Channel_ShowPlotWarn.Visible = 1;
+                            continue
+                        else
+                            app.play_Channel_ShowPlotWarn.Visible = 0;
+                        end
+        
+                        if ~isempty(srcRawTable.FreqList)
+                            FreqList = srcRawTable.FreqList;
+                        else
+                            FreqList = (srcRawTable.FirstChannel:srcRawTable.StepWidth:srcRawTable.LastChannel)';
+                        end
+    
+                        srcTable = [srcTable; table(FreqList-channelBW/2, FreqList+channelBW/2, 'VariableNames', {'FreqStart', 'FreqStop'})];
+                    end
+                end
 
-                    srcTable = table(FreqList-channelBW/2, FreqList+channelBW/2, 'VariableNames', {'FreqStart', 'FreqStop'});    
+                if ~isempty(srcTable)
                     plot.draw2D.horizontalSetOfLines(app.UIAxes1, app.bandObj, idx, 'Channels', srcTable)
                 else
                     delete(findobj(app.UIAxes1, 'Tag', 'Channels'))
@@ -2628,7 +2635,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 delete(findobj(app.UIAxes1, 'Tag', 'Channels'))
             end
         end
-
+        
         %-----------------------------------------------------------------%
         function plot_AxesLimitsChanged(app, src, evt)
             switch src.Name
@@ -2641,7 +2648,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     app.play_Limits_yLim2.Value = round(double(evt.AffectedObject.YLim(2)), 1);
             end
         end
-
 
         %-----------------------------------------------------------------%
         function [idx, nSweeps] = plot_updateIndex(app)
@@ -4184,50 +4190,56 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Selection changed function: play_Channel_Tree
         function play_Channel_TreeSelectionChanged(app, event)
 
+            idxThread = app.play_PlotPanel.UserData.NodeData;
+
             if ~isempty(app.play_Channel_Tree.SelectedNodes)
-                idx = app.play_PlotPanel.UserData.NodeData;
-
-                srcChannel = app.play_Channel_Tree.SelectedNodes.NodeData.src;
-                idxChannel = app.play_Channel_Tree.SelectedNodes.NodeData.idx;
-
-                switch srcChannel
-                    case 'channelLib'
-                        app.play_Channel_ReferenceList.Value = 1;
-                        play_Channel_RadioGroupSelectionChanged(app)
+                if isscalar(app.play_Channel_Tree.SelectedNodes)
+                    srcChannel = app.play_Channel_Tree.SelectedNodes.NodeData.src;
+                    idxChannel = app.play_Channel_Tree.SelectedNodes.NodeData.idx;
     
-                        app.play_Channel_List.Value = app.play_Channel_List.Items{idxChannel};
-                        play_Channel_AutomaticChannelListValueChanged(app)
-
-                    case 'manual'
-                        FirstChannel = app.specData(idx).UserData.channelManual(idxChannel).FirstChannel;
-                        LastChannel  = app.specData(idx).UserData.channelManual(idxChannel).LastChannel;
-                        StepWidth    = app.specData(idx).UserData.channelManual(idxChannel).StepWidth;
-                        FreqList     = app.specData(idx).UserData.channelManual(idxChannel).FreqList;
-
-                        if (StepWidth > 0) || ~isempty(FreqList)
-                            app.play_Channel_Multiples.Value = 1;
-                            if isempty(FreqList)
-                                FreqList = FirstChannel:StepWidth:LastChannel;
+                    switch srcChannel
+                        case 'channelLib'
+                            app.play_Channel_ReferenceList.Value = 1;
+                            play_Channel_RadioGroupSelectionChanged(app)
+        
+                            app.play_Channel_List.Value = app.play_Channel_List.Items{idxChannel};
+                            play_Channel_AutomaticChannelListValueChanged(app)
+    
+                        case 'manual'
+                            FirstChannel = app.specData(idxThread).UserData.channelManual(idxChannel).FirstChannel;
+                            LastChannel  = app.specData(idxThread).UserData.channelManual(idxChannel).LastChannel;
+                            StepWidth    = app.specData(idxThread).UserData.channelManual(idxChannel).StepWidth;
+                            FreqList     = app.specData(idxThread).UserData.channelManual(idxChannel).FreqList;
+    
+                            if (StepWidth > 0) || ~isempty(FreqList)
+                                app.play_Channel_Multiples.Value = 1;
+                                if isempty(FreqList)
+                                    FreqList = FirstChannel:StepWidth:LastChannel;
+                                end
+                            else
+                                app.play_Channel_Single.Value    = 1;
+                                FreqList = FirstChannel;
                             end
-                        else
-                            app.play_Channel_Single.Value    = 1;
-                            FreqList = FirstChannel;
-                        end
-                        play_Channel_RadioGroupSelectionChanged(app)
-    
-                        app.play_Channel_Name.Value          = app.specData(idx).UserData.channelManual(idxChannel).Name;
-                        app.play_Channel_FirstChannel.Value  = FirstChannel;
-                        app.play_Channel_LastChannel.Value   = LastChannel;
-                        app.play_Channel_StepWidth.Value     = max(-1, StepWidth * 1000);
-                        app.play_Channel_BW.Value            = max(-1, app.specData(idx).UserData.channelManual(idxChannel).ChannelBW * 1000);
-                        set(app.play_Channel_Class, 'Items', app.channelObj.FindPeaks.Name, 'Value', app.specData(idx).UserData.channelManual(idxChannel).FindPeaksName)
-            
-                        app.play_Channel_nChannels.Value     = numel(FreqList);
-                        play_ChannelListSample(app, FreqList)
-                end
+                            play_Channel_RadioGroupSelectionChanged(app)
+        
+                            app.play_Channel_Name.Value          = app.specData(idxThread).UserData.channelManual(idxChannel).Name;
+                            app.play_Channel_FirstChannel.Value  = FirstChannel;
+                            app.play_Channel_LastChannel.Value   = LastChannel;
+                            app.play_Channel_StepWidth.Value     = max(-1, StepWidth * 1000);
+                            app.play_Channel_BW.Value            = max(-1, app.specData(idxThread).UserData.channelManual(idxChannel).ChannelBW * 1000);
+                            set(app.play_Channel_Class, 'Items', app.channelObj.FindPeaks.Name, 'Value', app.specData(idxThread).UserData.channelManual(idxChannel).FindPeaksName)
+                
+                            app.play_Channel_nChannels.Value     = numel(FreqList);
+                            play_ChannelListSample(app, FreqList)
+                    end
 
-                plot_Draw_Channels(app, idx)
+                    set(findobj(app.play_Channel_Grid.Children, '-not', {'Type', 'uilabel', '-or', 'Type', 'uiimage'}), 'Enable', 1)
+                else
+                    set(findobj(app.play_Channel_Grid.Children, '-not', {'Type', 'uilabel', '-or', 'Type', 'uiimage'}), 'Enable', 0)
+                end
             end
+
+            plot_Draw_Channels(app, idxThread)
             
         end
 
@@ -4330,20 +4342,22 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % canalização selecionada.
 
             if ~isempty(app.play_Channel_Tree.SelectedNodes)
-                idx = app.play_PlotPanel.UserData.NodeData;
+                idxThread = app.play_PlotPanel.UserData.NodeData;
 
-                srcChannel = app.play_Channel_Tree.SelectedNodes.NodeData.src;
-                idxChannel = app.play_Channel_Tree.SelectedNodes.NodeData.idx;
-
-                switch srcChannel
-                    case 'channelLib'
-                        app.specData(idx).UserData.channelLibIndex = setdiff(app.specData(idx).UserData.channelLibIndex, idxChannel);
-                    case 'manual'
-                        app.specData(idx).UserData.channelManual(idxChannel) = [];
+                for ii = numel(app.play_Channel_Tree.SelectedNodes):-1:1
+                    srcChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.src;
+                    idxChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.idx;
+    
+                    switch srcChannel
+                        case 'channelLib'
+                            app.specData(idxThread).UserData.channelLibIndex = setdiff(app.specData(idxThread).UserData.channelLibIndex, idxChannel);
+                        case 'manual'
+                            app.specData(idxThread).UserData.channelManual(idxChannel) = [];
+                    end
                 end
-                
-                play_Channel_TreeBuilding(app, idx, 'play_Channel_ContextMenu_delChannel')
             end
+
+            play_Channel_TreeBuilding(app, idxThread, 'play_Channel_ContextMenu_delChannel')
 
         end
 
@@ -4355,22 +4369,27 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % emissões.
 
             if ~isempty(app.play_Channel_Tree.SelectedNodes)
-                idx = app.play_PlotPanel.UserData.NodeData;
+                idxThread = app.play_PlotPanel.UserData.NodeData;
 
-                srcChannel = app.play_Channel_Tree.SelectedNodes.NodeData.src;
-                idxChannel = app.play_Channel_Tree.SelectedNodes.NodeData.idx;
+                xLim1 = [];
+                xLim2 = [];
 
-                switch srcChannel
-                    case 'channelLib'
-                        xLim1 = app.channelObj.Channel(idxChannel).Band(1);
-                        xLim2 = app.channelObj.Channel(idxChannel).Band(2);
-                    case 'manual'
-                        xLim1 = app.specData(idx).UserData.channelManual(idxChannel).Band(1);
-                        xLim2 = app.specData(idx).UserData.channelManual(idxChannel).Band(2);
+                for ii = 1:numel(app.play_Channel_Tree.SelectedNodes)
+                    srcChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.src;
+                    idxChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.idx;
+    
+                    switch srcChannel
+                        case 'channelLib'
+                            xLim1(end+1) = app.channelObj.Channel(idxChannel).Band(1);
+                            xLim2(end+1) = app.channelObj.Channel(idxChannel).Band(2);
+                        case 'manual'
+                            xLim1(end+1) = app.specData(idxThread).UserData.channelManual(idxChannel).Band(1);
+                            xLim2(end+1) = app.specData(idxThread).UserData.channelManual(idxChannel).Band(2);
+                    end
                 end
 
-                xLim1 = max(xLim1, app.play_BandLimits_xLim1.Limits(1));
-                xLim2 = min(xLim2, app.play_BandLimits_xLim1.Limits(2));
+                xLim1 = max([xLim1, app.play_BandLimits_xLim1.Limits(1)]);
+                xLim2 = min([xLim2, app.play_BandLimits_xLim1.Limits(2)]);
 
                 app.play_BandLimits_xLim1.Value = xLim1;
                 app.play_BandLimits_xLim2.Value = xLim2;
@@ -4393,39 +4412,36 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             if ~isempty(app.play_Channel_Tree.SelectedNodes)
                 idxThread  = app.play_PlotPanel.UserData.NodeData;
 
-                srcChannel = app.play_Channel_Tree.SelectedNodes.NodeData.src;
-                idxChannel = app.play_Channel_Tree.SelectedNodes.NodeData.idx;
-
-                switch srcChannel
-                    case 'channelLib'
-                        specChannel = app.channelObj.Channel(idxChannel);
-                    case 'manual'
-                        specChannel = app.specData(idxThread).UserData.channelManual(idxChannel);
-                end
-
-                newFreq  = specChannel.FreqList;
-                if isempty(newFreq)
-                    newFreq = (specChannel.FirstChannel:specChannel.StepWidth:specChannel.LastChannel)';
-                end
-                [newIndex, invalidIndex] = freq2idx(app.bandObj, newFreq .* 1e+6, 'OnlyCheck');
-
-                newFreq(invalidIndex)  = [];
-                newIndex(invalidIndex) = [];
-                
-                if ~isempty(newIndex)
-                    newBW = specChannel.ChannelBW;
-                    if newBW < 0
-                        newBW = 0;
+                for ii = 1:numel(app.play_Channel_Tree.SelectedNodes)
+                    srcChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.src;
+                    idxChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.idx;
+    
+                    switch srcChannel
+                        case 'channelLib'
+                            specChannel = app.channelObj.Channel(idxChannel);
+                        case 'manual'
+                            specChannel = app.specData(idxThread).UserData.channelManual(idxChannel);
                     end
-                    newBW = newBW * 1000; % Em kHz
-        
-                    NN = numel(newIndex);
-                    play_AddEmission2List(app, idxThread, newIndex, newFreq, repmat(newBW, NN, 1), repmat({jsonencode(struct('Algorithm', 'Manual'))}, NN, 1))
-
-                else
-                    msgWarning = ['Não identificado canal cuja frequência central esteja contida ' ...
-                                  'na faixa de frequência do fluxo espectral sob análise.'];
-                    appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+    
+                    newFreq  = specChannel.FreqList;
+                    if isempty(newFreq)
+                        newFreq = (specChannel.FirstChannel:specChannel.StepWidth:specChannel.LastChannel)';
+                    end
+                    [newIndex, invalidIndex] = freq2idx(app.bandObj, newFreq .* 1e+6, 'OnlyCheck');
+    
+                    newFreq(invalidIndex)  = [];
+                    newIndex(invalidIndex) = [];
+                    
+                    if ~isempty(newIndex)
+                        newBW = specChannel.ChannelBW;
+                        if newBW < 0
+                            newBW = 0;
+                        end
+                        newBW = newBW * 1000; % Em kHz
+            
+                        NN = numel(newIndex);
+                        play_AddEmission2List(app, idxThread, newIndex, newFreq, repmat(newBW, NN, 1), repmat({jsonencode(struct('Algorithm', 'Manual'))}, NN, 1))
+                    end
                 end
             end
 
@@ -7337,6 +7353,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_Channel_Tree
             app.play_Channel_Tree = uitree(app.play_ControlsTab2Info);
+            app.play_Channel_Tree.Multiselect = 'on';
             app.play_Channel_Tree.SelectionChangedFcn = createCallbackFcn(app, @play_Channel_TreeSelectionChanged, true);
             app.play_Channel_Tree.FontSize = 10;
             app.play_Channel_Tree.Layout.Row = 6;

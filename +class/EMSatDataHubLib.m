@@ -2,10 +2,16 @@ classdef (Abstract) EMSatDataHubLib
     
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function chList = read_PlanoFrequenciaSatelite(Filename, columnName, columnListOfValues)
+        function chList = read_PlanoFrequenciaSatelite(Filename, varargin)
 
             chTable = readtable(Filename);
-            chTable = chTable(ismember(chTable.(columnName), columnListOfValues), :);
+            
+            if ~isempty(varargin)
+                columnName = varargin{1};
+                columnListOfValues = varargin{2};
+
+                chTable = chTable(ismember(chTable.(columnName), columnListOfValues), :);
+            end
 
             % Conversões esquisitas de algumas colunas que serão usadas e que 
             % imagino que não precisem ser feita caso sejam ajustados aspectos 
@@ -32,15 +38,15 @@ classdef (Abstract) EMSatDataHubLib
                 BW  = chTable.TPDR_BW(ii);
                 GBW = ceil(BW / 20);
 
-                chList(ii).Name          = sprintf('SAT %s', chTable.TPDR_DESIG_INT{ii});
+                chList(ii).Name          = sprintf('SAT %s (%s - %s)', chTable.TPDR_DESIG_INT{ii}, chTable.TPDR_FEIXE_DOWN{ii}, chTable.TPDR_FEIXE_POLARIZ_DOWN{ii});
                 chList(ii).Band          = [CF-BW/2-GBW, CF+BW/2+GBW];
                 chList(ii).FirstChannel  = CF;
-                chList(ii).LastChannel   = -1;
+                chList(ii).LastChannel   = CF;
                 chList(ii).StepWidth     = -1;
                 chList(ii).ChannelBW     = chTable.TPDR_BW(ii);
                 chList(ii).FreqList      = [];
-                chList(ii).Reference     = jsonencode(chTable(ii, {'TPDR_SNAPSHOT_DT', 'TPDR_SAT_ANATEL_ID', 'TPDR_DESIG_INT', 'TPDR_CODE', 'TPDR_LICENCIADO_BRASIL', 'TPDR_TECNOLOGIA', 'TPDR_FEIXE_DOWN', 'TPDR_FEIXE_POLARIZ_DOWN', 'TPDR_OBS'}));
-                chList(ii).FindPeaksName = 'Satellite A';
+                chList(ii).Reference     = jsonencode(chTable(ii, {'TPDR_SNAPSHOT_DT', 'TPDR_SAT_ANATEL_ID', 'TPDR_DESIG_INT', 'TPDR_CODE', 'TPDR_LICENCIADO_BRASIL', 'TPDR_TECNOLOGIA', 'TPDR_OBS'}));
+                chList(ii).FindPeaksName = 'Satellite';
             end    
         end
     end
