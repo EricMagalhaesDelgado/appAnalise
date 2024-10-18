@@ -1,22 +1,23 @@
-function measCalibration(app, OperationType, idx1, idx2, Name)
+function measCalibration(specData, rootFolder, OperationType, idxThread, idxCalibration, Name)
 
-    FreqStart  = app.specData(idx1).MetaData.FreqStart / 1e+6;
-    FreqStop   = app.specData(idx1).MetaData.FreqStop  / 1e+6;
-    DataPoints = app.specData(idx1).MetaData.DataPoints;
-
-    measCalibration = app.specData(idx1).UserData.measCalibration;
+    FreqStart   = specData(idxThread).MetaData.FreqStart / 1e+6;
+    FreqStop    = specData(idxThread).MetaData.FreqStop  / 1e+6;
+    DataPoints  = specData(idxThread).MetaData.DataPoints;
+    Calibration = specData(idxThread).UserData.measCalibration;
 
     switch OperationType
         case 'Add'
-            kFactorTable = FactorTable(app.RootFolder, Name);
+            kFactorTable = FactorTable(rootFolder, Name);
 
             % VALIDAÇÕES        
-            if contains(measCalibration.Name, Name)
-                error('Curva de correção já incluída!')        
+            if contains(Calibration.Name, Name)
+                error('Curva de correção já incluída!')
+
             elseif strcmp(kFactorTable.Type, 'Antenna k-Factor')
-                if any(contains(measCalibration.Type, 'Antenna k-Factor'))
+                if any(contains(Calibration.Type, 'Antenna k-Factor'))
                     error('Já incluída uma curva de correção do tipo "Antenna k-Factor", a qual deve ser previamente excluída antes da inclusão de uma nova.')
-                elseif ~ismember(app.specData(idx1).MetaData.LevelUnit, {'dBm', 'dBµV'})
+
+                elseif ~ismember(specData(idxThread).MetaData.LevelUnit, {'dBm', 'dBµV'})
                     error('Para inclusão de uma curva de correção do tipo "Antenna k-Factor", a unidade de medida da faixa monitorada precisa ser "dBm" ou "dBµV".')
                 end
             end
@@ -28,47 +29,43 @@ function measCalibration(app, OperationType, idx1, idx2, Name)
             % UNIDADES INICIAL E FINAL (PÓS-PROCESSAMENTO)
             switch kFactorTable.Type
                 case 'Antenna k-Factor'  
-                    oldLevelUnit = app.specData(idx1).MetaData.LevelUnit;
+                    oldLevelUnit = specData(idxThread).MetaData.LevelUnit;
                     newLevelUnit = 'dBµV/m';
-                    app.specData(idx1).MetaData.LevelUnit = newLevelUnit;
+                    specData(idxThread).MetaData.LevelUnit = newLevelUnit;
 
                 case 'Calibration'
-                    if isempty(measCalibration)
-                        oldLevelUnit = app.specData(idx1).MetaData.LevelUnit;
+                    if isempty(Calibration)
+                        oldLevelUnit = specData(idxThread).MetaData.LevelUnit;
                     else
-                        oldLevelUnit = measCalibration.oldUnitLevel{1};
+                        oldLevelUnit = Calibration.oldUnitLevel{1};
                     end
                     newLevelUnit = oldLevelUnit;
             end
             kFactorArray = FactorArray(kFactorTable, FreqStart, FreqStop, DataPoints, oldLevelUnit);
             
-            app.specData(idx1).Data{2} = app.specData(idx1).Data{2} + kFactorArray;
-            app.specData(idx1).Data{3} = app.specData(idx1).Data{3} + kFactorArray;
+            specData(idxThread).Data{2} = specData(idxThread).Data{2} + kFactorArray;
+            specData(idxThread).Data{3} = specData(idxThread).Data{3} + kFactorArray;
 
-            app.specData(idx1).UserData.measCalibration(end+1,:) = {kFactorTable.Name, kFactorTable.Type, oldLevelUnit, newLevelUnit};
-            app.specData(idx1).UserData.measCalibration          = sortrows(app.specData(idx1).UserData.measCalibration, 'Type', 'descend');
+            specData(idxThread).UserData.measCalibration(end+1,:) = {kFactorTable.Name, kFactorTable.Type, oldLevelUnit, newLevelUnit};
+            specData(idxThread).UserData.measCalibration          = sortrows(specData(idxThread).UserData.measCalibration, 'Type', 'descend');
 
         case 'Remove'
-            oldLevelUnit = measCalibration.oldUnitLevel{1};
+            oldLevelUnit = Calibration.oldUnitLevel{1};
 
-            for ii = numel(idx2):-1:1
-                kFactorTable = FactorTable(app.RootFolder, Name{ii});                
+            for ii = numel(idxCalibration):-1:1
+                kFactorTable = FactorTable(rootFolder, Name{ii});                
                 kFactorArray = FactorArray(kFactorTable, FreqStart, FreqStop, DataPoints, oldLevelUnit);
 
                 if strcmp(kFactorTable.Type, 'Antenna k-Factor')
-                    app.specData(idx1).MetaData.LevelUnit = oldLevelUnit;
+                    specData(idxThread).MetaData.LevelUnit = oldLevelUnit;
                 end
                 
-                app.specData(idx1).Data{2} = app.specData(idx1).Data{2} - kFactorArray;
-                app.specData(idx1).Data{3} = app.specData(idx1).Data{3} - kFactorArray;
+                specData(idxThread).Data{2} = specData(idxThread).Data{2} - kFactorArray;
+                specData(idxThread).Data{3} = specData(idxThread).Data{3} - kFactorArray;
                 
-                app.specData(idx1).UserData.measCalibration(idx2(ii),:) = [];
+                specData(idxThread).UserData.measCalibration(idxCalibration(ii),:) = [];
             end
     end
-
-    SelectedNodesTextList = edit_SelectedNodesText(app);
-    hComp = app.misc_Edit_kFactor;
-    play_TreeRebuilding(app, SelectedNodesTextList, hComp)
 end
 
 
