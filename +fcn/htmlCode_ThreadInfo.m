@@ -42,7 +42,7 @@ function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
         end
 
         % GPS e arquivos:
-        dataStruct(end+1) = struct('group', 'GPS', 'value', specData.GPS);        
+        dataStruct(end+1) = struct('group', 'GPS', 'value', specData.GPS);
         dataStruct(end+1) = struct('group', 'FONTE DA INFORMAÇÃO',                                   ...
                                    'value', struct('File',    strjoin(specData.RelatedFiles.File, ', '), ...
                                                    'nSweeps', sum(specData.RelatedFiles.nSweeps)));
@@ -58,6 +58,10 @@ function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
                                                        'ObservationTime', sprintf('%s - %s', BeginTime, EndTime), ...
                                                        'nSweeps',         specData.RelatedFiles.nSweeps(ii),          ...
                                                        'RevisitTime',     sprintf('%.3f segundos', specData.RelatedFiles.RevisitTime(ii))));
+        end
+
+        if ~isempty(specData.UserData) && ~isempty(specData.UserData.LOG)
+            dataStruct(end+1) = struct('group', 'LOG', 'value', strjoin(specData.UserData.LOG));
         end
 
         htmlContent{end+1} = sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', threadTag);

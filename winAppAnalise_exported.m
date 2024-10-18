@@ -74,12 +74,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         misc_Grid1                      matlab.ui.container.GridLayout
         misc_DeleteAllLabel             matlab.ui.control.Label
         misc_DeleteAll                  matlab.ui.control.Button
-        misc_AddCurveLabel              matlab.ui.control.Label
-        misc_AddCurve                   matlab.ui.control.Button
-        misc_EditLocalLabel             matlab.ui.control.Label
-        misc_EditLocal                  matlab.ui.control.Button
-        misc_FilterLabel                matlab.ui.control.Label
-        misc_Filter                     matlab.ui.control.Button
+        misc_AddCorrectionLabel         matlab.ui.control.Label
+        misc_AddCorrection              matlab.ui.control.Button
+        misc_EditLocationLabel          matlab.ui.control.Label
+        misc_EditLocation               matlab.ui.control.Button
+        misc_TimeFilteringLabel         matlab.ui.control.Label
+        misc_TimeFiltering              matlab.ui.control.Button
         misc_ImportLabel                matlab.ui.control.Label
         misc_Import                     matlab.ui.control.Button
         misc_ExportLabel                matlab.ui.control.Label
@@ -1040,7 +1040,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function menu_LayoutPopupApp(app, auxiliarApp)
+        function menu_LayoutPopupApp(app, auxiliarApp, varargin)
+            arguments
+                app
+                auxiliarApp char {mustBeMember(auxiliarApp, {'WelcomePage', 'Detection', 'Classification', 'TimeFiltering', 'EditLocation'})}
+            end
+
+            arguments (Repeating)
+                varargin 
+            end
+
             % Inicialmente ajusta as dimensões do container.
             switch auxiliarApp
                 case 'WelcomePage'
@@ -1054,6 +1063,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case 'Classification'
                     screenWidth  = 534;
                     screenHeight = 248;
+
+                case 'TimeFiltering'
+                    screenWidth  = 640;
+                    screenHeight = 480;
+
+                case 'EditLocation'
+                    screenWidth  = 360;
+                    screenHeight = 210;
             end
 
             app.popupContainerGrid.ColumnWidth{2} = screenWidth;
@@ -1072,6 +1089,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 case 'Classification'
                     auxApp.dockClassification_exported(app.popupContainer, app)
+
+                case 'TimeFiltering'
+                    auxApp.dockMisc_TimeFiltering_exported(app.popupContainer, app, varargin{1})
+
+                case 'EditLocation'
+                    auxApp.dockMisc_EditLocation_exported(app.popupContainer, app, varargin{1})
             end
 
             % Torna visível o container.
@@ -3051,6 +3074,24 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 idxThread = varargin{2};
                                 report_Algorithms(app, idxThread)
                                 report_SaveWarn(app)
+                            case 'Close'
+                                % ...
+                        end
+                        
+                        app.popupContainerGrid.Visible = 0;
+
+                    case {'auxApp.dockMisc_TimeFiltering', 'auxApp.dockMisc_TimeFiltering_exported', ...
+                          'auxApp.dockMisc_EditLocation',  'auxApp.dockMisc_EditLocation_exported'}
+                        pushedButtonTag = varargin{1};
+
+                        switch pushedButtonTag
+                            case {'OK', 'Refresh'}
+                                SelectedNodesTextList = misc_SelectedNodesText(app);
+                                play_TreeRebuilding(app, SelectedNodesTextList)
+
+                                if pushedButtonTag == "Refresh"
+                                    return
+                                end
                             case 'Close'
                                 % ...
                         end
@@ -5571,8 +5612,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Button pushed function: misc_Del, misc_Duplicate, misc_Export, 
-        % ...and 3 other components
+        % Button pushed function: misc_AddCorrection, misc_Del, 
+        % ...and 7 other components
         function misc_OperationsCallbacks(app, event)
             
             if app.plotFlag
@@ -5593,7 +5634,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
                         
                         sortType     = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.play_TreeSort.UserData));
-                        app.specData = sort(app.specData, sortType);                    
+                        app.specData = sort(app.specData, sortType);
                     
                     %-----------------------------------------------------%
                     case app.misc_Merge
@@ -5636,6 +5677,34 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     %-----------------------------------------------------%
                     case app.misc_Import
                         misc_ImportUserData(app)
+
+                    %-----------------------------------------------------%
+                    case app.misc_TimeFiltering
+                        menu_LayoutPopupApp(app, 'TimeFiltering', idxThreads)
+                        return
+
+                    %-----------------------------------------------------%
+                    case app.misc_EditLocation
+                        gpsArray = arrayfun(@(x) x.GPS, app.specData(idxThreads));
+                        for ii = numel(gpsArray):-1:2
+                            if isequal(gpsArray(ii), gpsArray(1))
+                                gpsArray(ii) = [];
+                            end
+                        end
+        
+                        if numel(gpsArray) > 1
+                            error(['A edição de informações relacionadas ao local de monitoração é '      ...
+                                   'aplicável apenas quando selecionados fluxos espectrais relacionados ' ...
+                                   'ao mesmo local.'])
+                        end
+
+                        menu_LayoutPopupApp(app, 'EditLocation', idxThreads)
+                        return
+
+                    %-----------------------------------------------------%
+                    case app.misc_AddCorrection
+                        menu_LayoutPopupApp(app, 'misc_AddCorrection')
+                        return
                 end
 
                 SelectedNodesTextList = misc_SelectedNodesText(app);
@@ -8382,59 +8451,62 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.misc_ImportLabel.Layout.Column = [17 19];
             app.misc_ImportLabel.Text = {'Importar'; 'análise'};
 
-            % Create misc_Filter
-            app.misc_Filter = uibutton(app.misc_Grid1, 'push');
-            app.misc_Filter.Icon = fullfile(pathToMLAPP, 'Icons', 'Filter_18.png');
-            app.misc_Filter.BackgroundColor = [1 1 1];
-            app.misc_Filter.Tooltip = {'Exclui todas as informações espectrais'};
-            app.misc_Filter.Layout.Row = 5;
-            app.misc_Filter.Layout.Column = 2;
-            app.misc_Filter.Text = '';
+            % Create misc_TimeFiltering
+            app.misc_TimeFiltering = uibutton(app.misc_Grid1, 'push');
+            app.misc_TimeFiltering.ButtonPushedFcn = createCallbackFcn(app, @misc_OperationsCallbacks, true);
+            app.misc_TimeFiltering.Icon = fullfile(pathToMLAPP, 'Icons', 'Filter_18.png');
+            app.misc_TimeFiltering.BackgroundColor = [1 1 1];
+            app.misc_TimeFiltering.Tooltip = {'Exclui todas as informações espectrais'};
+            app.misc_TimeFiltering.Layout.Row = 5;
+            app.misc_TimeFiltering.Layout.Column = 2;
+            app.misc_TimeFiltering.Text = '';
 
-            % Create misc_FilterLabel
-            app.misc_FilterLabel = uilabel(app.misc_Grid1);
-            app.misc_FilterLabel.HorizontalAlignment = 'center';
-            app.misc_FilterLabel.WordWrap = 'on';
-            app.misc_FilterLabel.FontSize = 10;
-            app.misc_FilterLabel.Layout.Row = 6;
-            app.misc_FilterLabel.Layout.Column = [1 3];
-            app.misc_FilterLabel.Text = 'Filtrar fluxo(s)';
+            % Create misc_TimeFilteringLabel
+            app.misc_TimeFilteringLabel = uilabel(app.misc_Grid1);
+            app.misc_TimeFilteringLabel.HorizontalAlignment = 'center';
+            app.misc_TimeFilteringLabel.WordWrap = 'on';
+            app.misc_TimeFilteringLabel.FontSize = 10;
+            app.misc_TimeFilteringLabel.Layout.Row = 6;
+            app.misc_TimeFilteringLabel.Layout.Column = [1 3];
+            app.misc_TimeFilteringLabel.Text = 'Filtrar fluxo(s)';
 
-            % Create misc_EditLocal
-            app.misc_EditLocal = uibutton(app.misc_Grid1, 'push');
-            app.misc_EditLocal.Icon = fullfile(pathToMLAPP, 'Icons', 'Pin_32.png');
-            app.misc_EditLocal.BackgroundColor = [1 1 1];
-            app.misc_EditLocal.Tooltip = {'Exclui todas as informações espectrais'};
-            app.misc_EditLocal.Layout.Row = 5;
-            app.misc_EditLocal.Layout.Column = 5;
-            app.misc_EditLocal.Text = '';
+            % Create misc_EditLocation
+            app.misc_EditLocation = uibutton(app.misc_Grid1, 'push');
+            app.misc_EditLocation.ButtonPushedFcn = createCallbackFcn(app, @misc_OperationsCallbacks, true);
+            app.misc_EditLocation.Icon = fullfile(pathToMLAPP, 'Icons', 'Pin_32.png');
+            app.misc_EditLocation.BackgroundColor = [1 1 1];
+            app.misc_EditLocation.Tooltip = {'Exclui todas as informações espectrais'};
+            app.misc_EditLocation.Layout.Row = 5;
+            app.misc_EditLocation.Layout.Column = 5;
+            app.misc_EditLocation.Text = '';
 
-            % Create misc_EditLocalLabel
-            app.misc_EditLocalLabel = uilabel(app.misc_Grid1);
-            app.misc_EditLocalLabel.HorizontalAlignment = 'center';
-            app.misc_EditLocalLabel.WordWrap = 'on';
-            app.misc_EditLocalLabel.FontSize = 10;
-            app.misc_EditLocalLabel.Layout.Row = 6;
-            app.misc_EditLocalLabel.Layout.Column = [4 6];
-            app.misc_EditLocalLabel.Text = {'Editar'; 'Local'};
+            % Create misc_EditLocationLabel
+            app.misc_EditLocationLabel = uilabel(app.misc_Grid1);
+            app.misc_EditLocationLabel.HorizontalAlignment = 'center';
+            app.misc_EditLocationLabel.WordWrap = 'on';
+            app.misc_EditLocationLabel.FontSize = 10;
+            app.misc_EditLocationLabel.Layout.Row = 6;
+            app.misc_EditLocationLabel.Layout.Column = [4 6];
+            app.misc_EditLocationLabel.Text = {'Editar'; 'Local'};
 
-            % Create misc_AddCurve
-            app.misc_AddCurve = uibutton(app.misc_Grid1, 'push');
-            app.misc_AddCurve.Icon = fullfile(pathToMLAPP, 'Icons', 'RFFilter_32.png');
-            app.misc_AddCurve.BackgroundColor = [1 1 1];
-            app.misc_AddCurve.Tooltip = {'Exclui todas as informações espectrais'};
-            app.misc_AddCurve.Layout.Row = 5;
-            app.misc_AddCurve.Layout.Column = 8;
-            app.misc_AddCurve.Text = '';
+            % Create misc_AddCorrection
+            app.misc_AddCorrection = uibutton(app.misc_Grid1, 'push');
+            app.misc_AddCorrection.ButtonPushedFcn = createCallbackFcn(app, @misc_OperationsCallbacks, true);
+            app.misc_AddCorrection.Icon = fullfile(pathToMLAPP, 'Icons', 'RFFilter_32.png');
+            app.misc_AddCorrection.BackgroundColor = [1 1 1];
+            app.misc_AddCorrection.Tooltip = {'Exclui todas as informações espectrais'};
+            app.misc_AddCorrection.Layout.Row = 5;
+            app.misc_AddCorrection.Layout.Column = 8;
+            app.misc_AddCorrection.Text = '';
 
-            % Create misc_AddCurveLabel
-            app.misc_AddCurveLabel = uilabel(app.misc_Grid1);
-            app.misc_AddCurveLabel.HorizontalAlignment = 'center';
-            app.misc_AddCurveLabel.WordWrap = 'on';
-            app.misc_AddCurveLabel.FontSize = 10;
-            app.misc_AddCurveLabel.Layout.Row = 6;
-            app.misc_AddCurveLabel.Layout.Column = [7 9];
-            app.misc_AddCurveLabel.Text = {'Aplicar'; 'correção'};
+            % Create misc_AddCorrectionLabel
+            app.misc_AddCorrectionLabel = uilabel(app.misc_Grid1);
+            app.misc_AddCorrectionLabel.HorizontalAlignment = 'center';
+            app.misc_AddCorrectionLabel.WordWrap = 'on';
+            app.misc_AddCorrectionLabel.FontSize = 10;
+            app.misc_AddCorrectionLabel.Layout.Row = 6;
+            app.misc_AddCorrectionLabel.Layout.Column = [7 9];
+            app.misc_AddCorrectionLabel.Text = {'Aplicar'; 'correção'};
 
             % Create misc_DeleteAll
             app.misc_DeleteAll = uibutton(app.misc_Grid1, 'push');

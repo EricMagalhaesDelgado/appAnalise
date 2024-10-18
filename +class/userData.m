@@ -33,6 +33,10 @@ classdef userData
         reportExternalFiles  = table('Size', [0, 3],                             ...
                                      'VariableTypes', {'uint8', 'cell', 'cell'}, ...
                                      'VariableNames', {'ID', 'Tag', 'Filename'});
+
+        % Registrar operações não contempladas nas outras propriedades. Por
+        % exemplo: filtragem temporal do fluxo espectral.
+        LOG                  = {}
     end
 
 

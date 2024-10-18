@@ -275,47 +275,36 @@ classdef specData < handle
         end
 
         %-----------------------------------------------------------------%
-        function filter(obj, timeStampFilter)
-            for ii = 1:numel(obj)
-                % FILTRAGEM
-                nSweeps = numel(obj(ii).Data{1});
-                originalTimeStamp = obj(ii).Data{1};
+        function obj = filter(obj, FilterLOG, FilterLogicalArray)
+            if ~isscalar(obj)
+                error('UnexpectedNonScalarObject')
+            end
 
-                idxFilter = false(1, nSweeps);
-                for jj = 1:height(timeStampFilter)
-                    idxFilter = idxFilter | (originalTimeStamp < timeStampFilter.Observation(jj)) | (originalTimeStamp > timeStampFilter.Observation(jj));
-                end
+            % FILTRAGEM
+            obj.Data{1}(~FilterLogicalArray)    = [];
+            obj.Data{2}(:, ~FilterLogicalArray) = [];
 
-                if any(idxFilter)
-                    originalTimeStamp(idxFilter) = [];
-                end
-                
-                if numel(originalTimeStamp) <= 1
-                    error('specData:filter', 'Após aplicação do filtro de tempo deve restar ao menos duas amostras.')
-                end
+            % LOG
+            obj.UserData.LOG{end+1} = jsonencode(FilterLOG);
+            
+            % ESTATÍSTICA BÁSICA
+            basicStats(obj, 1)
 
-                obj(ii).Data{1}(idxFilter)   = [];
-                obj(ii).Data{2}(:,idxFilter) = [];
-                
-                % ESTATÍSTICA BÁSICA
-                basicStats(obj, ii)
-    
-                % Ajusta a informação da propriedade "RelatedFiles", que armazena
-                % o período de observação de cada arquivo, o número de amostras
-                % e uma estimativa do tempo de revisita.
-                HH = height(obj(ii).RelatedFiles);
-                for kk = HH:-1:1
-                    idxSweepsInFile = find((obj(ii).Data{1} >= obj(ii).RelatedFiles.BeginTime(kk)) & (obj(ii).Data{1} <= obj(ii).RelatedFiles.EndTime(kk)));
-                    if isempty(idxSweepsInFile)
-                        obj(ii).RelatedFiles(kk,:) = [];
+            % Ajusta a informação da propriedade "RelatedFiles", que armazena
+            % o período de observação de cada arquivo, o número de amostras
+            % e uma estimativa do tempo de revisita.
+            HH = height(obj.RelatedFiles);
+            for ii = HH:-1:1
+                idxSweepsInFile = find((obj.Data{1} >= obj.RelatedFiles.BeginTime(ii)) & (obj.Data{1} <= obj.RelatedFiles.EndTime(ii)));
+                if isempty(idxSweepsInFile)
+                    obj.RelatedFiles(ii,:) = [];
 
-                    else
-                        BeginTime = obj(ii).Data{1}(idxSweepsInFile(1));
-                        EndTime   = obj(ii).Data{1}(idxSweepsInFile(end));
-                        nSweeps   = numel(idxSweepsInFile);
-    
-                        obj(ii).RelatedFiles(kk,5:8) = {BeginTime, EndTime, nSweeps, seconds(EndTime-BeginTime)/(nSweeps-1)};
-                    end
+                else
+                    BeginTime = obj.Data{1}(idxSweepsInFile(1));
+                    EndTime   = obj.Data{1}(idxSweepsInFile(end));
+                    nSweeps   = numel(idxSweepsInFile);
+
+                    obj.RelatedFiles(ii,5:8) = {BeginTime, EndTime, nSweeps, seconds(EndTime-BeginTime)/(nSweeps-1)};
                 end
             end
         end
