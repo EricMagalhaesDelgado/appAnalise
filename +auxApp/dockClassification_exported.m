@@ -63,6 +63,11 @@ classdef dockClassification_exported < matlab.apps.AppBase
                 editionFlag = true;
             end
         end
+
+        %-----------------------------------------------------------------%
+        function CallingMainApp(app, updateFlag, returnFlag, idxThread)
+            appBackDoor(app.CallingApp, app, 'REPORT', updateFlag, returnFlag, idxThread)
+        end
     end
     
 
@@ -101,17 +106,23 @@ classdef dockClassification_exported < matlab.apps.AppBase
         % Callback function: btnClose, btnOK
         function ButtonPushed(app, event)
             
-            pushedButtonTag = event.Source.Tag;
             idxThread = app.CallingApp.play_PlotPanel.UserData.NodeData;
 
-            if pushedButtonTag == "OK"
-                app.specData(idxThread).UserData.reportClassification.Algorithm  = app.Algorithm.Value;
-                app.specData(idxThread).UserData.reportClassification.Parameters = struct('Contour',         app.Contour.Value,    ...
-                                                                                          'ClassMultiplier', app.Multiplier.Value, ...
-                                                                                          'bwFactors',       [app.bwLim1.Value, app.bwLim2.Value]);
+            pushedButtonTag = event.Source.Tag;
+            switch pushedButtonTag
+                case 'OK'
+                    app.specData(idxThread).UserData.reportClassification.Algorithm  = app.Algorithm.Value;
+                    app.specData(idxThread).UserData.reportClassification.Parameters = struct('Contour',         app.Contour.Value,    ...
+                                                                                              'ClassMultiplier', app.Multiplier.Value, ...
+                                                                                              'bwFactors',       [app.bwLim1.Value, app.bwLim2.Value]);
+
+                    updateFlag = true;
+
+                case 'Close'
+                    updateFlag = false;
             end
 
-            appBackDoor(app.CallingApp, app, 'ButtonPushed', pushedButtonTag, idxThread)
+            CallingMainApp(app, updateFlag, false, idxThread)
             closeFcn(app)
 
         end

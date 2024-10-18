@@ -1043,7 +1043,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function menu_LayoutPopupApp(app, auxiliarApp, varargin)
             arguments
                 app
-                auxiliarApp char {mustBeMember(auxiliarApp, {'WelcomePage', 'Detection', 'Classification', 'TimeFiltering', 'EditLocation'})}
+                auxiliarApp char {mustBeMember(auxiliarApp, {'WelcomePage', 'Detection', 'Classification', 'TimeFiltering', 'EditLocation', 'AddKFactor'})}
             end
 
             arguments (Repeating)
@@ -1071,6 +1071,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case 'EditLocation'
                     screenWidth  = 360;
                     screenHeight = 210;
+
+                case 'AddKFactor'
+                    screenWidth  = 480;
+                    screenHeight = 360;
             end
 
             app.popupContainerGrid.ColumnWidth{2} = screenWidth;
@@ -1095,6 +1099,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 case 'EditLocation'
                     auxApp.dockMisc_EditLocation_exported(app.popupContainer, app, varargin{1})
+
+                case 'AddKFactor'
+                    auxApp.dockMisc_AddKFactor_exported(app.popupContainer, app, varargin{1})
             end
 
             % Torna visível o container.
@@ -3060,43 +3067,52 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 error('UnexpectedCall')
                         end
 
+                    case {'auxApp.dockClassification',     'auxApp.dockClassification_exported',     ... % REPORT:CLASSIFICATION
+                          'auxApp.dockDetection',          'auxApp.dockDetection_exported',          ... % REPORT:DETECTION
+                          'auxApp.dockMisc_TimeFiltering', 'auxApp.dockMisc_TimeFiltering_exported', ... % MISCELLANEOUS:TIMEFILTERING
+                          'auxApp.dockMisc_EditLocation',  'auxApp.dockMisc_EditLocation_exported',  ... % MISCELLANEOUS:EDITLOCATION
+                          'auxApp.dockMisc_AddKFactor',    'auxApp.dockMisc_AddKFactor_exported'}        % MISCELLANEOUS:ADDKFACTOR
+                        
+                        % Esse ramo do switch trata chamados de módulos auxiliares dos 
+                        % modos "REPORT" e "MISCELLANEOUS". Algumas das funcionalidades 
+                        % desses módulos requerem atualização do appAnalise:
+                        % (a) REPORT: atualização do painel de algoritmos.
+                        % (b) MISCELLANEOUS: atualização da visualização da árvore (e 
+                        %     aspectos decorrentes desta atualização, como painel de 
+                        %     metadados e plots).
+
+                        % O flag "updateFlag" provê essa atualização, e o flag "returnFlag" 
+                        % evita que o módulo seja "fechado" (por meio da invisibilidade do 
+                        % app.popupContainerGrid).
+
+                        updateFlag = varargin{1};
+                        returnFlag = varargin{2};
+
+                        if updateFlag
+                            switch operationType
+                                case 'REPORT'
+                                    idxThread = varargin{3};
+                                    report_Algorithms(app, idxThread)
+                                    report_SaveWarn(app)                                    
+
+                                case 'MISCELLANEOUS'
+                                    SelectedNodesTextList = misc_SelectedNodesText(app);
+                                    play_TreeRebuilding(app, SelectedNodesTextList)
+                            end
+                        end
+
+                        if returnFlag
+                            return
+                        end
+                        
+                        app.popupContainerGrid.Visible = 0;
+
                     % case 'auxApp.dockAddFiles_exported'
                     %     if strcmp(varargin{1}, 'Fluxo de dados')
                     %         report_TreeBuilding(app)
                     %         app.report_Tree.SelectedNodes = app.report_Tree.Children(1).Children(1);
                     %     end
                     % 
-                    case {'auxApp.dockClassification_exported', 'auxApp.dockDetection_exported'}
-                        pushedButtonTag = varargin{1};
-
-                        switch pushedButtonTag
-                            case 'OK'
-                                idxThread = varargin{2};
-                                report_Algorithms(app, idxThread)
-                                report_SaveWarn(app)
-                            case 'Close'
-                                % ...
-                        end
-                        
-                        app.popupContainerGrid.Visible = 0;
-
-                    case {'auxApp.dockMisc_TimeFiltering', 'auxApp.dockMisc_TimeFiltering_exported', ...
-                          'auxApp.dockMisc_EditLocation',  'auxApp.dockMisc_EditLocation_exported'}
-                        pushedButtonTag = varargin{1};
-
-                        switch pushedButtonTag
-                            case {'OK', 'Refresh'}
-                                SelectedNodesTextList = misc_SelectedNodesText(app);
-                                play_TreeRebuilding(app, SelectedNodesTextList)
-
-                                if pushedButtonTag == "Refresh"
-                                    return
-                                end
-                            case 'Close'
-                                % ...
-                        end
-                        
-                        app.popupContainerGrid.Visible = 0;
     
                     otherwise
                         error('UnexpectedCall')
@@ -5412,23 +5428,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function
-        function report_AlgorithmButtonPushed(app, event)
-            
-            switch event.Source
-                case app.report_occButton
-                    msg = 'A alteração do método de aferição da ocupação por <i>bin</i> do fluxo espectral deve ser feita diretamente no modo PLAYBACK.';
-                    appUtil.modalWindow(app.UIFigure, 'warning', msg);
-
-                case app.report_DetectionButton
-                    auxApp.dockDetection_exported(app);
-
-                case app.report_ClassificationButton
-                    auxApp.dockClassification_exported(app);
-            end
-
-        end
-
         % Image clicked function: report_FiscalizaRefresh, 
         % ...and 2 other components
         function report_FiscalizaStaticButtonPushed(app, event)
@@ -5703,7 +5702,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                     %-----------------------------------------------------%
                     case app.misc_AddCorrection
-                        menu_LayoutPopupApp(app, 'misc_AddCorrection')
+                        if ~isscalar(idxThreads)
+                            error(['A aplicação de uma curva de correção é possível apenas quando ' ...
+                                   'selecionado um único fluxo espectral.'])
+                        end
+                        
+                        menu_LayoutPopupApp(app, 'AddKFactor')
                         return
                 end
 

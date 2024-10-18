@@ -134,6 +134,11 @@ classdef dockDetection_exported < matlab.apps.AppBase
                 end
             end
         end
+
+        %-----------------------------------------------------------------%
+        function CallingMainApp(app, updateFlag, returnFlag, idxThread)
+            appBackDoor(app.CallingApp, app, 'REPORT', updateFlag, returnFlag, idxThread)
+        end
     end
     
 
@@ -218,30 +223,36 @@ classdef dockDetection_exported < matlab.apps.AppBase
         % Callback function: btnClose, btnOK
         function ButtonPushed(app, event)
             
-            pushedButtonTag = event.Source.Tag;
             idxThread = app.CallingApp.play_PlotPanel.UserData.NodeData;
+            
+            pushedButtonTag = event.Source.Tag;
+            switch pushedButtonTag
+                case 'OK'
+                    app.specData(idxThread).UserData.reportDetection.Algorithm = app.Algorithm.Value;
+                    switch app.Algorithm.Value
+                        case 'FindPeaks'
+                            app.specData(idxThread).UserData.reportDetection.Parameters = struct('Fcn',        app.Trace.Value,        ...
+                                                                                                 'NPeaks',     app.NPeaks.Value,       ...
+                                                                                                 'THR',        app.THR.Value,          ...
+                                                                                                 'Prominence', app.Prominence.Value,   ...
+                                                                                                 'Distance',   app.Distance.Value,     ...
+                                                                                                 'BW',         app.BW.Value);
+                        case 'FindPeaks+OCC'
+                            app.specData(idxThread).UserData.reportDetection.Parameters = struct('Distance',    app.Distance.Value,    ...
+                                                                                                 'BW',          app.BW.Value,          ...
+                                                                                                 'Prominence1', app.Prominence1.Value, ...
+                                                                                                 'Prominence2', app.Prominence2.Value, ...
+                                                                                                 'meanOCC',     app.meanOCC.Value,     ...
+                                                                                                 'maxOCC',      app.maxOCC.Value);
+                    end
 
-            if pushedButtonTag == "OK"
-                app.specData(idxThread).UserData.reportDetection.Algorithm = app.Algorithm.Value;
-                switch app.Algorithm.Value
-                    case 'FindPeaks'
-                        app.specData(idxThread).UserData.reportDetection.Parameters = struct('Fcn',        app.Trace.Value,        ...
-                                                                                             'NPeaks',     app.NPeaks.Value,       ...
-                                                                                             'THR',        app.THR.Value,          ...
-                                                                                             'Prominence', app.Prominence.Value,   ...
-                                                                                             'Distance',   app.Distance.Value,     ...
-                                                                                             'BW',         app.BW.Value);
-                    case 'FindPeaks+OCC'
-                        app.specData(idxThread).UserData.reportDetection.Parameters = struct('Distance',    app.Distance.Value,    ...
-                                                                                             'BW',          app.BW.Value,          ...
-                                                                                             'Prominence1', app.Prominence1.Value, ...
-                                                                                             'Prominence2', app.Prominence2.Value, ...
-                                                                                             'meanOCC',     app.meanOCC.Value,     ...
-                                                                                             'maxOCC',      app.maxOCC.Value);
-                end
+                    updateFlag = true;
+
+                case 'Close'
+                    updateFlag = false;
             end
 
-            appBackDoor(app.CallingApp, app, 'ButtonPushed', pushedButtonTag, idxThread)
+            CallingMainApp(app, updateFlag, false, idxThread)
             closeFcn(app)
 
         end

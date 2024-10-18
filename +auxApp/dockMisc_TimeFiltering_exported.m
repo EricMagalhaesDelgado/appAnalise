@@ -4,13 +4,10 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure              matlab.ui.Figure
         GridLayout            matlab.ui.container.GridLayout
-        Title                 matlab.ui.control.Label
         Document              matlab.ui.container.GridLayout
-        jsBackDoor            matlab.ui.control.HTML
-        HTMLPanel             matlab.ui.container.Panel
-        HTMLGrid              matlab.ui.container.GridLayout
-        HTML                  matlab.ui.control.HTML
-        HTMLLabel             matlab.ui.control.Label
+        btnOK                 matlab.ui.control.Button
+        filterAddImage        matlab.ui.control.Image
+        filterTree            matlab.ui.container.Tree
         filterValuePanel      matlab.ui.container.Panel
         filterValueGrid       matlab.ui.container.GridLayout
         DayOfWeek_7           matlab.ui.control.CheckBox
@@ -26,15 +23,17 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
         specificTime1_Minute  matlab.ui.control.Spinner
         specificTime1_Hour    matlab.ui.control.Spinner
         specificTime1_Date    matlab.ui.control.DatePicker
-        filterTypePanelLabel  matlab.ui.control.Label
         filterTypePanel       matlab.ui.container.ButtonGroup
         filterType_DayOfWeek  matlab.ui.control.RadioButton
         filterType_Time       matlab.ui.control.RadioButton
         filterType_Date       matlab.ui.control.RadioButton
         filterType_DateTime   matlab.ui.control.RadioButton
-        filterAddImage        matlab.ui.control.Image
-        filterTree            matlab.ui.container.Tree
-        btnOK                 matlab.ui.control.Button
+        filterTypePanelLabel  matlab.ui.control.Label
+        HTMLPanel             matlab.ui.container.Panel
+        HTMLGrid              matlab.ui.container.GridLayout
+        HTML                  matlab.ui.control.HTML
+        HTMLLabel             matlab.ui.control.Label
+        jsBackDoor            matlab.ui.control.HTML
         btnClose              matlab.ui.control.Image
         ContextMenu           matlab.ui.container.ContextMenu
         btnDelete             matlab.ui.container.Menu
@@ -89,7 +88,7 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function startup_Controller(app, idxThreads)
+        function initialValues(app, idxThreads)
             % Drawnow antes das customizações, garantindo que elas terão
             % efeito.
             drawnow
@@ -120,6 +119,7 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
         function TreeBuilding(app)
             if ~isempty(app.filterTree.Children)
                 delete(app.filterTree.Children)
+                removeStyle(app.filterTree)
             end
 
             if ~isempty(app.filterTable)
@@ -149,8 +149,9 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
                             fValue2Show = strjoin(DaysOfWeekMapping(fValue), ', ');
                     end
     
-                    uitreenode(app.filterTree, 'Text', sprintf('#%d: %s<br><font style="padding-left: 18px; color: gray;">%s</font>', ii, FilterTypeMapping(fType), fValue2Show), ...
-                                         'NodeData', ii, 'ContextMenu', app.ContextMenu);
+                    uitreenode(app.filterTree, 'Text',        sprintf('#%d: %s<br><font style="padding-left: 18px; color: gray;">%s</font>', ii, FilterTypeMapping(fType), fValue2Show), ...
+                                               'NodeData',    ii,                                                                                                                        ...
+                                               'ContextMenu', app.ContextMenu);
                 end
     
                 addStyle(app.filterTree, uistyle('Interpreter', 'html'), "tree", "")
@@ -199,6 +200,11 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
             idxThreads = app.filterSummary.idxThread;
             app.HTML.HTMLSource = auxApp.misc_timefiltering.htmlCode_ThreadsInfo(app.specData(idxThreads), app.filterSummary);
         end
+
+        %-----------------------------------------------------------------%
+        function CallingMainApp(app, updateFlag, returnFlag)
+            appBackDoor(app.CallingApp, app, 'MISCELLANEOUS', updateFlag, returnFlag)
+        end
     end
     
 
@@ -212,7 +218,7 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
             app.specData   = mainapp.specData;
 
             jsBackDoor_Initialization(app)
-            startup_Controller(app, idxThreads)
+            initialValues(app, idxThreads)
             
         end
 
@@ -272,23 +278,28 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
         function ButtonPushed(app, event)
             
             pushedButtonTag = event.Source.Tag;
+            switch pushedButtonTag
+                case 'OK'
+                    if isempty(app.filterTable) || any(~app.filterSummary.FilteredSweeps)
+                        app.btnOK.Enable = 0;
+                        return
+                    end
+    
+                    for ii = 1:height(app.filterSummary)
+                        idxThread = app.filterSummary.idxThread(ii);
+                        app.CallingApp.specData(idxThread) = filter(app.CallingApp.specData(idxThread), app.filterTable, app.filterSummary.FilterLogicalArray{ii});
+                    end
+                    
+                    sortType = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.CallingApp.play_TreeSort.UserData));
+                    app.CallingApp.specData = sort(app.CallingApp.specData, sortType);
 
-            if pushedButtonTag == "OK"
-                if isempty(app.filterTable) || any(~app.filterSummary.FilteredSweeps)
-                    app.btnOK.Enable = 0;
-                    return
-                end
+                    updateFlag = true;
 
-                for ii = 1:height(app.filterSummary)
-                    idxThread = app.filterSummary.idxThread(ii);
-                    app.CallingApp.specData(idxThread) = filter(app.CallingApp.specData(idxThread), app.filterTable, app.filterSummary.FilterLogicalArray{ii});
-                end
-                
-                sortType = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.CallingApp.play_TreeSort.UserData));
-                app.CallingApp.specData = sort(app.CallingApp.specData, sortType);
+                case 'Close'
+                    updateFlag = false;
             end
 
-            appBackDoor(app.CallingApp, app, 'ButtonPushed', pushedButtonTag)
+            CallingMainApp(app, updateFlag, false)
             closeFcn(app)
 
         end
@@ -421,32 +432,43 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
             app.Document.Layout.Column = [1 2];
             app.Document.BackgroundColor = [0.9804 0.9804 0.9804];
 
-            % Create btnOK
-            app.btnOK = uibutton(app.Document, 'push');
-            app.btnOK.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
-            app.btnOK.Tag = 'OK';
-            app.btnOK.IconAlignment = 'right';
-            app.btnOK.BackgroundColor = [0.9804 0.9804 0.9804];
-            app.btnOK.Enable = 'off';
-            app.btnOK.Layout.Row = 6;
-            app.btnOK.Layout.Column = [3 4];
-            app.btnOK.Text = 'OK';
+            % Create jsBackDoor
+            app.jsBackDoor = uihtml(app.Document);
+            app.jsBackDoor.Layout.Row = 1;
+            app.jsBackDoor.Layout.Column = 4;
 
-            % Create filterTree
-            app.filterTree = uitree(app.Document);
-            app.filterTree.Multiselect = 'on';
-            app.filterTree.FontSize = 11;
-            app.filterTree.BackgroundColor = [0.9804 0.9804 0.9804];
-            app.filterTree.Layout.Row = 5;
-            app.filterTree.Layout.Column = [2 4];
+            % Create HTMLLabel
+            app.HTMLLabel = uilabel(app.Document);
+            app.HTMLLabel.VerticalAlignment = 'bottom';
+            app.HTMLLabel.FontSize = 10;
+            app.HTMLLabel.Layout.Row = 1;
+            app.HTMLLabel.Layout.Column = 1;
+            app.HTMLLabel.Text = 'FLUXOS A PROCESSAR';
 
-            % Create filterAddImage
-            app.filterAddImage = uiimage(app.Document);
-            app.filterAddImage.ImageClickedFcn = createCallbackFcn(app, @filterAddImageClicked, true);
-            app.filterAddImage.Layout.Row = 4;
-            app.filterAddImage.Layout.Column = 4;
-            app.filterAddImage.HorizontalAlignment = 'right';
-            app.filterAddImage.ImageSource = 'addSymbol_32.png';
+            % Create HTMLPanel
+            app.HTMLPanel = uipanel(app.Document);
+            app.HTMLPanel.Layout.Row = [2 5];
+            app.HTMLPanel.Layout.Column = 1;
+
+            % Create HTMLGrid
+            app.HTMLGrid = uigridlayout(app.HTMLPanel);
+            app.HTMLGrid.ColumnWidth = {'1x'};
+            app.HTMLGrid.RowHeight = {'1x'};
+            app.HTMLGrid.Padding = [0 0 0 0];
+            app.HTMLGrid.BackgroundColor = [0.9804 0.9804 0.9804];
+
+            % Create HTML
+            app.HTML = uihtml(app.HTMLGrid);
+            app.HTML.Layout.Row = 1;
+            app.HTML.Layout.Column = 1;
+
+            % Create filterTypePanelLabel
+            app.filterTypePanelLabel = uilabel(app.Document);
+            app.filterTypePanelLabel.VerticalAlignment = 'bottom';
+            app.filterTypePanelLabel.FontSize = 10;
+            app.filterTypePanelLabel.Layout.Row = 1;
+            app.filterTypePanelLabel.Layout.Column = 2;
+            app.filterTypePanelLabel.Text = 'FILTRAGEM NO TEMPO';
 
             % Create filterTypePanel
             app.filterTypePanel = uibuttongroup(app.Document);
@@ -479,14 +501,6 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
             app.filterType_DayOfWeek.Tag = 'DayOfWeek';
             app.filterType_DayOfWeek.Text = 'Dia da semana';
             app.filterType_DayOfWeek.Position = [248 6 103 22];
-
-            % Create filterTypePanelLabel
-            app.filterTypePanelLabel = uilabel(app.Document);
-            app.filterTypePanelLabel.VerticalAlignment = 'bottom';
-            app.filterTypePanelLabel.FontSize = 10;
-            app.filterTypePanelLabel.Layout.Row = 1;
-            app.filterTypePanelLabel.Layout.Column = 2;
-            app.filterTypePanelLabel.Text = 'FILTRO';
 
             % Create filterValuePanel
             app.filterValuePanel = uipanel(app.Document);
@@ -621,44 +635,32 @@ classdef dockMisc_TimeFiltering_exported < matlab.apps.AppBase
             app.DayOfWeek_7.Layout.Row = 3;
             app.DayOfWeek_7.Layout.Column = 4;
 
-            % Create HTMLLabel
-            app.HTMLLabel = uilabel(app.Document);
-            app.HTMLLabel.VerticalAlignment = 'bottom';
-            app.HTMLLabel.FontSize = 10;
-            app.HTMLLabel.Layout.Row = 1;
-            app.HTMLLabel.Layout.Column = 1;
-            app.HTMLLabel.Text = 'FLUXOS A PROCESSAR';
+            % Create filterTree
+            app.filterTree = uitree(app.Document);
+            app.filterTree.Multiselect = 'on';
+            app.filterTree.FontSize = 11;
+            app.filterTree.BackgroundColor = [0.9804 0.9804 0.9804];
+            app.filterTree.Layout.Row = 5;
+            app.filterTree.Layout.Column = [2 4];
 
-            % Create HTMLPanel
-            app.HTMLPanel = uipanel(app.Document);
-            app.HTMLPanel.Layout.Row = [2 5];
-            app.HTMLPanel.Layout.Column = 1;
+            % Create filterAddImage
+            app.filterAddImage = uiimage(app.Document);
+            app.filterAddImage.ImageClickedFcn = createCallbackFcn(app, @filterAddImageClicked, true);
+            app.filterAddImage.Layout.Row = 4;
+            app.filterAddImage.Layout.Column = 4;
+            app.filterAddImage.HorizontalAlignment = 'right';
+            app.filterAddImage.ImageSource = 'addSymbol_32.png';
 
-            % Create HTMLGrid
-            app.HTMLGrid = uigridlayout(app.HTMLPanel);
-            app.HTMLGrid.ColumnWidth = {'1x'};
-            app.HTMLGrid.RowHeight = {'1x'};
-            app.HTMLGrid.Padding = [0 0 0 0];
-            app.HTMLGrid.BackgroundColor = [0.9804 0.9804 0.9804];
-
-            % Create HTML
-            app.HTML = uihtml(app.HTMLGrid);
-            app.HTML.Layout.Row = 1;
-            app.HTML.Layout.Column = 1;
-
-            % Create jsBackDoor
-            app.jsBackDoor = uihtml(app.Document);
-            app.jsBackDoor.Layout.Row = 6;
-            app.jsBackDoor.Layout.Column = 1;
-
-            % Create Title
-            app.Title = uilabel(app.GridLayout);
-            app.Title.FontSize = 11;
-            app.Title.FontWeight = 'bold';
-            app.Title.Layout.Row = 1;
-            app.Title.Layout.Column = 1;
-            app.Title.Interpreter = 'html';
-            app.Title.Text = '<font style="padding-left: 5px;">FILTRAGEM NO TEMPO</font>';
+            % Create btnOK
+            app.btnOK = uibutton(app.Document, 'push');
+            app.btnOK.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
+            app.btnOK.Tag = 'OK';
+            app.btnOK.IconAlignment = 'right';
+            app.btnOK.BackgroundColor = [0.9804 0.9804 0.9804];
+            app.btnOK.Enable = 'off';
+            app.btnOK.Layout.Row = 6;
+            app.btnOK.Layout.Column = [3 4];
+            app.btnOK.Text = 'OK';
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);

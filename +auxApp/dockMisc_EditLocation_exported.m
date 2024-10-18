@@ -28,7 +28,7 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
 
         CallingApp
         specData
-        initialGPS
+        referenceData
     end
 
 
@@ -37,27 +37,32 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
         function initialValues(app, idxThreads)
             idxThread = idxThreads(1);
 
-            app.initialGPS = struct('idxThread', idxThreads,                                      ...
-                                    'Status',    app.specData(idxThread).GPS.Status,              ...
-                                    'Latitude',  round(app.specData(idxThread).GPS.Latitude,  6), ...
-                                    'Longitude', round(app.specData(idxThread).GPS.Longitude, 6), ...
-                                    'Location',  app.specData(idxThread).GPS.Location);
+            app.referenceData = struct('idxThread', idxThreads,                                      ...
+                                       'Status',    app.specData(idxThread).GPS.Status,              ...
+                                       'Latitude',  round(app.specData(idxThread).GPS.Latitude,  6), ...
+                                       'Longitude', round(app.specData(idxThread).GPS.Longitude, 6), ...
+                                       'Location',  app.specData(idxThread).GPS.Location);
 
-            app.gpsLatitude.Value  = app.initialGPS.Latitude;
-            app.gpsLongitude.Value = app.initialGPS.Longitude;
-            app.gpsCity.Value      = app.initialGPS.Location;
+            app.gpsLatitude.Value  = app.referenceData.Latitude;
+            app.gpsLongitude.Value = app.referenceData.Longitude;
+            app.gpsCity.Value      = app.referenceData.Location;
         end
 
         %-----------------------------------------------------------------%
         function editionFlag = checkEdition(app)
-            if abs(app.gpsLatitude.Value  - app.initialGPS.Latitude)  > class.Constants.floatDiffTolerance || ...
-               abs(app.gpsLongitude.Value - app.initialGPS.Longitude) > class.Constants.floatDiffTolerance || ...
-               ~strcmp(app.gpsCity.Value, app.initialGPS.Location)
+            if abs(app.gpsLatitude.Value  - app.referenceData.Latitude)  > class.Constants.floatDiffTolerance || ...
+               abs(app.gpsLongitude.Value - app.referenceData.Longitude) > class.Constants.floatDiffTolerance || ...
+               ~strcmp(app.gpsCity.Value, app.referenceData.Location)
 
                 editionFlag = true;
             else
                 editionFlag = false;
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function CallingMainApp(app, updateFlag, returnFlag)
+            appBackDoor(app.CallingApp, app, 'MISCELLANEOUS', updateFlag, returnFlag)
         end
     end
     
@@ -145,12 +150,12 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
 
                 %---------------------------------------------------------%
                 case app.gpsRefresh
-                    idxThreads = app.initialGPS.idxThread;
-                    if app.initialGPS.Status == -1
+                    idxThreads = app.referenceData.idxThread;
+                    if app.referenceData.Status == -1
                         fcn.gpsProperty(app.specData, idxThreads)
                     end
                     initialValues(app, idxThreads)
-                    appBackDoor(app.CallingApp, app, 'ButtonPushed', 'Refresh')
+                    CallingMainApp(app, true, true)
             end
 
             if checkEdition(app)
@@ -165,25 +170,30 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
         function ButtonPushed(app, event)
             
             pushedButtonTag = event.Source.Tag;
-
-            if pushedButtonTag == "OK"
-                if checkEdition(app)
-                    idxThreads = app.initialGPS.idxThread;
-
-                    for ii = idxThreads                        
-                        if app.initialGPS.Status ~= -1
-                            app.specData(ii).GPS.Status = -1;
-                        end
+            switch pushedButtonTag
+                case 'OK'
+                    if checkEdition(app)
+                        idxThreads = app.referenceData.idxThread;
     
-                        app.specData(ii).GPS.Latitude   = app.gpsLatitude.Value;
-                        app.specData(ii).GPS.Longitude  = app.gpsLongitude.Value;
-                        app.specData(ii).GPS.Location   = app.gpsCity.Value;
-                        app.specData(ii).GPS.Edited     = true;
+                        for ii = idxThreads                        
+                            if app.referenceData.Status ~= -1
+                                app.specData(ii).GPS.Status = -1;
+                            end
+        
+                            app.specData(ii).GPS.Latitude   = app.gpsLatitude.Value;
+                            app.specData(ii).GPS.Longitude  = app.gpsLongitude.Value;
+                            app.specData(ii).GPS.Location   = app.gpsCity.Value;
+                            app.specData(ii).GPS.Edited     = true;
+                        end
                     end
-                end
+
+                    updateFlag = true;
+
+                case 'Close'
+                    updateFlag = false;
             end
 
-            appBackDoor(app.CallingApp, app, 'ButtonPushed', pushedButtonTag)
+            CallingMainApp(app, updateFlag, false)
             closeFcn(app)
 
         end
@@ -273,7 +283,7 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
             % Create gpsLatitudeLabel
             app.gpsLatitudeLabel = uilabel(app.gpsLocationGrid);
             app.gpsLatitudeLabel.VerticalAlignment = 'bottom';
-            app.gpsLatitudeLabel.FontSize = 10;
+            app.gpsLatitudeLabel.FontSize = 11;
             app.gpsLatitudeLabel.Layout.Row = 1;
             app.gpsLatitudeLabel.Layout.Column = 1;
             app.gpsLatitudeLabel.Text = 'Latitude:';
@@ -291,7 +301,7 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
             % Create gpsLongitudeLabel
             app.gpsLongitudeLabel = uilabel(app.gpsLocationGrid);
             app.gpsLongitudeLabel.VerticalAlignment = 'bottom';
-            app.gpsLongitudeLabel.FontSize = 10;
+            app.gpsLongitudeLabel.FontSize = 11;
             app.gpsLongitudeLabel.Layout.Row = 1;
             app.gpsLongitudeLabel.Layout.Column = 2;
             app.gpsLongitudeLabel.Text = 'Longitude:';
@@ -317,7 +327,7 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
             % Create gpsCityLabel
             app.gpsCityLabel = uilabel(app.gpsLocationGrid);
             app.gpsCityLabel.VerticalAlignment = 'bottom';
-            app.gpsCityLabel.FontSize = 10;
+            app.gpsCityLabel.FontSize = 11;
             app.gpsCityLabel.Layout.Row = 3;
             app.gpsCityLabel.Layout.Column = 1;
             app.gpsCityLabel.Text = 'Município/UF:';
