@@ -4557,6 +4557,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 set(app.play_FindPeaks_PeakCF, 'Value', round(app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), 3), 'Enable', 1)
                 set(app.play_FindPeaks_PeakBW, 'Value', round(app.specData(idxThread).UserData.Emissions.BW(idxEmission), 3),        'Enable', 1)
 
+                if isnumeric(app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description)
+                    app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description = '';
+                end
                 userDescription = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description;
                 set(app.play_FindPeaks_Description, 'Value', userDescription, 'Enable', 1)
 
@@ -5675,6 +5678,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     
                     %-----------------------------------------------------%
                     case app.misc_Import
+                        if strcmp(misc_checkIfAuxiliarAppIsOpen(app, 'IMPORTAR ANÁLISE'), 'Não')
+                            return
+                        end
+
                         misc_ImportUserData(app)
 
                     %-----------------------------------------------------%
@@ -5707,7 +5714,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                    'selecionado um único fluxo espectral.'])
                         end
                         
-                        menu_LayoutPopupApp(app, 'AddKFactor')
+                        menu_LayoutPopupApp(app, 'AddKFactor', idxThreads)
                         return
                 end
 
@@ -5715,6 +5722,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 play_TreeRebuilding(app, SelectedNodesTextList)
 
             catch ME
+                struct2table(ME.stack)
                 appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
             end
 

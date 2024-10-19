@@ -127,10 +127,13 @@ classdef dockMisc_AddKFactor_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function Correction(app, operationType, idxThread, idxCalibration, kFactorName)
+        function msgError = Correction(app, operationType, idxThread, idxCalibration, kFactorName)
+            msgError = '';
+
             try
                 fcn.measCalibration(app.specData, app.rootFolder, operationType, idxThread, idxCalibration, kFactorName)
             catch ME
+                msgError = ME.message;
                 appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
             end
         end
@@ -190,9 +193,11 @@ classdef dockMisc_AddKFactor_exported < matlab.apps.AppBase
                     operationType = 'Remove';
             end
 
-            Correction(app, operationType, idxThread, idxCalibration, kFactorName)
-            Layout(app)
-            CallingMainApp(app, true, true)
+            msgError = Correction(app, operationType, idxThread, idxCalibration, kFactorName);
+            if isempty(msgError)
+                Layout(app)
+                CallingMainApp(app, true, true)
+            end
 
             if checkEdition(app)
                 app.btnOK.Enable = 1;

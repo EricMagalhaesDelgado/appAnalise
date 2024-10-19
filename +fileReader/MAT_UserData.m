@@ -11,8 +11,7 @@ function MAT_UserData(app, fileName)
     end
 
     % Concatena todas as tabelas de emissões...
-    Emissions = table('Size', [0, 6],                                                             ...
-                      'VariableTypes', {'uint16', 'double', 'double', 'logical', 'cell', 'cell'}, ...
+    Emissions = table(uint32([]), [], [], true(0,1), {}, struct('Description', {}, 'ChannelAssigned', {}, 'DriveTest', {}), ...
                       'VariableNames', {'Index', 'Frequency', 'BW', 'isTruncated', 'Detection', 'UserData'});
 
     for ii = 1:numel(prj_specData)
@@ -25,7 +24,6 @@ function MAT_UserData(app, fileName)
     % Verifica se as emissões pertencem ao fluxo espectral, atualizando a lista...
     idx1 = app.play_PlotPanel.UserData.NodeData;
 
-    exceptionListFlag = false;
     for ii = 1:numel(app.specData)
         FreqStart  = app.specData(ii).MetaData.FreqStart;
         FreqStop   = app.specData(ii).MetaData.FreqStop;
@@ -65,23 +63,16 @@ function MAT_UserData(app, fileName)
                 for kk = 1:numel(newFreq)
                     idx3 = find(abs(prj_Info.exceptionList.Frequency - newFreq(kk)) <= class.Constants.floatDiffTolerance);
                     for ll = idx3'
-                        idx4 = find(strcmp(app.exceptionList.Tag, Tag) & (abs(app.exceptionList.Frequency-prj_Info.exceptionList.Frequency(ll)) <= class.Constants.floatDiffTolerance), 1);
+                        idx4 = find(strcmp(app.projectData.exceptionList.Tag, Tag) & (abs(app.projectData.exceptionList.Frequency-prj_Info.exceptionList.Frequency(ll)) <= class.Constants.floatDiffTolerance), 1);
                         
                         if isempty(idx4)
-                            exceptionListFlag = true;
-
-                            app.exceptionList(end+1,:) = prj_Info.exceptionList(ll,:);
-                            app.exceptionList.Tag{end} = Tag;
+                            app.projectData.exceptionList(end+1,:) = prj_Info.exceptionList(ll,:);
+                            app.projectData.exceptionList.Tag{end} = Tag;
                         end
                     end
                 end
             end
         end
-    end
-
-    if exceptionListFlag && ~isempty(app.auxiliarWin1)
-        delete(app.auxiliarWin1)
-        app.auxiliarWin1 = [];
     end
 end
 
@@ -95,8 +86,7 @@ end
 
 %-------------------------------------------------------------------------%
 function Tag = ReferenceTag(app, idx)
-    Tag = sprintf('%s\nID %d: %.3f - %.3f MHz', app.specData(idx).Receiver,                  ...
-                                                app.specData(idx).RelatedFiles.ID(1),        ...
-                                                app.specData(idx).MetaData.FreqStart / 1e+6, ...
-                                                app.specData(idx).MetaData.FreqStop  / 1e+6);
+    Tag = sprintf('%s\n%.3f - %.3f MHz', app.specData(idx).Receiver,                  ...
+                                         app.specData(idx).MetaData.FreqStart / 1e+6, ...
+                                         app.specData(idx).MetaData.FreqStop  / 1e+6);
 end
