@@ -2,22 +2,24 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure               matlab.ui.Figure
-        GridLayout             matlab.ui.container.GridLayout
-        Document               matlab.ui.container.GridLayout
-        btnOK                  matlab.ui.control.Button
-        gpsRefresh             matlab.ui.control.Image
-        gpsLocationPanel       matlab.ui.container.Panel
-        gpsLocationGrid        matlab.ui.container.GridLayout
-        gpsCity                matlab.ui.control.EditField
-        gpsCityLabel           matlab.ui.control.Label
-        gpsSearchCity          matlab.ui.control.Image
-        gpsLongitude           matlab.ui.control.NumericEditField
-        gpsLongitudeLabel      matlab.ui.control.Label
-        gpsLatitude            matlab.ui.control.NumericEditField
-        gpsLatitudeLabel       matlab.ui.control.Label
-        gpsLocationPanelLabel  matlab.ui.control.Label
-        btnClose               matlab.ui.control.Image
+        UIFigure              matlab.ui.Figure
+        GridLayout            matlab.ui.container.GridLayout
+        Document              matlab.ui.container.GridLayout
+        btnOK                 matlab.ui.control.Button
+        rxLocationRefresh     matlab.ui.control.Image
+        rxLocationPanel       matlab.ui.container.Panel
+        rxLocationGrid        matlab.ui.container.GridLayout
+        rxCity                matlab.ui.control.EditField
+        rxCityLabel           matlab.ui.control.Label
+        rxSearchCity          matlab.ui.control.Image
+        rxHeight              matlab.ui.control.NumericEditField
+        rxHeightLabel         matlab.ui.control.Label
+        rxLongitude           matlab.ui.control.NumericEditField
+        rxLongitudeLabel      matlab.ui.control.Label
+        rxLatitude            matlab.ui.control.NumericEditField
+        rxLatitudeLabel       matlab.ui.control.Label
+        rxLocationPanelLabel  matlab.ui.control.Label
+        btnClose              matlab.ui.control.Image
     end
 
     
@@ -41,23 +43,47 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
                                        'Status',    app.specData(idxThread).GPS.Status,              ...
                                        'Latitude',  round(app.specData(idxThread).GPS.Latitude,  6), ...
                                        'Longitude', round(app.specData(idxThread).GPS.Longitude, 6), ...
+                                       'Height',    AntennaHeight(app.specData, idxThread, -1),      ...
                                        'Location',  app.specData(idxThread).GPS.Location);
 
-            app.gpsLatitude.Value  = app.referenceData.Latitude;
-            app.gpsLongitude.Value = app.referenceData.Longitude;
-            app.gpsCity.Value      = app.referenceData.Location;
+            app.rxLatitude.Value  = app.referenceData.Latitude;
+            app.rxLongitude.Value = app.referenceData.Longitude;
+            app.rxHeight.Value    = app.referenceData.Height;
+            app.rxCity.Value      = app.referenceData.Location;
         end
 
         %-----------------------------------------------------------------%
-        function editionFlag = checkEdition(app)
-            if abs(app.gpsLatitude.Value  - app.referenceData.Latitude)  > class.Constants.floatDiffTolerance || ...
-               abs(app.gpsLongitude.Value - app.referenceData.Longitude) > class.Constants.floatDiffTolerance || ...
-               ~strcmp(app.gpsCity.Value, app.referenceData.Location)
+        function [editionFlag, gpsEditionFlag, heightEditionFlag] = checkEdition(app)
+            gpsEditionFlag    = false;
+            heightEditionFlag = false;
 
-                editionFlag = true;
-            else
-                editionFlag = false;
+            if abs(app.rxLatitude.Value  - app.referenceData.Latitude)  > class.Constants.floatDiffTolerance || ...
+               abs(app.rxLongitude.Value - app.referenceData.Longitude) > class.Constants.floatDiffTolerance || ...
+               ~strcmp(app.rxCity.Value, app.referenceData.Location)
+                gpsEditionFlag = true;
             end
+
+            if (app.rxHeight.Value > 0) && (abs(app.rxHeight.Value - app.referenceData.Height) > class.Constants.floatDiffTolerance)
+                heightEditionFlag = true;
+            end
+
+            editionFlag = gpsEditionFlag || heightEditionFlag;
+        end
+
+        %-----------------------------------------------------------------%
+        function [PreviousEditionFlag, gpsPreviousEditionFlag, heightPreviousEditionFlag] = checkPreviousEdition(app, idxThreads)
+            gpsPreviousEditionFlag    = false;
+            heightPreviousEditionFlag = false;
+
+            if app.referenceData.Status == -1
+                gpsPreviousEditionFlag = true;
+            end
+
+            if any(arrayfun(@(x) ~isempty(x.UserData.AntennaHeight), app.specData(idxThreads)))
+                heightPreviousEditionFlag = true;
+            end
+
+            PreviousEditionFlag = gpsPreviousEditionFlag || heightPreviousEditionFlag;
         end
 
         %-----------------------------------------------------------------%
@@ -87,37 +113,39 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
             
         end
 
-        % Callback function: gpsCity, gpsLatitude, gpsLongitude,
-        % gpsRefresh, 
-        % ...and 1 other component
-        function gpsValueChanged(app, event)
+        % Callback function: rxCity, rxHeight, rxLatitude, 
+        % ...and 3 other components
+        function rxLocationValueChanged(app, event)
             
             switch event.Source
                 %---------------------------------------------------------%
-                case app.gpsLatitude
-                    focus(app.gpsLongitude)
+                case app.rxLatitude
+                    focus(app.rxLongitude)
 
                 %---------------------------------------------------------%
-                case app.gpsLongitude
-                    focus(app.gpsSearchCity)
+                case app.rxLongitude
+                    focus(app.rxHeight)
+
+                case app.rxHeight
+                    focus(app.rxSearchCity)
 
                 %---------------------------------------------------------%
-                case app.gpsSearchCity
-                    gps = struct('Latitude',  app.gpsLatitude.Value, ...
-                                 'Longitude', app.gpsLongitude.Value);
+                case app.rxSearchCity
+                    gps = struct('Latitude',  app.rxLatitude.Value, ...
+                                 'Longitude', app.rxLongitude.Value);
                     
                     app.CallingApp.progressDialog.Visible = 'visible';
                     [cityName, distValue_km, locInfo] = fcn.gpsFindCity(gps);
                     app.CallingApp.progressDialog.Visible = 'hidden';
 
-                    if ~strcmp(cityName, app.gpsCity.Value)        
+                    if ~strcmp(cityName, app.rxCity.Value)        
                         msgQuestion   = sprintf(['%s retornou o município "%s" como a localidade mais próxima das '  ...
                                                  'coordenadas geográficas (%.6fº, %.6fº), cuja sede está a %.1f km ' ...
                                                  'de distância.<br><br>Deseja atualizar essa informação?!'], locInfo.infoSource, cityName, gps.Latitude, gps.Longitude, distValue_km);
                         userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
     
                         if userSelection == "Sim"
-                            app.gpsCity.Value = cityName;
+                            app.rxCity.Value = cityName;
                         end
 
                     else
@@ -126,36 +154,48 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
                     end
 
                 %---------------------------------------------------------%
-                case app.gpsCity
-                    app.gpsCity.Value = strtrim(app.gpsCity.Value);
-                    [cityName, Latitude, Longitude] = fcn.gpsFindCoordinates(app.gpsCity.Value);
+                case app.rxCity
+                    app.rxCity.Value = strtrim(app.rxCity.Value);
+                    [cityName, Latitude, Longitude] = fcn.gpsFindCoordinates(app.rxCity.Value);
 
                     if ~isempty(cityName)
+                        app.rxCity.Value = cityName;
+
                         msgQuestion   = 'Deseja atualizar, além da localidade, as informações de Latitude e Longitude?';
                         userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
 
-                        if userSelection == "Sim"
-                            app.gpsCity.Value      = cityName;
-                            app.gpsLatitude.Value  = Latitude;
-                            app.gpsLongitude.Value = Longitude;
-                        end
+                        if userSelection == "Sim"                            
+                            app.rxLatitude.Value  = Latitude;
+                            app.rxLongitude.Value = Longitude;
+                        end                        
                         
                     else
-                        app.gpsCity.Value = event.PreviousValue;
+                        app.rxCity.Value = event.PreviousValue;
                         
                         msgWarning    = sprintf(['Não encontrada em base do IBGE o município <b>"%s"</b>. Favor corrigir ' ...
-                                                 'eventual erro na grafia, inserindo os acentos, no formato Município/UF.'], app.gpsCity.Value);
+                                                 'eventual erro na grafia, inserindo os acentos, no formato Município/UF.'], app.rxCity.Value);
                         appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                     end
 
                 %---------------------------------------------------------%
-                case app.gpsRefresh
+                case app.rxLocationRefresh
                     idxThreads = app.referenceData.idxThread;
-                    if app.referenceData.Status == -1
-                        fcn.gpsProperty(app.specData, idxThreads)
+                    [PreviousEditionFlag, gpsPreviousEditionFlag, heightPreviousEditionFlag] = checkPreviousEdition(app, idxThreads);
+
+                    if PreviousEditionFlag
+                        if gpsPreviousEditionFlag
+                            fcn.gpsProperty(app.specData, idxThreads)
+                        end
+
+                        if heightPreviousEditionFlag
+                            for ii = idxThreads
+                                app.specData(ii).UserData.AntennaHeight = [];
+                            end
+                        end
+    
+                        initialValues(app, idxThreads)
+                        CallingMainApp(app, true, true)
                     end
-                    initialValues(app, idxThreads)
-                    CallingMainApp(app, true, true)
             end
 
             if checkEdition(app)
@@ -172,18 +212,27 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
             pushedButtonTag = event.Source.Tag;
             switch pushedButtonTag
                 case 'OK'
-                    if checkEdition(app)
-                        idxThreads = app.referenceData.idxThread;
-    
-                        for ii = idxThreads                        
-                            if app.referenceData.Status ~= -1
-                                app.specData(ii).GPS.Status = -1;
+                    [editionFlag, gpsEditionFlag, heightEditionFlag] = checkEdition(app);
+
+                    if editionFlag
+                        if gpsEditionFlag
+                            newGPS = struct('Status', -1, 'Matrix', [app.rxLatitude.Value, app.rxLongitude.Value]);
+                            newGPS = rmfield(fcn.gpsSummary({newGPS}), 'Matrix');
+                            newGPS.Location = app.rxCity.Value;
+                            newGPS.Edited = true;
+                        end
+
+                        idxThreads = app.referenceData.idxThread;    
+                        for ii = idxThreads
+                            % Latitude, Longitude e City
+                            if gpsEditionFlag
+                                app.specData(ii).GPS = newGPS;
                             end
-        
-                            app.specData(ii).GPS.Latitude   = app.gpsLatitude.Value;
-                            app.specData(ii).GPS.Longitude  = app.gpsLongitude.Value;
-                            app.specData(ii).GPS.Location   = app.gpsCity.Value;
-                            app.specData(ii).GPS.Edited     = true;
+
+                            % AntennaHeight
+                            if heightEditionFlag
+                                app.specData(ii).UserData.AntennaHeight = app.rxHeight.Value;
+                            end
                         end
                     end
 
@@ -258,94 +307,112 @@ classdef dockMisc_EditLocation_exported < matlab.apps.AppBase
             app.Document.Layout.Column = [1 2];
             app.Document.BackgroundColor = [0.9804 0.9804 0.9804];
 
-            % Create gpsLocationPanelLabel
-            app.gpsLocationPanelLabel = uilabel(app.Document);
-            app.gpsLocationPanelLabel.VerticalAlignment = 'bottom';
-            app.gpsLocationPanelLabel.FontSize = 10;
-            app.gpsLocationPanelLabel.Layout.Row = 1;
-            app.gpsLocationPanelLabel.Layout.Column = [1 2];
-            app.gpsLocationPanelLabel.Text = 'LOCAL DA MONITORAÇÃO';
+            % Create rxLocationPanelLabel
+            app.rxLocationPanelLabel = uilabel(app.Document);
+            app.rxLocationPanelLabel.VerticalAlignment = 'bottom';
+            app.rxLocationPanelLabel.FontSize = 10;
+            app.rxLocationPanelLabel.Layout.Row = 1;
+            app.rxLocationPanelLabel.Layout.Column = [1 2];
+            app.rxLocationPanelLabel.Text = 'LOCAL DA MONITORAÇÃO';
 
-            % Create gpsLocationPanel
-            app.gpsLocationPanel = uipanel(app.Document);
-            app.gpsLocationPanel.AutoResizeChildren = 'off';
-            app.gpsLocationPanel.Layout.Row = 2;
-            app.gpsLocationPanel.Layout.Column = [1 4];
+            % Create rxLocationPanel
+            app.rxLocationPanel = uipanel(app.Document);
+            app.rxLocationPanel.AutoResizeChildren = 'off';
+            app.rxLocationPanel.Layout.Row = 2;
+            app.rxLocationPanel.Layout.Column = [1 4];
 
-            % Create gpsLocationGrid
-            app.gpsLocationGrid = uigridlayout(app.gpsLocationPanel);
-            app.gpsLocationGrid.ColumnWidth = {'1x', '1x', 18};
-            app.gpsLocationGrid.RowHeight = {17, 22, 17, 22};
-            app.gpsLocationGrid.RowSpacing = 5;
-            app.gpsLocationGrid.Padding = [10 10 10 5];
-            app.gpsLocationGrid.BackgroundColor = [0.9804 0.9804 0.9804];
+            % Create rxLocationGrid
+            app.rxLocationGrid = uigridlayout(app.rxLocationPanel);
+            app.rxLocationGrid.ColumnWidth = {'1x', '1x', '1x', 18};
+            app.rxLocationGrid.RowHeight = {17, 22, 17, 22};
+            app.rxLocationGrid.RowSpacing = 5;
+            app.rxLocationGrid.Padding = [10 10 10 5];
+            app.rxLocationGrid.BackgroundColor = [0.9804 0.9804 0.9804];
 
-            % Create gpsLatitudeLabel
-            app.gpsLatitudeLabel = uilabel(app.gpsLocationGrid);
-            app.gpsLatitudeLabel.VerticalAlignment = 'bottom';
-            app.gpsLatitudeLabel.FontSize = 11;
-            app.gpsLatitudeLabel.Layout.Row = 1;
-            app.gpsLatitudeLabel.Layout.Column = 1;
-            app.gpsLatitudeLabel.Text = 'Latitude:';
+            % Create rxLatitudeLabel
+            app.rxLatitudeLabel = uilabel(app.rxLocationGrid);
+            app.rxLatitudeLabel.VerticalAlignment = 'bottom';
+            app.rxLatitudeLabel.FontSize = 11;
+            app.rxLatitudeLabel.Layout.Row = 1;
+            app.rxLatitudeLabel.Layout.Column = 1;
+            app.rxLatitudeLabel.Text = 'Latitude:';
 
-            % Create gpsLatitude
-            app.gpsLatitude = uieditfield(app.gpsLocationGrid, 'numeric');
-            app.gpsLatitude.Limits = [-90 90];
-            app.gpsLatitude.ValueDisplayFormat = '%.6f';
-            app.gpsLatitude.ValueChangedFcn = createCallbackFcn(app, @gpsValueChanged, true);
-            app.gpsLatitude.FontSize = 11;
-            app.gpsLatitude.Layout.Row = 2;
-            app.gpsLatitude.Layout.Column = 1;
-            app.gpsLatitude.Value = -1;
+            % Create rxLatitude
+            app.rxLatitude = uieditfield(app.rxLocationGrid, 'numeric');
+            app.rxLatitude.Limits = [-90 90];
+            app.rxLatitude.ValueDisplayFormat = '%.6f';
+            app.rxLatitude.ValueChangedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxLatitude.FontSize = 11;
+            app.rxLatitude.Layout.Row = 2;
+            app.rxLatitude.Layout.Column = 1;
+            app.rxLatitude.Value = -1;
 
-            % Create gpsLongitudeLabel
-            app.gpsLongitudeLabel = uilabel(app.gpsLocationGrid);
-            app.gpsLongitudeLabel.VerticalAlignment = 'bottom';
-            app.gpsLongitudeLabel.FontSize = 11;
-            app.gpsLongitudeLabel.Layout.Row = 1;
-            app.gpsLongitudeLabel.Layout.Column = 2;
-            app.gpsLongitudeLabel.Text = 'Longitude:';
+            % Create rxLongitudeLabel
+            app.rxLongitudeLabel = uilabel(app.rxLocationGrid);
+            app.rxLongitudeLabel.VerticalAlignment = 'bottom';
+            app.rxLongitudeLabel.FontSize = 11;
+            app.rxLongitudeLabel.Layout.Row = 1;
+            app.rxLongitudeLabel.Layout.Column = 2;
+            app.rxLongitudeLabel.Text = 'Longitude:';
 
-            % Create gpsLongitude
-            app.gpsLongitude = uieditfield(app.gpsLocationGrid, 'numeric');
-            app.gpsLongitude.Limits = [-180 180];
-            app.gpsLongitude.ValueDisplayFormat = '%.6f';
-            app.gpsLongitude.ValueChangedFcn = createCallbackFcn(app, @gpsValueChanged, true);
-            app.gpsLongitude.FontSize = 11;
-            app.gpsLongitude.Layout.Row = 2;
-            app.gpsLongitude.Layout.Column = 2;
-            app.gpsLongitude.Value = -1;
+            % Create rxLongitude
+            app.rxLongitude = uieditfield(app.rxLocationGrid, 'numeric');
+            app.rxLongitude.Limits = [-180 180];
+            app.rxLongitude.ValueDisplayFormat = '%.6f';
+            app.rxLongitude.ValueChangedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxLongitude.FontSize = 11;
+            app.rxLongitude.Layout.Row = 2;
+            app.rxLongitude.Layout.Column = 2;
+            app.rxLongitude.Value = -1;
 
-            % Create gpsSearchCity
-            app.gpsSearchCity = uiimage(app.gpsLocationGrid);
-            app.gpsSearchCity.ImageClickedFcn = createCallbackFcn(app, @gpsValueChanged, true);
-            app.gpsSearchCity.Tooltip = {'Consulta município'};
-            app.gpsSearchCity.Layout.Row = 2;
-            app.gpsSearchCity.Layout.Column = 3;
-            app.gpsSearchCity.ImageSource = 'Globo_32.png';
+            % Create rxHeightLabel
+            app.rxHeightLabel = uilabel(app.rxLocationGrid);
+            app.rxHeightLabel.VerticalAlignment = 'bottom';
+            app.rxHeightLabel.FontSize = 11;
+            app.rxHeightLabel.Layout.Row = 1;
+            app.rxHeightLabel.Layout.Column = 3;
+            app.rxHeightLabel.Text = 'Altura (m):';
 
-            % Create gpsCityLabel
-            app.gpsCityLabel = uilabel(app.gpsLocationGrid);
-            app.gpsCityLabel.VerticalAlignment = 'bottom';
-            app.gpsCityLabel.FontSize = 11;
-            app.gpsCityLabel.Layout.Row = 3;
-            app.gpsCityLabel.Layout.Column = 1;
-            app.gpsCityLabel.Text = 'Município/UF:';
+            % Create rxHeight
+            app.rxHeight = uieditfield(app.rxLocationGrid, 'numeric');
+            app.rxHeight.Limits = [-1 1000];
+            app.rxHeight.ValueDisplayFormat = '%.1f';
+            app.rxHeight.ValueChangedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxHeight.FontSize = 11;
+            app.rxHeight.Layout.Row = 2;
+            app.rxHeight.Layout.Column = 3;
+            app.rxHeight.Value = -1;
 
-            % Create gpsCity
-            app.gpsCity = uieditfield(app.gpsLocationGrid, 'text');
-            app.gpsCity.ValueChangedFcn = createCallbackFcn(app, @gpsValueChanged, true);
-            app.gpsCity.FontSize = 11;
-            app.gpsCity.Layout.Row = 4;
-            app.gpsCity.Layout.Column = [1 3];
+            % Create rxSearchCity
+            app.rxSearchCity = uiimage(app.rxLocationGrid);
+            app.rxSearchCity.ImageClickedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxSearchCity.Tooltip = {'Consulta município'};
+            app.rxSearchCity.Layout.Row = 2;
+            app.rxSearchCity.Layout.Column = 4;
+            app.rxSearchCity.ImageSource = 'Globo_32.png';
 
-            % Create gpsRefresh
-            app.gpsRefresh = uiimage(app.Document);
-            app.gpsRefresh.ImageClickedFcn = createCallbackFcn(app, @gpsValueChanged, true);
-            app.gpsRefresh.Tooltip = {'Retorna às configurações iniciais'};
-            app.gpsRefresh.Layout.Row = 3;
-            app.gpsRefresh.Layout.Column = 1;
-            app.gpsRefresh.ImageSource = 'Refresh_18.png';
+            % Create rxCityLabel
+            app.rxCityLabel = uilabel(app.rxLocationGrid);
+            app.rxCityLabel.VerticalAlignment = 'bottom';
+            app.rxCityLabel.FontSize = 11;
+            app.rxCityLabel.Layout.Row = 3;
+            app.rxCityLabel.Layout.Column = 1;
+            app.rxCityLabel.Text = 'Município/UF:';
+
+            % Create rxCity
+            app.rxCity = uieditfield(app.rxLocationGrid, 'text');
+            app.rxCity.ValueChangedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxCity.FontSize = 11;
+            app.rxCity.Layout.Row = 4;
+            app.rxCity.Layout.Column = [1 4];
+
+            % Create rxLocationRefresh
+            app.rxLocationRefresh = uiimage(app.Document);
+            app.rxLocationRefresh.ImageClickedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxLocationRefresh.Tooltip = {'Retorna às configurações iniciais'};
+            app.rxLocationRefresh.Layout.Row = 3;
+            app.rxLocationRefresh.Layout.Column = 1;
+            app.rxLocationRefresh.ImageSource = 'Refresh_18.png';
 
             % Create btnOK
             app.btnOK = uibutton(app.Document, 'push');

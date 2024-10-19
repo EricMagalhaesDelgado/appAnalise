@@ -339,7 +339,10 @@ classdef specData < handle
         function antennaHeight = AntennaHeight(obj, idx, referenceValue)
             antennaHeight = NaN;
 
-            if isfield(obj(idx).MetaData.Antenna, 'Height')
+            if ~isempty(obj(idx).UserData.AntennaHeight)
+                antennaHeight = obj(idx).UserData.AntennaHeight;
+                
+            elseif isfield(obj(idx).MetaData.Antenna, 'Height')
                 Height = obj(idx).MetaData.Antenna.Height;
 
                 if isnumeric(Height) && isfinite(Height) && (Height > 0)

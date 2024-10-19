@@ -34,6 +34,8 @@ classdef userData
                                      'VariableTypes', {'uint8', 'cell', 'cell'}, ...
                                      'VariableNames', {'ID', 'Tag', 'Filename'});
 
+        AntennaHeight        = []
+
         % Registrar operações não contempladas nas outras propriedades. Por
         % exemplo: filtragem temporal do fluxo espectral.
         LOG                  = {}
