@@ -734,7 +734,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
     
                 % O objeto app.tempBandObj armazena propriedades de app.specData(idxThreads) 
                 % que simplifica o processo do plot, em especial na passagem de 
-                % argumentos para as funções plot.draw2D e plot.draw3D.
+                % argumentos para as funções plot.draw2D, plot.Waterfall e plot.Persitance.
                 GuardBand  = struct('Mode', 'manual', 'Parameters', struct('Type', 'Fixed', 'Value', getFrequencyScreenSpanInMHz(app, 'Screen')));
                 axesLimits = update(app.tempBandObj, idxThread, idxEmission, GuardBand);
 
@@ -966,10 +966,10 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                     % (b) ClearWrite+Persistance
                     app.hClearWrite = plot.draw2D.OrdinaryLine(app.UIAxes2, app.tempBandObj, idxThread, 'ClearWrite');
                     plot.datatip.Template(app.hClearWrite, "Frequency+Level", app.tempBandObj.LevelUnit)
-                    plot.draw3D.Persistance('Creation', [], app.UIAxes2, app.tempBandObj, idxThread);
+                    plot.Persistance('Creation', [], app.UIAxes2, app.tempBandObj, idxThread);
     
                     % (c) Waterfall+Timeline
-                    plot.draw3D.Waterfall('Creation', app.UIAxes3, app.tempBandObj, idxThread);
+                    plot.Waterfall('Creation', app.UIAxes3, app.tempBandObj, idxThread);
                     plot_Timeline(app, 'Creation', idxThread, numel(app.specData(idxThread).Data{1}))
     
                     % (d) ChannelPower

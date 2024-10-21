@@ -356,6 +356,13 @@ classdef specData < handle
                 antennaHeight = referenceValue;
             end
         end
+
+        %-----------------------------------------------------------------%
+        function tag = Tag(obj, idx)
+            tag = sprintf('%s\n%.3f - %.3f MHz', obj(idx).Receiver,                  ...
+                                                 obj(idx).MetaData.FreqStart / 1e+6, ...
+                                                 obj(idx).MetaData.FreqStop  / 1e+6);
+        end
     end
 
 
@@ -525,7 +532,7 @@ classdef specData < handle
                 tempStruct = rmfield(obj(ii).MetaData, metaData2Delete);
                 tempStruct.Receiver = obj(ii).Receiver;
 
-                if isfield(tempStruct, 'Antenna')
+                if isfield(tempStruct, 'Antenna') && ~isempty(tempStruct.Antenna)
                     antennaFields = fields(tempStruct.Antenna);
                     antennaFields = antennaFields(~ismember(antennaFields, generalSettings.Merge.AntennaAttributes));
                     

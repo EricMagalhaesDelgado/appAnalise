@@ -1,9 +1,9 @@
-function Controller(app, Mode)
+function Controller(app, operationType)
 
     try
-        [idx, reportInfo] = ReportGenerator_Aux1(app, Mode);
+        [idx, reportInfo] = ReportGenerator_Aux1(app, operationType);
         
-        switch Mode
+        switch operationType
             case 'Report'
                 d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'off', 'Interpreter', 'html', 'Cancelable', 'on', 'CancelText', 'Cancelar', 'Value', 0);
                 d.Message = ['<p style="font-size: 12px; text-align: justify;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...

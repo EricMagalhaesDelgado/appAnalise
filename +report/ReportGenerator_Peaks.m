@@ -26,11 +26,9 @@ function Peaks = ReportGenerator_Peaks(app, idxThread, DetectionMode)
 
     % Outros campos...
     if ~isempty(Peaks)
-        Tag = sprintf('%s\n%.3f - %.3f MHz', app.specData(idxThread).Receiver,                  ...
-                                             app.specData(idxThread).MetaData.FreqStart / 1e+6, ...
-                                             app.specData(idxThread).MetaData.FreqStop  / 1e+6);
+        threadTag = Tag(app.specData, idxThread);
      
-        Peaks.Tag(:)       = {Tag};
+        Peaks.Tag(:)       = {threadTag};
         Peaks.Latitude(:)  = single(app.specData(idxThread).GPS.Latitude);
         Peaks.Longitude(:) = single(app.specData(idxThread).GPS.Longitude);
         

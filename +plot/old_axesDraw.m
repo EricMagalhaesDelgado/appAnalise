@@ -42,7 +42,7 @@ classdef (Abstract) old_axesDraw
             plot.old_prePlotConfiguration(hAxes, xLim, yLim, 'linear', Persistance.Colormap)
             
             % PLOT
-            plot.draw3D.Persistance('Creation', [], hAxes, tempBandObj, idxThread);
+            plot.Persistance('Creation', [], hAxes, tempBandObj, idxThread);
             plot.old_axesDraw.OrdinaryPlot(hAxes, specData(idxThread), xIndexLim, xArray, yLim, 'Average', Average)
             plot.old_axesDraw.BandLimitsPlot(hAxes, specData(idxThread))
             plot.old_axesDraw.EmissionPlot(hAxes, specData(idxThread), yLim, EmissionROI);            
@@ -416,7 +416,7 @@ classdef (Abstract) old_axesDraw
                         plot.old_axesDraw.cartesianAxes__type3(hAxes, specData, idxThread, Parameters)
                     
                     case 'Waterfall'
-                        plot.draw3D.Waterfall('Creation', hAxes, tempBandObj, idxThread);
+                        plot.Waterfall('Creation', hAxes, tempBandObj, idxThread);
 
                     case 'DriveTest'
                         plot.old_axesDraw.geographicAxes_type1(hAxes, Parameters, 'ReportGenerator')

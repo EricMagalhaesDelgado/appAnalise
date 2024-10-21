@@ -1,4 +1,6 @@
 function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo, d)
+    global hContainer
+
     global ID_img
     global ID_tab
 
@@ -203,6 +205,8 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
     if reportInfo.General.Version == "Preliminar"
         htmlReport = sprintf('%s</body>\n</html>', htmlReport);
     end
+
+    delete(hContainer.Children)
 end
 
 

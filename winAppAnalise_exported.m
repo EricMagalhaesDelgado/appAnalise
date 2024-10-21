@@ -395,7 +395,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % PROPRIEDADES COMUNS A TODOS OS APPS
         %-----------------------------------------------------------------%
-        General 
+        General
+        General_I
         rootFolder
 
         % Essa propriedade registra o tipo de execução da aplicação, podendo
@@ -682,23 +683,24 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function startup_ConfigFileRead(app)
             % "GeneralSettings.json"
-            [app.General, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder);
+            [app.General_I, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder);
             if ~isempty(msgWarning)
                 appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
             end
 
-            if ~strcmp(app.General.Plot.Waterfall.Decimation, 'auto')
+            if ~strcmp(app.General_I.Plot.Waterfall.Decimation, 'auto')
                 app.General.Plot.Waterfall.Decimation = 'auto';
             end
         
-            if isempty(app.General.Merge.Distance)
+            if isempty(app.General_I.Merge.Distance)
                 app.General.Merge.Distance = Inf;
             end
         
-            if isempty(app.General.Integration.Trace)
+            if isempty(app.General_I.Integration.Trace)
                 app.General.Integration.Trace = Inf;
             end
-        
+
+            app.General            = app.General_I;        
             app.General.AppVersion = fcn.envVersion(app.rootFolder, 'full');
             app.General.Models     = struct2table(jsondecode(fileread(fullfile(app.rootFolder, 'Template', 'html_General.cfg'))));
             app.General.Report     = '';
@@ -2210,6 +2212,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             if app.axesTool_Waterfall.UserData.Value
                 switch app.play_Waterfall_Fcn.Value
                     case 'image'
+                        hComponents(1).Enable = 0;
                         set(hComponents(2:end), 'Enable', 1)
                     case 'mesh'
                         set(hComponents, 'Enable', 1)
@@ -2452,7 +2455,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % O objeto app.bandObj armazena propriedades de app.specData(idx) 
             % que simplifica o processo do plot, em especial na passagem de 
-            % argumentos para as funções plot.draw2D e plot.draw3D.
+            % argumentos para as funções plot.draw2D, plot.Waterfall e plot.Persistance.
             axesLimits = update(app.bandObj, idx);
 
             prePlot_restartProperties(app, axesLimits)
@@ -2576,17 +2579,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function plot_Draw_Persistance(app, operationType, idx)
             switch operationType
                 case 'Creation'
-                    [app.hPersistanceObj, app.play_Persistance_WindowSizeValue.Text] = plot.draw3D.Persistance('Creation', app.hPersistanceObj, app.UIAxes1, app.bandObj, idx);
+                    [app.hPersistanceObj, app.play_Persistance_WindowSizeValue.Text] = plot.Persistance('Creation', app.hPersistanceObj, app.UIAxes1, app.bandObj, idx);
                     play_Layout_PersistancePanel(app)
 
                 case 'Update'
                     if app.axesTool_Persistance.UserData.Value && ~strcmp(app.play_Persistance_WindowSizeValue.Text, 'full')
-                        app.hPersistanceObj = plot.draw3D.Persistance('Update', app.hPersistanceObj, app.UIAxes1, app.bandObj, idx);
+                        app.hPersistanceObj = plot.Persistance('Update', app.hPersistanceObj, app.UIAxes1, app.bandObj, idx);
                         play_Layout_PersistancePanel(app)
                     end
 
                 case 'Delete'
-                    app.hPersistanceObj = plot.draw3D.Persistance('Delete', app.hPersistanceObj);
+                    app.hPersistanceObj = plot.Persistance('Delete', app.hPersistanceObj);
             end
         end
 
@@ -2595,7 +2598,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             prePlot_updatingGeneralSettings(app)
             prePlot_updatingCustomProperties(app, idx)
 
-            [app.hWaterfall, app.play_Waterfall_DecimationValue.Text] = plot.draw3D.Waterfall('Creation', app.UIAxes3, app.bandObj, idx);
+            [app.hWaterfall, app.play_Waterfall_DecimationValue.Text] = plot.Waterfall('Creation', app.UIAxes3, app.bandObj, idx);
             plot.axes.Layout.YLabel(app.hWaterfall, app.axesTool_Waterfall.UserData.Value)
             play_Layout_WaterfallPanel(app)
 
@@ -2847,12 +2850,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function misc_updateLastVisitedFolder(app, filePath)
-            % <ToDo> EMD - 14/08/2024 - Eliminar a criação de campos em app.General, 
-            % de forma que a estrutura seja fixa e orientada apenas aquilo que consta 
-            % no arquivo "GeneralSettings.json". Aqui precisarei migrar a informação 
-            % para o objeto app.projectObj.</ToDo>
-            app.General.fileFolder.lastVisited = filePath;
-            appUtil.generalSettingsSave(class.Constants.appName, app.rootFolder, app.General, app.executionMode, {'AppVersion', 'Models', 'Report'})
+            app.General_I.fileFolder.lastVisited = filePath;
+            app.General.fileFolder.lastVisited   = filePath;
+
+            appUtil.generalSettingsSave(class.Constants.appName, app.rootFolder, app.General_I, app.executionMode)
         end
 
         %-----------------------------------------------------------------%
@@ -2976,9 +2977,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function misc_ImportUserData(app)
+        function fileFullPath = misc_ImportUserData(app)
             [fileFullPath, fileFolder] = appUtil.modalWindow(app.UIFigure, 'uigetfile', '', {'*.mat', 'appAnalise (*.mat)'}, app.General.fileFolder.lastVisited);
             if isempty(fileFullPath)
+                fileFullPath = '';
                 return
             end
             misc_updateLastVisitedFolder(app, fileFolder)
@@ -4042,7 +4044,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     prePlot_updatingCustomProperties(app, idx)
 
                     [~, ~, XData, YData] = plot.datatip.Search(app.UIAxes3);
-                    app.hWaterfall = plot.draw3D.Waterfall('Delete', app.hWaterfall);
+                    app.hWaterfall = plot.Waterfall('Delete', app.hWaterfall);
                     plot_Draw_Waterfall(app, idx)
 
                     if ~isempty(XData)
@@ -5500,9 +5502,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     % 
                     %         report_ListOfHomProductsUpdating(app)
                     %         app.report_ProjectWarnIcon.Visible = 0;
-                    % 
+                    %
+                    %         app.General_I.fileFolder.lastVisited = filePath;
                     %         app.General.fileFolder.lastVisited = filePath;
-                    %         appUtil.generalSettingsSave(class.Constants.appName, app.rootFolder, app.General, app.executionMode)
+                    %         appUtil.generalSettingsSave(class.Constants.appName, app.rootFolder, app.General_I, app.executionMode)
                     % 
                     %     catch ME
                     %         appUtil.modalWindow(app.UIFigure, 'error', ME.message);
@@ -5675,6 +5678,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     %-----------------------------------------------------%
                     case app.misc_Export
                         misc_ExportUserData(app, idxThreads)
+                        return
     
                     %-----------------------------------------------------%
                     case app.misc_Import
@@ -5682,7 +5686,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             return
                         end
 
-                        misc_ImportUserData(app)
+                        if isempty(misc_ImportUserData(app))
+                            return
+                        end
 
                     %-----------------------------------------------------%
                     case app.misc_TimeFiltering
@@ -5722,7 +5728,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 play_TreeRebuilding(app, SelectedNodesTextList)
 
             catch ME
-                struct2table(ME.stack)
                 appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
             end
 

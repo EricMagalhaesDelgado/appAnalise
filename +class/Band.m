@@ -13,6 +13,11 @@ classdef Band < handle
         LevelUnit
 
         xArray      % in MHz
+        xLim
+        xIndexLimits
+        yLevelLim
+        yTimeLim
+        cLim
 
 %       xFreq = aCoef * xIndex + bCoef
         aCoef
@@ -107,6 +112,12 @@ classdef Band < handle
                   % GuardBand   = varargin{2};
                     axesLimits  = XYCLimits(obj, idx, varargin{:});
             end
+
+            obj.xLim         = axesLimits.xLim;
+            obj.xIndexLimits = axesLimits.xIndexLimits;
+            obj.yLevelLim    = axesLimits.yLevelLim;
+            obj.yTimeLim     = axesLimits.yTimeLim;
+            obj.cLim         = axesLimits.cLim;
         end
 
         %-----------------------------------------------------------------%

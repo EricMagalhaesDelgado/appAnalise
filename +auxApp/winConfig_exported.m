@@ -100,7 +100,6 @@ classdef winConfig_exported < matlab.apps.AppBase
         isDocked = false
         
         CallingApp
-        General
         rootFolder
 
         % A função do timer é executada uma única vez após a renderização
@@ -213,30 +212,29 @@ classdef winConfig_exported < matlab.apps.AppBase
             if isempty(app.CallingApp.General.AppVersion.fiscaliza)
                 app.CallingApp.General.AppVersion = fcn.envVersion(app.rootFolder, 'full+Python');
             end
-            app.General = app.CallingApp.General;
         end
 
         %-----------------------------------------------------------------%
         function AppVersion_updatePanel(app)
             % Versão
-            htmlContent = auxApp.config.htmlCode_AppVersion(app.General, app.CallingApp.executionMode);
+            htmlContent = auxApp.config.htmlCode_AppVersion(app.CallingApp.General, app.CallingApp.executionMode);
             app.AppVersion.HTMLSource = htmlContent;
         end
 
         %-----------------------------------------------------------------%
         function File_updatePanel(app)
             % Mesclagem de fluxos espectrais
-            switch app.General.Merge.DataType
+            switch app.CallingApp.General.Merge.DataType
                 case 'keep';   app.mergeDataType.Value = 0;
                 case 'remove'; app.mergeDataType.Value = 1;
             end
 
-            switch app.General.Merge.Antenna
+            switch app.CallingApp.General.Merge.Antenna
                 case 'keep';   app.mergeAntenna.Value = 0;
                 case 'remove'; app.mergeAntenna.Value = 1;
             end
 
-            app.mergeDistance.Value = app.General.Merge.Distance;
+            app.mergeDistance.Value = app.CallingApp.General.Merge.Distance;
 
             if File_checkEdition(app)
                 app.general_mergeRefresh.Visible = 1;
@@ -260,8 +258,8 @@ classdef winConfig_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function Graphics_updatePanel(app)
             % Imagem relatório
-            app.imgFormat.Value     = app.General.Image.Format;
-            app.imgResolution.Value = string(app.General.Image.Resolution);
+            app.imgFormat.Value     = app.CallingApp.General.Image.Format;
+            app.imgResolution.Value = string(app.CallingApp.General.Image.Resolution);
 
             % Renderizador
             graphRender = opengl('data');
@@ -279,8 +277,8 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.gpuType.Value = graphRenderSupport;
 
             % Modo de operação
-            app.openAuxiliarAppAsDocked.Value = app.General.operationMode.Dock;
-            app.openAuxiliarApp2Debug.Value   = app.General.operationMode.Debug;
+            app.openAuxiliarAppAsDocked.Value = app.CallingApp.General.operationMode.Dock;
+            app.openAuxiliarApp2Debug.Value   = app.CallingApp.General.operationMode.Debug;
 
             if Graphics_checkEdition(app)
                 app.graphics_Refresh.Visible = 1;
@@ -304,9 +302,9 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function Elevation_updatePanel(app)
-            app.ElevationNPoints.Value     = num2str(app.General.Elevation.Points);
-            app.ElevationForceSearch.Value = app.General.Elevation.ForceSearch;
-            app.ElevationAPIServer.Value   = app.General.Elevation.Server;
+            app.ElevationNPoints.Value     = num2str(app.CallingApp.General.Elevation.Points);
+            app.ElevationForceSearch.Value = app.CallingApp.General.Elevation.ForceSearch;
+            app.ElevationAPIServer.Value   = app.CallingApp.General.Elevation.Server;
 
             if Elevation_checkEdition(app)
                 app.general_ElevationRefresh.Visible = 1;
@@ -329,7 +327,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function APIFiscaliza_updatePanel(app)
-            switch app.General.fiscaliza.systemVersion
+            switch app.CallingApp.General.fiscaliza.systemVersion
                 case 'PROD'
                     app.config_FiscalizaPD.Value = 1;
                 case 'HOM'
@@ -348,8 +346,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                 otherwise
                     % DataHub
-                    DataHub_GET  = app.General.fileFolder.DataHub_GET;
-                    DataHub_POST = app.General.fileFolder.DataHub_POST;
+                    DataHub_GET  = app.CallingApp.General.fileFolder.DataHub_GET;
+                    DataHub_POST = app.CallingApp.General.fileFolder.DataHub_POST;
                     if isfolder(DataHub_GET)
                         app.config_Folder_DataHubGET.Value  = DataHub_GET;
                     end
@@ -359,7 +357,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                     end
         
                     % Python
-                    pythonPath = app.General.fileFolder.pythonPath;
+                    pythonPath = app.CallingApp.General.fileFolder.pythonPath;
                     if isfile(pythonPath)
                         app.config_Folder_pythonPath.Value = pythonPath;
                     else
@@ -368,14 +366,13 @@ classdef winConfig_exported < matlab.apps.AppBase
                     end
     
                     % userPath
-                    app.config_Folder_userPath.Value = app.General.fileFolder.userPath;
+                    app.config_Folder_userPath.Value = app.CallingApp.General.fileFolder.userPath;
             end
         end
 
         %-----------------------------------------------------------------%
         function saveGeneralSettings(app)
-            app.General = app.CallingApp.General;
-            appUtil.generalSettingsSave(class.Constants.appName, app.rootFolder, app.CallingApp.General, app.CallingApp.executionMode, {'AppVersion', 'Models', 'Report'})
+            appUtil.generalSettingsSave(class.Constants.appName, app.rootFolder, app.CallingApp.General_I, app.CallingApp.executionMode)
         end
     end
     
@@ -531,7 +528,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             
             app.progressDialog.Visible = 'visible';
 
-            [htmlContent, app.stableVersion, updatedModule] = auxApp.config.htmlCode_CheckAvailableUpdate(app.General, app.rootFolder);
+            [htmlContent, app.stableVersion, updatedModule] = auxApp.config.htmlCode_CheckAvailableUpdate(app.CallingApp.General, app.rootFolder);
             appUtil.modalWindow(app.UIFigure, "info", htmlContent);
             
             if ~ismember('RFDataHub', updatedModule)
@@ -574,7 +571,8 @@ classdef winConfig_exported < matlab.apps.AppBase
                                                           'AntennaAttributes', app.DefaultValues.File.AntennaAttributes, ...
                                                           'Distance',          app.DefaultValues.File.Distance);
             end
-            
+
+            app.CallingApp.General_I.Merge = app.CallingApp.General.Merge;            
             saveGeneralSettings(app)
             File_updatePanel(app)  
 
@@ -614,6 +612,9 @@ classdef winConfig_exported < matlab.apps.AppBase
                     app.CallingApp.General.operationMode.Dock  = app.DefaultValues.Graphics.Dock;
             end
 
+            app.CallingApp.General_I.openGL        = app.CallingApp.General.openGL;
+            app.CallingApp.General_I.Image         = app.CallingApp.General.Image;
+            app.CallingApp.General_I.operationMode = app.CallingApp.General.operationMode;
             saveGeneralSettings(app)
             Graphics_updatePanel(app)
 
@@ -639,6 +640,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                                                               'Server',      app.DefaultValues.Elevation.Server);
             end
 
+            app.CallingApp.General_I.Elevation = app.CallingApp.General.Elevation;
             saveGeneralSettings(app)
             Elevation_updatePanel(app)
             
@@ -655,6 +657,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                     app.CallingApp.General.fiscaliza.systemVersion = 'HOM';
             end
 
+            app.CallingApp.General_I.fiscaliza = app.CallingApp.General.fiscaliza;
             saveGeneralSettings(app)
             appBackDoor(app.CallingApp, app, 'FiscalizaModeChanged')
             
@@ -697,9 +700,9 @@ classdef winConfig_exported < matlab.apps.AppBase
             else
                 app.CallingApp.General.fiscaliza.defaultValues.servicos_da_inspecao.value   = {};
             end
-            
+
+            app.CallingApp.General_I.fiscaliza = app.CallingApp.General.fiscaliza;            
             saveGeneralSettings(app)
-            app.General = app.CallingApp.General;
 
         end
 
@@ -779,8 +782,8 @@ classdef winConfig_exported < matlab.apps.AppBase
                         app.CallingApp.General.fileFolder.userPath = selectedFolder;
                 end
 
+                app.CallingApp.General_I.fileFolder = app.CallingApp.General.fileFolder;
                 saveGeneralSettings(app)
-                app.General = app.CallingApp.General;
                 Folder_updatePanel(app)
             end
 

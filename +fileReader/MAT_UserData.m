@@ -51,23 +51,23 @@ function MAT_UserData(app, fileName)
                 updatePlotFlag = true;
             end
             play_BandLimits_updateEmissions(app, ii, newIndex, updatePlotFlag)
-            play_UpdatePeaksTable(app, ii)
+            play_UpdatePeaksTable(app, ii, 'playback.AddEditOrDeleteEmission')
 
             % Verifica se as frequências das emissões constam na lista de exceção.
             % Caso sim, adiciona a informação em app.exceptionList, editando 
             % o "Tag" de cada registro. Caso já exista registro com uma das
             % frequências, por outro lado, essa informação não é acrescida.
             if ~isempty(prj_Info.exceptionList)
-                Tag = ReferenceTag(app, ii);
+                threadTag = Tag(app.specData, ii);
 
                 for kk = 1:numel(newFreq)
                     idx3 = find(abs(prj_Info.exceptionList.Frequency - newFreq(kk)) <= class.Constants.floatDiffTolerance);
                     for ll = idx3'
-                        idx4 = find(strcmp(app.projectData.exceptionList.Tag, Tag) & (abs(app.projectData.exceptionList.Frequency-prj_Info.exceptionList.Frequency(ll)) <= class.Constants.floatDiffTolerance), 1);
+                        idx4 = find(strcmp(app.projectData.exceptionList.Tag, threadTag) & (abs(app.projectData.exceptionList.Frequency-prj_Info.exceptionList.Frequency(ll)) <= class.Constants.floatDiffTolerance), 1);
                         
                         if isempty(idx4)
                             app.projectData.exceptionList(end+1,:) = prj_Info.exceptionList(ll,:);
-                            app.projectData.exceptionList.Tag{end} = Tag;
+                            app.projectData.exceptionList.Tag{end} = threadTag;
                         end
                     end
                 end
@@ -81,12 +81,4 @@ end
 function [aCoef, bCoef] = idxFrequencyMap(FreqStart, FreqStop, DataPoints)
     aCoef = (FreqStop - FreqStart) / (DataPoints - 1);
     bCoef = FreqStart - aCoef;
-end
-
-
-%-------------------------------------------------------------------------%
-function Tag = ReferenceTag(app, idx)
-    Tag = sprintf('%s\n%.3f - %.3f MHz', app.specData(idx).Receiver,                  ...
-                                         app.specData(idx).MetaData.FreqStart / 1e+6, ...
-                                         app.specData(idx).MetaData.FreqStop  / 1e+6);
 end
