@@ -100,6 +100,29 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
                             plotInfo   = arrayfun(@(x, y) struct('Name', x, 'Layout', y), plotName, plotLayout);                                        
 
                             switch plotType
+                                case 'Channel'
+                                    MM = numel(app.specData(idxThreads(jj)).UserData.channelManual);
+                                    for ll = 1:MM
+                                        reportInfo.General.Parameters.Plot      = struct('Type', 'Channel', 'channelIndex', ll);
+
+                                        % Insere uma quebra de linha, caso exista recorrência no item
+                                        % (iterando SpecInfo(jj).UserData.Emissions).
+                                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
+
+                                        % Cabeçalho da emissão...
+                                        channelTitle = struct('Type', 'ItemN3',                                                ...
+                                                               'Data', struct('Editable', 'false',                             ...
+                                                                              'String',   '%s',                                ...
+                                                                              'Settings', struct('Source',     'channelTitle', ...
+                                                                                                 'Precision',  '%s',           ...
+                                                                                                 'Multiplier', 1)));
+                                        channelTitle.Data.String = Fcn_FillWords(app.specData(idxThreads), jj, reportInfo, channelTitle);                        
+                                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(channelTitle));
+
+                                        opt1 = Fcn_Image(app.specData, idxThreads(jj), tempBandObj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
+                                        htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
+                                    end
+
                                 case 'Emission'
                                     MM = height(app.specData(idxThreads(jj)).UserData.Emissions);
                                     for ll = 1:MM
@@ -264,7 +287,14 @@ function value = Fcn_Source(SpecInfo, idx, reportInfo, Children)
         case 'Location';         value = SpecInfo(idx).GPS.Location;
         case 'RelatedLocations'; value = strjoin(unique(arrayfun(@(x) x.GPS.Location, SpecInfo, 'UniformOutput', false)), ', ');
         case 'Parameters'
-            Operation = '-';
+            value        = {};
+            
+            % GPS
+            value{end+1} = sprintf('• GPS: %.6f, %.6f (%s)', SpecInfo(idx).GPS.Latitude,  ...
+                                                           SpecInfo(idx).GPS.Longitude, ...
+                                                           SpecInfo(idx).GPS.Location);
+
+            % TraceMode+TraceIntegration+Detector
             if ~isempty(SpecInfo(idx).MetaData.TraceMode) 
                 TraceIntegration = '';
                 if SpecInfo(idx).MetaData.TraceIntegration ~= -1
@@ -272,36 +302,51 @@ function value = Fcn_Source(SpecInfo, idx, reportInfo, Children)
                 end
 
                 if ~isempty(SpecInfo(idx).MetaData.Detector)
-                    Operation = sprintf('%s/%s%s', SpecInfo(idx).MetaData.TraceMode, SpecInfo(idx).MetaData.Detector, TraceIntegration);
+                    Operation = sprintf('• Operação: %s/%s%s', SpecInfo(idx).MetaData.TraceMode, SpecInfo(idx).MetaData.Detector, TraceIntegration);
                 else
-                    Operation = sprintf('%s%s', SpecInfo(idx).MetaData.TraceMode, TraceIntegration);
+                    Operation = sprintf('• Operação: %s%s', SpecInfo(idx).MetaData.TraceMode, TraceIntegration);
                 end
 
             elseif ~isempty(SpecInfo(idx).MetaData.Detector)
-                Operation = SpecInfo(idx).MetaData.Detector;
+                Operation = sprintf('• Operação: %s', SpecInfo(idx).MetaData.Detector);
+            end
+            value{end+1} = Operation;
+
+            % Resolution+VBW
+            if (SpecInfo(idx).MetaData.Resolution ~= -1) && (SpecInfo(idx).MetaData.VBW ~= -1)
+                Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (VBW)', SpecInfo(idx).MetaData.Resolution/1000, SpecInfo(idx).MetaData.VBW/1000);
+            elseif SpecInfo(idx).MetaData.Resolution ~= -1
+                Resolution = sprintf('• Resolução: %.3f kHz (RBW)',                 SpecInfo(idx).MetaData.Resolution/1000);
+            elseif SpecInfo(idx).MetaData.VBW ~= -1
+                Resolution = sprintf('• Resolução: %.3f kHz (VBW)',                 SpecInfo(idx).MetaData.VBW/1000);
+            else
+                Resolution = '';
+            end
+            value{end+1} = Resolution;
+
+            % DataPoints
+            value{end+1} = sprintf('• %d pontos por varredura', SpecInfo(idx).MetaData.DataPoints);
+
+            % Antenna
+            value{end+1} = sprintf('• Antena: %s', jsonencode(SpecInfo(idx).MetaData.Antenna));
+
+            % Others
+            if ~isempty(SpecInfo(idx).MetaData.Others)
+                value{end+1} = sprintf('• Outros metadados: %s', SpecInfo(idx).MetaData.Others);
             end
 
-            Resolution = '';
-            if SpecInfo(idx).MetaData.Resolution ~= -1
-                Resolution = sprintf('; Resolução: %.3f kHz', SpecInfo(idx).MetaData.Resolution/1000);
-            end
-
-            VBW = '';
-            if SpecInfo(idx).MetaData.VBW ~= -1
-                VBW = sprintf('; Resolução de vídeo (VBW): %.3f kHz', SpecInfo(idx).MetaData.VBW/1000);
-            end
-
-            value = sprintf('GPS: %.6f, %.6f (%s); Operação: %s; Unidade: %s%s%s', ...
-                            SpecInfo(idx).GPS.Latitude,       ...
-                            SpecInfo(idx).GPS.Longitude,      ...
-                            SpecInfo(idx).GPS.Location,       ...
-                            Operation,                        ...
-                            SpecInfo(idx).MetaData.LevelUnit, ...
-                            Resolution, VBW);
+            value = strjoin(value, '<br>');
 
         case 'emissionTitle'
             emissionIndex = reportInfo.General.Parameters.Plot.emissionIndex;
             value = sprintf('<b>Emissão %d: %.3f MHz ⌂ %.1f kHz</b>', emissionIndex, SpecInfo(idx).UserData.Emissions{emissionIndex,2}, SpecInfo(idx).UserData.Emissions{emissionIndex,3});
+
+        case 'channelTitle'
+            chTable = struct2table(SpecInfo(idx).UserData.channelManual);
+            chIndex = reportInfo.General.Parameters.Plot.channelIndex;
+            value = sprintf('<b>%s @ %.3f MHz ⌂ %.1f kHz</b>', extractBefore(chTable.Name{chIndex}, ' @'), ...
+                                                               chTable.FirstChannel(chIndex),              ...
+                                                               chTable.ChannelBW(chIndex) * 1000);
     end
 end
 
@@ -439,7 +484,7 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
         end
     end
 
-    if isempty(Source) || ((Origin == "External") & ~isfile(Source))
+    if isempty(Source) || ((Origin == "External") && ~isfile(Source))
         error('Configuration file error message: %s', Children.Data.Error)
     end
 
@@ -447,8 +492,20 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
     switch Origin
         case 'Internal'
             switch Source
-                case 'Algorithms'
-                    Table = report.ReportGenerator_Table_Algorithm(SpecInfo, idx);
+                case {'Algorithms', 'Channel'}
+                    Table = eval(sprintf('reportLibConnection.table.%s(SpecInfo, idx);', Source));
+                    Table = Table(:, Children.Data.Columns);
+        
+                    for ii = 1:numel(Table.Properties.VariableNames)
+                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
+                    end
+
+                case 'EmissionPerChannel'
+                    chIndex = reportInfo.General.Parameters.Plot.channelIndex;
+
+                    Table = reportLibConnection.table.Channel(SpecInfo, idx);
+                    Table = Table.("Emissões"){chIndex};
+                    Table = Table(:, Children.Data.Columns);
         
                     for ii = 1:numel(Table.Properties.VariableNames)
                         Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
@@ -507,7 +564,7 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
         
                 case 'Summary'        
                     if ~isempty(peaksTable)
-                        infoTable = report.ReportGenerator_Table_Summary(peaksTable, exceptionList);
+                        infoTable = reportLibConnection.table.Summary(peaksTable, exceptionList);
         
                         % COLUNAS DE INFOTABLE
                         ind_Peaks = cellfun(@(x) find(strcmp(x, infoTable.Properties.VariableNames)), Children.Data.Columns);
@@ -575,10 +632,8 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
             switch lower(fileExt)
                 case '.json'
                     Table = struct2table(jsondecode(fileread(Source)));
-
                 case {'.xls', '.xlsx'}
                     Table = readtable(Source, "VariableNamingRule", "preserve", "Sheet", SheetID);
-
                 otherwise
                     Table = readtable(Source, "VariableNamingRule", "preserve");
             end

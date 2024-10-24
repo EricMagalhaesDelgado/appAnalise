@@ -1967,6 +1967,22 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % % PLAYBACK >> CANAIS
         %-----------------------------------------------------------------%
+        function play_Channel_AddChannel(app, channel2Add, typeOfChannel, idxThreads)
+            idx = app.play_PlotPanel.UserData.NodeData;
+
+            % Valida o novo registro, incluindo-o depois, caso não retorne 
+            % erro na validação.
+            for ii = 1:numel(channel2Add)
+                channelCell2Add = struct2cell(channel2Add(ii));
+                checkIfNewChannelIsValid(app.channelObj, channelCell2Add{:})                    
+            end
+            addChannel(app.channelObj, typeOfChannel, app.specData, idxThreads, channel2Add)
+
+            % Por fim, reescreve a árvore...
+            play_Channel_TreeBuilding(app, idx, 'play_Channel_addChannel')
+        end
+
+        %-----------------------------------------------------------------%
         function play_Channel_TreeBuilding(app, idx, srcFcn)
             if ~isempty(app.play_Channel_Tree.Children)
                 delete(app.play_Channel_Tree.Children)                
@@ -2914,7 +2930,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function misc_SaveSpectralData(app, idx)
+        function fileFullPath = misc_SaveSpectralData(app, idx)
             nameFormatMap = {'*.mat',    'appAnalise (*.mat)'; ...
                              '*.bin',    'Logger (*.bin)';     ...
                              '*.sm1809', 'SM1809 (*.sm1809)'};
@@ -2980,7 +2996,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function fileFullPath = misc_ImportUserData(app)
             [fileFullPath, fileFolder] = appUtil.modalWindow(app.UIFigure, 'uigetfile', '', {'*.mat', 'appAnalise (*.mat)'}, app.General.fileFolder.lastVisited);
             if isempty(fileFullPath)
-                fileFullPath = '';
                 return
             end
             misc_updateLastVisitedFolder(app, fileFolder)
@@ -3069,7 +3084,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 error('UnexpectedCall')
                         end
 
-                    case {'auxApp.dockClassification',     'auxApp.dockClassification_exported',     ... % REPORT:CLASSIFICATION
+                    case {'auxApp.dockAddChannel',         'auxApp.dockAddChannel_exported',         ... % PLAYBACK:CHANNEL
+                          'auxApp.dockClassification',     'auxApp.dockClassification_exported',     ... % REPORT:CLASSIFICATION
                           'auxApp.dockDetection',          'auxApp.dockDetection_exported',          ... % REPORT:DETECTION
                           'auxApp.dockMisc_TimeFiltering', 'auxApp.dockMisc_TimeFiltering_exported', ... % MISCELLANEOUS:TIMEFILTERING
                           'auxApp.dockMisc_EditLocation',  'auxApp.dockMisc_EditLocation_exported',  ... % MISCELLANEOUS:EDITLOCATION
@@ -3092,6 +3108,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                         if updateFlag
                             switch operationType
+                                case 'PLAYBACK:CHANNEL'
+                                    channel2Add   = varargin{3};
+                                    typeOfChannel = varargin{4};
+                                    idxThreads    = varargin{5};
+                                    play_Channel_AddChannel(app, channel2Add, typeOfChannel, idxThreads)
+
                                 case 'REPORT'
                                     idxThread = varargin{3};
                                     report_Algorithms(app, idxThread)
@@ -4357,36 +4379,47 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     
                     %-----------------------------------------------------%
                     case app.play_Channel_File
-                        [fileFullPath, fileFolder] = appUtil.modalWindow(app.UIFigure, 'uigetfile', '', {'*.json', 'appAnalise (*.json)'}, app.General.fileFolder.lastVisited);
+                        switch app.play_Channel_ExternalFile.Value
+                            case 'Generic (json)'
+                                fileFormats = {'*.json', '(*.json)'};
+                            case 'Satellite (csv)'
+                                fileFormats = {'*.csv', '(*.csv)'};
+                        end
+                        
+                        [fileFullPath, fileFolder, fileExt] = appUtil.modalWindow(app.UIFigure, 'uigetfile', '', fileFormats, app.General.fileFolder.lastVisited);
+
                         if isempty(fileFullPath)
                             return
                         end
+
                         misc_updateLastVisitedFolder(app, fileFolder)
-    
-                        channel2Add   = readFileWithChannel2Add(app.channelObj, fileFullPath);
 
-                        msgQuestion   = sprintf(['Foram extraídos os registros %s, os quais serão incluídos na lista de canais manuais do ' ...
-                                                 'fluxo espectral selecionado, caso se sobreponham à faixa de frequência, substituindo '    ...
-                                                 'eventuais canalizações inseridas manualmente que tenham um dos supracitados nomes.\n\n'   ...
-                                                 'Deseja analisar a inclusão desses registros para os outros fluxos?'], textFormatGUI.cellstr2ListWithQuotes({channel2Add.Name}));
-                        userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                        
-                        if strcmp(userSelection, 'Sim')
-                            idxThreads = 1:numel(app.specData);
+                        switch fileExt
+                            case '.json'
+                                channel2Add = readFileWithChannel2Add(app.channelObj, fileFullPath);
+
+                                msgQuestion   = sprintf(['Foram extraídos os registros %s, os quais serão incluídos na lista de canais manuais do ' ...
+                                                         'fluxo espectral selecionado, caso se sobreponham à faixa de frequência, substituindo '    ...
+                                                         'eventuais canalizações inseridas manualmente que tenham um dos supracitados nomes.\n\n'   ...
+                                                         'Deseja analisar a inclusão desses registros para os outros fluxos?'], textFormatGUI.cellstr2ListWithQuotes({channel2Add.Name}));
+                                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+                                
+                                if strcmp(userSelection, 'Sim')
+                                    idxThreads = 1:numel(app.specData);
+                                end
+                                typeOfChannel = 'manual';
+
+                            % Em sendo um plano básico de um satélite, o relacionamento 
+                            % dos canais com os fluxos espectrais ocorrerá em modo auxiliar
+                            % (popup).
+                            case '.csv'                            
+                                channelTable = class.EMSatDataHubLib.importRawCSVFile(fileFullPath);
+                                auxApp.dockAddChannel(app, idx, channelTable)
+                                return
                         end
-                        typeOfChannel = 'manual';
                 end
 
-                % Valida o novo registro, incluindo-o depois, caso não retorne 
-                % erro na validação.
-                for ii = 1:numel(channel2Add)
-                    channelCell2Add = struct2cell(channel2Add(ii));
-                    checkIfNewChannelIsValid(app.channelObj, channelCell2Add{:})                    
-                end
-                addChannel(app.channelObj, typeOfChannel, app.specData, idxThreads, channel2Add)
-
-                % Por fim, reescreve a árvore...
-                play_Channel_TreeBuilding(app, idx, 'play_Channel_addChannel')
+                play_Channel_AddChannel(app, channel2Add, typeOfChannel, idxThreads)
 
             catch ME
                 appUtil.modalWindow(app.UIFigure, 'error', ME.message);
@@ -4447,11 +4480,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
                 end
 
-                xLim1 = max([xLim1, app.play_BandLimits_xLim1.Limits(1)]);
-                xLim2 = min([xLim2, app.play_BandLimits_xLim1.Limits(2)]);
-
-                app.play_BandLimits_xLim1.Value = xLim1;
-                app.play_BandLimits_xLim2.Value = xLim2;
+                app.play_BandLimits_xLim1.Value = max([min(xLim1), app.play_BandLimits_xLim1.Limits(1)]);
+                app.play_BandLimits_xLim2.Value = min([max(xLim2), app.play_BandLimits_xLim1.Limits(2)]);
 
                 if ~app.play_BandLimits_Status.Value
                     app.play_BandLimits_Status.Value = 1;
@@ -5526,55 +5556,37 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
 
                     nameFormatMap = {'*.mat', 'appAnalise (*.mat)'};
-                    fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+                    [fileFullPath, fileFolder, ~, fileName]  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
                     if isempty(fileFullPath)
                         return
                     end
 
-                    app.progressDialog.Visible = 'visible';
+                    % app.progressDialog.Visible = 'visible';
 
-                    variables = struct('listOfProducts', app.listOfProducts,           ...
-                                       'projectName',    fullfile(filePath, fileName), ...
-                                       'projectIssue',   app.report_Issue.Value,       ...
-                                       'entityName',     app.report_Entity.Value,      ...
-                                       'entityID',       app.report_EntityID.Value,    ...
-                                       'entityType',     app.report_EntityType.Value);
-                    userData  = [];
-
-                    msgError  = writeFile.MAT(fullfile(filePath, fileName), 'ProjectData', 'SCH', variables, userData);
-                    if ~isempty(msgError)
-                        appUtil.modalWindow(app.UIFigure, 'error', msgError);
-                        return
-                    end
-
-                % !! PENDENTE !! GERAR DOIS ARQUIVOS. UM MAT SPECTRAL
-                % DATA. E OUTRO PROJECT DATA, DA NOVA VERSÃO, QUE SÓ
-                % TEM OS DADOS ANALISADOS, E UM PONTEIRO COM A LISTA DE
-                % ARQUIVOS BRUTOS. ELES PODEM POSSUIR O MESMO NOME, MAS
-                % COM UMA EXTENSÃO DIFERENTE. .MAT E .PRJ (POR
-                % EXEMPLO).
+                    % !! PENDENTE !! GERAR DOIS ARQUIVOS. UM MAT SPECTRAL
+                    % DATA. E OUTRO PROJECT DATA, DA NOVA VERSÃO, QUE SÓ
+                    % TEM OS DADOS ANALISADOS, E UM PONTEIRO COM A LISTA DE
+                    % ARQUIVOS BRUTOS. ELES PODEM POSSUIR O MESMO NOME, MAS
+                    % COM UMA EXTENSÃO DIFERENTE. .MAT E .PRJ (POR
+                    % EXEMPLO).
 
                     reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
                     [idx, reportInfo]   = report.GeneralInfo(app, 'Report', reportTemplateIndex);
-                    prjInfo = struct('projectName',   fullfile(filePath, fileName),    ...
+                    prjInfo = struct('projectName',   fullfile(fileFolder, fileName),    ...
                                      'projectIssue',  app.report_Issue.Value,          ...
-                                     'entityType',    app.report_EntityType.Value,     ...
-                                     'entityID',      app.report_EntityID.Value,       ...
-                                     'entityName',    app.report_Entity.Value,         ...
                                      'docModel',      app.report_ModelName.Value,      ...
                                      'reportInfo',    rmfield(reportInfo, 'Filename'), ...
-                                     'projData',      app.projData,                    ...
-                                     'peaksTable',    app.projectData.peaksTable,                  ...
+                                     'peaksTable',    app.projectData.peaksTable,      ...
                                      'exceptionList', app.projectData.exceptionList);
                     
-                    fileName = fullfile(filePath, fileName);
+                    fileName = fullfile(fileFolder, fileName);
                     fileWriter.MAT([fileName '.prj'], 'ProjectData', prjInfo)
                     fileWriter.MAT([fileName '.mat'], 'ProjectData', app.specData(idx))
 
-                    app.report_ProjectName.Value = fullfile(filePath, fileName);
+                    app.report_ProjectName.Value = fullfile(fileFolder, fileName);
                     app.report_ProjectWarnIcon.Visible = 0;
 
-                    app.progressDialog.Visible = 'hidden';
+                    % app.progressDialog.Visible = 'hidden';
             end
 
         end
@@ -5630,7 +5642,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 switch event.Source
                     %-----------------------------------------------------%
                     case app.misc_Save
-                        misc_SaveSpectralData(app, idxThreads)
+                        if isempty(misc_SaveSpectralData(app, idxThreads))
+                            return
+                        end
 
                     %-----------------------------------------------------%
                     case app.misc_Duplicate
@@ -7411,7 +7425,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_Channel_ExternalFile
             app.play_Channel_ExternalFile = uidropdown(app.play_Channel_ExternalFileGrid);
-            app.play_Channel_ExternalFile.Items = {'Generic (json)'};
+            app.play_Channel_ExternalFile.Items = {'Generic (json)', 'Satellite (csv)'};
             app.play_Channel_ExternalFile.FontSize = 11;
             app.play_Channel_ExternalFile.BackgroundColor = [1 1 1];
             app.play_Channel_ExternalFile.Layout.Row = 2;

@@ -178,6 +178,11 @@ classdef ChannelLib < handle
                         end
                     end
                 end
+
+                if ~isempty(specData(ii).UserData.channelManual)
+                    [~, idxSort] = sort([specData(ii).UserData.channelManual.FirstChannel]);
+                    specData(ii).UserData.channelManual = specData(ii).UserData.channelManual(idxSort);
+                end
             end
         end
 

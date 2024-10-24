@@ -1,4 +1,4 @@
-function Table = ReportGenerator_Table_Algorithm(SpecInfo, idx)
+function Table = Algorithms(SpecInfo, idx)
 
     Table = table('Size', [3, 2],                    ...
                   'VariableTypes', {'cell', 'cell'}, ...
@@ -7,7 +7,6 @@ function Table = ReportGenerator_Table_Algorithm(SpecInfo, idx)
     % Ocupação
     Ocupation = {sprintf('Método: %s',     SpecInfo(idx).UserData.reportOCC.Method); ...
                  sprintf('Parâmetros: %s', jsonencode(rmfield(SpecInfo(idx).UserData.reportOCC, 'Method')))};
-
 
     % Detecção
     bandLimitsStatus = SpecInfo(idx).UserData.bandLimitsStatus;

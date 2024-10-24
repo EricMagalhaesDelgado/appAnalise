@@ -24,6 +24,7 @@
 		vertical-align: top;
 		padding: 2px;
 		padding-bottom: 2px;
+        word-break: break-all;
 	}
 	table.tabela_corpo tr:nth-child(even) {
 		background-color: #f8f8f8;

@@ -1,10 +1,10 @@
 function mlapp2m(MLAPPFiles, showDiffApp)
     arguments
-        MLAPPFiles  cell    = {'winAppAnalise',                                                          ... % Apenas para revisão de código prévio a commits
-                               'winRFDataHub', 'winDriveTest', 'winSignalAnalysis', 'winConfig',         ... % Módulos auxiliares operacionais (DOCK/UNDOCK)
-                               'dockWelcomePage', 'dockClassification', 'dockDetection',                 ... % Módulos auxiliares operacionais (DOCK)
-                               'dockMisc_TimeFiltering', 'dockMisc_EditLocation', 'dockMisc_AddKFactor', ... % Módulos auxiliares operacionais (DOCK)
-                               'dockAddFiles'}                                                               % Módulo auxiliar NÃO operacional (DOCK)
+        MLAPPFiles  cell    = {'winAppAnalise',                                                            ... % Apenas para revisão de código prévio a commits
+                               'winRFDataHub', 'winDriveTest', 'winSignalAnalysis', 'winConfig',           ... % Módulos auxiliares operacionais (DOCK/UNDOCK)
+                               'dockWelcomePage', 'dockAddChannel', 'dockClassification', 'dockDetection', ... % Módulos auxiliares operacionais (DOCK)
+                               'dockMisc_TimeFiltering', 'dockMisc_EditLocation', 'dockMisc_AddKFactor',   ... % Módulos auxiliares operacionais (DOCK)
+                               'dockAddFiles'}                                                                 % Módulo auxiliar NÃO operacional (DOCK)
         showDiffApp logical = false
     end
 

@@ -51,12 +51,12 @@
             },
             {
               "Editable": "false",
-              "String": "Transmitam sinais em ao menos uma das bandas sob análise (C, C Apêndice 30B, Ku ou Ka);",
+              "String": "Transmitam sinais em ao menos uma das bandas sob análise (C, Ku ou Ka);",
               "Settings": []
             },
             {
               "Editable": "false",
-              "String": "Estejam listados na <i>Relação de Satélites Autorizados a Operar No Brasil</i>, publicada até o último dia do mês de dezembro de 2021;",
+              "String": "Estejam listados na <i>Relação de Satélites Autorizados a Operar No Brasil</i>;",
               "Settings": []
             },
             {
@@ -229,15 +229,120 @@
           "Type": "Image",
           "Data": {
             "Origin": "Internal",
-            "Type": "Band",
-            "Source": "Persistance+OccupancyPerBin+Waterfall",
-            "Layout": "1:1:2",
+            "Type": "Band+Channel",
+            "Source": "Spectrum+Waterfall",
+            "Layout": "1:2",
             "Caption": "Representação gráfica da monitoração sob análise.",
             "Settings": {
               "Width": "90%",
               "Height": "auto"
             },
             "LineBreak": 1,
+            "Intro": "",
+            "Error": ""
+          }
+        },
+        {
+          "Type": "Table",
+          "Data": {
+            "Origin": "Internal",
+            "Source": "Channel",
+            "Columns": [
+              "Transponder",
+              "Frequência central (MHz)",
+              "Largura (kHz)",
+              "Referência",
+              "FBO estimada (%)",
+              "FBO mínima (%)",
+              "FBO média (%)",
+              "FBO máxima (%)",
+              "FCO (%)"
+            ],
+            "Filter": [],
+            "Caption": "Informações acerca da(s) emissão(ões) detectada(s).",
+            "Settings": [
+              {
+                "Editable": "false",
+                "String": "Transponder",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "130px"
+              },
+              {
+                "Editable": "false",
+                "String": "Frequência|(MHz)",
+                "Precision": "%.3f",
+                "Multiplier": 1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "false",
+                "String": "Largura<br>(kHz)",
+                "Precision": "%.1f",
+                "Multiplier": 1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "false",
+                "String": "Referência",
+                "Precision": "%s",
+                "Multiplier": -1,
+                "Width": "auto"
+              },
+              {
+                "Editable": "false",
+                "String": "FBO<br>estimada (%)",
+                "Precision": "%.1f",
+                "Multiplier": 1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "false",
+                "String": "FBO<br>mínima (%)",
+                "Precision": "%.1f",
+                "Multiplier": 1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "false",
+                "String": "FBO<br>média (%)",
+                "Precision": "%.1f",
+                "Multiplier": 1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "false",
+                "String": "FBO<br>máxima (%)",
+                "Precision": "%.1f",
+                "Multiplier": 1,
+                "Width": "70px"
+              },
+              {
+                "Editable": "false",
+                "String": "FCO<br>(%)",
+                "Precision": "%.1f",
+                "Multiplier": 1,
+                "Width": "50px"
+              }
+            ],
+            "LineBreak": 0,
+            "Intro": "{\"Type\":\"Paragraph\",\"String\":\"A seguir são apresentadas informações acerca da(s) emissão(ões) detectada(s).\"}",
+            "Error": "{\"Type\":\"Paragraph\",\"String\":\"Não foi detectado sequer um pico que atendesse às condições estabelecidas no supracitado processo de detecção de emissões.\"}"
+          }
+        },
+        {
+          "Type": "Image",
+          "Data": {
+            "Origin": "Internal",
+            "Type": "Channel",
+            "Source": "Spectrum",
+            "Layout": "1",
+            "Caption": "Representação gráfica da emissão sob análise.",
+            "Settings": {
+              "Width": "90%",
+              "Height": "auto"
+            },
+            "LineBreak": 0,
             "Intro": "",
             "Error": ""
           }
@@ -278,19 +383,13 @@
           "Type": "Table",
           "Data": {
             "Origin": "Internal",
-            "Source": "Peaks",
+            "Source": "EmissionPerChannel",
             "Columns": [
               "ID",
-              "Frequency",
-              "Truncated",
-              "BW",
-              "minLevel",
-              "meanLevel",
-              "maxLevel",
-              "meanOCC",
-              "maxOCC",
-              "Description",
-              "Distance"
+              "Frequência central (MHz)",
+              "Largura (kHz)",
+              "FCO (%)",
+              "Descrição"
             ],
             "Filter": [],
             "Caption": "Informações acerca da(s) emissão(ões) detectada(s).",
@@ -300,99 +399,40 @@
                 "String": "ID",
                 "Precision": "%s",
                 "Multiplier": -1,
-                "Width": "30px"
+                "Width": "70px"
               },
               {
                 "Editable": "false",
-                "String": "Frequência (MHz)",
+                "String": "Frequência central (MHz)",
                 "Precision": "%.3f",
                 "Multiplier": 1,
                 "Width": "70px"
               },
               {
                 "Editable": "false",
-                "String": "Frequência central do canal (MHz)",
-                "Precision": "%.3f",
-                "Multiplier": 1,
-                "Width": "70px"
-              },
-              {
-                "Editable": "false",
-                "String": "Largura ocupada (kHz)",
+                "String": "Largura (kHz)",
                 "Precision": "%.1f",
                 "Multiplier": 1,
                 "Width": "70px"
               },
               {
                 "Editable": "false",
-                "String": "Nível mínimo",
-                "Precision": "%s",
-                "Multiplier": -1,
-                "Width": "60px"
+                "String": "FCO (%)",
+                "Precision": "%.1f",
+                "Multiplier": 1,
+                "Width": "70px"
               },
               {
-                "Editable": "false",
-                "String": "Nível médio",
-                "Precision": "%s",
-                "Multiplier": -1,
-                "Width": "60px"
-              },
-              {
-                "Editable": "false",
-                "String": "Nível máximo",
-                "Precision": "%s",
-                "Multiplier": -1,
-                "Width": "60px"
-              },
-              {
-                "Editable": "false",
-                "String": "Ocupação média (%)",
-                "Precision": "%s",
-                "Multiplier": -1,
-                "Width": "60px"
-              },
-              {
-                "Editable": "false",
-                "String": "Ocupação máxima (%)",
-                "Precision": "%s",
-                "Multiplier": -1,
-                "Width": "60px"
-              },
-              {
-                "Editable": "false",
-                "String": "Identificação do provável emissor",
+                "Editable": "true",
+                "String": "Descrição",
                 "Precision": "%s",
                 "Multiplier": -1,
                 "Width": "auto"
-              },
-              {
-                "Editable": "false",
-                "String": "Distância",
-                "Precision": "%s",
-                "Multiplier": -1,
-                "Width": "60px"
               }
             ],
             "LineBreak": 0,
             "Intro": "{\"Type\":\"Paragraph\",\"String\":\"A seguir são apresentadas informações acerca da(s) emissão(ões) detectada(s).\"}",
             "Error": "{\"Type\":\"Paragraph\",\"String\":\"Não foi detectado sequer um pico que atendesse às condições estabelecidas no supracitado processo de detecção de emissões.\"}"
-          }
-        },
-        {
-          "Type": "Image",
-          "Data": {
-            "Origin": "Internal",
-            "Type": "Emission",
-            "Source": "Spectrum",
-            "Layout": "1",
-            "Caption": "Representação gráfica da emissão sob análise.",
-            "Settings": {
-              "Width": "90%",
-              "Height": "auto"
-            },
-            "LineBreak": 0,
-            "Intro": "",
-            "Error": ""
           }
         }
       ]

@@ -31,7 +31,7 @@ function varargout = Config(plotTag, defaultProperties, customProperties, Contex
                     plotConfig = {'CDataMapping', 'scaled'};
             end
 
-            if ~issorted(tempPlotConfig.LevelLimits, 'strictascend') || isequal(tempPlotConfig.LevelLimits, [0,1])
+            if ~issorted(tempPlotConfig.LevelLimits, 'strictascend') || (tempPlotConfig.LevelLimits(1) == 0 && tempPlotConfig.LevelLimits(2) == 1)
                 tempPlotConfig.LevelLimits = [];
             end
 

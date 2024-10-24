@@ -3,7 +3,7 @@ classdef (Abstract) draw2D
     methods (Static = true)
         %-----------------------------------------------------------------%
         function hLine = OrdinaryLine(hAxes, bandObj, idx, plotTag)
-            defaultProp  = bandObj.callingApp.General;
+            defaultProp  = bandObj.callingApp.General_I;
             switch bandObj.Context
                 case 'appAnalise:PLAYBACK'
                     customProp = bandObj.callingApp.specData(idx).UserData.customPlayback.Parameters;
@@ -78,7 +78,7 @@ classdef (Abstract) draw2D
             delete(findobj(hAxes, 'Tag', plotTag))
             
             if plotFlag && ~isempty(srcInfo)
-                defaultProp  = bandObj.callingApp.General;
+                defaultProp  = bandObj.callingApp.General_I;
 
                 [plotConfig,     ...
                  YLimOffsetMode, ...
@@ -124,7 +124,7 @@ classdef (Abstract) draw2D
             end
 
             if ~isempty(srcROITable)             
-                defaultProp  = bandObj.callingApp.General;
+                defaultProp  = bandObj.callingApp.General_I;
                 customProp   = [];
 
                 [plotConfigROI,   ...

@@ -407,13 +407,13 @@ classdef (Abstract) old_axesDraw
                 cla(hAxes)
                 switch plotInfo(ii).Name
                     case 'Spectrum'
-                        plot.old_axesDraw.cartesianAxes__type1(hAxes, specData, idxThread, Parameters)
+                        plot.old_axesDraw.cartesianAxes__type1(hAxes, specData, idxThread, tempBandObj, Parameters)
                     
                     case 'Persistance'
                         plot.old_axesDraw.cartesianAxes__type2(hAxes, specData, idxThread, tempBandObj, Parameters)
                     
                     case 'OccupancyPerBin'
-                        plot.old_axesDraw.cartesianAxes__type3(hAxes, specData, idxThread, Parameters)
+                        plot.old_axesDraw.cartesianAxes__type3(hAxes, specData, idxThread, tempBandObj, Parameters)
                     
                     case 'Waterfall'
                         plot.Waterfall('Creation', hAxes, tempBandObj, idxThread);

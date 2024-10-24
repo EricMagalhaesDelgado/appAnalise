@@ -163,6 +163,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         CallingApp
         General
+        General_I
         rootFolder
 
         % A função do timer é executada uma única vez após a renderização
@@ -1503,6 +1504,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             app.CallingApp  = mainapp;
             app.General     = mainapp.General;
+            app.General_I   = mainapp.General_I;
             app.rootFolder  = mainapp.rootFolder;
             app.rfDataHub   = RFDataHub;
             app.specData    = mainapp.specData;

@@ -7,7 +7,7 @@ function [hPersistanceObj, windowSize] = Persistance(operationType, hPersistance
 
             specData    = bandObj.callingApp.specData(idx);
 
-            defaultProp = bandObj.callingApp.General;
+            defaultProp = bandObj.callingApp.General_I;
             customProp  = bandObj.callingApp.specData(idx).UserData.customPlayback.Parameters;
 
             [plotConfig,   ...
@@ -41,7 +41,7 @@ function [hPersistanceObj, windowSize] = Persistance(operationType, hPersistance
                                              'yEdges',   yEdges);
     
                     set(hAxes, 'CLimMode', 'auto')
-                    hPersistanceObj = plot.draw3D.Persistance('Update', hPersistanceObj, hAxes, bandObj, idx);
+                    hPersistanceObj = plot.Persistance('Update', hPersistanceObj, hAxes, bandObj, idx);
                     
                     if isempty(cLimits)
                         hAxes.UserData.CLimMode = 'auto';
@@ -55,7 +55,7 @@ function [hPersistanceObj, windowSize] = Persistance(operationType, hPersistance
     
                 case 'Update'
                     if isempty(hPersistanceObj)
-                        hPersistanceObj = plot.draw3D.Persistance('Creation', hPersistanceObj, hAxes, bandObj, idx);
+                        hPersistanceObj = plot.Persistance('Creation', hPersistanceObj, hAxes, bandObj, idx);
                         return
                     end
 

@@ -76,7 +76,7 @@ function Controller(app, operationType)
 
 
             case 'signalAnalysis.externalJSON'
-                [~, countTable] = report.ReportGenerator_Table_Summary(app.projectData.peaksTable, app.projectData.exceptionList);
+                [~, countTable] = reportLibConnection.table.Summary(app.projectData.peaksTable, app.projectData.exceptionList);
                 tableStr = ReportGenerator_Aux3(app, idx, countTable);
 
                 nameFormatMap   = {'*.json', 'appAnalise (*.json)'};
@@ -162,7 +162,7 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
     % Juntar numa mesma variável a informação gerada pelo algoritmo
     % embarcado no appAnálise (app.peaksTable) com a informação
     % gerada pelo fiscal (app.exceptionList).
-    [infoTable, countTable] = report.ReportGenerator_Table_Summary(app.projectData.peaksTable, app.projectData.exceptionList);
+    [infoTable, countTable] = reportLibConnection.table.Summary(app.projectData.peaksTable, app.projectData.exceptionList);
 
     ReportProject.emissionsValue1 = sum(infoTable{:,2:4}, 'all');                               % Qtd. emissões
     ReportProject.emissionsValue2 = sum(infoTable{:,2});                                        % Qtd. emissões licenciadas
