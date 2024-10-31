@@ -227,7 +227,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_Channel_Label              matlab.ui.control.Label
         play_ControlsTab2Grid           matlab.ui.container.GridLayout
         play_ControlsTab2Image          matlab.ui.control.Image
-        play_Channel_ShowPlotWarn       matlab.ui.control.Image
         play_ControlsTab2Label          matlab.ui.control.Label
         play_ControlsTab1Info           matlab.ui.container.GridLayout
         play_Customization              matlab.ui.control.CheckBox
@@ -2642,8 +2641,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function plot_Draw_Channels(app, idx)
+            delete(findobj(app.UIAxes1, 'Tag', 'Channel'))
+
             if ~isempty(app.play_Channel_Tree.SelectedNodes) && app.play_Channel_ShowPlot.UserData
-                srcTable = table('Size', [0, 2], 'VariableNames', {'FreqStart', 'FreqStop'}, 'VariableTypes', {'double', 'double'});
+                chTable = table('Size',          [0, 6],                                                                      ...
+                                'VariableNames', {'Name', 'FirstChannel', 'ChannelBW', 'Reference', 'FreqStart', 'FreqStop'}, ...
+                                'VariableTypes', {'cell', 'double', 'double', 'cell', 'double', 'double'});
 
                 for ii = 1:numel(app.play_Channel_Tree.SelectedNodes)
                     srcChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.src;
@@ -2655,33 +2658,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         case 'manual'
                             srcRawTable = app.specData(idx).UserData.channelManual(idxChannel);
                     end
-                    
-                    if ~isempty(srcRawTable)
-                        channelBW = srcRawTable.ChannelBW; % MHz
-                        if channelBW <= 0
-                            app.play_Channel_ShowPlotWarn.Visible = 1;
-                            continue
-                        else
-                            app.play_Channel_ShowPlotWarn.Visible = 0;
-                        end
-        
-                        if ~isempty(srcRawTable.FreqList)
-                            FreqList = srcRawTable.FreqList;
-                        else
-                            FreqList = (srcRawTable.FirstChannel:srcRawTable.StepWidth:srcRawTable.LastChannel)';
-                        end
-    
-                        srcTable = [srcTable; table(FreqList-channelBW/2, FreqList+channelBW/2, 'VariableNames', {'FreqStart', 'FreqStop'})];
-                    end
+
+                    chTable = PreparingData2Plot(app.channelObj, chTable, srcRawTable);
                 end
 
-                if ~isempty(srcTable)
-                    plot.draw2D.horizontalSetOfLines(app.UIAxes1, app.bandObj, idx, 'Channels', srcTable)
-                else
-                    delete(findobj(app.UIAxes1, 'Tag', 'Channels'))
+                if ~isempty(chTable)
+                    plot.draw2D.horizontalSetOfLines(app.UIAxes1, app.bandObj, idx, 'Channel', chTable) 
                 end
-            else
-                delete(findobj(app.UIAxes1, 'Tag', 'Channels'))
             end
         end
         
@@ -5248,7 +5231,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.play_Channel_ShowPlot.ImageSource = 'Eye_32.png';
             else
                 app.play_Channel_ShowPlot.ImageSource = 'EyeNegative_32.png';
-                app.play_Channel_ShowPlotWarn.Visible = 0;                
             end
 
             idx = app.play_PlotPanel.UserData.NodeData;
@@ -7146,7 +7128,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_ControlsTab2Grid
             app.play_ControlsTab2Grid = uigridlayout(app.play_ControlsGrid);
-            app.play_ControlsTab2Grid.ColumnWidth = {18, '1x', 16};
+            app.play_ControlsTab2Grid.ColumnWidth = {18, '1x'};
             app.play_ControlsTab2Grid.RowHeight = {'1x'};
             app.play_ControlsTab2Grid.ColumnSpacing = 5;
             app.play_ControlsTab2Grid.RowSpacing = 5;
@@ -7162,16 +7144,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_ControlsTab2Label.Layout.Row = 1;
             app.play_ControlsTab2Label.Layout.Column = 2;
             app.play_ControlsTab2Label.Text = 'CANAIS';
-
-            % Create play_Channel_ShowPlotWarn
-            app.play_Channel_ShowPlotWarn = uiimage(app.play_ControlsTab2Grid);
-            app.play_Channel_ShowPlotWarn.Enable = 'off';
-            app.play_Channel_ShowPlotWarn.Visible = 'off';
-            app.play_Channel_ShowPlotWarn.Tooltip = {'O plot dos canais é possível apenas se definida,'; 'na canalização, a sua largura de banda.'};
-            app.play_Channel_ShowPlotWarn.Layout.Row = 1;
-            app.play_Channel_ShowPlotWarn.Layout.Column = 3;
-            app.play_Channel_ShowPlotWarn.VerticalAlignment = 'bottom';
-            app.play_Channel_ShowPlotWarn.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Warn_18.png');
 
             % Create play_ControlsTab2Image
             app.play_ControlsTab2Image = uiimage(app.play_ControlsTab2Grid);

@@ -2,24 +2,137 @@ classdef (Abstract) old_axesDraw
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function cartesianAxes__type3(hAxes, specData, idxThread, tempBandObj, reportInfo)          % OccupancyPerBin
+        function imgFileName = plot2report(hContainer, specData, idxThread, tempBandObj, reportInfo, plotInfoPerAxes)
+            % Limpa container.
+            if ~isempty(hContainer.Children)
+                delete(hContainer.Children)
+            end
+
+            % Cria eixos de acordo com estabelecido no JSON.
+            tiledPos     = 1;
+            tiledSpan    = [plotInfoPerAxes.Layout];
+
+            axesParent   = tiledlayout(hContainer, sum(tiledSpan), 1, "Padding", "tight", "TileSpacing", "tight");           
+            [axesType, ...
+             axesXLabel] = plot.axes.axesTypeMapping({plotInfoPerAxes.Name});
+
+            for ii = 1:numel(plotInfoPerAxes)
+                xLabelFlag  = true;
+                
+                switch axesType{ii}
+                    case 'Geographic'
+                        hAxes = plot.axes.Creation(axesParent, 'Geographic');
+
+                    case 'Cartesian'
+                        switch tempBandObj.Context
+                            case 'appAnalise:REPORT:CHANNEL'
+                                idxSource = reportInfo.General.Parameters.Plot.idxChannel;
+                            case 'appAnalise:REPORT:EMISSION'
+                                idxSource = reportInfo.General.Parameters.Plot.idxEmission;
+                            otherwise
+                                idxSource = {};
+                        end
+
+                        hAxes = plot.axes.Creation(axesParent, 'Cartesian', {'XColor', [.15,.15,.15], 'YColor', [.15,.15,.15], 'XLim', tempBandObj.xLim, 'YLim', tempBandObj.yLevelLim});
+                        if (numel(plotInfoPerAxes) > 1) && (ii < numel(plotInfoPerAxes)) && any(strcmp(axesType(ii+1:end), 'Cartesian'))
+                            xLabelFlag = false;
+                        end
+                end
+                hAxes.Layout.Tile     = tiledPos;
+                hAxes.Layout.TileSpan = [tiledSpan(ii) 1];
+            
+                % PLOT
+                plotNames = strsplit(plotInfoPerAxes(ii).Name, '+');
+                for plotTag = plotNames
+                    switch plotTag{1}
+                        case {'MinHold', 'ClearWrite', 'Average', 'MaxHold'}
+                            plot.draw2D.OrdinaryLine(hAxes, tempBandObj, idxThread, plotTag{1});
+    
+                        case 'Persistance'
+                            plot.Persistance('Creation', [], hAxes, tempBandObj, idxThread);
+    
+                        case 'Waterfall'
+                            plot.Waterfall('Creation', hAxes, tempBandObj, idxThread);
+    
+                        case 'WaterfallTime'
+    
+                        %-----------------------------------------------------%
+                        case 'Channel'
+                            chTable = ChannelTable2Plot(tempBandObj.callingApp.channelObj, specData(idxThread));
+                            specData(idxThread).UserData.reportChannelTable = chTable;
+                            if ~isempty(chTable)
+                                plot.draw2D.horizontalSetOfLines(hAxes, tempBandObj, idxThread, 'Channel', chTable)
+                            end
+
+                        case 'OccupancyPerChannel'
+                            hAxes.YLim = [0,100];
+    
+                        %-----------------------------------------------------%
+                        case 'BandLimits'
+                            plot.old_axesDraw.BandLimitsPlot(hAxes, specData(idxThread))
+    
+                        case 'EmissionROI'
+                            plot.old_axesDraw.EmissionPlot(hAxes, specData(idxThread), yLim, Parameters)
+    
+                        case {'occMinHold', 'occAverage', 'occMaxHold'}
+                            hAxes.YLim = [0,100];
+    
+                        case 'occThreshold' % NAO ESTÁ NO GENERALSETTINGS.JSON
+                            plot.old_axesDraw.ThresholdPlot(hAxes, specData(idxThread), xArray)
+    
+                        case 'OccupancyPerBin'
+                            plot.old_axesDraw.cartesianAxes__type3(hAxes, specData, idxThread, tempBandObj, reportInfo, tempBandObj.xIndexLimits, tempBandObj.xArray)
+                            hAxes.YLim = [0,100];
+    
+                        %-----------------------------------------------------%
+                        case 'DriveTest'
+                            plot.old_axesDraw.geographicAxes_type1(hAxes, Parameters, 'ReportGenerator')
+    
+                        case 'DriveTestRoute'
+                            plot.old_axesDraw.geographicAxes_type2(hAxes, Parameters)
+                    end
+                end
+                plot.axes.StackingOrder.execute(hAxes, tempBandObj.Context)
+
+                if xLabelFlag
+                    xlabel(hAxes, axesXLabel{ii})
+                else
+                    hAxes.XTickLabel = {};
+                    xlabel(hAxes, '')
+                end
+                tiledPos = tiledPos+tiledSpan(ii);
+            end
+
+            % Espera renderizar e salva a imagem...
+            defaultFilename = appUtil.DefaultFileName(reportInfo.General.UserPath, sprintf('Image_ID%d', specData(idxThread).RelatedFiles.ID(1)), -1);
+            imgFileName     = sprintf('%s.%s', defaultFilename, reportInfo.General.Image.Format);
+            if ~ismember(reportInfo.Model.Version, {'final', 'Definitiva'})
+                imgFileName = replace(imgFileName, 'Image', '~Image');
+            end
+            
+            exportgraphics(hContainer, imgFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
+            drawnow nocallbacks
+            
+            while true
+                pause(1)
+                if isfile(imgFileName)
+                    break
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function cartesianAxes__type3(hAxes, specData, idxThread, tempBandObj, reportInfo, xIndexLim, xArray)          % OccupancyPerBin
             defaultProperties = tempBandObj.callingApp.General_I;
 
             occMinHold = defaultProperties.Plot.occMinHold;
             occAverage = defaultProperties.Plot.occAverage;
             occMaxHold = defaultProperties.Plot.occMaxHold;
-
-            % PRÉ-PLOT
-            [xLim, yLim, xIndexLim, xArray] = plot.old_axesDraw.Limits(tempBandObj, idxThread, reportInfo);
-            plot.old_prePlotConfiguration(hAxes, xLim, yLim, 'log')
         
             % PLOT
             plot.old_axesDraw.OccupancyPerBinPlot(hAxes, specData(idxThread), xIndexLim, xArray, 'occMinHold', occMinHold)
             plot.old_axesDraw.OccupancyPerBinPlot(hAxes, specData(idxThread), xIndexLim, xArray, 'occAverage', occAverage)
             plot.old_axesDraw.OccupancyPerBinPlot(hAxes, specData(idxThread), xIndexLim, xArray, 'occMaxHold', occMaxHold)
-
-            % PÓS-PLOT
-            % plot.old_axesDraw.PostPlotConfig(hAxes, specData(idxThread), Axes, 'Frequência (MHz)', 'Ocupação (%)')
         end
 
         %-----------------------------------------------------------------%
@@ -270,195 +383,6 @@ classdef (Abstract) old_axesDraw
             MarkerSize  = Parameters.points_Size;
 
             plot.DriveTest.Points(hAxes, pointsTable, MarkerStyle, MarkerColor, MarkerSize)
-        end
-
-
-        %-----------------------------------------------------------------%
-        % FUNÇÕES AUXILIARES
-        %-----------------------------------------------------------------%
-        function imgFileName = plot2report(hContainer, specData, idxThread, tempBandObj, reportInfo, plotInfoPerAxes)
-            % Limpa container.
-            if ~isempty(hContainer.Children)
-                delete(hContainer.Children)
-            end
-
-            % Cria eixos de acordo com estabelecido no JSON.
-            tiledPos     = 1;
-            tiledSpan    = [plotInfoPerAxes.Layout];
-
-            axesParent   = tiledlayout(hContainer, sum(tiledSpan), 1, "Padding", "tight", "TileSpacing", "tight");           
-            [axesType, ...
-             axesXLabel] = plot.axes.axesTypeMapping({plotInfoPerAxes.Name});
-
-            for ii = 1:numel(plotInfoPerAxes)
-                xLabelFlag  = true;
-                
-                switch axesType{ii}
-                    case 'Geographic'
-                        hAxes = plot.axes.Creation(axesParent, 'Geographic');
-
-                    case 'Cartesian'
-                        hAxes = plot.axes.Creation(axesParent, 'Cartesian', {'XColor', [.15,.15,.15], 'YColor', [.15,.15,.15]});
-                        if (numel(plotInfoPerAxes) > 1) && (ii < numel(plotInfoPerAxes)) && any(strcmp(axesType(ii+1:end), 'Cartesian'))
-                            xLabelFlag = false;
-                        end
-                end
-                hAxes.Layout.Tile     = tiledPos;
-                hAxes.Layout.TileSpan = [tiledSpan(ii) 1];
-            
-                % PLOT
-                plotNames = strsplit(plotInfoPerAxes(ii).Name, '+');
-                for plotTag = plotNames
-                    switch plotTag{1}
-                        case {'MinHold', 'ClearWrite', 'Average', 'MaxHold'}
-                            plot.draw2D.OrdinaryLine(hAxes, tempBandObj, idxThread, plotTag{1});
-    
-                        case 'Persistance'
-                            plot.Persistance('Creation', [], hAxes, tempBandObj, idxThread);
-    
-                        case 'Waterfall'
-                            plot.Waterfall('Creation', hAxes, tempBandObj, idxThread);
-    
-                        case 'WaterfallTime'
-    
-                        %-----------------------------------------------------%
-                        case 'Channel'
-                            chTable = ChannelTable2Plot(tempBandObj.callingApp.channelObj, specData(idxThread));
-                            specData(idxThread).UserData.reportChannelTable = chTable;
-                            if ~isempty(chTable)
-                                plot.draw2D.horizontalSetOfLines(hAxes, tempBandObj, idxThread, 'Channel', chTable)
-                            end
-
-                        case 'OccupancyPerChannel'
-    
-                        %-----------------------------------------------------%
-                        case 'BandLimits'
-                            plot.old_axesDraw.BandLimitsPlot(hAxes, specData(idxThread))
-    
-                        case 'EmissionROI'
-                            plot.old_axesDraw.EmissionPlot(hAxes, specData(idxThread), yLim, Parameters)
-    
-                        case {'occMinHold', 'occAverage', 'occMaxHold'}
-    
-                        case 'occThreshold' % NAO ESTÁ NO GENERALSETTINGS.JSON
-                            plot.old_axesDraw.ThresholdPlot(hAxes, specData(idxThread), xArray)
-    
-                        case 'OccupancyPerBin'
-                            plot.old_axesDraw.cartesianAxes__type3(hAxes, specData, idxThread, tempBandObj, reportInfo)
-    
-                        %-----------------------------------------------------%
-                        case 'DriveTest'
-                            plot.old_axesDraw.geographicAxes_type1(hAxes, Parameters, 'ReportGenerator')
-    
-                        case 'DriveTestRoute'
-                            plot.old_axesDraw.geographicAxes_type2(hAxes, Parameters)
-                    end
-                end    
-                plot.axes.StackingOrder.execute(hAxes, tempBandObj.Context)
-
-                if xLabelFlag
-                    xlabel(hAxes, axesXLabel{ii})
-                else
-                    hAxes.XTickLabel = {};
-                    xlabel(hAxes, '')
-                end
-                tiledPos = tiledPos+tiledSpan(ii);
-            end
-
-            % Espera renderizar e salva a imagem...
-            defaultFilename = appUtil.DefaultFileName(reportInfo.General.UserPath, sprintf('Image_ID%d', specData(idxThread).RelatedFiles.ID(1)), -1);
-            imgFileName     = sprintf('%s.%s', defaultFilename, reportInfo.General.Image.Format);
-            if ~ismember(reportInfo.Model.Version, {'final', 'Definitiva'})
-                imgFileName = replace(imgFileName, 'Image', '~Image');
-            end
-            
-            exportgraphics(hContainer, imgFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
-            drawnow nocallbacks
-            
-            while true
-                pause(1)
-                if isfile(imgFileName)
-                    break
-                end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function PostPlotConfig(hAxes, SpecInfo, Axes, xUnit, yUnit)
-            % xyLabels
-            if Axes.xLabel;     xlabel(hAxes, xUnit)
-            else;               xlabel(hAxes, '')
-            end
-
-            if Axes.yLabel;     ylabel(hAxes, yUnit)
-            else;               ylabel(hAxes, '')
-            end
-
-            % xyTicks
-            [xTick, xTickLabel, yTick, yTickLabel] = plot.old_axesDraw.Tick(hAxes, SpecInfo);
-            set(hAxes, 'XTick', xTick, 'YTick', yTick);
-
-            if Axes.xTickLabel; hAxes.XTickLabel = xTickLabel;
-            else;               hAxes.XTickLabel = {};
-            end
-
-            if Axes.yTickLabel; hAxes.YTickLabel = yTickLabel;
-            else;               hAxes.YTickLabel = {};
-            end
-        end
-
-
-        %-----------------------------------------------------------------%
-        function [xLim, yLim, xIndexLim, xArray] = Limits(tempBandObj, idxThread, reportInfo)
-            idxChannel  = reportInfo.General.Parameters.Plot.idxChannel;
-            axesLimits  = Limits(tempBandObj, idxThread, idxChannel);
-            
-            xLim        = axesLimits.xLim;
-            yLim        = axesLimits.yLevelLim;
-            xIndexLim   = axesLimits.xIndexLimits;
-            xArray      = tempBandObj.xArray;
-        end
-
-
-        %-----------------------------------------------------------------%
-        function [xTick, xTickLabel, yTick, yTickLabel] = Tick(hAxes, SpecInfo)
-            xTickFlag = true;
-            yTickFlag = true;
-
-            for ii = 5:-1:1
-                if xTickFlag
-                    xTick = linspace(hAxes.XLim(1), hAxes.XLim(2), ii);
-
-                    if issorted(xTick, "strictascend")
-                        xTickFlag  = false;
-                        xTickLabel = string(round(xTick, 3));
-                    end
-                end
-
-                if yTickFlag
-                    yTick = linspace(hAxes.YLim(1), hAxes.YLim(2), ii);
-
-                    if issorted(yTick, "strictascend")
-                        yTickFlag = false;
-
-                        switch class(yTick)
-                            case 'datetime'
-                                yTickLabel = [];
-                                for jj = 1:numel(yTick)
-                                    [~, yTickIndex]   = min(abs(SpecInfo.Data{1} - yTick(jj)));
-                                    yTickLabel(end+1) = yTickIndex;
-                                end
-                            otherwise
-                                yTickLabel = round(yTick);
-                        end
-                        yTickLabel = string(yTickLabel);
-                    end
-                end
-
-                if ~xTickFlag && ~yTickFlag
-                    break
-                end
-            end
         end
     end
 end

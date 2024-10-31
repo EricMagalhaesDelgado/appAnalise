@@ -253,6 +253,8 @@ classdef Band < handle
 
                     if chBW <= 0
                         GuardBand = struct('Mode', 'manual', 'Parameters', struct('Type', 'Fixed', 'Value', 1));
+                    else
+                        GuardBand = struct('Mode', 'manual', 'Parameters', struct('Type', 'Fixed', 'Value', ceil(1.1*chBW)));
                     end
                     [xLimits,    ...
                      xIndexDown, ...

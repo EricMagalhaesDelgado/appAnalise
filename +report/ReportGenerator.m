@@ -8,7 +8,6 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
 
     internalFcn_counterCreation()
     
-    rootFolder    = app.rootFolder;    
     exceptionList = app.projectData.exceptionList;
     peaksTable    = report.Peaks(app, idxThreads, reportInfo.DetectionMode, exceptionList);
 
@@ -17,7 +16,11 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
     % HTML header (style)
     htmlReport = '';
     if ismember(reportInfo.Model.Version, {'preview', 'Preliminar'})
-        htmlReport = sprintf('%s\n\n', fileread(fullfile(rootFolder, 'Template', 'html_DocumentStyle.txt')));
+        docTitle   = reportInfo.Model.Name;
+        docType    = reportInfo.Model.DocumentType;
+        docStyle   = sprintf(fileread(fullfile(reportLib.Path, 'html', 'docStyle.txt')), docTitle, docType);
+
+        htmlReport = sprintf('%s\n\n', docStyle);
     end
     tableStyleFlag = 1;
 
@@ -32,7 +35,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
         htmlReport = [htmlReport, reportLib.sourceCode.htmlCreation(parentNode)];
 
         if tableStyleFlag
-            htmlReport = sprintf('%s%s\n\n', htmlReport, fileread(fullfile(rootFolder, 'Template', 'html_DocumentTableStyle.txt')));
+            htmlReport = sprintf('%s%s\n\n', htmlReport, fileread(fullfile(reportLib.Path, 'html', 'docTableStyle.txt')));
             tableStyleFlag = 0;
         end
 
@@ -110,7 +113,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
 end
 
 %-------------------------------------------------------------------------%
-function htmlContent = HTMLRenderization(parentNode, specData, idxThread, reportInfo, tempBandObj, channelIndex, emissionIndex)
+function htmlContent = HTMLRenderization(parentNode, specData, idxThread, reportInfo, tempBandObj)
     
     arguments
         parentNode
@@ -118,8 +121,6 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThread, report
         idxThread
         reportInfo
         tempBandObj
-        channelIndex  = -1
-        emissionIndex = -1
     end
 
     if ~isfield(parentNode, 'Recurrence')
@@ -149,7 +150,7 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThread, report
                                 update(channelBandObj, idxThread, channelIndex);
                                 reportInfo.General.Parameters.Plot.idxChannel = channelIndex;
 
-                                htmlTempContent = [htmlTempContent, HTMLRenderization(childNode, specData, idxThread, reportInfo, channelBandObj, channelIndex)];
+                                htmlTempContent = [htmlTempContent, HTMLRenderization(childNode, specData, idxThread, reportInfo, channelBandObj)];
                             end
 
                         case 'Emission'
@@ -159,7 +160,7 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThread, report
                                 update(emissionBandObj, idxThread, emissionIndex);
                                 reportInfo.General.Parameters.Plot.idxEmission = emissionIndex;
 
-                                htmlTempContent = [htmlTempContent, HTMLRenderization(childNode, specData, idxThread, reportInfo, emissionBandObj, -1, emissionIndex)];
+                                htmlTempContent = [htmlTempContent, HTMLRenderization(childNode, specData, idxThread, reportInfo, emissionBandObj)];
                             end
 
                         otherwise
