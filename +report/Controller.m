@@ -11,7 +11,7 @@ function Controller(app, operationType)
 
                 % Verifica se o template e relatório selecionado demanda
                 % arquivos externos (imagens e tabelas).
-                if contains(reportInfo.Model.Template, '"Origin": "External"')
+                if contains(reportInfo.Model.Script, '"Origin": "External"')
                     msg = '<p style="font-size:12px; text-align: justify;">Confirma que foram relacionados os arquivos externos ao appAnalise estabelecidos no modelo?</p>';
                     selection = uiconfirm(app.UIFigure, msg, '', 'Options', {'OK', 'Cancelar'}, 'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question', 'Interpreter', 'html');
                     
@@ -167,8 +167,6 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
     ReportProject.emissionsValue1 = sum(infoTable{:,2:4}, 'all');                               % Qtd. emissões
     ReportProject.emissionsValue2 = sum(infoTable{:,2});                                        % Qtd. emissões licenciadas
     ReportProject.emissionsValue3 = sum(infoTable{:,5:8}, 'all');                               % Qtd. emissões identificadas
-
-    ReportProject.tableJournal = infoTable(:,cell2mat(reportInfo.Model.Type.JournalTable));
 
     % Arquivo JSON
     tableStr = ReportGenerator_Aux3(app, idx, countTable);

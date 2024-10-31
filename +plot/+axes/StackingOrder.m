@@ -2,7 +2,7 @@ classdef (Abstract) StackingOrder
 
     properties (Constant)
         %-----------------------------------------------------------------%
-        winAppAnalise     = {'mkrLabels', 'occTHR', 'mkrROI', 'ROI', 'Average', 'ClearWrite', 'MaxHold', 'mkrLine', 'Channels', 'BandLimits', 'Persistance', 'MinHold', 'WaterfallTime', 'Waterfall'}
+        winAppAnalise     = {'mkrLabels', 'occTHR', 'mkrROI', 'ROI', 'Average', 'ClearWrite', 'MaxHold', 'mkrLine', 'Channel', 'BandLimits', 'Persistance', 'MinHold', 'WaterfallTime', 'Waterfall'}
         
         winDriveTest      = {'FilterROI', 'Car', 'Points', 'Distortion', 'Density', 'InRoute', 'OutRoute', ...    % app.UIAxes1   (GeographicAxes)
                              'ChannelROI', 'ClearWrite', 'Persistance', 'Timeline', 'Waterfall', 'ChannelPower'}  % app.UIAxes2-4 (CartesianAxes)
@@ -17,7 +17,7 @@ classdef (Abstract) StackingOrder
         %-----------------------------------------------------------------%
         function execute(hAxes, clientID)
             switch clientID
-                case {'appAnalise:PLAYBACK', 'appAnalise:REPORT', 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION'}
+                case {'appAnalise:PLAYBACK', 'appAnalise:REPORT', 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:CHANNEL', 'appAnalise:REPORT:EMISSION'}
                     refStackingOrder = plot.axes.StackingOrder.winAppAnalise;
 
                 case 'appAnalise:RFDATAHUB'

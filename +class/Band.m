@@ -2,7 +2,13 @@ classdef Band < handle
 
     properties
         %-----------------------------------------------------------------%
-        Context     char {mustBeMember(Context, {'appAnalise:PLAYBACK', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST', 'appAnalise:REPORT', 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION'})} = 'appAnalise:PLAYBACK'
+        Context     char {mustBeMember(Context, {'appAnalise:PLAYBACK',       ...
+                                                 'appAnalise:SIGNALANALYSIS', ...
+                                                 'appAnalise:DRIVETEST',      ...
+                                                 'appAnalise:REPORT',         ...
+                                                 'appAnalise:REPORT:BAND',    ...
+                                                 'appAnalise:REPORT:CHANNEL', ...
+                                                 'appAnalise:REPORT:EMISSION'})} = 'appAnalise:PLAYBACK'
         callingApp
         
         Receiver
@@ -103,14 +109,12 @@ classdef Band < handle
                         axesLimits = XYCLimits(obj, idx);
                     end
 
-                case {'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'}
+                case {'appAnalise:REPORT:CHANNEL', 'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'}
                     if isempty(varargin)
                         error('Band:Limits:UnexpectedNumberOfInputArguments', 'Unexpected number of input arguments')
                     end
 
-                  % idxEmission = varargin{1};
-                  % GuardBand   = varargin{2};
-                    axesLimits  = XYCLimits(obj, idx, varargin{:});
+                    axesLimits = XYCLimits(obj, idx, struct('Mode', 'manual', 'Parameters', struct('Type', 'BWRelated', 'Value', 5)), varargin{:});
             end
 
             obj.xLim         = axesLimits.xLim;
@@ -156,7 +160,7 @@ classdef Band < handle
                                 YArray  = specData.Data{2}(:,idxTime)';
                             end
         
-                        case {'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'}
+                        otherwise
                             YArray = specData.Data{3}(:,idxFcn)';
                     end
 
@@ -173,7 +177,7 @@ classdef Band < handle
                                     YArray = [idxTime, idxTime];
                             end
 
-                        case {'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS'}
+                        otherwise
                             error('Band:XYArray:UnexpectedPlotTag', 'UnexpectedPlotTag')
                     end
             end
@@ -221,14 +225,18 @@ classdef Band < handle
 
     methods(Access = private)
         %-----------------------------------------------------------------%
-        function axesLimits = XYCLimits(obj, idx, idxEmission, GuardBand)
+        function axesLimits = XYCLimits(obj, idx, GuardBand, varargin)
             arguments
                 obj
                 idx
-                idxEmission = -1
-                GuardBand   = struct('Mode', 'manual', 'Parameters', struct('Type', 'BWRelated', 'Value', 5))
+                GuardBand = struct('Mode', 'manual', 'Parameters', struct('Type', 'BWRelated', 'Value', 5))
             end
-            specData   = obj.callingApp.specData(idx);
+
+            arguments (Repeating)
+                varargin                
+            end
+            
+            specData = obj.callingApp.specData(idx);
 
             % xLimits
             switch obj.Context
@@ -237,7 +245,22 @@ classdef Band < handle
                     xIndexDown = 1;
                     xIndexUp   = obj.DataPoints;
 
+                case 'appAnalise:REPORT:CHANNEL'
+                    idxChannel = varargin{1};
+
+                    chFreqCenter = specData.UserData.reportChannelTable.FirstChannel(idxChannel); % MHz
+                    chBW         = specData.UserData.reportChannelTable.ChannelBW(idxChannel);    % MHz
+
+                    if chBW <= 0
+                        GuardBand = struct('Mode', 'manual', 'Parameters', struct('Type', 'Fixed', 'Value', 1));
+                    end
+                    [xLimits,    ...
+                     xIndexDown, ...
+                     xIndexUp] = XEmissionLimits(obj, chFreqCenter, chBW, GuardBand);
+
                 case {'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS'}
+                    idxEmission = varargin{1};
+
                     emissionFreqCenter = specData.UserData.Emissions.Frequency(idxEmission); % MHz
                     emissionBW         = specData.UserData.Emissions.BW(idxEmission) / 1000; % kHz >> MHz
 

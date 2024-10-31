@@ -1,417 +1,369 @@
-function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo, d)
+function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo, progressDialog)
+    
     global hContainer
 
-    global ID_img
-    global ID_tab
-
-    global ID_imgExt
-    global ID_tabExt
-
     if nargin == 3
-        d = [];
+        progressDialog = [];
     end
 
-    ID_img = 0;
-    ID_tab = 0;
-
-    ID_imgExt = 0;
-    ID_tabExt = 0;
-
-    htmlReport    = '';
+    internalFcn_counterCreation()
     
-    appVersion    = reportInfo.appVersion;
-    RootFolder    = reportInfo.General.RootFolder;
-    Template      = jsondecode(reportInfo.Model.Template);
-    
+    rootFolder    = app.rootFolder;    
     exceptionList = app.projectData.exceptionList;
-    peaksTable    = Fcn_Peaks(app, idxThreads, reportInfo.DetectionMode, exceptionList);
-    hFigure       = app.UIFigure;
+    peaksTable    = report.Peaks(app, idxThreads, reportInfo.DetectionMode, exceptionList);
 
     tempBandObj   = class.Band('appAnalise:REPORT:BAND', app);
     
-    % HTML header (style)    
-    if strcmp(reportInfo.General.Version, 'Preliminar')
-        htmlReport = sprintf('%s\n\n', fileread(fullfile(RootFolder, 'Template', 'html_DocumentStyle.txt')));
+    % HTML header (style)
+    htmlReport = '';
+    if ismember(reportInfo.Model.Version, {'preview', 'Preliminar'})
+        htmlReport = sprintf('%s\n\n', fileread(fullfile(rootFolder, 'Template', 'html_DocumentStyle.txt')));
     end
     tableStyleFlag = 1;
 
     % HTML body
-    for ii = 1:numel(Template)
-        if ~ismember(Template(ii).Type, {'Item', 'ItemN1'}) || isempty(Template(ii).Data.Children)
-            continue
-        else
-            htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Template(ii)));
+    jsonScript = jsondecode(reportInfo.Model.Script);
+    for ii = 1:numel(jsonScript)
+        parentNode = jsonScript(ii);
 
-            if tableStyleFlag
-                htmlReport = sprintf('%s%s\n\n', htmlReport, fileread(fullfile(RootFolder, 'Template', 'html_DocumentTableStyle.txt')));
-                tableStyleFlag = 0;
-            end
+        if isfield(parentNode.Data, 'Variable') && ~isempty(parentNode.Data.Variable)
+            parentNode.Data.Text = internalFcn_FillWords(reportInfo, [], parentNode, 1);
+        end
+        htmlReport = [htmlReport, reportLib.sourceCode.htmlCreation(parentNode)];
+
+        if tableStyleFlag
+            htmlReport = sprintf('%s%s\n\n', htmlReport, fileread(fullfile(rootFolder, 'Template', 'html_DocumentTableStyle.txt')));
+            tableStyleFlag = 0;
         end
 
         NN = 1;
-        if Template(ii).Recurrence
+        if parentNode.Recurrence
             NN = numel(idxThreads);
         end
 
         for jj = 1:NN
-            if Template(ii).Recurrence && ~isempty(d)
-                d.Message = sprintf(['<p style="font-size: 12px; text-align: justify;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
-                                     'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações.\n\n%d de %d</p>'], jj, NN);
+            if parentNode.Recurrence && ~isempty(progressDialog)
+                progressDialog.Message = sprintf('<p style="font-size: 12px; text-align: justify;">%d de %d</p>', jj, NN);
             end
 
             update(tempBandObj, idxThreads(jj));
+            reportInfo.General.Parameters.Plot = struct('idxThread',   jj, ...
+                                                        'idxChannel',  -1, ...
+                                                        'idxEmission', -1);
 
-            % Insere uma quebra de linha, caso exista recorrência no item
-            % (iterando SpecInfo).
+            % Insere uma quebra de linha, caso exista recorrência no
+            % item.
             if jj > 1
-                htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
+                htmlReport = [htmlReport, reportLib.sourceCode.LineBreak];
             end
 
-            for kk = 1:numel(Template(ii).Data.Children)
-                % Children é uma estrutura com os campos "Type" e "Data". Se o 
-                % campo "Type" for igual a "Image" ou "Table" e ocorrer um erro 
-                % na leitura de uma imagem ou tabela externa, por exemplo, o erro 
-                % retornado terá o formato "Configuration file error message: %s". 
-                % Esse "%s" é uma mensagem JSON (e por isso deve ser deserializada) 
-                % de um componente HTML textual ("Subitem" ou "Paragraph", por 
-                % exemplo).
-                Children = Template(ii).Data.Children(kk);
-
-                try
-                    switch Children.Type
-                        case {'Subitem', 'ItemN2', 'ItemN3', 'Paragraph', 'List', 'Footnote'}
-                            for ll = 1:numel(Children.Data)
-                                if ~isempty(Children.Data(ll).Settings)
-                                    Children.Data(ll).String = Fcn_FillWords(app.specData(idxThreads), jj, reportInfo, Children);
-                                end
-                            end
-
-                            htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children));
-
-                        case 'Image'
-                            opt2 = Children.Data.Intro;
-                            opt3 = Children.Data.Error;
-                            opt4 = Children.Data.LineBreak;
-
-                            plotType   = Children.Data.Type;
-                            plotName   = strsplit(Children.Data.Source, '+');
-                            plotLayout = str2double(strsplit(Children.Data.Layout, ':'));
-
-                            plotInfo   = arrayfun(@(x, y) struct('Name', x, 'Layout', y), plotName, plotLayout);                                        
-
-                            switch plotType
-                                case 'Channel'
-                                    MM = numel(app.specData(idxThreads(jj)).UserData.channelManual);
-                                    for ll = 1:MM
-                                        reportInfo.General.Parameters.Plot      = struct('Type', 'Channel', 'channelIndex', ll);
-
-                                        % Insere uma quebra de linha, caso exista recorrência no item
-                                        % (iterando SpecInfo(jj).UserData.Emissions).
-                                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
-
-                                        % Cabeçalho da emissão...
-                                        channelTitle = struct('Type', 'ItemN3',                                                ...
-                                                               'Data', struct('Editable', 'false',                             ...
-                                                                              'String',   '%s',                                ...
-                                                                              'Settings', struct('Source',     'channelTitle', ...
-                                                                                                 'Precision',  '%s',           ...
-                                                                                                 'Multiplier', 1)));
-                                        channelTitle.Data.String = Fcn_FillWords(app.specData(idxThreads), jj, reportInfo, channelTitle);                        
-                                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(channelTitle));
-
-                                        opt1 = Fcn_Image(app.specData, idxThreads(jj), tempBandObj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
-                                        htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
-                                    end
-
-                                case 'Emission'
-                                    MM = height(app.specData(idxThreads(jj)).UserData.Emissions);
-                                    for ll = 1:MM
-                                        reportInfo.General.Parameters.Plot      = struct('Type', 'Emission', 'emissionIndex', ll);
-                                        reportInfo.General.Parameters.DriveTest = app.specData(idxThreads(jj)).UserData.Emissions.UserData(ll).DriveTest;
-
-                                        % Verifica se o plot requerido é apenas DriveTest... em sendo,
-                                        % evita a criação do subtítulo da emissão, caso não tenha
-                                        % informação de DriveTest.
-                                        if ismember('DriveTest', {plotInfo.Name})
-                                            if isempty(app.specData(idxThreads(jj)).UserData.Emissions.UserData(ll).DriveTest)
-                                                continue
-                                            end
-                                        end
-
-                                        % Insere uma quebra de linha, caso exista recorrência no item
-                                        % (iterando SpecInfo(jj).UserData.Emissions).
-                                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;'))));
-
-                                        % Cabeçalho da emissão...
-                                        emissionTitle = struct('Type', 'ItemN3',                                                ...
-                                                               'Data', struct('Editable', 'false',                              ...
-                                                                              'String',   '%s',                                 ...
-                                                                              'Settings', struct('Source',     'emissionTitle', ...
-                                                                                                 'Precision',  '%s',            ...
-                                                                                                 'Multiplier', 1)));
-                                        emissionTitle.Data.String = Fcn_FillWords(app.specData(idxThreads), jj, reportInfo, emissionTitle);                        
-                                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(emissionTitle));
-
-                                        opt1 = Fcn_Image(app.specData, idxThreads(jj), tempBandObj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
-                                        htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
-                                    end
-
-                                otherwise % 'Band' e imagens externas...
-                                    reportInfo.General.Parameters.Plot = struct('Type', 'Band', 'emissionIndex', -1);
-                                    
-                                    % Jeitinho pra plotar a rota fora do loop de recorrência...
-                                    if ismember('DriveTestRoute', {plotInfo.Name})
-                                        reportInfo.General.Parameters.specData = app.specData(idxThreads(1));
-                                    end                                    
-                                    
-                                    opt1 = Fcn_Image(app.specData, idxThreads(jj), tempBandObj, reportInfo, Template(ii).Recurrence, Children, plotInfo, hFigure);
-                                    htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
-                            end
-
-                        case 'Table'
-                            opt1 = Fcn_Table(app.specData(idxThreads), jj, reportInfo, peaksTable, exceptionList, Template(ii).Recurrence, Children);
-                            opt2 = Children.Data.Intro;
-                            opt3 = Children.Data.Error;
-                            opt4 = Children.Data.LineBreak;
-                            
-                            htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4);
-
-                        otherwise
-                            error('Unexpected type "%s"', Children.Type)
-                    end
-
-                catch ME
-                    struct2table(ME.stack)
-                    msgError = extractAfter(ME.message, 'Configuration file error message: ');
-
-                    if ~isempty(msgError)
-                        msgError   = jsondecode(msgError);
-                        htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(struct('Type', msgError.Type, 'Data', struct('Editable', 'false', 'String', msgError.String))));
-                    end
-                end
-            end
+            htmlReport = [htmlReport, HTMLRenderization(parentNode, app.specData, idxThreads(jj), reportInfo, tempBandObj)];
 
             % Atualiza barra de progresso... e cancela operação, caso
             % requisitado pelo usuário.
-            if Template(ii).Recurrence && ~isempty(d)
-                d.Value = jj/NN;
-                if d.CancelRequested
+            if parentNode.Recurrence && ~isempty(progressDialog)
+                progressDialog.Value = jj/NN;
+                if progressDialog.CancelRequested
                     return
                 end
             end
         end
     end
 
-    % HTML footnotes    
-    LineBreak = report.ReportGenerator_HTML(struct('Type', 'Paragraph', 'Data', struct('Editable', 'false', 'String', '&nbsp;')));
-    Separator = report.ReportGenerator_HTML(struct('Type', 'Footnote',  'Data', struct('Editable', 'false', 'String', repmat('_', 1, 45))));
+    % HTML footnotes
+    FootnoteList = fields(reportInfo.Version);
+    FootnoteText = '';
+        
+    for ii = 1:numel(FootnoteList)
+        FootnoteVersion = reportInfo.Version.(FootnoteList{ii});
 
-    Footnote1 = sprintf('<b>appAnalise</b> v. %s, <b>fiscaliza</b> v. %s, <b>RFDataHub</b> %s', appVersion.(class.Constants.appName).version, appVersion.fiscaliza, appVersion.RFDataHub.ReleaseDate);
-    Footnote2 = sprintf('<b>Relatório</b>: %s',      jsonencode(rmfield(table2struct(reportInfo.Model.Type), 'Description')));
-    Footnote3 = sprintf('<b>Imagem</b>: %s',         jsonencode(reportInfo.General.Image));
-    Footnote4 = sprintf('<b>Matlab</b> v. %s, %s',   appVersion.Matlab.version, appVersion.Matlab.products);
-    Footnote5 = '';
-    try
-        Footnote5 = sprintf('<b>Python</b> v. %s',   appVersion.Python.Version);
-    catch
+        if ~isempty(FootnoteVersion)
+            FootnoteFields = fields(FootnoteVersion);
+            
+            FootnoteFieldsText = {};
+            for jj = 1:numel(FootnoteFields)
+                switch FootnoteFields{jj}
+                    case 'name'
+                        FootnoteFieldsText{end+1} = sprintf('<b>__%s</b>', upper(FootnoteVersion.(FootnoteFields{jj})));
+                    otherwise
+                        if isstruct(FootnoteVersion.(FootnoteFields{jj}))
+                            FootnoteVersion.(FootnoteFields{jj}) = jsonencode(FootnoteVersion.(FootnoteFields{jj}));
+                        end
+
+                        FootnoteFieldsText{end+1} = sprintf('<b>%s</b>: %s', FootnoteFields{jj}, FootnoteVersion.(FootnoteFields{jj}));
+                end
+            end
+            FootnoteFieldsText = strjoin(FootnoteFieldsText, ', ');
+            FootnoteText       = [FootnoteText, reportLib.sourceCode.htmlCreation(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'Text', FootnoteFieldsText, 'Variable', [])))];
+        end
     end
-    
-    Footnote1_html = report.ReportGenerator_HTML(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'String', Footnote1)));
-    Footnote2_html = report.ReportGenerator_HTML(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'String', Footnote2)));
-    Footnote3_html = report.ReportGenerator_HTML(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'String', Footnote3)));
-    Footnote4_html = report.ReportGenerator_HTML(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'String', Footnote4)));
-    Footnote5_html = report.ReportGenerator_HTML(struct('Type', 'Footnote', 'Data', struct('Editable', 'false', 'String', Footnote5)));
-
-    htmlReport = sprintf('%s%s%s%s%s%s%s%s%s', htmlReport, LineBreak, Separator, Footnote1_html, Footnote2_html, Footnote3_html, Footnote4_html, Footnote5_html, LineBreak);
+    htmlReport = [htmlReport, reportLib.sourceCode.LineBreak, reportLib.sourceCode.Separator, FootnoteText, reportLib.sourceCode.LineBreak];
 
     % HTML trailer
-    if reportInfo.General.Version == "Preliminar"
+    if ismember(reportInfo.Model.Version, {'preview', 'Preliminar'})
         htmlReport = sprintf('%s</body>\n</html>', htmlReport);
     end
 
-    delete(hContainer.Children)
+    if ~isempty(hContainer) && isvalid(hContainer)
+        delete(hContainer.Children)
+    end
 end
 
-
 %-------------------------------------------------------------------------%
-function htmlReport = HTMLReport(htmlReport, Children, opt1, opt2, opt3, opt4)
-    htmlReport = sprintf('%s%s', htmlReport, report.ReportGenerator_HTML(Children, {opt1, opt2, opt3, opt4}));
-end
-
-
-%-------------------------------------------------------------------------%
-function String = Fcn_FillWords(SpecInfo, idx, reportInfo, Children)
-
-    for ii = 1:numel(Children.Data.Settings)
-        Precision  = string(Children.Data.Settings(ii).Precision);
-        Source     = Children.Data.Settings(ii).Source;
-        Multiplier = Children.Data.Settings(ii).Multiplier;
-
-        FillWords(ii) = sprintf(Precision, Fcn_Source(SpecInfo, idx, reportInfo, struct('Source', Source, 'Multiplier', Multiplier)));
+function htmlContent = HTMLRenderization(parentNode, specData, idxThread, reportInfo, tempBandObj, channelIndex, emissionIndex)
+    
+    arguments
+        parentNode
+        specData
+        idxThread
+        reportInfo
+        tempBandObj
+        channelIndex  = -1
+        emissionIndex = -1
     end
 
-    String = sprintf(Children.Data.String, FillWords);
+    if ~isfield(parentNode, 'Recurrence')
+        parentNode.Recurrence = 0;
+    end
+    
+    htmlContent = '';
+
+    for ii = 1:numel(parentNode.Data.Children)
+        childNode = parentNode.Data.Children(ii);
+        childType = childNode.Type;
+    
+        try
+            switch childType
+                case 'Container'
+                    htmlTempContent = '';
+
+                    switch childNode.Data.Source
+                        case 'Channel'
+                            channelBandObj = class.Band('appAnalise:REPORT:CHANNEL', tempBandObj.callingApp);
+
+                            for channelIndex = 1:height(specData(idxThread).UserData.reportChannelTable)
+                                if ~specData(idxThread).UserData.reportChannelAnalysis.("Qtd. emissões")(channelIndex)
+                                    continue
+                                end
+
+                                update(channelBandObj, idxThread, channelIndex);
+                                reportInfo.General.Parameters.Plot.idxChannel = channelIndex;
+
+                                htmlTempContent = [htmlTempContent, HTMLRenderization(childNode, specData, idxThread, reportInfo, channelBandObj, channelIndex)];
+                            end
+
+                        case 'Emission'
+                            emissionBandObj = class.Band('appAnalise:REPORT:EMISSION', tempBandObj.callingApp);
+
+                            for emissionIndex = 1:height(specData(idxThread).UserData.Emissions)
+                                update(emissionBandObj, idxThread, emissionIndex);
+                                reportInfo.General.Parameters.Plot.idxEmission = emissionIndex;
+
+                                htmlTempContent = [htmlTempContent, HTMLRenderization(childNode, specData, idxThread, reportInfo, emissionBandObj, -1, emissionIndex)];
+                            end
+
+                        otherwise
+                            error('UnexpectedValue')
+                    end
+    
+                case {'ItemN2', 'ItemN3', 'Paragraph', 'List', 'Footnote'}
+                    for jj = 1:numel(childNode.Data)
+                        if isfield(childNode.Data(jj), 'Variable') && ~isempty(childNode.Data(jj).Variable)
+                            childNode.Data(jj).Text = internalFcn_FillWords(specData, idxThread, reportInfo, childNode);
+                        end
+                    end
+    
+                    htmlTempContent = reportLib.sourceCode.htmlCreation(childNode);
+    
+                case 'Image'
+                    hFigure    = tempBandObj.callingApp.UIFigure;
+
+                    plotName   = strsplit(childNode.Data.Plot, ':');
+                    plotLayout = str2double(strsplit(childNode.Data.Layout, ':'));    
+                    plotInfo   = arrayfun(@(x, y) struct('Name', x, 'Layout', y), plotName, plotLayout);
+                    
+                    Image = Fcn_Image(specData, idxThread, tempBandObj, reportInfo, parentNode.Recurrence, childNode, plotInfo, hFigure);
+                    htmlTempContent = reportLib.sourceCode.htmlCreation(childNode, Image);
+    
+                case 'Table'
+                    Table = Fcn_Table(specData, idxThread, reportInfo, tempBandObj.callingApp.projectData.peaksTable, tempBandObj.callingApp.projectData.exceptionList, parentNode.Recurrence, childNode);
+                    htmlTempContent = reportLib.sourceCode.htmlCreation(childNode, Table);
+    
+                otherwise
+                    error('Unexpected type "%s"', childType)
+            end
+
+            htmlContent = [htmlContent, htmlTempContent];
+    
+        catch ME
+            struct2table(ME.stack)
+            msgError = extractAfter(ME.message, 'Configuration file error message: ');
+    
+            if ~isempty(msgError)
+                htmlContent = reportLib.sourceCode.AuxiliarHTMLBlock(htmlContent, 'Error', msgError);
+            end
+        end
+    end
 end
 
+%-------------------------------------------------------------------------%
+function internalFcn_counterCreation()
+    global ID_img
+    global ID_imgExt
+    global ID_tab    
+    global ID_tabExt
+
+    ID_img    = 0;
+    ID_imgExt = 0;
+    ID_tab    = 0;    
+    ID_tabExt = 0;
+end
 
 %-------------------------------------------------------------------------%
-function value = Fcn_Source(SpecInfo, idx, reportInfo, Children)
+function Text = internalFcn_FillWords(specData, idxThread, reportInfo, Children)
+    for ii = 1:numel(Children.Data.Variable)
+        Precision = string(Children.Data.Variable(ii).Precision);
+        fieldName = Children.Data.Variable(ii).Source;
+        
+        try
+            FillWords(ii) = sprintf(Precision, Fcn_Source(specData, idxThread, reportInfo, fieldName));
+        catch ME
+            fieldName
+            ME.message
+            pause(1)
+        end
+    end
+    
+    Text = sprintf(Children.Data.Text, FillWords);
+end
 
-    Source     = Children.Source;
-    Multiplier = Children.Multiplier;
+%-------------------------------------------------------------------------%
+function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
+    arguments
+        specData 
+        idxThread 
+        reportInfo 
+        fieldName char {mustBeMember(fieldName, {'Issue',            ...
+                                                 'Receiver',         ...
+                                                 'FreqStart',        ...
+                                                 'FreqStop',         ...
+                                                 'StepWidth',        ...
+                                                 'BeginTime',        ...
+                                                 'EndTime',          ...
+                                                 'RelatedFiles',     ...
+                                                 'Location',         ...
+                                                 'RelatedLocations', ...
+                                                 'Parameters',       ...
+                                                 'threadTag',        ...
+                                                 'channelTag',       ...
+                                                 'emissionTag'})}
+    end
 
-    switch Source
-        case 'idx';              value = idx;
-        case 'ID';               value = Multiplier;
-        case 'Issue';            value = reportInfo.Issue;
-        case 'Image';            value = jsonencode(rmfield(reportInfo.General.Image, 'Visibility'));
-        case 'Template';         value = jsonencode(reportInfo.Model.Type);
-        case 'Node';             value = SpecInfo(idx).Receiver;
-        case 'ThreadID';         value = SpecInfo(idx).RelatedFiles.ID(1);
-        case 'MetaData';         value = jsonencode(SpecInfo(idx).MetaData);
-        case 'FreqStart';        value = SpecInfo(idx).MetaData.FreqStart * Multiplier;
-        case 'FreqStop';         value = SpecInfo(idx).MetaData.FreqStop  * Multiplier;
-        case 'StepWidth';        value = ((SpecInfo(idx).MetaData.FreqStop - SpecInfo(idx).MetaData.FreqStart) / (SpecInfo(idx).MetaData.DataPoints - 1)) * Multiplier;
-        case 'Samples';          value = numel(SpecInfo(idx).Data{1});
-        case 'DataPoints';       value = SpecInfo(idx).MetaData.DataPoints;
-        case 'BeginTime';        value = char(SpecInfo(idx).Data{1}(1));
-        case 'EndTime';          value = char(SpecInfo(idx).Data{1}(end));
-        case 'minLevel';         value = sprintf('%.1f %s', min(SpecInfo(idx).Data{3}(:,1)), SpecInfo(idx).MetaData.LevelUnit);
-        case 'maxLevel';         value = sprintf('%.1f %s', max(SpecInfo(idx).Data{3}(:,3)), SpecInfo(idx).MetaData.LevelUnit);
-        case 'TaskName';         value = SpecInfo(idx).RelatedFiles.Task{1};
-        case 'Description';      value = SpecInfo(idx).RelatedFiles.Description{1};
-        case 'RelatedFiles';     value = strjoin(SpecInfo(idx).RelatedFiles.File, ', ');
-        case 'GPS';              value = jsonencode(SpecInfo(idx).GPS);
-        case 'Latitude';         value = SpecInfo(idx).GPS.Latitude;
-        case 'Longitude';        value = SpecInfo(idx).GPS.Longitude;
-        case 'Location';         value = SpecInfo(idx).GPS.Location;
-        case 'RelatedLocations'; value = strjoin(unique(arrayfun(@(x) x.GPS.Location, SpecInfo, 'UniformOutput', false)), ', ');
+    switch fieldName
+        case 'Issue'
+            value = reportInfo.Issue;        
+        case 'Receiver'
+            value = specData(idxThread).Receiver;        
+        case 'FreqStart'
+            value = specData(idxThread).MetaData.FreqStart * 1e-6;
+        case 'FreqStop'
+            value = specData(idxThread).MetaData.FreqStop  * 1e-6;
+        case 'StepWidth'
+            value = ((specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / (specData(idxThread).MetaData.DataPoints - 1)) * 1e-3;
+        case 'BeginTime'
+            value = char(specData(idxThread).Data{1}(1));        
+        case 'EndTime'
+            value = char(specData(idxThread).Data{1}(end));        
+        case 'RelatedFiles'
+            value = strjoin(specData(idxThread).RelatedFiles.File, ', ');        
+        case 'Location'
+            value = specData(idxThread).GPS.Location;        
+        case 'RelatedLocations'
+            value = strjoin(unique(arrayfun(@(x) x.GPS.Location, specData, 'UniformOutput', false)), ', ');
         case 'Parameters'
-            value        = {};
+            value = {};
             
             % GPS
-            value{end+1} = sprintf('• GPS: %.6f, %.6f (%s)', SpecInfo(idx).GPS.Latitude,  ...
-                                                           SpecInfo(idx).GPS.Longitude, ...
-                                                           SpecInfo(idx).GPS.Location);
-
+            value{end+1} = sprintf('• GPS: %.6f, %.6f (%s)', specData(idxThread).GPS.Latitude,  ...
+                                                             specData(idxThread).GPS.Longitude, ...
+                                                             specData(idxThread).GPS.Location);
             % TraceMode+TraceIntegration+Detector
-            if ~isempty(SpecInfo(idx).MetaData.TraceMode) 
+            if ~isempty(specData(idxThread).MetaData.TraceMode) 
                 TraceIntegration = '';
-                if SpecInfo(idx).MetaData.TraceIntegration ~= -1
-                    TraceIntegration = sprintf(' (Integração: %d amostras)', SpecInfo(idx).MetaData.TraceIntegration);
+                if specData(idxThread).MetaData.TraceIntegration ~= -1
+                    TraceIntegration = sprintf(' (Integração: %d amostras)', specData(idxThread).MetaData.TraceIntegration);
                 end
 
-                if ~isempty(SpecInfo(idx).MetaData.Detector)
-                    Operation = sprintf('• Operação: %s/%s%s', SpecInfo(idx).MetaData.TraceMode, SpecInfo(idx).MetaData.Detector, TraceIntegration);
+                if ~isempty(specData(idxThread).MetaData.Detector)
+                    Operation = sprintf('• Operação: %s/%s%s', specData(idxThread).MetaData.TraceMode, specData(idxThread).MetaData.Detector, TraceIntegration);
                 else
-                    Operation = sprintf('• Operação: %s%s', SpecInfo(idx).MetaData.TraceMode, TraceIntegration);
+                    Operation = sprintf('• Operação: %s%s', specData(idxThread).MetaData.TraceMode, TraceIntegration);
                 end
 
-            elseif ~isempty(SpecInfo(idx).MetaData.Detector)
-                Operation = sprintf('• Operação: %s', SpecInfo(idx).MetaData.Detector);
+            elseif ~isempty(specData(idxThread).MetaData.Detector)
+                Operation = sprintf('• Operação: %s', specData(idxThread).MetaData.Detector);
             end
             value{end+1} = Operation;
 
             % Resolution+VBW
-            if (SpecInfo(idx).MetaData.Resolution ~= -1) && (SpecInfo(idx).MetaData.VBW ~= -1)
-                Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (VBW)', SpecInfo(idx).MetaData.Resolution/1000, SpecInfo(idx).MetaData.VBW/1000);
-            elseif SpecInfo(idx).MetaData.Resolution ~= -1
-                Resolution = sprintf('• Resolução: %.3f kHz (RBW)',                 SpecInfo(idx).MetaData.Resolution/1000);
-            elseif SpecInfo(idx).MetaData.VBW ~= -1
-                Resolution = sprintf('• Resolução: %.3f kHz (VBW)',                 SpecInfo(idx).MetaData.VBW/1000);
+            if (specData(idxThread).MetaData.Resolution ~= -1) && (specData(idxThread).MetaData.VBW ~= -1)
+                Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (VBW)', specData(idxThread).MetaData.Resolution/1000, specData(idxThread).MetaData.VBW/1000);
+            elseif specData(idxThread).MetaData.Resolution ~= -1
+                Resolution = sprintf('• Resolução: %.3f kHz (RBW)',                 specData(idxThread).MetaData.Resolution/1000);
+            elseif specData(idxThread).MetaData.VBW ~= -1
+                Resolution = sprintf('• Resolução: %.3f kHz (VBW)',                 specData(idxThread).MetaData.VBW/1000);
             else
                 Resolution = '';
             end
             value{end+1} = Resolution;
 
             % DataPoints
-            value{end+1} = sprintf('• %d pontos por varredura', SpecInfo(idx).MetaData.DataPoints);
+            value{end+1} = sprintf('• %d pontos por varredura', specData(idxThread).MetaData.DataPoints);
 
             % Antenna
-            value{end+1} = sprintf('• Antena: %s', jsonencode(SpecInfo(idx).MetaData.Antenna));
+            value{end+1} = sprintf('• Antena: %s', jsonencode(specData(idxThread).MetaData.Antenna));
 
             % Others
-            if ~isempty(SpecInfo(idx).MetaData.Others)
-                value{end+1} = sprintf('• Outros metadados: %s', SpecInfo(idx).MetaData.Others);
+            if ~isempty(specData(idxThread).MetaData.Others)
+                value{end+1} = sprintf('• Outros metadados: %s', specData(idxThread).MetaData.Others);
             end
 
             value = strjoin(value, '<br>');
-
-        case 'emissionTitle'
-            emissionIndex = reportInfo.General.Parameters.Plot.emissionIndex;
-            value = sprintf('<b>Emissão %d: %.3f MHz ⌂ %.1f kHz</b>', emissionIndex, SpecInfo(idx).UserData.Emissions{emissionIndex,2}, SpecInfo(idx).UserData.Emissions{emissionIndex,3});
-
-        case 'channelTitle'
-            chTable = struct2table(SpecInfo(idx).UserData.channelManual);
-            chIndex = reportInfo.General.Parameters.Plot.channelIndex;
-            value = sprintf('<b>%s @ %.3f MHz ⌂ %.1f kHz</b>', extractBefore(chTable.Name{chIndex}, ' @'), ...
-                                                               chTable.FirstChannel(chIndex),              ...
-                                                               chTable.ChannelBW(chIndex) * 1000);
+        case 'threadTag'
+            threadIndex = reportInfo.General.Parameters.Plot.idxThread;
+            value = sprintf('<b>Faixa #%d: %.3f - %.3f MHz</b>', threadIndex,                                   ...
+                                                                 specData(idxThread).MetaData.FreqStart * 1e-6, ...
+                                                                 specData(idxThread).MetaData.FreqStop  * 1e-6);
+        case 'channelTag'
+            chTable = specData(idxThread).UserData.reportChannelTable;
+            chIndex = reportInfo.General.Parameters.Plot.idxChannel;
+            chName  = extractBefore(chTable.Name{chIndex}, ' @');
+            if isempty(chName)
+                chName = chTable.Name{chIndex};
+            end
+            value = sprintf('<b>%s @ %.3f MHz ⌂ %.1f kHz</b>',   chName,                                     ...
+                                                                 chTable.FirstChannel(chIndex),              ...
+                                                                 chTable.ChannelBW(chIndex) * 1000);
+        case 'emissionTag'
+            emissionIndex = reportInfo.General.Parameters.Plot.idxEmission;
+            value = sprintf('<b>Emissão #%d: %.3f MHz ⌂ %.1f kHz</b>', emissionIndex,                                           ...
+                                                                       specData(idxThread).UserData.Emissions{emissionIndex,2}, ...
+                                                                       specData(idxThread).UserData.Emissions{emissionIndex,3});
     end
 end
-
 
 %-------------------------------------------------------------------------%
-function peaksTable = Fcn_Peaks(app, idxThreads, DetectionMode, exceptionList)
-    peaksTable = [];
-    for ii = idxThreads
-        Peaks = report.ReportGenerator_Peaks(app, ii, DetectionMode);
-
-        if ~isempty(Peaks)
-            if isempty(peaksTable); peaksTable = Peaks;
-            else;                   peaksTable = [peaksTable; Peaks];
-            end
-        end
-
-        Peaks = Fcn_exceptionList(Peaks, exceptionList);
-        app.specData(ii).UserData.reportPeaksTable = Peaks;
-    end
-end
-
-
+% IMAGEM
 %-------------------------------------------------------------------------%
-function Peaks = Fcn_exceptionList(Peaks, exceptionList)
-
-    if ~isempty(Peaks)
-        % Itera em relação à lista de exceções...
-        for ii = 1:height(exceptionList)
-            Tag       = exceptionList.Tag{ii};
-            Frequency = exceptionList.Frequency(ii);
-
-            % Identifica registros das duas tabelas - peaksTable e exceptionList 
-            % - que possuem a mesma "Tag" e a mesma "Frequency".    
-            idx = find(strcmp(Peaks.Tag, Tag) & (abs(Peaks.Frequency-Frequency) <= class.Constants.floatDiffTolerance));
-
-            if isscalar(idx)
-                if Peaks.Description{idx} == "-"
-                    Description = sprintf('<font style="color: #ff0000;">%s</font>', exceptionList.Description{ii});
-                    Distance    = sprintf('<font style="color: #ff0000;">%s</font>', exceptionList.Distance{ii});
-                else
-                    Description = sprintf('<del>%s</del></p> <p class="Tabela_Texto_8" contenteditable="false" style="color: #ff0000;">%s', Peaks.Description{idx}, exceptionList.Description{ii});
-                    Distance    = sprintf('<del>%s</del></p> <p class="Tabela_Texto_8" contenteditable="false" style="color: #ff0000;">%s', Peaks.Distance{idx},    exceptionList.Distance{ii});
-                end
-    
-                Peaks(idx, 13:20)      = exceptionList(ii, 3:10);
-                Peaks.Description{idx} = Description;
-                Peaks.Distance{idx}    = Distance;
-            end
-        end
-
-        % Itera em relação à lista de emissões, buscando aquelas que possuem
-        % informações textuais complementares.
-        emissionIndex = find(cellfun(@(x) isfield(jsondecode(x), 'Description'), Peaks.Detection))';
-        for ii = emissionIndex
-            emissionInfo = jsondecode(Peaks.Detection{ii});
-            switch Peaks.Description{ii}
-                case '-'
-                    Peaks.Description{ii} = sprintf('<p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', strjoin(emissionInfo.Description, '<br>')); 
-                otherwise
-                    Peaks.Description{ii} = sprintf('%s <p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', Peaks.Description{ii}, strjoin(emissionInfo.Description, '<br>')); 
-            end
-        end
-    end
+function hContainer = PlotContainer(hFigure)
+    xWidth     = class.Constants.windowSize(1);
+    yHeight    = class.Constants.windowSize(2);    
+    hContainer = uipanel(hFigure, AutoResizeChildren='off',          ...
+                                  Position=[100 100 xWidth yHeight], ...
+                                  BorderType='none',                 ...
+                                  BackgroundColor=[0 0 0],           ...
+                                  Visible=0);
 end
-
 
 %-------------------------------------------------------------------------%
 function Image = Fcn_Image(specData, idxThread, tempBandObj, reportInfo, Recurrence, Children, plotInfo, hFigure)
@@ -425,7 +377,7 @@ function Image = Fcn_Image(specData, idxThread, tempBandObj, reportInfo, Recurre
                 hContainer = PlotContainer(hFigure);
             end
 
-            [Image, hContainer] = plot.old_axesDraw.plot2report(hContainer, specData, idxThread, tempBandObj, reportInfo, plotInfo);
+            Image = plot.old_axesDraw.plot2report(hContainer, specData, idxThread, tempBandObj, reportInfo, plotInfo);
 
         case 'External'
             if Recurrence
@@ -445,19 +397,8 @@ function Image = Fcn_Image(specData, idxThread, tempBandObj, reportInfo, Recurre
     end
 end
 
-
 %-------------------------------------------------------------------------%
-function hContainer = PlotContainer(hFigure)
-    xWidth     = class.Constants.windowSize(1);
-    yHeight    = class.Constants.windowSize(2);    
-    hContainer = uipanel(hFigure, AutoResizeChildren='off',          ...
-                                  Position=[100 100 xWidth yHeight], ...
-                                  BorderType='none',                 ...
-                                  BackgroundColor=[0 0 0],           ...
-                                  Visible=0);
-end
-
-
+% TABELA
 %-------------------------------------------------------------------------%
 function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList, Recurrence, Children)
 
@@ -497,18 +438,18 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                     Table = Table(:, Children.Data.Columns);
         
                     for ii = 1:numel(Table.Properties.VariableNames)
-                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
+                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
                     end
 
                 case 'EmissionPerChannel'
-                    chIndex = reportInfo.General.Parameters.Plot.channelIndex;
+                    chIndex = reportInfo.General.Parameters.Plot.idxChannel;
 
                     Table = reportLibConnection.table.Channel(SpecInfo, idx);
                     Table = Table.("Emissões"){chIndex};
                     Table = Table(:, Children.Data.Columns);
         
                     for ii = 1:numel(Table.Properties.VariableNames)
-                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
+                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
                     end
         
                 case 'Peaks'
@@ -554,7 +495,7 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
         
                         % AJUSTE DOS NOMES DAS COLUNAS
                         for ii = 1:numel(Table.Properties.VariableNames)
-                            Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
+                            Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
         
                             if ismember(Children.Data.Columns{ii}, ["minLevel", "meanLevel", "maxLevel"])
                                 Table.Properties.VariableNames{ii} = sprintf('%s (%s)', Table.Properties.VariableNames{ii}, SpecInfo(idx).MetaData.LevelUnit);
@@ -572,7 +513,7 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
         
                         % AJUSTE DOS NOMES DAS COLUNAS
                         for ii = 1:numel(Table.Properties.VariableNames)
-                            Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
+                            Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
                         end
                     end
         
@@ -593,13 +534,13 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                             VariableTypes(end+1) = {'double'};
         
                         end
-                        VariableNames{end+1} = Children.Data.Settings(ii).String;
+                        VariableNames{end+1} = Children.Data.Settings(ii).ColumnName;
                     end
         
                     % Identifica quantidade de fluxos de espectro.
                     MM = numel(SpecInfo);
                     
-                    % Povoa a tabela.ReportGenerator_HTML
+                    % Povoa a tabela.
                     Table = table('Size', [MM, NN],               ...
                                   'VariableTypes', VariableTypes, ...
                                   'VariableNames', VariableNames);
@@ -611,17 +552,18 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
         
                             for kk = 1:NN
                                 Source = Children.Data.Columns{kk};
-                                if Source == "ID"; Multiplier = ll;
-                                else;              Multiplier = 1;
-                                end                        
-        
-                                Table(ll,kk) = {Fcn_Source(SpecInfo, jj, reportInfo, struct('Source', Source, 'Multiplier', Multiplier))};
+                                switch Source
+                                    case 'ID'
+                                        Table{ll,kk} = ll;
+                                    otherwise
+                                        Table(ll,kk) = {Fcn_Source(SpecInfo, jj, reportInfo, Source)};
+                                end
                             end
                         end
                     end
         
                     for ii = 1:numel(Table.Properties.VariableNames)
-                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
+                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
                     end
             end
 
@@ -641,7 +583,7 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
             Table = Table(:,Columns);
 
             for ii = 1:numel(Table.Properties.VariableNames)
-                Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).String;
+                Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
             end
     end
 end

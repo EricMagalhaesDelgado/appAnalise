@@ -66,7 +66,7 @@ classdef (Abstract) draw2D
                     srcInfo  = specData.UserData.bandLimitsTable;
                     plotFlag = specData.UserData.bandLimitsStatus;                    
                     
-                case 'Channels'
+                case 'Channel'
                     srcInfo  = varargin{1};
                     if isempty(srcInfo)
                         plotFlag = false;

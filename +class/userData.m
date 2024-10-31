@@ -2,43 +2,45 @@ classdef userData
 
     properties
         %-----------------------------------------------------------------%
-        customPlayback       = struct('Type', 'auto', 'Parameters', [])
+        customPlayback        = struct('Type', 'auto', 'Parameters', [])
 
-        occCache             = struct('Info', {}, 'THR', {}, 'Data', {})
-        occMethod            = struct('RelatedIndex', [], 'SelectedIndex', [], 'CacheIndex', [])
+        occCache              = struct('Info', {}, 'THR', {}, 'Data', {})
+        occMethod             = struct('RelatedIndex', [], 'SelectedIndex', [], 'CacheIndex', [])
 
-        channelLibIndex      = []
-        channelManual        = struct('Name', {}, 'Band', {}, 'FirstChannel', {}, 'LastChannel', {}, 'StepWidth', {}, 'ChannelBW', {}, 'FreqList', {}, 'Reference', {}, 'FindPeaksName', {})
+        channelLibIndex       = []
+        channelManual         = struct('Name', {}, 'Band', {}, 'FirstChannel', {}, 'LastChannel', {}, 'StepWidth', {}, 'ChannelBW', {}, 'FreqList', {}, 'Reference', {}, 'FindPeaksName', {})
 
-        bandLimitsStatus     = false
-        bandLimitsTable      = table('Size', [0, 2],                        ...
-                                     'VariableTypes', {'double', 'double'}, ...
-                                     'VariableNames', {'FreqStart', 'FreqStop'})
+        bandLimitsStatus      = false
+        bandLimitsTable       = table('Size', [0, 2],                        ...
+                                      'VariableTypes', {'double', 'double'}, ...
+                                      'VariableNames', {'FreqStart', 'FreqStop'})
 
         % O "coringa" para armazenar informações individualizadas por emissão
         % é o "UserData". Já criados os campos "Description", "ChannelAssigned"
         % e "DriveTest", mas outros deverão ser criados no futuro...
-        Emissions            = table(uint32([]), [], [], true(0,1), {}, struct('Description', {}, 'ChannelAssigned', {}, 'DriveTest', {}), ...
-                                     'VariableNames', {'Index', 'Frequency', 'BW', 'isTruncated', 'Detection', 'UserData'})
+        Emissions             = table(uint32([]), [], [], true(0,1), {}, struct('Description', {}, 'ChannelAssigned', {}, 'DriveTest', {}), ...
+                                      'VariableNames', {'Index', 'Frequency', 'BW', 'isTruncated', 'Detection', 'UserData'})
 
-        measCalibration      = table('Size', [0, 4],                                    ...
-                                     'VariableTypes', {'cell', 'cell', 'cell', 'cell'}, ...
-                                     'VariableNames', {'Name', 'Type', 'oldUnitLevel', 'newUnitLevel'})
+        measCalibration       = table('Size', [0, 4],                                    ...
+                                      'VariableTypes', {'cell', 'cell', 'cell', 'cell'}, ...
+                                      'VariableNames', {'Name', 'Type', 'oldUnitLevel', 'newUnitLevel'})
 
-        reportFlag           = false        
-        reportOCC            = []
-        reportDetection      = [] % struct('ManualMode', 0, 'Algorithm', {}, 'Parameters', {})
-        reportClassification = [] % struct('Algorithm', {}, 'Parameters', {})
-        reportPeaksTable     = []
-        reportExternalFiles  = table('Size', [0, 3],                             ...
-                                     'VariableTypes', {'uint8', 'cell', 'cell'}, ...
-                                     'VariableNames', {'ID', 'Tag', 'Filename'});
+        reportFlag            = false
+        reportOCC             = []
+        reportDetection       = [] % struct('ManualMode', 0, 'Algorithm', {}, 'Parameters', {})
+        reportClassification  = [] % struct('Algorithm', {}, 'Parameters', {})
+        reportPeaksTable      = []
+        reportExternalFiles   = table('Size', [0, 3],                             ...
+                                      'VariableTypes', {'uint8', 'cell', 'cell'}, ...
+                                      'VariableNames', {'ID', 'Tag', 'Filename'});
+        reportChannelTable    = []
+        reportChannelAnalysis = []
 
-        AntennaHeight        = []
+        AntennaHeight         = []
 
         % Registrar operações não contempladas nas outras propriedades. Por
         % exemplo: filtragem temporal do fluxo espectral.
-        LOG                  = {}
+        LOG                   = {}
     end
 
 

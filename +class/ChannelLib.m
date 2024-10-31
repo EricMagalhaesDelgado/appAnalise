@@ -200,6 +200,44 @@ classdef ChannelLib < handle
                 checkIfNewChannelIsValid(obj, channelCell2Add{:})
             end
         end
+
+        %-----------------------------------------------------------------%
+        function chPlotTable = ChannelTable2Plot(obj, specData)
+            chPlotTable = table('Size',          [0, 6],                                                                      ...
+                                'VariableNames', {'Name', 'FirstChannel', 'ChannelBW', 'Reference', 'FreqStart', 'FreqStop'}, ...
+                                'VariableTypes', {'cell', 'double', 'double', 'cell', 'double', 'double'});
+
+            for ii = specData.UserData.channelLibIndex'
+                chRawInfo   = obj.Channel(ii);
+                chPlotTable = PreparingData2Plot(obj, chPlotTable, chRawInfo);
+            end
+
+            for jj = 1:numel(specData.UserData.channelManual)
+                chRawInfo   = specData.UserData.channelManual(jj);
+                chPlotTable = PreparingData2Plot(obj, chPlotTable, chRawInfo);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function chPlotTable = PreparingData2Plot(obj, chPlotTable, chRawInfo)
+            if ~isempty(chRawInfo)
+                channelBW = chRawInfo.ChannelBW; % MHz
+                if channelBW <= 0
+                    return
+                end
+    
+                if ~isempty(chRawInfo.FreqList)
+                    FreqList = chRawInfo.FreqList;
+                else
+                    FreqList = (chRawInfo.FirstChannel:chRawInfo.StepWidth:chRawInfo.LastChannel)';
+                end
+
+                chName      = repmat({chRawInfo.Name},      numel(FreqList), 1);
+                chBW        = repmat(channelBW,             numel(FreqList), 1);
+                chReference = repmat({chRawInfo.Reference}, numel(FreqList), 1);
+                chPlotTable = [chPlotTable; table(chName, FreqList, chBW, chReference, FreqList-channelBW/2, FreqList+channelBW/2, 'VariableNames', {'Name', 'FirstChannel', 'ChannelBW', 'Reference', 'FreqStart', 'FreqStop'})];
+            end
+        end
     end
 
 

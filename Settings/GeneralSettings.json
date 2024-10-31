@@ -1,5 +1,5 @@
 {
-    "version": 0.71,
+    "version": 0.72,
     "operationMode": {
         "Debug": false,
         "Dock": false,
@@ -261,7 +261,7 @@
             "YLimOffset": 1,
             "StepEffect": false
         },
-        "Channels": {
+        "Channel": {
             "Color": "#b746ff",
             "LineWidth": 5,
             "YLimOffsetMode": "top",
