@@ -110,6 +110,8 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
     if ~isempty(hContainer) && isvalid(hContainer)
         delete(hContainer.Children)
     end
+
+    arrayfun(@(x) eval('x.UserData.reportChannelAnalysis = [];'), app.specData)
 end
 
 %-------------------------------------------------------------------------%
@@ -150,7 +152,7 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThread, report
                                 update(channelBandObj, idxThread, channelIndex);
                                 reportInfo.General.Parameters.Plot.idxChannel = channelIndex;
 
-                                htmlTempContent = [htmlTempContent, HTMLRenderization(childNode, specData, idxThread, reportInfo, channelBandObj)];
+                                htmlTempContent = [htmlTempContent, reportLib.sourceCode.Separator, HTMLRenderization(childNode, specData, idxThread, reportInfo, channelBandObj)];
                             end
 
                         case 'Emission'
@@ -160,7 +162,7 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThread, report
                                 update(emissionBandObj, idxThread, emissionIndex);
                                 reportInfo.General.Parameters.Plot.idxEmission = emissionIndex;
 
-                                htmlTempContent = [htmlTempContent, HTMLRenderization(childNode, specData, idxThread, reportInfo, emissionBandObj)];
+                                htmlTempContent = [htmlTempContent, reportLib.sourceCode.Separator, HTMLRenderization(childNode, specData, idxThread, reportInfo, emissionBandObj)];
                             end
 
                         otherwise
@@ -246,9 +248,11 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
         reportInfo 
         fieldName char {mustBeMember(fieldName, {'Issue',            ...
                                                  'Receiver',         ...
+                                                 'Band',             ...
                                                  'FreqStart',        ...
                                                  'FreqStop',         ...
                                                  'StepWidth',        ...
+                                                 'ObservationTime',  ...
                                                  'BeginTime',        ...
                                                  'EndTime',          ...
                                                  'RelatedFiles',     ...
@@ -264,15 +268,26 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
         case 'Issue'
             value = reportInfo.Issue;        
         case 'Receiver'
-            value = specData(idxThread).Receiver;        
+            value = specData(idxThread).Receiver;
+        case 'Band'
+            value = sprintf('%.3f - %.3f MHz', specData(idxThread).MetaData.FreqStart * 1e-6, specData(idxThread).MetaData.FreqStop * 1e-6);
         case 'FreqStart'
             value = specData(idxThread).MetaData.FreqStart * 1e-6;
         case 'FreqStop'
             value = specData(idxThread).MetaData.FreqStop  * 1e-6;
         case 'StepWidth'
             value = ((specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / (specData(idxThread).MetaData.DataPoints - 1)) * 1e-3;
+        case 'ObservationTime'
+            BeginTime   = specData(idxThread).Data{1}(1);
+            EndTime     = specData(idxThread).Data{1}(end);
+            nSweeps     = numel(specData(idxThread).Data{1});
+            RevisitTime = mean(specData(idxThread).RelatedFiles.RevisitTime);
+            value = sprintf('%s - %s<br>%d varreduras<br>%.1f segundos (tempo de revisita estimado)', BeginTime, ...
+                                                                                                      EndTime,   ...
+                                                                                                      nSweeps,   ...
+                                                                                                      RevisitTime);
         case 'BeginTime'
-            value = char(specData(idxThread).Data{1}(1));        
+            value = char(specData(idxThread).Data{1}(1));
         case 'EndTime'
             value = char(specData(idxThread).Data{1}(end));        
         case 'RelatedFiles'
@@ -283,11 +298,10 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
             value = strjoin(unique(arrayfun(@(x) x.GPS.Location, specData, 'UniformOutput', false)), ', ');
         case 'Parameters'
             value = {};
+
+            % Description
+            value{end+1} = sprintf('• Descrição: "%s"', specData(idxThread).RelatedFiles.Description{1});
             
-            % GPS
-            value{end+1} = sprintf('• GPS: %.6f, %.6f (%s)', specData(idxThread).GPS.Latitude,  ...
-                                                             specData(idxThread).GPS.Longitude, ...
-                                                             specData(idxThread).GPS.Location);
             % TraceMode+TraceIntegration+Detector
             if ~isempty(specData(idxThread).MetaData.TraceMode) 
                 TraceIntegration = '';
@@ -306,23 +320,32 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
             end
             value{end+1} = Operation;
 
-            % Resolution+VBW
-            if (specData(idxThread).MetaData.Resolution ~= -1) && (specData(idxThread).MetaData.VBW ~= -1)
-                Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (VBW)', specData(idxThread).MetaData.Resolution/1000, specData(idxThread).MetaData.VBW/1000);
-            elseif specData(idxThread).MetaData.Resolution ~= -1
-                Resolution = sprintf('• Resolução: %.3f kHz (RBW)',                 specData(idxThread).MetaData.Resolution/1000);
-            elseif specData(idxThread).MetaData.VBW ~= -1
-                Resolution = sprintf('• Resolução: %.3f kHz (VBW)',                 specData(idxThread).MetaData.VBW/1000);
-            else
-                Resolution = '';
-            end
-            value{end+1} = Resolution;
-
             % DataPoints
             value{end+1} = sprintf('• %d pontos por varredura', specData(idxThread).MetaData.DataPoints);
 
+            % Resolution+VBW+StepWidth
+            RBW       = specData(idxThread).MetaData.Resolution/1000;
+            VBW       = specData(idxThread).MetaData.VBW/1000;
+            StepWidth = ((specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / (specData(idxThread).MetaData.DataPoints - 1)) * 1e-3;
+
+            if (specData(idxThread).MetaData.Resolution ~= -1) && (specData(idxThread).MetaData.VBW ~= -1)
+                Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (VBW), %.3f kHz (Passo da varredura)', RBW, VBW, StepWidth);
+            elseif specData(idxThread).MetaData.Resolution ~= -1
+                Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (Passo da varredura)', RBW, StepWidth);
+            elseif specData(idxThread).MetaData.VBW ~= -1
+                Resolution = sprintf('• Resolução: %.3f kHz (VBW), %.3f kHz (Passo da varredura)', VBW, StepWidth);
+            else
+                Resolution = sprintf('• Resolução: %.3f kHz (Passo da varredura)', StepWidth);
+            end
+            value{end+1} = Resolution;
+
             % Antenna
             value{end+1} = sprintf('• Antena: %s', jsonencode(specData(idxThread).MetaData.Antenna));
+
+            % GPS
+            value{end+1} = sprintf('• GPS: %.6f, %.6f (%s)', specData(idxThread).GPS.Latitude,  ...
+                                                             specData(idxThread).GPS.Longitude, ...
+                                                             specData(idxThread).GPS.Location);
 
             % Others
             if ~isempty(specData(idxThread).MetaData.Others)
@@ -332,24 +355,26 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
             value = strjoin(value, '<br>');
         case 'threadTag'
             threadIndex = reportInfo.General.Parameters.Plot.idxThread;
-            value = sprintf('<b>Faixa #%d: %.3f - %.3f MHz</b>', threadIndex,                                   ...
-                                                                 specData(idxThread).MetaData.FreqStart * 1e-6, ...
-                                                                 specData(idxThread).MetaData.FreqStop  * 1e-6);
+            value = sprintf('FAIXA DE FREQUÊNCIA #%d: <b>%.3f - %.3f MHz</b>', threadIndex,                                ...
+                                                                            specData(idxThread).MetaData.FreqStart * 1e-6, ...
+                                                                            specData(idxThread).MetaData.FreqStop  * 1e-6);
         case 'channelTag'
-            chTable = specData(idxThread).UserData.reportChannelTable;
+            threadIndex = reportInfo.General.Parameters.Plot.idxThread;
             chIndex = reportInfo.General.Parameters.Plot.idxChannel;
+            
+            chTable = specData(idxThread).UserData.reportChannelTable;
             chName  = extractBefore(chTable.Name{chIndex}, ' @');
             if isempty(chName)
                 chName = chTable.Name{chIndex};
             end
-            value = sprintf('<b>%s @ %.3f MHz ⌂ %.1f kHz</b>',   chName,                                     ...
-                                                                 chTable.FirstChannel(chIndex),              ...
-                                                                 chTable.ChannelBW(chIndex) * 1000);
+            value = sprintf('CANAL #%d.%d: <b>%s @ %.3f MHz ⌂ %.1f kHz</b>', threadIndex, chIndex,  chName,   ...
+                                                                            chTable.FirstChannel(chIndex),    ...
+                                                                            chTable.ChannelBW(chIndex) * 1000);
         case 'emissionTag'
             emissionIndex = reportInfo.General.Parameters.Plot.idxEmission;
-            value = sprintf('<b>Emissão #%d: %.3f MHz ⌂ %.1f kHz</b>', emissionIndex,                                           ...
-                                                                       specData(idxThread).UserData.Emissions{emissionIndex,2}, ...
-                                                                       specData(idxThread).UserData.Emissions{emissionIndex,3});
+            value = sprintf('EMISSÃO #d: <b>%.3f MHz ⌂ %.1f kHz</b>',       emissionIndex,                                           ...
+                                                                            specData(idxThread).UserData.Emissions{emissionIndex,2}, ...
+                                                                            specData(idxThread).UserData.Emissions{emissionIndex,3});
     end
 end
 
@@ -436,27 +461,21 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
             switch Source
                 case {'Algorithms', 'Channel'}
                     Table = eval(sprintf('reportLibConnection.table.%s(SpecInfo, idx);', Source));
-                    Table = Table(:, Children.Data.Columns);
-        
-                    for ii = 1:numel(Table.Properties.VariableNames)
-                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
-                    end
+                    Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
 
                 case 'EmissionPerChannel'
                     chIndex = reportInfo.General.Parameters.Plot.idxChannel;
-
-                    Table = reportLibConnection.table.Channel(SpecInfo, idx);
-                    Table = Table.("Emissões"){chIndex};
-                    Table = Table(:, Children.Data.Columns);
-        
-                    for ii = 1:numel(Table.Properties.VariableNames)
-                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
+                    chTable = SpecInfo(idx).UserData.reportChannelAnalysis;
+                    if isempty(chTable)
+                        chTable = reportLibConnection.table.Channel(SpecInfo, idx);
                     end
+                    Table = chTable.("Emissões"){chIndex};
+                    Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
         
                 case 'Peaks'
                     if ~isempty(SpecInfo(idx).UserData.reportPeaksTable)                        
                         Table       = SpecInfo(idx).UserData.reportPeaksTable;
-                        Table.ID(:) = string(1:height(Table)');
+                        Table.ID(:) = 1:height(Table)';
                         Table       = movevars(Table, 'ID', 'Before', 1);
                         
                         % FILTRO
@@ -569,8 +588,6 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
             end
 
         case 'External'
-            Columns = Children.Data.Columns;
-
             [~, ~, fileExt] = fileparts(Source);
             switch lower(fileExt)
                 case '.json'
@@ -581,10 +598,33 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                     Table = readtable(Source, "VariableNamingRule", "preserve");
             end
 
-            Table = Table(:,Columns);
-
-            for ii = 1:numel(Table.Properties.VariableNames)
-                Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
-            end
+            Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
     end
+end
+
+%-------------------------------------------------------------------------%
+function Table = Fcn_Table_PreProcess(Table, reportInfo, Children)
+    if strcmp(Children.Data.Columns{1}, 'ID') && ~ismember('ID', Table.Properties.VariableNames)
+        Source = Children.Data.Source;
+        IDReference = (1:height(Table))';
+
+        switch Source
+            case 'Channel'
+                idxThread   = reportInfo.General.Parameters.Plot.idxThread;
+                Table.ID(:) = string(idxThread) + "." + string(IDReference);
+
+            case 'EmissionPerChannel'
+                idxThread   = reportInfo.General.Parameters.Plot.idxThread;
+                idxChannel  = reportInfo.General.Parameters.Plot.idxChannel;
+                Table.ID(:) = string(idxThread) + "." + string(idxChannel) + "." + string(IDReference);
+
+            otherwise
+                Table.ID(:) = IDReference;
+        end    
+        
+        Table = movevars(Table, 'ID', 'Before', 1);
+    end
+
+    Table = Table(:, Children.Data.Columns);
+    Table.Properties.VariableNames = {Children.Data.Settings.ColumnName};
 end

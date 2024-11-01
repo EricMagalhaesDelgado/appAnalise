@@ -1,15 +1,21 @@
-function [axesType, axesXLabel] = axesTypeMapping(plotNamesPerAxes)
+function [axesType, axesXLabel, axesYLabel, axesYScale] = axesTypeMapping(plotNamesPerAxes, tempBandObj)
 
     axesType   = {};
     axesXLabel = {};
+    axesYLabel = {};
+    axesYScale = {};
 
     for ii = 1:numel(plotNamesPerAxes)
         plotNames = strsplit(plotNamesPerAxes{ii}, '+');
 
         switch plotNames{1}
-            case {'DriveTest', 'Stations', 'DriveTestRoute'}
+            case {'DriveTest', ...
+                  'Stations',  ...
+                  'DriveTestRoute'}
                 axesType{ii}   = 'Geographic';
                 axesXLabel{ii} = '';
+                axesYLabel{ii} = '';
+                axesYScale{ii} = '';
             
             case {'MinHold',             ...
                   'Average',             ...
@@ -18,16 +24,37 @@ function [axesType, axesXLabel] = axesTypeMapping(plotNamesPerAxes)
                   'Persistance',         ...
                   'Channel',             ...
                   'Emission',            ...
-                  'OccupancyPerBin',     ...
-                  'OccupancyPerChannel', ...
-                  'Waterfall',           ...
-                  'SamplesPerLevel'}
+                  'EmissionROI'}
                 axesType{ii}   = 'Cartesian';
                 axesXLabel{ii} = 'Frequência (MHz)';
+                axesYScale{ii} = '';
 
-            case {'ChannelPower', 'Link'}
+                switch tempBandObj.LevelUnit
+                    case 'dBm'
+                        axesYLabel{ii} = 'Potência (dBm)';
+                    otherwise
+                        axesYLabel{ii} = ['Nível ' tempBandObj.LevelUnit];
+                end
+            
+            case {'OccupancyPerBin', ...
+                  'OccupancyPerChannel'}
+                axesType{ii}   = 'Cartesian';
+                axesXLabel{ii} = 'Frequência (MHz)';
+                axesYLabel{ii} = 'Ocupação (%)';
+                axesYScale{ii} = 'log';
+            
+            case 'Waterfall'
+                axesType{ii}   = 'Cartesian';
+                axesXLabel{ii} = 'Frequência (MHz)';
+                axesYLabel{ii} = 'Varredura';
+                axesYScale{ii} = '';
+
+            case {'ChannelPower', ...
+                  'RFLink'}
                 axesType{ii}   = 'Cartesian';
                 axesXLabel{ii} = '';
+                axesYLabel{ii} = '';
+                axesYScale{ii} = '';
             
             otherwise
                 error('Unexpected plotName %s', plotNamesPerAxes{ii})

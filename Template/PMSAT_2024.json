@@ -80,7 +80,34 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "A captura de dados de monitoração é realizada pelos sensores que a Agência dispõe, em especial os receptores e analisadores de espectro. Os dados são armazenados em arquivos de diversos formatos - CRFS BIN, Argus CSV e appColeta BIN, por exemplo - e posteriormente transferidos para repositório central de dados de monitoração da Agência. Por fim, esses dados são pós processados, o que engloba a aferição da ocupação dos <i>bins</i>, a detecção e classificação de emissões e a geração de uma representação gráfica."
+                        "Text": "A Agência captura dados de monitoração por meio de receptores e analisadores de espectro, armazenando-os em arquivos de diferentes formatos, como CRFS BIN, Argus CSV e appColeta BIN. O pós-processamento desses dados engloba a aferição da ocupação por <i>bin</i> ou canal, a detecção de emissões e a geração de representações gráficas."
+                    }
+                },
+                {
+                    "Type": "ItemN2",
+                    "Data": {
+                        "Editable": "false",
+                        "Text": "A ocupação é aferida por meio de duas métricas: Frequency Channel Occupancy (FCO) e Frequency Band Occupancy (FBO)."
+                    }
+                },
+                {
+                    "Type": "List",
+                    "Data": [
+                        {
+                            "Editable": "false",
+                            "Text": "<b>FCO</b>: Ocupação do canal ao longo do tempo."
+                        },
+                        {
+                            "Editable": "false",
+                            "Text": "<b>FBO</b>: Ocupação efetiva do canal por varredura."
+                        }
+                    ]
+                },
+                {
+                    "Type": "ItemN2",
+                    "Data": {
+                        "Editable": "false",
+                        "Text": "Por exemplo, se um canal de 40 MHz estiver ocupado por uma emissão constante no tempo, com largura de 4 MHz, o FCO será igual a 100%. O FBO, contudo, será igual a 10%. É importante, portanto, avaliar as duas métricas conjuntamente para obter um retrato mais preciso da eficiência espectral."
                     }
                 },
                 {
@@ -91,11 +118,8 @@
                         "Columns": [
                             "ID",
                             "Receiver",
-                            "BeginTime",
-                            "EndTime",
-                            "FreqStart",
-                            "FreqStop",
-                            "StepWidth",
+                            "Band",
+                            "ObservationTime",
                             "Parameters"
                         ],
                         "Filter": [],
@@ -115,33 +139,15 @@
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Início da monitoração",
+                                "ColumnName": "Faixa de frequência sob análise",
                                 "Precision": "%s",
-                                "Width": "60px"
+                                "Width": "130px"
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Término da monitoração",
+                                "ColumnName": "Observação<br>(Período, Varreduras e Tempo de revisita)",
                                 "Precision": "%s",
-                                "Width": "60px"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Frequência inicial",
-                                "Precision": "%.3f MHz",
-                                "Width": "80px"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Frequência final",
-                                "Precision": "%.3f MHz",
-                                "Width": "80px"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Passo da varredura",
-                                "Precision": "%.3f kHz",
-                                "Width": "80px"
+                                "Width": "220px"
                             },
                             {
                                 "Editable": "false",
@@ -178,30 +184,18 @@
                     }
                 },
                 {
-                    "Type": "Paragraph",
-                    "Data": {
-                        "Editable": "false",
-                        "Text": "Trata-se de monitoração conduzida pelo sensor %s. A análise dessa monitoração engloba a aferição da ocupação dos <i>bins</i>, a detecção e classificação de emissões e a geração de uma representação gráfica.",
-                        "Variable":
-                        {
-                            "Source": "Receiver",
-                            "Precision": "%s"
-                        }
-                    }
-                },
-                {
                     "Type": "Image",
                     "Data": {
                         "Origin": "Internal",
                         "Source": "Band",
                         "Plot": "Persistance+Channel:Waterfall",
-                        "Layout": "2:1",
+                        "Layout": "1:1",
                         "Caption": "Representação gráfica da faixa de frequência sob análise.",
                         "Settings": {
-                            "Width": "90%",
+                            "Width": "100%",
                             "Height": "auto"
                         },
-                        "LineBreak": 1,
+                        "LineBreak": 0,
                         "Intro": "",
                         "Error": ""
                     }
@@ -212,6 +206,7 @@
                         "Origin": "Internal",
                         "Source": "Channel",
                         "Columns": [
+                            "ID",
                             "Transponder",
                             "Frequência central (MHz)",
                             "Largura (kHz)",
@@ -228,7 +223,13 @@
                         "Settings": [
                             {
                                 "Editable": "false",
-                                "ColumnName": "Transponder",
+                                "ColumnName": "#",
+                                "Precision": "%s",
+                                "Width": "30px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Canal",
                                 "Precision": "%s",
                                 "Width": "130px"
                             },
@@ -288,8 +289,8 @@
                             }
                         ],
                         "LineBreak": 0,
-                        "Intro": "{\"Type\":\"Paragraph\",\"Text\":\"A seguir são apresentadas informações acerca dos canais sob análise.\"}",
-                        "Error": "{\"Type\":\"Paragraph\",\"Text\":\"Não foi detectado sequer um pico que atendesse às condições estabelecidas no supracitado processo de detecção de emissões.\"}"
+                        "Intro": "{\"Type\":\"Paragraph\",\"Text\":\"Na tabela apresentada a seguir constam informações dos canais sob análise. Para os canais nos quais foram identificadas emissões, são exibidas representações gráficas específicas, destacando as emissões e suas especificidades, como a frequência central e a ocupação por <i>bin</i>.\"}",
+                        "Error": "{\"Type\":\"Paragraph\",\"Text\":\"Como a faixa de frequência sob análise não está relacionada a uma canalização, a análise orientada a canais resta prejudicada.\"}"
                     }
                 },
                 {
@@ -298,7 +299,7 @@
                         "Source": "Channel",
                         "Children": [
                             {
-                                "Type": "ItemN3",
+                                "Type": "Paragraph",
                                 "Data": {
                                     "Editable": "false",
                                     "Text": "%s",
@@ -314,44 +315,14 @@
                                 "Data": {
                                     "Origin": "Internal",
                                     "Source": "Channel",
-                                    "Plot": "MinHold+Average+MaxHold+Emission+Channel:OccupancyPerBin+OccupancyPerChannel:Waterfall",
+                                    "Plot": "MinHold+Average+MaxHold+Emission+Channel+OccupancyThreshold:OccupancyPerBin:Waterfall",
                                     "Layout": "2:1:1",
                                     "Caption": "Representação gráfica do canal sob análise.",
                                     "Settings": {
-                                        "Width": "90%",
+                                        "Width": "100%",
                                         "Height": "auto"
                                     },
                                     "LineBreak": 0,
-                                    "Intro": "",
-                                    "Error": ""
-                                }
-                            },
-                            {
-                                "Type": "Table",
-                                "Data": {
-                                    "Origin": "Internal",
-                                    "Source": "Algorithms",
-                                    "Columns": [
-                                        "Algorithm",
-                                        "Parameters"
-                                    ],
-                                    "Filter": [],
-                                    "Caption": "Informações acerca do método de aferição da ocupação e dos algoritmos de detecção e classificação de emissões.",
-                                    "Settings": [
-                                        {
-                                            "Editable": "false",
-                                            "ColumnName": "Operação",
-                                            "Precision": "%s",
-                                            "Width": "130px"
-                                        },
-                                        {
-                                            "Editable": "false",
-                                            "ColumnName": "Parâmetros",
-                                            "Precision": "%s",
-                                            "Width": "auto"
-                                        }
-                                    ],
-                                    "LineBreak": 1,
                                     "Intro": "",
                                     "Error": ""
                                 }
@@ -365,32 +336,33 @@
                                         "ID",
                                         "Frequência central (MHz)",
                                         "Largura (kHz)",
-                                        "FCO (%)", "Descrição"
+                                        "FCO (%)", 
+                                        "Descrição"
                                     ],
                                     "Filter": [],
                                     "Caption": "Informações acerca das emissões detectadas.",
                                     "Settings": [
                                         {
                                             "Editable": "false",
-                                            "ColumnName": "ID",
-                                            "Precision": "%d",
-                                            "Width": "70px"
+                                            "ColumnName": "#",
+                                            "Precision": "%s",
+                                            "Width": "30px"
                                         },
                                         {
                                             "Editable": "false",
-                                            "ColumnName": "Frequência central (MHz)",
+                                            "ColumnName": "Frequência<br>(MHz)",
                                             "Precision": "%.3f",
                                             "Width": "70px"
                                         },
                                         {
                                             "Editable": "false",
-                                            "ColumnName": "Largura (kHz)",
+                                            "ColumnName": "Largura<br>(kHz)",
                                             "Precision": "%.1f",
                                             "Width": "70px"
                                         },
                                         {
                                             "Editable": "false",
-                                            "ColumnName": "FCO (%)",
+                                            "ColumnName": "FCO<br>(%)",
                                             "Precision": "%.1f",
                                             "Width": "70px"
                                         },
@@ -403,7 +375,7 @@
                                     ],
                                     "LineBreak": 0,
                                     "Intro": "{\"Type\":\"Paragraph\",\"Text\":\"A seguir são apresentadas informações acerca das emissões detectadas no canal sob análise.\"}",
-                                    "Error": "{\"Type\":\"Paragraph\",\"Text\":\"Não foi detectado sequer um pico que atendesse às condições estabelecidas no supracitado processo de detecção de emissões.\"}"
+                                    "Error": ""
                                 }
                             }
                         ]

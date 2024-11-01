@@ -1,7 +1,8 @@
-function Colorbar(hAxes, Location)
+function Colorbar(hAxes, Location, plotConfig)
     arguments
         hAxes
-        Location char {mustBeMember(Location, {'off', 'west', 'east', 'eastoutside'})}
+        Location   char {mustBeMember(Location, {'off', 'west', 'east', 'eastoutside'})} = 'eastoutside'
+        plotConfig cell = {}
     end
 
     switch Location
@@ -12,7 +13,10 @@ function Colorbar(hAxes, Location)
             if ~isempty(cb)
                 cb.Location = Location;
             else
-                colorbar(hAxes, 'Location', Location, 'Color', 'white', 'HitTest', 'off');
+                cb = colorbar(hAxes, 'Location', Location, 'Color', 'white', 'HitTest', 'off');
+                if ~isempty(plotConfig)
+                    set(cb, plotConfig{:})
+                end
             end
     end
 end

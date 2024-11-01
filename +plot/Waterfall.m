@@ -58,13 +58,8 @@ function [hWaterfall, Decimation] = Waterfall(operationType, varargin)
             end
             
             postPlotConfig = {'YLim', yLim, 'CLim', cLimits};
-            if ismember(bandObj.Context, {'appAnalise:REPORT', 'appAnalise:REPORT:BAND', 'appAnalise:REPORT:EMISSION'})
-                postPlotConfig = [postPlotConfig, {'XLim', xLim}];
-                
-                ylabel(hAxes, 'Varredura')
-                ysecondarylabel(hAxes, sprintf('%s - %s', specData.Data{1}(1), specData.Data{1}(end)))
-            end
             set(hAxes, postPlotConfig{:})
+            ysecondarylabel(hAxes, sprintf('%s - %s', specData.Data{1}(1), specData.Data{1}(end)))
 
             plot.axes.Colormap(hAxes, colormapName)
             plot.datatip.Template(hWaterfall, 'Frequency+Timestamp+Level', bandObj.LevelUnit)

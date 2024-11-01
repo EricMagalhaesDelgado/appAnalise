@@ -1,5 +1,5 @@
 {
-    "version": 0.72,
+    "version": 0.79,
     "operationMode": {
         "Debug": false,
         "Dock": false,
@@ -257,15 +257,17 @@
         "BandLimits": {
             "Color": "#808080",
             "LineWidth": 5,
+            "PickableParts": "none",
             "YLimOffsetMode": "top",
-            "YLimOffset": 1,
+            "YLimOffset": 1.5,
             "StepEffect": false
         },
         "Channel": {
             "Color": "#b746ff",
             "LineWidth": 5,
+            "PickableParts": "none",
             "YLimOffsetMode": "top",
-            "YLimOffset": 3,
+            "YLimOffset": 2,
             "StepEffect": true
         },
         "ChannelROI": {
@@ -278,6 +280,16 @@
             "LabelOffset": 1,
             "LabelColor": "#000000",
             "LabelFontSize": 8
+        },
+        "Emission": {
+            "Color": "#66bae0",
+            "LineWidth": 1,
+            "Marker": ".",
+            "MarkerSize": 14,
+            "PickableParts": "none",
+            "YLimOffsetMode": "bottom",
+            "YLimOffset": 1,
+            "StepEffect": true
         },
         "EmissionROI": {
             "Color": "#66bae0",
@@ -296,6 +308,21 @@
             "xTickLabel": true,
             "yTickLabel": true,
             "xGuardBandFactor": 1
+        },
+        "OccupancyThreshold": {
+            "Color": "#ff0000",
+            "LineStyle": "-.",
+            "LineWidth": 0.5,
+            "Marker": "o",
+            "MarkerSize": 4,
+            "MarkerFaceColor": "#ff0000",
+            "MarkerEdgeColor": "#000000",
+            "PickableParts": "none"
+        },
+        "OccupancyPerBin": {
+            "Color": "#ff0000",
+            "LineStyle": "-",
+            "LineWidth": 1
         },
         "occMinHold": {
             "Fcn": "line",

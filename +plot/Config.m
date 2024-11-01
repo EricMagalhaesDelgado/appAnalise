@@ -42,8 +42,8 @@ function varargout = Config(plotTag, defaultProperties, customProperties, Contex
             plotConfig  = {'Color', 'red', 'LineWidth', 1, 'PickableParts', 'none', 'Visible', tempPlotConfig.Visible, 'ZData', tempPlotConfig.ZData};
             varargout   = {plotConfig, plotType};
 
-        case {'BandLimits', 'Channel'}
-            plotConfig  = {'Color', tempPlotConfig.Color, 'LineWidth', tempPlotConfig.LineWidth, 'PickableParts', 'none'};
+        case {'BandLimits', 'Channel', 'Emission'}
+            plotConfig  = textFormatGUI.struct2cellArray(rmfield(tempPlotConfig, {'YLimOffsetMode', 'YLimOffset', 'StepEffect'}));
             varargout   = {plotConfig, tempPlotConfig.YLimOffsetMode, tempPlotConfig.YLimOffset, tempPlotConfig.StepEffect};
 
         case {'EmissionROI', 'ChannelROI'}
