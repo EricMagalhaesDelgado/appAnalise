@@ -87,34 +87,14 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "A ocupação é aferida por meio de duas métricas: Frequency Channel Occupancy (FCO) e Frequency Band Occupancy (FBO)."
-                    }
-                },
-                {
-                    "Type": "List",
-                    "Data": [
-                        {
-                            "Editable": "false",
-                            "Text": "<b>FCO</b>: Ocupação do canal ao longo do tempo."
-                        },
-                        {
-                            "Editable": "false",
-                            "Text": "<b>FBO</b>: Ocupação efetiva do canal por varredura."
-                        }
-                    ]
-                },
-                {
-                    "Type": "ItemN2",
-                    "Data": {
-                        "Editable": "false",
-                        "Text": "Por exemplo, se um canal de 40 MHz estiver ocupado por uma emissão constante no tempo, com largura de 4 MHz, o FCO será igual a 100%. O FBO, contudo, será igual a 10%. É importante, portanto, avaliar as duas métricas conjuntamente para obter um retrato mais preciso da eficiência espectral."
+                        "Text": "A ocupação é aferida para cada um dos canais sob análise, utilizando métricas complementares — Frequency Channel Occupancy (FCO) e Frequency Band Occupancy (FBO) —, o que possibilita identificar não apenas se um canal está ocupado ao longo do tempo, mas também quanto deste canal está ocupado."
                     }
                 },
                 {
                     "Type": "Table",
                     "Data": {
                         "Origin": "Internal",
-                        "Source": "specData",
+                        "Source": "Custom",
                         "Columns": [
                             "ID",
                             "Receiver",
@@ -129,13 +109,13 @@
                                 "Editable": "false",
                                 "ColumnName": "#",
                                 "Precision": "%.0f",
-                                "Width": "30px"
+                                "Width": "40px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Sensor",
                                 "Precision": "%s",
-                                "Width": "80px"
+                                "Width": "130px"
                             },
                             {
                                 "Editable": "false",
@@ -188,7 +168,7 @@
                     "Data": {
                         "Origin": "Internal",
                         "Source": "Band",
-                        "Plot": "Persistance+Channel:Waterfall",
+                        "Plot": "MinHold+Average+MaxHold+Channel:Waterfall",
                         "Layout": "1:1",
                         "Caption": "Representação gráfica da faixa de frequência sob análise.",
                         "Settings": {
@@ -225,7 +205,7 @@
                                 "Editable": "false",
                                 "ColumnName": "#",
                                 "Precision": "%s",
-                                "Width": "30px"
+                                "Width": "40px"
                             },
                             {
                                 "Editable": "false",
@@ -346,7 +326,7 @@
                                             "Editable": "false",
                                             "ColumnName": "#",
                                             "Precision": "%s",
-                                            "Width": "30px"
+                                            "Width": "40px"
                                         },
                                         {
                                             "Editable": "false",

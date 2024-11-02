@@ -35,7 +35,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
     methods (Access = private)
         %-----------------------------------------------------------------%
         function initialValues(app)
-            satelliteList = cellstr(unique(app.channelTable.TPDR_DESIG_INT));
+            satelliteList = cellstr(unique(app.channelTable.DESIG_INT));
             if isscalar(satelliteList)
                 app.SatelliteID.Items = satelliteList;
             else
@@ -46,8 +46,8 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function CallingMainApp(app, updateFlag, returnFlag, chList, typeOfChannel, idxThreads)
-            appBackDoor(app.CallingApp, app, 'PLAYBACK:CHANNEL', updateFlag, returnFlag, chList, typeOfChannel, idxThreads)
+        function CallingMainApp(app, updateFlag, returnFlag, varargin)
+            appBackDoor(app.CallingApp, app, 'PLAYBACK:CHANNEL', updateFlag, returnFlag, varargin{:})
         end
     end
     
@@ -81,9 +81,9 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
             pushedButtonTag = event.Source.Tag;
             switch pushedButtonTag
                 case 'OK'
-                    idxChannels    = strcmp(cellstr(app.channelTable.TPDR_DESIG_INT), app.SatelliteID.Value)      & ...
-                                     ismember(cellstr(app.channelTable.TPDR_FEIXE_DOWN), app.FeixeDownList.Value) & ...
-                                     ismember(cellstr(app.channelTable.TPDR_FEIXE_POLARIZ_DOWN), app.PolarizationList.Value);
+                    idxChannels    = strcmp(cellstr(app.channelTable.DESIG_INT), app.SatelliteID.Value)      & ...
+                                     ismember(cellstr(app.channelTable.FEIXE_DOWN), app.FeixeDownList.Value) & ...
+                                     ismember(cellstr(app.channelTable.FEIXE_POLARIZ_DOWN), app.PolarizationList.Value);
                     chList         = class.EMSatDataHubLib.importSatelliteChannels(app.channelTable(idxChannels, :));
 
                     msgQuestion    = sprintf(['Foram extraídos os registros %s, os quais serão incluídos na lista de canais manuais do ' ...
@@ -100,13 +100,15 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
                     end
                     typeOfChannel  = 'manual';    
 
-                    updateFlag = true;
+                    inputArguments = {chList, typeOfChannel, idxThreads};
+                    updateFlag = true;                    
 
                 case 'Close'
+                    inputArguments = {};
                     updateFlag = false;
             end
 
-            CallingMainApp(app, updateFlag, false, chList, typeOfChannel, idxThreads)
+            CallingMainApp(app, updateFlag, false, inputArguments{:})
             closeFcn(app)
 
         end
@@ -115,8 +117,8 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
         function SatelliteIDValueChanged(app, event)
 
             if ~isempty(app.SatelliteID.Value)
-                idxSatellite = strcmp(cellstr(app.channelTable.TPDR_DESIG_INT), app.SatelliteID.Value);
-                app.PolarizationList.Items = cellstr(unique(app.channelTable.TPDR_FEIXE_POLARIZ_DOWN(idxSatellite)));
+                idxSatellite = strcmp(cellstr(app.channelTable.DESIG_INT), app.SatelliteID.Value);
+                app.PolarizationList.Items = cellstr(unique(app.channelTable.FEIXE_POLARIZ_DOWN(idxSatellite)));
                 app.PolarizationList.Value = app.PolarizationList.Items(1);
                 
             else
@@ -132,10 +134,10 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
         function PolarizationListValueChanged(app, event)
             
             if ~isempty(app.PolarizationList.Value)
-                idxFeixe = strcmp(cellstr(app.channelTable.TPDR_DESIG_INT), app.SatelliteID.Value) & ...
-                           ismember(cellstr(app.channelTable.TPDR_FEIXE_POLARIZ_DOWN), app.PolarizationList.Value);
+                idxFeixe = strcmp(cellstr(app.channelTable.DESIG_INT), app.SatelliteID.Value) & ...
+                           ismember(cellstr(app.channelTable.FEIXE_POLARIZ_DOWN), app.PolarizationList.Value);
 
-                app.FeixeDownList.Items = cellstr(unique(app.channelTable.TPDR_FEIXE_DOWN(idxFeixe)));
+                app.FeixeDownList.Items = cellstr(unique(app.channelTable.FEIXE_DOWN(idxFeixe)));
                 app.FeixeDownList.Value = app.FeixeDownList.Items(1);
 
             else
@@ -238,7 +240,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
             app.SatelliteIDLabel.Layout.Row = 1;
             app.SatelliteIDLabel.Layout.Column = 1;
             app.SatelliteIDLabel.Interpreter = 'html';
-            app.SatelliteIDLabel.Text = {'Satélite:'; '<font style="color: gray; font-size: 9px;">(TPDR_DESIG_INT)</font>'};
+            app.SatelliteIDLabel.Text = {'Satélite:'; '<font style="color: gray; font-size: 9px;">(DESIG_INT)</font>'};
 
             % Create SatelliteID
             app.SatelliteID = uidropdown(app.SatelliteIDGrid);
@@ -257,7 +259,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
             app.PolarizationListLabel.Layout.Row = 3;
             app.PolarizationListLabel.Layout.Column = 1;
             app.PolarizationListLabel.Interpreter = 'html';
-            app.PolarizationListLabel.Text = {'Polarização:'; '<font style="color: gray; font-size: 9px;">(TPDR_FEIXE_POLARIZ_DOWN)</font>'};
+            app.PolarizationListLabel.Text = {'Polarização:'; '<font style="color: gray; font-size: 9px;">(FEIXE_POLARIZ_DOWN)</font>'};
 
             % Create PolarizationList
             app.PolarizationList = uilistbox(app.SatelliteIDGrid);
@@ -275,7 +277,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
             app.FeixeDownListLabel.Layout.Row = 3;
             app.FeixeDownListLabel.Layout.Column = [2 3];
             app.FeixeDownListLabel.Interpreter = 'html';
-            app.FeixeDownListLabel.Text = {'Identificação do feixe de descida:'; '<font style="color: gray; font-size: 9px;">(TPDR_FEIXE_DOWN)</font>'};
+            app.FeixeDownListLabel.Text = {'Identificação do feixe de descida:'; '<font style="color: gray; font-size: 9px;">(FEIXE_DOWN)</font>'};
 
             % Create FeixeDownList
             app.FeixeDownList = uilistbox(app.SatelliteIDGrid);

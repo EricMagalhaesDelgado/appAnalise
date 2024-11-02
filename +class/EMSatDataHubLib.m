@@ -14,17 +14,17 @@ classdef (Abstract) EMSatDataHubLib
                              'FindPeaksName', '');
 
             for ii = 1:height(chTable)
-                CF = chTable.TPDR_FREQ_CENTRAL_DOWN(ii);
-                BW = chTable.TPDR_BW(ii);
+                CF = chTable.FREQ_CENTRAL_DOWN(ii);
+                BW = chTable.BW(ii);
 
-                chList(ii).Name          = sprintf('%s %s %s @ %.1f MHz', chTable.TPDR_DESIG_INT(ii), chTable.TPDR_CODE(ii), chTable.TPDR_FEIXE_POLARIZ_DOWN(ii), CF);
+                chList(ii).Name          = sprintf('%s %s %s @ %.1f MHz', chTable.DESIG_INT(ii), chTable.CODE(ii), chTable.FEIXE_POLARIZ_DOWN(ii), CF);
                 chList(ii).Band          = [CF-BW/2, CF+BW/2];
                 chList(ii).FirstChannel  = CF;
                 chList(ii).LastChannel   = CF;
                 chList(ii).StepWidth     = -1;
                 chList(ii).ChannelBW     = BW;
                 chList(ii).FreqList      = [];
-                chList(ii).Reference     = jsonencode(chTable(ii, :));
+                chList(ii).Reference     = jsonencode(chTable(ii, {'SNAPSHOT_DT', 'SAT_ANATEL_ID', 'LICENCIADO_BRASIL', 'TECNOLOGIA', 'SENTIDO_GATEWAY', 'FEIXE_UP', 'FEIXE_DOWN', 'FREQ_CENTRAL_UP', 'OCUPACAO_TOTAL', 'METRICA_OCUPACAO', 'OBS'}));
                 chList(ii).FindPeaksName = 'Satellite';
             end    
         end
@@ -44,7 +44,7 @@ classdef (Abstract) EMSatDataHubLib
             opts.Delimiter = ";";
             
             % Specify column names and types
-            opts.VariableNames = ["TPDR_SNAPSHOT_DT", "TPDR_SAT_ANATEL_ID", "TPDR_DESIG_INT", "TPDR_CODE", "TPDR_LICENCIADO_BRASIL", "TPDR_TECNOLOGIA", "TPDR_SENTIDO_GATEWAY", "TPDR_FEIXE_UP", "TPDR_FEIXE_DOWN", "TPDR_FEIXE_POLARIZ_UP", "TPDR_FEIXE_POLARIZ_DOWN", "TPDR_BW", "TPDR_FREQ_CENTRAL_UP", "TPDR_FREQ_CENTRAL_DOWN", "TPDR_OCUPACAO_TOTAL", "TPDR_OCUPACAO_BR", "TPDR_METRICA_OCUPACAO", "TPDR_RESTRICAO_DADO", "TPDR_OBS"];
+            opts.VariableNames = ["SNAPSHOT_DT", "SAT_ANATEL_ID", "DESIG_INT", "CODE", "LICENCIADO_BRASIL", "TECNOLOGIA", "SENTIDO_GATEWAY", "FEIXE_UP", "FEIXE_DOWN", "FEIXE_POLARIZ_UP", "FEIXE_POLARIZ_DOWN", "BW", "FREQ_CENTRAL_UP", "FREQ_CENTRAL_DOWN", "OCUPACAO_TOTAL", "OCUPACAO_BR", "METRICA_OCUPACAO", "RESTRICAO_DADO", "OBS"];
             opts.VariableTypes = ["datetime", "categorical", "categorical", "categorical", "double", "double", "double", "categorical", "categorical", "categorical", "categorical", "double", "double", "double", "double", "double", "double", "double", "string"];
             
             % Specify file level properties
@@ -52,11 +52,11 @@ classdef (Abstract) EMSatDataHubLib
             opts.EmptyLineRule = "read";
             
             % Specify variable properties
-            opts = setvaropts(opts, "TPDR_OBS", "WhitespaceRule", "preserve");
-            opts = setvaropts(opts, ["TPDR_SAT_ANATEL_ID", "TPDR_DESIG_INT", "TPDR_CODE", "TPDR_FEIXE_UP", "TPDR_FEIXE_DOWN", "TPDR_FEIXE_POLARIZ_UP", "TPDR_FEIXE_POLARIZ_DOWN", "TPDR_OBS"], "EmptyFieldRule", "auto");
-            opts = setvaropts(opts, "TPDR_SNAPSHOT_DT", "InputFormat", "dd/MM/yyyy", "DatetimeFormat", "preserveinput");
-            opts = setvaropts(opts, ["TPDR_LICENCIADO_BRASIL", "TPDR_TECNOLOGIA", "TPDR_SENTIDO_GATEWAY", "TPDR_BW", "TPDR_FREQ_CENTRAL_UP", "TPDR_FREQ_CENTRAL_DOWN", "TPDR_OCUPACAO_TOTAL", "TPDR_OCUPACAO_BR", "TPDR_METRICA_OCUPACAO", "TPDR_RESTRICAO_DADO"], "DecimalSeparator", ",");
-            opts = setvaropts(opts, ["TPDR_LICENCIADO_BRASIL", "TPDR_TECNOLOGIA", "TPDR_SENTIDO_GATEWAY", "TPDR_BW", "TPDR_FREQ_CENTRAL_UP", "TPDR_FREQ_CENTRAL_DOWN", "TPDR_OCUPACAO_TOTAL", "TPDR_OCUPACAO_BR", "TPDR_METRICA_OCUPACAO", "TPDR_RESTRICAO_DADO"], "ThousandsSeparator", ".");
+            opts = setvaropts(opts, "OBS", "WhitespaceRule", "preserve");
+            opts = setvaropts(opts, ["SAT_ANATEL_ID", "DESIG_INT", "CODE", "FEIXE_UP", "FEIXE_DOWN", "FEIXE_POLARIZ_UP", "FEIXE_POLARIZ_DOWN", "OBS"], "EmptyFieldRule", "auto");
+            opts = setvaropts(opts, "SNAPSHOT_DT", "InputFormat", "dd/MM/yyyy", "DatetimeFormat", "preserveinput");
+            opts = setvaropts(opts, ["LICENCIADO_BRASIL", "TECNOLOGIA", "SENTIDO_GATEWAY", "BW", "FREQ_CENTRAL_UP", "FREQ_CENTRAL_DOWN", "OCUPACAO_TOTAL", "OCUPACAO_BR", "METRICA_OCUPACAO", "RESTRICAO_DADO"], "DecimalSeparator", ",");
+            opts = setvaropts(opts, ["LICENCIADO_BRASIL", "TECNOLOGIA", "SENTIDO_GATEWAY", "BW", "FREQ_CENTRAL_UP", "FREQ_CENTRAL_DOWN", "OCUPACAO_TOTAL", "OCUPACAO_BR", "METRICA_OCUPACAO", "RESTRICAO_DADO"], "ThousandsSeparator", ".");
             
             % Import the data
             chTable = readtable(fileFullName, opts);

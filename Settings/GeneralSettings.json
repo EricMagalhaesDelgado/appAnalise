@@ -1,5 +1,5 @@
 {
-    "version": 0.79,
+    "version": 0.82,
     "operationMode": {
         "Debug": false,
         "Dock": false,
@@ -267,7 +267,7 @@
             "LineWidth": 5,
             "PickableParts": "none",
             "YLimOffsetMode": "top",
-            "YLimOffset": 2,
+            "YLimOffset": 1,
             "StepEffect": true
         },
         "ChannelROI": {
@@ -311,8 +311,8 @@
         },
         "OccupancyThreshold": {
             "Color": "#ff0000",
-            "LineStyle": "-.",
-            "LineWidth": 0.5,
+            "LineStyle": "-",
+            "LineWidth": 1,
             "Marker": "o",
             "MarkerSize": 4,
             "MarkerFaceColor": "#ff0000",

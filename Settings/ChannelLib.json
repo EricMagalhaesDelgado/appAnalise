@@ -300,8 +300,8 @@
     },
     {
       "Name": "Satellite",
-      "Distance": 10,
-      "BW": 10,
+      "Distance": 2.5,
+      "BW": 2.5,
       "Prominence1": 6,
       "Prominence2": 10,
       "meanOCC": 10,

@@ -224,6 +224,9 @@ classdef (Abstract) old_axesDraw
 
         %-----------------------------------------------------------------%
         function ThresholdPlot(hAxes, bandObj, idx, reportInfo)
+            defaultProperties = bandObj.callingApp.General_I;
+            plotConfig = structUtil.struct2cellWithFields(defaultProperties.Plot.OccupancyThreshold);
+
             specData = bandObj.callingApp.specData(idx);
             xArray   = bandObj.xArray;
 
@@ -255,9 +258,7 @@ classdef (Abstract) old_axesDraw
                 case 'Envoltória do ruído'
                     p    = plot(hAxes, xArray, occTHR);
             end
-            arrayfun(@(x) set(x, Color='red', LineStyle='-.', LineWidth=.5, Marker='o',                                           ...
-                                 MarkerSize=4, MarkerIndices=[1, numel(x.XData)], MarkerFaceColor='red', MarkerEdgeColor='black', ...
-                                 PickableParts='none', Tag='OccupancyThreshold'), p)
+            arrayfun(@(x) set(x, 'MarkerIndices', [1, numel(x.XData)], 'Tag', 'OccupancyThreshold', plotConfig{:}), p)
         end
 
 

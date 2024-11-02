@@ -228,13 +228,7 @@ function Text = internalFcn_FillWords(specData, idxThread, reportInfo, Children)
         Precision = string(Children.Data.Variable(ii).Precision);
         fieldName = Children.Data.Variable(ii).Source;
         
-        try
-            FillWords(ii) = sprintf(Precision, Fcn_Source(specData, idxThread, reportInfo, fieldName));
-        catch ME
-            fieldName
-            ME.message
-            pause(1)
-        end
+        FillWords(ii) = sprintf(Precision, Fcn_Source(specData, idxThread, reportInfo, fieldName));
     end
     
     Text = sprintf(Children.Data.Text, FillWords);
@@ -246,18 +240,20 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
         specData 
         idxThread 
         reportInfo 
-        fieldName char {mustBeMember(fieldName, {'Issue',            ...
-                                                 'Receiver',         ...
-                                                 'Band',             ...
+        fieldName char {mustBeMember(fieldName, {'Band',             ...
+                                                 'BeginTime',        ...
+                                                 'Description',      ...
+                                                 'EndTime',          ...
                                                  'FreqStart',        ...
                                                  'FreqStop',         ...
-                                                 'StepWidth',        ...
-                                                 'ObservationTime',  ...
-                                                 'BeginTime',        ...
-                                                 'EndTime',          ...
-                                                 'RelatedFiles',     ...
+                                                 'GPS',              ...
+                                                 'Issue',            ...
                                                  'Location',         ...
+                                                 'ObservationTime',  ...
+                                                 'Receiver',         ...
+                                                 'RelatedFiles',     ...
                                                  'RelatedLocations', ...
+                                                 'StepWidth',        ...
                                                  'Parameters',       ...
                                                  'threadTag',        ...
                                                  'channelTag',       ...
@@ -265,42 +261,43 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
     end
 
     switch fieldName
-        case 'Issue'
-            value = reportInfo.Issue;        
-        case 'Receiver'
-            value = specData(idxThread).Receiver;
         case 'Band'
             value = sprintf('%.3f - %.3f MHz', specData(idxThread).MetaData.FreqStart * 1e-6, specData(idxThread).MetaData.FreqStop * 1e-6);
+        case 'BeginTime'
+            value = char(specData(idxThread).Data{1}(1));
+        case 'Description'
+            value = specData(idxThread).RelatedFiles.Description{1};
+        case 'EndTime'
+            value = char(specData(idxThread).Data{1}(end));        
         case 'FreqStart'
             value = specData(idxThread).MetaData.FreqStart * 1e-6;
         case 'FreqStop'
             value = specData(idxThread).MetaData.FreqStop  * 1e-6;
-        case 'StepWidth'
-            value = ((specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / (specData(idxThread).MetaData.DataPoints - 1)) * 1e-3;
+        case 'GPS'
+            value = sprintf('%.6f, %.6f (%s)', specData(idxThread).GPS.Latitude,  specData(idxThread).GPS.Longitude, specData(idxThread).GPS.Location);
+        case 'Issue'
+            value = reportInfo.Issue;
+        case 'Location'
+            value = specData(idxThread).GPS.Location;
         case 'ObservationTime'
             BeginTime   = specData(idxThread).Data{1}(1);
             EndTime     = specData(idxThread).Data{1}(end);
             nSweeps     = numel(specData(idxThread).Data{1});
             RevisitTime = mean(specData(idxThread).RelatedFiles.RevisitTime);
-            value = sprintf('%s - %s<br>%d varreduras<br>%.1f segundos (tempo de revisita estimado)', BeginTime, ...
-                                                                                                      EndTime,   ...
-                                                                                                      nSweeps,   ...
-                                                                                                      RevisitTime);
-        case 'BeginTime'
-            value = char(specData(idxThread).Data{1}(1));
-        case 'EndTime'
-            value = char(specData(idxThread).Data{1}(end));        
+            value = sprintf('%s - %s<br>%d varreduras<br>%.1f segundos (tempo de revisita estimado)', BeginTime, EndTime, nSweeps, RevisitTime);
+        case 'Receiver'
+            value = specData(idxThread).Receiver;
         case 'RelatedFiles'
             value = strjoin(specData(idxThread).RelatedFiles.File, ', ');        
-        case 'Location'
-            value = specData(idxThread).GPS.Location;        
         case 'RelatedLocations'
             value = strjoin(unique(arrayfun(@(x) x.GPS.Location, specData, 'UniformOutput', false)), ', ');
+        case 'StepWidth'
+            value = ((specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / (specData(idxThread).MetaData.DataPoints - 1)) * 1e-3;
         case 'Parameters'
             value = {};
 
             % Description
-            value{end+1} = sprintf('• Descrição: "%s"', specData(idxThread).RelatedFiles.Description{1});
+            value{end+1} = sprintf('• Descrição: "%s"', Fcn_Source(specData, idxThread, reportInfo, 'Description'));
             
             % TraceMode+TraceIntegration+Detector
             if ~isempty(specData(idxThread).MetaData.TraceMode) 
@@ -326,7 +323,7 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
             % Resolution+VBW+StepWidth
             RBW       = specData(idxThread).MetaData.Resolution/1000;
             VBW       = specData(idxThread).MetaData.VBW/1000;
-            StepWidth = ((specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / (specData(idxThread).MetaData.DataPoints - 1)) * 1e-3;
+            StepWidth = Fcn_Source(specData, idxThread, reportInfo, 'StepWidth');
 
             if (specData(idxThread).MetaData.Resolution ~= -1) && (specData(idxThread).MetaData.VBW ~= -1)
                 Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (VBW), %.3f kHz (Passo da varredura)', RBW, VBW, StepWidth);
@@ -346,6 +343,8 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
             value{end+1} = sprintf('• GPS: %.6f, %.6f (%s)', specData(idxThread).GPS.Latitude,  ...
                                                              specData(idxThread).GPS.Longitude, ...
                                                              specData(idxThread).GPS.Location);
+            % Lista de arquivos
+            value{end+1} = sprintf('• Arquivo(s): %s', Fcn_Source(specData, idxThread, reportInfo, 'RelatedFiles'));
 
             % Others
             if ~isempty(specData(idxThread).MetaData.Others)
@@ -356,8 +355,8 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
         case 'threadTag'
             threadIndex = reportInfo.General.Parameters.Plot.idxThread;
             value = sprintf('FAIXA DE FREQUÊNCIA #%d: <b>%.3f - %.3f MHz</b>', threadIndex,                                ...
-                                                                            specData(idxThread).MetaData.FreqStart * 1e-6, ...
-                                                                            specData(idxThread).MetaData.FreqStop  * 1e-6);
+                                                                             specData(idxThread).MetaData.FreqStart * 1e-6, ...
+                                                                             specData(idxThread).MetaData.FreqStop  * 1e-6);
         case 'channelTag'
             threadIndex = reportInfo.General.Parameters.Plot.idxThread;
             chIndex = reportInfo.General.Parameters.Plot.idxChannel;
@@ -368,13 +367,14 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
                 chName = chTable.Name{chIndex};
             end
             value = sprintf('CANAL #%d.%d: <b>%s @ %.3f MHz ⌂ %.1f kHz</b>', threadIndex, chIndex,  chName,   ...
-                                                                            chTable.FirstChannel(chIndex),    ...
-                                                                            chTable.ChannelBW(chIndex) * 1000);
+                                                                             chTable.FirstChannel(chIndex),    ...
+                                                                             chTable.ChannelBW(chIndex) * 1000);
         case 'emissionTag'
+            threadIndex = reportInfo.General.Parameters.Plot.idxThread;
             emissionIndex = reportInfo.General.Parameters.Plot.idxEmission;
-            value = sprintf('EMISSÃO #d: <b>%.3f MHz ⌂ %.1f kHz</b>',       emissionIndex,                                           ...
-                                                                            specData(idxThread).UserData.Emissions{emissionIndex,2}, ...
-                                                                            specData(idxThread).UserData.Emissions{emissionIndex,3});
+            value = sprintf('EMISSÃO #%d.%d: <b>%.3f MHz ⌂ %.1f kHz</b>',    threadIndex, emissionIndex,                              ...
+                                                                             specData(idxThread).UserData.Emissions{emissionIndex,2}, ...
+                                                                             specData(idxThread).UserData.Emissions{emissionIndex,3});
     end
 end
 
@@ -474,97 +474,43 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
         
                 case 'Peaks'
                     if ~isempty(SpecInfo(idx).UserData.reportPeaksTable)                        
-                        Table       = SpecInfo(idx).UserData.reportPeaksTable;
-                        Table.ID(:) = 1:height(Table)';
-                        Table       = movevars(Table, 'ID', 'Before', 1);
-                        
-                        % FILTRO
-                        if ~isempty(Children.Data.Filter)
-                            ind_Field = find(strcmp(Children.Data.Filter.Column, Table.Properties.VariableNames), 1);
-                            ind_Value = strcmp(Table{:,ind_Field}, Children.Data.Filter.Value);
-        
-                            Table(~ind_Value,:) = [];
-                        end
-        
-                        % COLUNAS VAZIAS EDITÁVEIS
-                        ind_Empty = cellfun(@(x) strcmp(x, 'EmptyColumn'), Children.Data.Columns);
-        
-                        % COLUNAS DE PEAKSTABLE
-                        ind_Peaks = cellfun(@(x) find(strcmp(x, Table.Properties.VariableNames)), Children.Data.Columns(~ind_Empty));
-                        Table = Table(:,ind_Peaks);
-        
-                        % CRIAÇÃO DE TABELA COM AS COLUNAS VAZIAS EDITÁVEIS 
-                        % (caso aplicável)
-                        if ~isempty(ind_Empty)
-                            EmptyTable = table('Size', [height(Table), sum(ind_Empty)], ...
-                                               'VariableTypes', repmat({'cell'}, 1, sum(ind_Empty)));
-            
-                            for ii = 1:width(EmptyTable)
-                                EmptyTable{:,ii} = repmat({'-'}, height(Table), 1);
-                            end
-            
-                            Table = [Table, EmptyTable];
-                        end
-        
-                        % AJUSTE DA POSIÇÃO DAS COLUNAS VAZIAS EDITÁVEIS
-                        jj = 0;
-                        for ii = find(ind_Empty)'
-                            jj = jj+1;
-                            Table = movevars(Table, sprintf('Var%.0f', jj), 'Before', ii);                    
-                        end
-        
-                        % AJUSTE DOS NOMES DAS COLUNAS
-                        for ii = 1:numel(Table.Properties.VariableNames)
-                            Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
-        
-                            if ismember(Children.Data.Columns{ii}, ["minLevel", "meanLevel", "maxLevel"])
-                                Table.Properties.VariableNames{ii} = sprintf('%s (%s)', Table.Properties.VariableNames{ii}, SpecInfo(idx).MetaData.LevelUnit);
-                            end
-                        end
+                        Table = SpecInfo(idx).UserData.reportPeaksTable;
+                        Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
+
+                        LevelUnit = sprintf(' (%s)', SpecInfo(idx).MetaData.LevelUnit);
+                        Table.Properties.VariableNames = replace(Table.Properties.VariableNames, {'minLevel', 'meanLevel', 'maxLevel'}, strcat({'minLevel', 'meanLevel', 'maxLevel'}, LevelUnit));
                     end
         
                 case 'Summary'        
                     if ~isempty(peaksTable)
-                        infoTable = reportLibConnection.table.Summary(peaksTable, exceptionList);
-        
-                        % COLUNAS DE INFOTABLE
-                        ind_Peaks = cellfun(@(x) find(strcmp(x, infoTable.Properties.VariableNames)), Children.Data.Columns);
-                        Table = infoTable(:,ind_Peaks);
-        
-                        % AJUSTE DOS NOMES DAS COLUNAS
-                        for ii = 1:numel(Table.Properties.VariableNames)
-                            Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
-                        end
+                        Table = reportLibConnection.table.Summary(peaksTable, exceptionList);
+                        Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
                     end
         
-                case 'specData'
+                case 'Custom'
                     NN = numel(Children.Data.Settings);
         
-                    VariableTypes = {};
-                    VariableNames = {};
-        
-                    % Identifica tipos e nomes das colunas.
+                    VariableNames = {Children.Data.Settings.ColumnName};
+                    VariableTypes = {};        
                     for ii = 1:NN
-                        Precision = regexp(Children.Data.Settings(ii).Precision, "\w*%(s|.[013]f)\w*", "match");
-        
-                        if Precision == "%s"
-                            VariableTypes(end+1) = {'cell'};
-        
-                        elseif ismember(Precision, ["%.0f", "%.1f", "%.3f"])
-                            VariableTypes(end+1) = {'double'};
-        
+                        Precision = regexp(Children.Data.Settings(ii).Precision, '\w*%(s|d|.[013]f)\w*', 'match', 'once');
+                        switch Precision
+                            case '%s'
+                                VariableTypes(end+1) = {'cell'};
+                            case '%d'
+                                VariableTypes(end+1) = {'int64'};
+                            case {'%.0f', '%.1f', '%.3f'}
+                                VariableTypes(end+1) = {'double'};
+                            otherwise
+                                error('UnexpectedFormat')
                         end
-                        VariableNames{end+1} = Children.Data.Settings(ii).ColumnName;
                     end
         
                     % Identifica quantidade de fluxos de espectro.
                     MM = numel(SpecInfo);
                     
                     % Povoa a tabela.
-                    Table = table('Size', [MM, NN],               ...
-                                  'VariableTypes', VariableTypes, ...
-                                  'VariableNames', VariableNames);
-        
+                    Table = table('Size', [MM, NN], 'VariableTypes', VariableTypes,  'VariableNames', VariableNames);        
                     ll = 0;
                     for jj = 1:MM
                         if ismember(SpecInfo(jj).MetaData.DataType, class.Constants.specDataTypes)
@@ -580,10 +526,6 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                                 end
                             end
                         end
-                    end
-        
-                    for ii = 1:numel(Table.Properties.VariableNames)
-                        Table.Properties.VariableNames{ii} = Children.Data.Settings(ii).ColumnName;
                     end
             end
 
@@ -617,6 +559,10 @@ function Table = Fcn_Table_PreProcess(Table, reportInfo, Children)
                 idxThread   = reportInfo.General.Parameters.Plot.idxThread;
                 idxChannel  = reportInfo.General.Parameters.Plot.idxChannel;
                 Table.ID(:) = string(idxThread) + "." + string(idxChannel) + "." + string(IDReference);
+
+            case 'Peaks'
+                idxThread   = reportInfo.General.Parameters.Plot.idxThread;
+                Table.ID(:) = string(idxThread) + "." + string(IDReference);
 
             otherwise
                 Table.ID(:) = IDReference;

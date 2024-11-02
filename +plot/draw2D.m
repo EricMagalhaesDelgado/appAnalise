@@ -104,8 +104,8 @@ classdef (Abstract) draw2D
                     FreqStart   = srcInfo.FreqStart(ii);
                     FreqStop    = srcInfo.FreqStop(ii);
 
-                    if StepEffect
-                        yLevel2Plot = yLevel + mod(ii,2);
+                    if ~strcmp(bandObj.Context, 'appAnalise:REPORT:CHANNEL') && StepEffect
+                        yLevel2Plot = yLevel + mod(ii+1,2);
                     else
                         yLevel2Plot = yLevel;
                     end

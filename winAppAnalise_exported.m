@@ -1044,7 +1044,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function menu_LayoutPopupApp(app, auxiliarApp, varargin)
             arguments
                 app
-                auxiliarApp char {mustBeMember(auxiliarApp, {'WelcomePage', 'Detection', 'Classification', 'TimeFiltering', 'EditLocation', 'AddKFactor'})}
+                auxiliarApp char {mustBeMember(auxiliarApp, {'WelcomePage', 'Detection', 'Classification', 'TimeFiltering', 'EditLocation', 'AddKFactor', 'AddChannel'})}
             end
 
             arguments (Repeating)
@@ -1053,29 +1053,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Inicialmente ajusta as dimensões do container.
             switch auxiliarApp
-                case 'WelcomePage'
-                    screenWidth  = 880;
-                    screenHeight = 480;
-
-                case 'Detection'
-                    screenWidth  = 412;
-                    screenHeight = 282;
-
-                case 'Classification'
-                    screenWidth  = 534;
-                    screenHeight = 248;
-
-                case 'TimeFiltering'
-                    screenWidth  = 640;
-                    screenHeight = 480;
-
-                case 'EditLocation'
-                    screenWidth  = 360;
-                    screenHeight = 210;
-
-                case 'AddKFactor'
-                    screenWidth  = 480;
-                    screenHeight = 360;
+                case 'WelcomePage';    screenWidth  = 880; screenHeight = 480;
+                case 'Detection';      screenWidth  = 412; screenHeight = 282;
+                case 'Classification'; screenWidth  = 534; screenHeight = 248;
+                case 'TimeFiltering';  screenWidth  = 640; screenHeight = 480;
+                case 'EditLocation';   screenWidth  = 360; screenHeight = 210;
+                case 'AddKFactor';     screenWidth  = 480; screenHeight = 360;
+                case 'AddChannel';     screenWidth  = 560; screenHeight = 480;
             end
 
             app.popupContainerGrid.ColumnWidth{2} = screenWidth;
@@ -1084,28 +1068,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Executa o app auxiliar, mas antes tenta configurar transparência
             % do BackgroundColor do Grid (caso não tenha sido aplicada anteriormente).
             ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
-
-            switch auxiliarApp
-                case 'WelcomePage'
-                    auxApp.dockWelcomePage_exported(app.popupContainer, app)
-
-                case 'Detection'
-                    auxApp.dockDetection_exported(app.popupContainer, app)
-
-                case 'Classification'
-                    auxApp.dockClassification_exported(app.popupContainer, app)
-
-                case 'TimeFiltering'
-                    auxApp.dockMisc_TimeFiltering_exported(app.popupContainer, app, varargin{1})
-
-                case 'EditLocation'
-                    auxApp.dockMisc_EditLocation_exported(app.popupContainer, app, varargin{1})
-
-                case 'AddKFactor'
-                    auxApp.dockMisc_AddKFactor_exported(app.popupContainer, app, varargin{1})
-            end
-
-            % Torna visível o container.
+            inputArguments = [{app}, varargin];
+            eval(sprintf('auxApp.dock%s_exported(app.popupContainer, inputArguments{:})', auxiliarApp))
             app.popupContainerGrid.Visible = 1;
         end
 
@@ -3067,12 +3031,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 error('UnexpectedCall')
                         end
 
-                    case {'auxApp.dockAddChannel',         'auxApp.dockAddChannel_exported',         ... % PLAYBACK:CHANNEL
-                          'auxApp.dockClassification',     'auxApp.dockClassification_exported',     ... % REPORT:CLASSIFICATION
-                          'auxApp.dockDetection',          'auxApp.dockDetection_exported',          ... % REPORT:DETECTION
-                          'auxApp.dockMisc_TimeFiltering', 'auxApp.dockMisc_TimeFiltering_exported', ... % MISCELLANEOUS:TIMEFILTERING
-                          'auxApp.dockMisc_EditLocation',  'auxApp.dockMisc_EditLocation_exported',  ... % MISCELLANEOUS:EDITLOCATION
-                          'auxApp.dockMisc_AddKFactor',    'auxApp.dockMisc_AddKFactor_exported'}        % MISCELLANEOUS:ADDKFACTOR
+                    case {'auxApp.dockAddChannel',     'auxApp.dockAddChannel_exported',     ... % PLAYBACK:CHANNEL
+                          'auxApp.dockDetection',      'auxApp.dockDetection_exported',      ... % REPORT:DETECTION
+                          'auxApp.dockClassification', 'auxApp.dockClassification_exported', ... % REPORT:CLASSIFICATION
+                          'auxApp.dockTimeFiltering',  'auxApp.dockTimeFiltering_exported',  ... % MISCELLANEOUS:TIMEFILTERING
+                          'auxApp.dockEditLocation',   'auxApp.dockEditLocation_exported',   ... % MISCELLANEOUS:EDITLOCATION
+                          'auxApp.dockAddKFactor',     'auxApp.dockAddKFactor_exported'}         % MISCELLANEOUS:ADDKFACTOR
                         
                         % Esse ramo do switch trata chamados de módulos auxiliares dos 
                         % modos "REPORT" e "MISCELLANEOUS". Algumas das funcionalidades 
@@ -4397,7 +4361,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             % (popup).
                             case '.csv'                            
                                 channelTable = class.EMSatDataHubLib.importRawCSVFile(fileFullPath);
-                                auxApp.dockAddChannel(app, idx, channelTable)
+                                menu_LayoutPopupApp(app, 'AddChannel', idx, channelTable)
                                 return
                         end
                 end
@@ -5534,38 +5498,27 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     if ~isempty(app.report_ProjectName.Value{1})
                         defaultName = app.report_ProjectName.Value{1};
                     else
-                        defaultName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'ProjectData', app.report_Issue.Value);
+                        defaultName = appUtil.DefaultFileName(app.General.fileFolder.userPath, 'ProjectData', app.report_Issue.Value);
                     end
 
                     nameFormatMap = {'*.mat', 'appAnalise (*.mat)'};
-                    [fileFullPath, fileFolder, ~, fileName]  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+                    [fileFullPath, ~, ~, fileName]  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
                     if isempty(fileFullPath)
                         return
                     end
 
                     % app.progressDialog.Visible = 'visible';
 
-                    % !! PENDENTE !! GERAR DOIS ARQUIVOS. UM MAT SPECTRAL
-                    % DATA. E OUTRO PROJECT DATA, DA NOVA VERSÃO, QUE SÓ
-                    % TEM OS DADOS ANALISADOS, E UM PONTEIRO COM A LISTA DE
-                    % ARQUIVOS BRUTOS. ELES PODEM POSSUIR O MESMO NOME, MAS
-                    % COM UMA EXTENSÃO DIFERENTE. .MAT E .PRJ (POR
-                    % EXEMPLO).
-
                     reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
                     [idx, reportInfo]   = report.GeneralInfo(app, 'Report', reportTemplateIndex);
-                    prjInfo = struct('projectName',   fullfile(fileFolder, fileName),    ...
-                                     'projectIssue',  app.report_Issue.Value,          ...
-                                     'docModel',      app.report_ModelName.Value,      ...
+                    prjInfo = struct('Name',          fileName,                        ...
                                      'reportInfo',    rmfield(reportInfo, 'Filename'), ...
                                      'peaksTable',    app.projectData.peaksTable,      ...
                                      'exceptionList', app.projectData.exceptionList);
                     
-                    fileName = fullfile(fileFolder, fileName);
-                    fileWriter.MAT([fileName '.prj'], 'ProjectData', prjInfo)
-                    fileWriter.MAT([fileName '.mat'], 'ProjectData', app.specData(idx))
+                    fileWriter.MAT(fileFullPath, 'ProjectData', app.specData(idx), prjInfo)
 
-                    app.report_ProjectName.Value = fullfile(fileFolder, fileName);
+                    app.report_ProjectName.Value = fileFullPath;
                     app.report_ProjectWarnIcon.Visible = 0;
 
                     % app.progressDialog.Visible = 'hidden';
