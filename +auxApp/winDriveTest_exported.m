@@ -1099,31 +1099,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             InColor   = app.config_route_InColor.Value;
             MarkerSize= app.config_route_Size.Value;
 
-            switch LineStyle
-                case 'none'; markerSize = 1;
-                otherwise;   markerSize = 8*MarkerSize;
-            end
-
-            % OutRoute
-            geoplot(hAxes, OutTable.Latitude, OutTable.Longitude, 'Marker',          '.',        ...
-                                                                  'Color',           OutColor,   ...
-                                                                  'MarkerFaceColor', OutColor,   ...
-                                                                  'MarkerEdgeColor', OutColor,   ...
-                                                                  'MarkerSize',      markerSize, ...
-                                                                  'LineStyle',       'none',     ...
-                                                                  'PickableParts',   'none',     ...
-                                                                  'DisplayName',     'Rota',     ...
-                                                                  'Tag',             'OutRoute');
-            % InRoute
-            geoplot(hAxes,  InTable.Latitude,  InTable.Longitude, 'Marker',          '.',        ...
-                                                                  'Color',           InColor,    ...
-                                                                  'MarkerFaceColor', InColor,    ...
-                                                                  'MarkerEdgeColor', InColor,    ...
-                                                                  'MarkerSize',      markerSize, ...
-                                                                  'LineStyle',       LineStyle,  ...
-                                                                  'PickableParts',   'none',     ...
-                                                                  'DisplayName',     'Rota',     ...
-                                                                  'Tag',             'InRoute');
+            plot.DriveTest.Route(hAxes, app.tempBandObj, OutTable, InTable, LineStyle, OutColor, InColor, MarkerSize)
         end
 
         %-----------------------------------------------------------------%
@@ -1133,7 +1109,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             plotMode = app.UIAxes1.UserData.PlotMode;
             plotSize = app.axesTool_PlotSize.Value;
 
-            % Dados a plotar:
             switch Source
                 case {'Raw', 'Filtered'}
                     srcTable = app.specFilteredTable;
@@ -1141,30 +1116,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                     srcTable = app.specBinTable;
             end
 
-            % Visibilidade das curvas:
-            hDistortionVisibility = 0;
-            hDensityVisibility    = 0;
-            switch plotMode
-                case 'distortion'
-                    hDistortionVisibility = 1;
-                case 'density'
-                    hDensityVisibility    = 1;
-            end
-
-            % Distorção
-            hDistortion = geoscatter(hAxes, srcTable.Latitude, srcTable.Longitude, [], srcTable.ChannelPower,  ...
-                                            'filled', 'SizeData', 20*plotSize, 'Tag', 'Distortion', 'Visible', hDistortionVisibility, 'DisplayName', 'Potência do canal (Distorção)');
-            plot.datatip.Template(hDistortion, 'SweepID+ChannelPower+Coordinates', app.UIAxes4.UserData.YLimUnit)
-
-            % Densidade
-            weights = srcTable.ChannelPower;
-            if min(weights) < 0
-                weights = weights+abs(min(weights));
-            end
-
-            geodensityplot(hAxes, srcTable.Latitude, srcTable.Longitude, weights, ...
-                                  'FaceColor','interp', 'Radius', 100*plotSize,   ...
-                                  'PickableParts', 'none', 'Tag', 'Density', 'Visible', hDensityVisibility, 'DisplayName', 'Potência do canal (Densidade)');
+            plot.DriveTest.DistortionAndDensityPlot(hAxes, app.tempBandObj, srcTable, plotMode, plotSize)
         end
 
         %-----------------------------------------------------------------%
@@ -1261,17 +1213,14 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function plot_PointsController(app)
             delete(findobj(app.UIAxes1.Children, 'Tag', 'Points'))
-            plot_Points(app, app.UIAxes1)
-            plot.axes.StackingOrder.execute(app.UIAxes1, 'appAnalise:DRIVETEST')
-        end
 
-        %-----------------------------------------------------------------%
-        function plot_Points(app, hAxes)
+            hAxes       = app.UIAxes1;
             MarkerStyle = app.config_points_LineStyle.Value;
             MarkerColor = app.config_points_Color.Value;
             MarkerSize  = app.config_points_Size.Value;
-
             plot.DriveTest.Points(hAxes, app.pointsTable, MarkerStyle, MarkerColor, MarkerSize)
+            
+            plot.axes.StackingOrder.execute(app.UIAxes1, 'appAnalise:DRIVETEST')
         end
 
         %-----------------------------------------------------------------%
@@ -1310,20 +1259,13 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function plot_ChannelPower(app)
-            [minY, maxY] = bounds(app.specRawTable.ChannelPower);
-            % set(app.UIAxes4, 'XLim', [1, height(app.specRawTable)+.001], 'YLim', [minY, maxY+10-mod(maxY,10)])
-            set(app.UIAxes4, 'XLim', [1, height(app.specRawTable)+.001], 'YLimMode', 'auto')
+            hAxes     = app.UIAxes4;
+            Color     = app.UIAxes3.Colormap(end,:);
+            EdgeAlpha = app.config_chPowerEdgeAlpha.Value;
+            FaceAlpha = app.config_chPowerFaceAlpha.Value;
+            app.config_chPowerColor.Value = Color;
 
-            chPowerColor = app.UIAxes3.Colormap(end,:);
-            app.config_chPowerColor.Value = chPowerColor;
-
-            chPowerLine  = area(app.UIAxes4, app.specRawTable.ChannelPower, minY, 'EdgeAlpha', app.config_chPowerEdgeAlpha.Value, ...
-                                                                                  'FaceAlpha', app.config_chPowerFaceAlpha.Value, ...
-                                                                                  'FaceColor', chPowerColor,                      ...
-                                                                                  'EdgeColor', chPowerColor,                      ...
-                                                                                  'Tag', 'ChannelPower');
-            app.UIAxes4.YLim(1) = minY;
-            plot.datatip.Template(chPowerLine, 'SweepID+ChannelPower', app.UIAxes4.UserData.YLimUnit)
+            plot.DriveTest.ChannelPower(hAxes, app.tempBandObj, app.specRawTable, Color, EdgeAlpha, FaceAlpha)
         end
 
         %-----------------------------------------------------------------%

@@ -1,4 +1,4 @@
-function [htmlContent, emissionTag, userDescription, stationInfo] = htmlCode_EmissionInfo(specData, idx, projectData, idxPeak, idxException)
+function [htmlContent, emissionTag, userDescription, stationInfo] = htmlCode_EmissionInfo(specData, idxThread, idxEmission, projectData, idxPeak, idxException)
 
     peaksTable      = projectData.peaksTable(idxPeak, :);
     exceptionList   = projectData.exceptionList(idxException, :);
@@ -48,15 +48,8 @@ function [htmlContent, emissionTag, userDescription, stationInfo] = htmlCode_Emi
     end
 
     % HTML
-    userDescription = '';
-    detectionInfo   = jsondecode(peaksTable.Detection{1});    
-    if isfield(detectionInfo, 'Description')
-        userDescription = detectionInfo.Description;
-        detectionInfo   = rmfield(detectionInfo, 'Description');        
-    end
-
-    dataStruct(1) = struct('group', 'RECEPTOR',            'value', specData(idx).Receiver);
-    dataStruct(2) = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData(idx).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(idx).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));    
+    dataStruct(1) = struct('group', 'RECEPTOR',            'value', specData(idxThread).Receiver);
+    dataStruct(2) = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData(idxThread).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(idxThread).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));    
     dataStruct(3) = struct('group', 'CLASSIFICAÇÃO',       'value', struct('Regulatory',      columnsDiff.Regulatory,  ...
                                                                            'Service',         columnsDiff.Service,     ...
                                                                            'Station',         columnsDiff.Station,     ...
@@ -66,10 +59,12 @@ function [htmlContent, emissionTag, userDescription, stationInfo] = htmlCode_Emi
                                                                            'Irregular',       columnsDiff.Irregular,   ...
                                                                            'RiskLevel',       columnsDiff.RiskLevel));
     dataStruct(4)  = struct('group', 'ALGORITMOS',         'value', struct('Occupancy',       jsondecode(peaksTable.occMethod{1}), ...
-                                                                           'Detection',       detectionInfo,                       ...
+                                                                           'Detection',       jsondecode(peaksTable.Detection{1}), ...
                                                                            'Classification',  jsondecode(peaksTable.Classification{1})));
+
+    userDescription = specData(idxThread).UserData.Emissions.UserData(idxEmission).Description;
     if ~isempty(userDescription)
-        dataStruct(3).value.userDescription = sprintf('<font style="color: blue;">%s</font>', strjoin(userDescription));
+        dataStruct(3).value.userDescription = sprintf('<font style="color: blue;">%s</font>', userDescription);
     end
 
     htmlContent    = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', emissionTag) ...

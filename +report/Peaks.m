@@ -10,6 +10,8 @@ function peaksTable = Peaks(app, idxThreads, DetectionMode, exceptionList)
         end
 
         Peaks = Fcn_exceptionList(Peaks, exceptionList);
+        Peaks = Fcn_userDescription(Peaks, app.specData(ii).UserData.Emissions);
+
         app.specData(ii).UserData.reportPeaksTable = Peaks;
     end
 end
@@ -40,17 +42,25 @@ function Peaks = Fcn_exceptionList(Peaks, exceptionList)
                 Peaks.Distance{idx}    = Distance;
             end
         end
+    end
+end
 
+%-------------------------------------------------------------------------%
+function Peaks = Fcn_userDescription(Peaks, EmissionList)
+    if ~isempty(Peaks)
         % Itera em relação à lista de emissões, buscando aquelas que possuem
         % informações textuais complementares.
-        emissionIndex = find(cellfun(@(x) isfield(jsondecode(x), 'Description'), Peaks.Detection))';
-        for ii = emissionIndex
-            emissionInfo = jsondecode(Peaks.Detection{ii});
+        for ii = 1:height(Peaks)
+            userDescription = EmissionList.UserData(ii).Description;
+            if isempty(userDescription)
+                continue
+            end
+
             switch Peaks.Description{ii}
                 case '-'
-                    Peaks.Description{ii} = sprintf('<p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', strjoin(emissionInfo.Description, '<br>')); 
+                    Peaks.Description{ii} = sprintf('</p> <p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', userDescription); 
                 otherwise
-                    Peaks.Description{ii} = sprintf('%s <p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', Peaks.Description{ii}, strjoin(emissionInfo.Description, '<br>')); 
+                    Peaks.Description{ii} = sprintf('%s </p> <p class="Tabela_Texto_8" contenteditable="false" style="color: blue;">%s', Peaks.Description{ii}, userDescription); 
             end
         end
     end

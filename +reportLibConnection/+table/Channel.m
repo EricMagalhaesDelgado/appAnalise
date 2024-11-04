@@ -1,4 +1,4 @@
-function GeneralTable = Channel(specData, idxThread, occInfo)
+function GeneralTable = Channel(specData, idxThread, tempBandObj, occInfo)
 
     % O relatório para o PM-SAT será composto de duas tabelas. 
     % • TABELA GERAL que será apresentada abaixo do plot de toda a faixa, 
@@ -27,7 +27,8 @@ function GeneralTable = Channel(specData, idxThread, occInfo)
 
     arguments
         specData 
-        idxThread = 1
+        idxThread
+        tempBandObj
         occInfo   = struct('Method',             'Linear adaptativo', ...
                            'IntegrationTime',    Inf,                 ...
                            'Offset',             5,                   ...
@@ -54,6 +55,11 @@ function GeneralTable = Channel(specData, idxThread, occInfo)
     specData = specData(idxThread);
 
     chTable  = specData.UserData.reportChannelTable;
+    if isempty(chTable)
+        chTable = ChannelTable2Plot(tempBandObj.callingApp.channelObj, specData);
+        specData.UserData.reportChannelTable = chTable;
+    end
+
     chTable.ChannelGuardBW = ceil(chTable.ChannelBW/20);
     
     % Insere na planilha informação de ocupação total informada pela operadora...

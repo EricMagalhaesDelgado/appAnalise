@@ -52,14 +52,15 @@ function MAT(fileName, fileType, prj_specData, prj_Info)
     switch fileType
         case 'SpectralData'
             prj_Type = {'Spectral data'};
-            prj_specData = copy(prj_specData, {'UserData'});
+            prj_specData = copy(prj_specData, {'UserData', 'callingApp', 'sortType'});
 
         case 'ProjectData'
             prj_Type = {'Project data'};
+            prj_specData = copy(prj_specData, {'callingApp', 'sortType'});
 
         case 'UserData'
             prj_Type = {'User data'};
-            prj_specData = copy(prj_specData, {'Data'});
+            prj_specData = copy(prj_specData, {'Data', 'callingApp', 'sortType'});
     end
     save(fileName, 'prj_Type', 'prj_Version', 'prj_Source', 'prj_RelatedFiles', 'prj_metaData', 'prj_specData', 'prj_Info', '-v7.3', '-nocompression')
 end
@@ -68,7 +69,7 @@ end
 %-------------------------------------------------------------------------%
 function [prj_RelatedFiles, prj_metaData] = spec2metaData(prj_specData)
     
-    prj_metaData     = copy(prj_specData, {'Data', 'UserData'});
+    prj_metaData     = copy(prj_specData, {'UserData', 'Data', 'callingApp', 'sortType'});
     prj_RelatedFiles = {};
 
     for ii = 1:numel(prj_metaData)

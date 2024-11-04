@@ -33,7 +33,7 @@ function [axesType, axesXLabel, axesYLabel, axesYScale] = axesTypeMapping(plotNa
                     case 'dBm'
                         axesYLabel{ii} = 'Potência (dBm)';
                     otherwise
-                        axesYLabel{ii} = ['Nível ' tempBandObj.LevelUnit];
+                        axesYLabel{ii} = sprintf('Nível (%s)', tempBandObj.LevelUnit);
                 end
             
             case {'OccupancyPerBin', ...

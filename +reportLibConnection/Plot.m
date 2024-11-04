@@ -1,8 +1,8 @@
-classdef (Abstract) old_axesDraw
+classdef (Abstract) Plot
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function imgFileName = plot2report(hContainer, specData, idxThread, tempBandObj, reportInfo, plotInfoPerAxes)
+        function imgFileName = Controller(hContainer, specData, idxThread, tempBandObj, reportInfo, plotInfoPerAxes)
             % Limpa container.
             if ~isempty(hContainer.Children)
                 delete(hContainer.Children)
@@ -52,8 +52,12 @@ classdef (Abstract) old_axesDraw
                             plot.draw2D.horizontalSetOfLines(hAxes, tempBandObj, idxThread, 'BandLimits')
                         
                         case 'Channel'
-                            chTable = ChannelTable2Plot(tempBandObj.callingApp.channelObj, specData(idxThread));
-                            specData(idxThread).UserData.reportChannelTable = chTable;
+                            chTable  = specData(idxThread).UserData.reportChannelTable;
+                            if isempty(chTable)
+                                chTable = ChannelTable2Plot(tempBandObj.callingApp.channelObj, specData(idxThread));
+                                specData(idxThread).UserData.reportChannelTable = chTable;
+                            end
+
                             if ~isempty(chTable)
                                 plot.draw2D.horizontalSetOfLines(hAxes, tempBandObj, idxThread, 'Channel', chTable)
                             end
@@ -63,29 +67,39 @@ classdef (Abstract) old_axesDraw
 
                         % <PENDENTE MIGRAR PARA NOVAS FUNÇÕES>
                         case 'OccupancyThreshold'
-                            plot.old_axesDraw.ThresholdPlot(hAxes, tempBandObj, idxThread, reportInfo)
+                            reportLibConnection.Plot.ThresholdPlot(hAxes, tempBandObj, idxThread, reportInfo)
 
                         case 'OccupancyPerBin'
-                            plot.old_axesDraw.cartesianAxes__type3(hAxes, tempBandObj, idxThread, reportInfo)
+                            reportLibConnection.Plot.cartesianAxes__type3(hAxes, tempBandObj, idxThread, reportInfo)
                             hAxes.YLim = [0,100];
 
                         case 'EmissionROI'
-                            plot.old_axesDraw.EmissionPlot(hAxes, specData(idxThread), yLim, Parameters)
+                            reportLibConnection.Plot.EmissionPlot(hAxes, specData(idxThread), yLim, Parameters)
     
                         case {'occMinHold', 'occAverage', 'occMaxHold'}
                             hAxes.YLim = [0,100];
-    
-
 
                         case 'OccupancyPerChannel'
                             hAxes.YLim = [0,100];
 
                         case 'DriveTest'
-                            plot.old_axesDraw.geographicAxes_type1(hAxes, Parameters, 'ReportGenerator')
+                            reportLibConnection.Plot.DriveTestPlot(hAxes, tempBandObj, idxThread, reportInfo)
+
+                        case 'DriveTestChannelPower'
+                            idxEmission = reportInfo.General.Parameters.Plot.idxEmission;
+
+                            if ~isempty(specData.UserData.Emissions.UserData(idxEmission).DriveTest)
+                                specRawTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.specRawTable;
+                                Color        = '#91ff00';
+                                EdgeAlpha    = 1;
+                                FaceAlpha    = .4;
+                    
+                                plot.DriveTest.ChannelPower(hAxes, tempBandObj, specRawTable, Color, EdgeAlpha, FaceAlpha)
+                                plot.axes.StackingOrder.execute(hAxes, 'appAnalise:DRIVETEST')
+                            end                            
     
                         case 'DriveTestRoute'
-                            plot.old_axesDraw.geographicAxes_type2(hAxes, Parameters)
-                        % </PENDENTE MIGRAR PARA NOVAS FUNÇÕES>
+                            plot.DriveTest.Route(hAxes, tempBandObj, idxThread)
                     end
                 end
                 
@@ -168,9 +182,9 @@ classdef (Abstract) old_axesDraw
 
                     xIndexLim = bandObj.xIndexLimits;
                 
-                    plot.old_axesDraw.OccupancyPerBinPlot(hAxes, specData(idx), xIndexLim, xArray, 'occMinHold', occMinHold)
-                    plot.old_axesDraw.OccupancyPerBinPlot(hAxes, specData(idx), xIndexLim, xArray, 'occAverage', occAverage)
-                    plot.old_axesDraw.OccupancyPerBinPlot(hAxes, specData(idx), xIndexLim, xArray, 'occMaxHold', occMaxHold)
+                    reportLibConnection.Plot.OccupancyPerBinPlot(hAxes, specData(idx), xIndexLim, xArray, 'occMinHold', occMinHold)
+                    reportLibConnection.Plot.OccupancyPerBinPlot(hAxes, specData(idx), xIndexLim, xArray, 'occAverage', occAverage)
+                    reportLibConnection.Plot.OccupancyPerBinPlot(hAxes, specData(idx), xIndexLim, xArray, 'occMaxHold', occMaxHold)
             end
         end
 
@@ -261,162 +275,81 @@ classdef (Abstract) old_axesDraw
             arrayfun(@(x) set(x, 'MarkerIndices', [1, numel(x.XData)], 'Tag', 'OccupancyThreshold', plotConfig{:}), p)
         end
 
-
         %-----------------------------------------------------------------%
-        % EIXO GEOGRÁFICO: CONTROLE
-        %-----------------------------------------------------------------%
-        function geographicAxes_type1(hAxes, Parameters, srcFcn)
-            if isempty(Parameters)
-                error('Unexpected parameters value.')
+        function DriveTestPlot(hAxes, tempBandObj, idxThread, reportInfo)
+            if tempBandObj.Context ~= "appAnalise:REPORT:EMISSION"
+                return
             end
 
-            % PRÉ-PLOT
-            cla(hAxes)
+            specData = tempBandObj.callingApp.specData(idxThread);
+            idxEmission = reportInfo.General.Parameters.Plot.idxEmission;
 
-            % AJUSTE DO BASEMAP
-            if isfield(Parameters, 'Basemap') && ~strcmp(hAxes.Basemap, Parameters.Basemap)
-                hAxes.Basemap = Parameters.Basemap;
-            end
+            if ~isempty(specData.UserData.Emissions.UserData(idxEmission).DriveTest)
+                % Density | Distortion
+                Source      = specData.UserData.Emissions.UserData(idxEmission).DriveTest.Source;
+                filterTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.filterTable;
+                pointsTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.pointsTable;
+                plotMode    = specData.UserData.Emissions.UserData(idxEmission).DriveTest.plotType;
+                plotSize    = specData.UserData.Emissions.UserData(idxEmission).DriveTest.plotSize;
+                Basemap     = specData.UserData.Emissions.UserData(idxEmission).DriveTest.Basemap;
+    
+                switch Source
+                    case {'Raw', 'Filtered'}
+                        srcTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.specFilteredTable;
+                    case 'Data-Binning'
+                        srcTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.specBinTable;
+                end
+    
+                if ~strcmp(hAxes.Basemap, Basemap)
+                    hAxes.Basemap = Basemap;
+                end
+    
+                plot.DriveTest.DistortionAndDensityPlot(hAxes, tempBandObj, srcTable, plotMode, plotSize)
+                plot.axes.StackingOrder.execute(hAxes, 'appAnalise:DRIVETEST')
 
-            % PLOT
-            if strcmp(srcFcn, 'ReportGenerator')
-                plot.old_axesDraw.DriveTestFilterPlot(hAxes, Parameters, 'GeographicPlot');
-            end            
-            plot.old_axesDraw.DriveTestRoutePlot(hAxes, Parameters)
-            plot.old_axesDraw.DriveTestPointsPlot(hAxes, Parameters);
-
-            hDistortionVisibility = 0;
-            hDensityVisibility    = 0;
-            switch Parameters.plotType
-                case 'distortion'
-                    hDistortionVisibility = 1;
-                case 'density'
-                    hDensityVisibility    = 1;
-            end
-
-            switch Parameters.Source
-                case {'Raw', 'Filtered'}
-                    srcTable = Parameters.specFilteredTable;
-                case 'Data-Binning'
-                    srcTable = Parameters.specBinTable;
-            end
-
-            plot.old_axesDraw.DriveTestDistortionlPlot(hAxes, srcTable, Parameters, hDistortionVisibility);
-            plot.old_axesDraw.DriveTestDensityPlot(hAxes, srcTable, Parameters, hDensityVisibility);
-            geolimits(hAxes, 'auto')
-
-            % PÓS-PLOT
-            plot.axes.StackingOrder.execute(hAxes, 'appAnalise:DRIVETEST')
-        end
-
-
-        %-----------------------------------------------------------------%
-        function geographicAxes_type2(hAxes, Parameters)
-            if isempty(Parameters)
-                error('Unexpected parameters value.')
-            end
-
-            % PLOT
-            specData   = Parameters.specData;
-            gpsPerFile = vertcat(specData.RelatedFiles.GPS{:});
-            gpsMatrix  = vertcat(gpsPerFile.Matrix);
-
-            if hAxes.Basemap == "none"
-                hAxes.Basemap = 'streets-light';
-            end
-
-            geoplot(hAxes, gpsMatrix(:,1), gpsMatrix(:,2));
-            geolimits(hAxes, 'auto')
-        end
-        
-        
-        %-----------------------------------------------------------------%
-        % EIXO GEOGRÁFICO: PLOT
-        %-----------------------------------------------------------------%
-        function DriveTestFilterPlot(hAxes, Parameters, plotType)
-            delete(findobj(hAxes.Children, 'Tag', 'FilterROI'))
-
-            filterTable = Parameters.filterTable;
-
-            for ii = 1:height(filterTable)
-                subtype = filterTable.subtype{ii};
-
-                switch subtype
-                    case 'Threshold'
-                        if ~strcmp(plotType, 'CartesianPlot')
-                            continue
-                        end
-                        hROI = images.roi.Line(hAxes, 'Color', 'red', 'MarkerSize', 4, 'LineWidth', 1, 'Deletable', 0, 'InteractionsAllowed', 'translate', 'Tag', 'FilterROI');
-
-                    case {'Circle', 'Rectangle', 'Polygon'}
-                        if ~strcmp(plotType, 'GeographicPlot')
-                            continue
-                        end
-
-                        switch subtype
-                            case 'Circle';    roiFcn = 'Circle';    roiNameArgument = '';
-                            case 'Rectangle'; roiFcn = 'Rectangle'; roiNameArgument = 'Rotatable=true, ';
-                            case 'Polygon';   roiFcn = 'Polygon';   roiNameArgument = '';
-                        end
-                        eval(sprintf('hROI = images.roi.%s(hAxes, LineWidth=1, Deletable=0, FaceSelectable=0, %sTag="FilterROI");', roiFcn, roiNameArgument))
+                % Points
+                if ~isempty(pointsTable)
+                    MarkerStyle = specData.UserData.Emissions.UserData(idxEmission).DriveTest.points_Marker;
+                    MarkerColor = specData.UserData.Emissions.UserData(idxEmission).DriveTest.points_Color;
+                    MarkerSize  = specData.UserData.Emissions.UserData(idxEmission).DriveTest.points_Size;
+                    plot.DriveTest.Points(hAxes, pointsTable, MarkerStyle, MarkerColor, MarkerSize)
                 end
 
-                fieldsList = fields(filterTable.roi(ii).specification);
-                for jj = 1:numel(fieldsList)
-                    hROI.(fieldsList{jj}) = filterTable.roi(ii).specification.(fieldsList{jj});
-                end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function DriveTestRoutePlot(hAxes, Parameters)
-            delete(findobj(hAxes.Children, 'Tag', 'OutRoute', '-or', 'Tag', 'InRoute'))
-
-            specTable   = Parameters.specRawTable;
-            filtTable   = Parameters.specFilteredTable;
-
-            OutTable    = specTable(~specTable.Filtered,:);
-            InTable     = filtTable;
-
-            switch Parameters.route_LineStyle
-                case 'none'; markerSize = 1;
-                otherwise;   markerSize = 8*Parameters.route_MarkerSize;
-            end
-
-            geoplot(hAxes, OutTable.Latitude, OutTable.Longitude, 'Marker', '.', 'Color', Parameters.route_OutColor, 'MarkerFaceColor', Parameters.route_OutColor, 'MarkerEdgeColor', Parameters.route_OutColor, 'MarkerSize', markerSize, 'LineStyle', 'none',                     'Tag', 'OutRoute');
-            geoplot(hAxes,  InTable.Latitude,  InTable.Longitude, 'Marker', '.', 'Color', Parameters.route_InColor,  'MarkerFaceColor', Parameters.route_InColor,  'MarkerEdgeColor', Parameters.route_InColor,  'MarkerSize', markerSize, 'LineStyle', Parameters.route_LineStyle, 'Tag', 'InRoute');
-        end
-
-        %-----------------------------------------------------------------%
-        function DriveTestDistortionlPlot(hAxes, srcTable, Parameters, hDistortionVisibility)
-            geoscatter(hAxes, srcTable.Latitude, srcTable.Longitude, [], srcTable.ChannelPower, ...
-                'filled', 'SizeData', 20*Parameters.plotSize, 'Tag', 'Distortion', 'Visible', hDistortionVisibility);
-        end
-
-
-        %-----------------------------------------------------------------%
-        function DriveTestDensityPlot(hAxes, srcTable, Parameters, hDensityVisibility)
-            weights = srcTable.ChannelPower;
-            if min(weights) < 0
-                weights = weights+abs(min(weights));
-            end
-
-            geodensityplot(hAxes, srcTable.Latitude, srcTable.Longitude, weights, ...
-                'FaceColor','interp', 'Radius', 100*Parameters.plotSize,          ...
-                'PickableParts', 'none', 'Tag', 'Density', 'Visible', hDensityVisibility);
-        end
-
-
-        %-----------------------------------------------------------------%
-        function DriveTestPointsPlot(hAxes, Parameters)
-            delete(findobj(hAxes.Children, 'Tag', 'Points'))
+                % Filters
+                if ~isempty(filterTable)
+                    for ii = 1:height(filterTable)
+                        FilterSubtype = filterTable.subtype{ii};
+    
+                        switch FilterSubtype
+                            case 'PolygonKML'
+                                Latitude  = filterTable.roi(ii).specification.Latitude;
+                                Longitude = filterTable.roi(ii).specification.Longitude;
+                                shapeObj  = geopolyshape(Latitude, Longitude);
+    
+                                geoplot(hAxes, shapeObj, FaceColor=[0 0.4470 0.7410], ...
+                                                         EdgeColor=[0 0.4470 0.7410], ...
+                                                         FaceAlpha=0.05,              ...
+                                                         EdgeAlpha=1,                 ...
+                                                         LineWidth=1,               ...
+                                                         PickableParts='none',        ...
+                                                         Tag='FilterROI');
+                            otherwise
+                                switch FilterSubtype
+                                    case 'Circle';     roiFcn = 'images.roi.Circle';
+                                    case 'Rectangle';  roiFcn = 'images.roi.Rectangle';
+                                    case 'Polygon';    roiFcn = 'images.roi.Polygon';
+                                end
             
-            pointsTable = Parameters.pointsTable;
-            MarkerStyle = Parameters.points_Marker;
-            MarkerColor = Parameters.points_Color;
-            MarkerSize  = Parameters.points_Size;
+                                eval(sprintf('hROI = %s(hAxes, LineWidth=1, FaceAlpha=0.05, Deletable=0, FaceSelectable=0, InteractionsAllowed="none", Tag="FilterROI");', roiFcn))
 
-            plot.DriveTest.Points(hAxes, pointsTable, MarkerStyle, MarkerColor, MarkerSize)
+                                fieldsList = fields(filterTable.roi(ii).specification);
+                                for jj = 1:numel(fieldsList)
+                                    hROI.(fieldsList{jj}) = filterTable.roi(ii).specification.(fieldsList{jj});
+                                end
+                        end
+                    end
+                end
+            end
         end
     end
 end

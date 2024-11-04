@@ -281,6 +281,12 @@
             "LabelColor": "#000000",
             "LabelFontSize": 8
         },
+        "ChannelPower": {
+            "EdgeColor": "#FF5CAD",
+            "FaceColor": "#FF5CAD",
+            "EdgeAlpha": 0,
+            "FaceAlpha": 0.4
+        },
         "Emission": {
             "Color": "#66bae0",
             "LineWidth": 1,

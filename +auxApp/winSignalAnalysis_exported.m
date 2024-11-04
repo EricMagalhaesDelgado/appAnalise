@@ -284,9 +284,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         function userDescription = UserDescriptionParser(app)
             userDescription = strtrim(app.AdditionalDescription.Value);
             userDescription(cellfun(@(x) isempty(x), userDescription)) = [];
-            if isempty(userDescription)
-                userDescription = '';
-            end
+            userDescription = strjoin(userDescription);
         end
         
         %-----------------------------------------------------------------%
@@ -299,7 +297,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             [htmlContent,     ...
              emissionTag,     ...
              userDescription, ...
-             stationInfo]   = auxApp.signalanalysis.htmlCode_EmissionInfo(app.specData, idxThread, app.projectData, idxPrjPeaks, idxPrjException);
+             stationInfo]   = auxApp.signalanalysis.htmlCode_EmissionInfo(app.specData, idxThread, idxEmission, app.projectData, idxPrjPeaks, idxPrjException);
 
             app.selectedEmissionInfo.HTMLSource = htmlContent;
             set(app.AdditionalDescription, 'Value', userDescription, 'UserData', userDescription) 
@@ -469,13 +467,14 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             idxPrjException = exceptionListIndex(app);
             [idxThread, ...
              idxEmission]   = specDataIndex(app, idxPrjPeaks);
+            userDescription = UserDescriptionParser(app);
 
             if ~strcmp(app.projectData.peaksTable.Regulatory{idxPrjPeaks}, app.Regulatory.Value)  || ...
                app.projectData.peaksTable.Station(idxPrjPeaks) ~= str2double(app.StationID.Value) || ...
                ~strcmp(app.projectData.peaksTable.Type{idxPrjPeaks},      app.Type.Value)         || ...
                ~strcmp(app.projectData.peaksTable.Irregular{idxPrjPeaks}, app.Compliance.Value)   || ...
                ~strcmp(app.projectData.peaksTable.RiskLevel{idxPrjPeaks}, app.RiskLevel.Value)    || ...
-               ~isequal(app.AdditionalDescription.Value, app.AdditionalDescription.UserData)
+               ~strcmp(userDescription, app.AdditionalDescription.UserData)
     
                 % Modificação direta de app.StationID.Value ocasionará num 
                 % registro relacionado a uma estação "Licenciada" ou "Não 
@@ -510,18 +509,10 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                         AddExceptionValue2Table(app, idxPrjException, exceptionValue)
 
                     case app.AdditionalDescription
-                        % O campo "Informações complementares" atualmente é armazenado em
-                        % app.specData(idx).UserData.Emissions.Detection. Abaixo a sua 
-                        % atualização, caso aplicável.
                         if ~isempty(idxThread) && ~isempty(idxEmission)
-                            userDescription = strjoin(app.AdditionalDescription.Value);
-
-                            if ~isequal(userDescription, app.AdditionalDescription.UserData)
-                                detectionInfo = jsondecode(app.specData(idxThread).UserData.Emissions.Detection{idxEmission});
-                                detectionInfo.Description = app.AdditionalDescription.Value;
-        
-                                app.specData(idxThread).UserData.Emissions.Detection{idxEmission} = jsonencode(detectionInfo, 'ConvertInfAndNaN', false);
-                                app.projectData.peaksTable.Detection{idxPrjPeaks}                 = app.specData(idxThread).UserData.Emissions.Detection{idxEmission};
+                            if ~strcmp(userDescription, app.AdditionalDescription.UserData)                                
+                                app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description = userDescription;
+                                appBackDoor(app.CallingApp, app, 'PeakDescriptionChanged')
                             end
                         end
 

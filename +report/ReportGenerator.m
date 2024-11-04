@@ -30,7 +30,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
         parentNode = jsonScript(ii);
 
         if isfield(parentNode.Data, 'Variable') && ~isempty(parentNode.Data.Variable)
-            parentNode.Data.Text = internalFcn_FillWords(reportInfo, [], parentNode, 1);
+            parentNode.Data.Text = internalFcn_FillWords(app.specData, idxThreads(1), reportInfo, parentNode);
         end
         htmlReport = [htmlReport, reportLib.sourceCode.htmlCreation(parentNode)];
 
@@ -50,8 +50,9 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
             end
 
             update(tempBandObj, idxThreads(jj));
-            reportInfo.General.Parameters.Plot = struct('idxThread',   jj, ...
-                                                        'idxChannel',  -1, ...
+            reportInfo.General.Parameters.Plot = struct('idxThread',   idxThreads(jj), ...
+                                                        'idxBand',     jj,             ...
+                                                        'idxChannel',  -1,             ...
                                                         'idxEmission', -1);
 
             % Insere uma quebra de linha, caso exista recorrência no
@@ -60,7 +61,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
                 htmlReport = [htmlReport, reportLib.sourceCode.LineBreak];
             end
 
-            htmlReport = [htmlReport, HTMLRenderization(parentNode, app.specData, idxThreads(jj), reportInfo, tempBandObj)];
+            htmlReport = [htmlReport, HTMLRenderization(parentNode, app.specData, idxThreads, jj, reportInfo, tempBandObj)];
 
             % Atualiza barra de progresso... e cancela operação, caso
             % requisitado pelo usuário.
@@ -111,16 +112,18 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
         delete(hContainer.Children)
     end
 
+    arrayfun(@(x) eval('x.UserData.reportChannelTable    = [];'), app.specData)
     arrayfun(@(x) eval('x.UserData.reportChannelAnalysis = [];'), app.specData)
 end
 
 %-------------------------------------------------------------------------%
-function htmlContent = HTMLRenderization(parentNode, specData, idxThread, reportInfo, tempBandObj)
+function htmlContent = HTMLRenderization(parentNode, specData, idxThreads, idx, reportInfo, tempBandObj)
     
     arguments
         parentNode
         specData
-        idxThread
+        idxThreads
+        idx
         reportInfo
         tempBandObj
     end
@@ -144,25 +147,29 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThread, report
                         case 'Channel'
                             channelBandObj = class.Band('appAnalise:REPORT:CHANNEL', tempBandObj.callingApp);
 
-                            for channelIndex = 1:height(specData(idxThread).UserData.reportChannelTable)
-                                if ~specData(idxThread).UserData.reportChannelAnalysis.("Qtd. emissões")(channelIndex)
+                            for channelIndex = 1:height(specData(idxThreads(idx)).UserData.reportChannelTable)
+                                if ~specData(idxThreads(idx)).UserData.reportChannelAnalysis.("Qtd. emissões")(channelIndex)
                                     continue
                                 end
 
-                                update(channelBandObj, idxThread, channelIndex);
+                                update(channelBandObj, idxThreads(idx), channelIndex);
                                 reportInfo.General.Parameters.Plot.idxChannel = channelIndex;
 
-                                htmlTempContent = [htmlTempContent, reportLib.sourceCode.Separator, HTMLRenderization(childNode, specData, idxThread, reportInfo, channelBandObj)];
+                                htmlTempContent = [htmlTempContent, reportLib.sourceCode.Separator, HTMLRenderization(childNode, specData, idxThreads, idx, reportInfo, channelBandObj)];
                             end
 
                         case 'Emission'
                             emissionBandObj = class.Band('appAnalise:REPORT:EMISSION', tempBandObj.callingApp);
 
-                            for emissionIndex = 1:height(specData(idxThread).UserData.Emissions)
-                                update(emissionBandObj, idxThread, emissionIndex);
+                            for emissionIndex = 1:height(specData(idxThreads(idx)).UserData.Emissions)
+                                if isempty(specData(idxThreads(idx)).UserData.Emissions.UserData(emissionIndex).DriveTest)
+                                    continue
+                                end
+
+                                update(emissionBandObj, idxThreads(idx), emissionIndex);
                                 reportInfo.General.Parameters.Plot.idxEmission = emissionIndex;
 
-                                htmlTempContent = [htmlTempContent, reportLib.sourceCode.Separator, HTMLRenderization(childNode, specData, idxThread, reportInfo, emissionBandObj)];
+                                htmlTempContent = [htmlTempContent, reportLib.sourceCode.Separator, HTMLRenderization(childNode, specData, idxThreads, idx, reportInfo, emissionBandObj)];
                             end
 
                         otherwise
@@ -172,7 +179,7 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThread, report
                 case {'ItemN2', 'ItemN3', 'Paragraph', 'List', 'Footnote'}
                     for jj = 1:numel(childNode.Data)
                         if isfield(childNode.Data(jj), 'Variable') && ~isempty(childNode.Data(jj).Variable)
-                            childNode.Data(jj).Text = internalFcn_FillWords(specData, idxThread, reportInfo, childNode);
+                            childNode.Data(jj).Text = internalFcn_FillWords(specData, idxThreads(idx), reportInfo, childNode);
                         end
                     end
     
@@ -185,11 +192,11 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThread, report
                     plotLayout = str2double(strsplit(childNode.Data.Layout, ':'));    
                     plotInfo   = arrayfun(@(x, y) struct('Name', x, 'Layout', y), plotName, plotLayout);
                     
-                    Image = Fcn_Image(specData, idxThread, tempBandObj, reportInfo, parentNode.Recurrence, childNode, plotInfo, hFigure);
+                    Image = Fcn_Image(specData, idxThreads, idx, tempBandObj, reportInfo, parentNode.Recurrence, childNode, plotInfo, hFigure);
                     htmlTempContent = reportLib.sourceCode.htmlCreation(childNode, Image);
     
                 case 'Table'
-                    Table = Fcn_Table(specData, idxThread, reportInfo, tempBandObj.callingApp.projectData.peaksTable, tempBandObj.callingApp.projectData.exceptionList, parentNode.Recurrence, childNode);
+                    Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, tempBandObj.callingApp.projectData.peaksTable, tempBandObj.callingApp.projectData.exceptionList, parentNode.Recurrence, childNode);
                     htmlTempContent = reportLib.sourceCode.htmlCreation(childNode, Table);
     
                 otherwise
@@ -307,7 +314,7 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
                 end
 
                 if ~isempty(specData(idxThread).MetaData.Detector)
-                    Operation = sprintf('• Operação: %s/%s%s', specData(idxThread).MetaData.TraceMode, specData(idxThread).MetaData.Detector, TraceIntegration);
+                    Operation = sprintf('• Operação: %s-%s%s', specData(idxThread).MetaData.TraceMode, specData(idxThread).MetaData.Detector, TraceIntegration);
                 else
                     Operation = sprintf('• Operação: %s%s', specData(idxThread).MetaData.TraceMode, TraceIntegration);
                 end
@@ -353,28 +360,33 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
 
             value = strjoin(value, '<br>');
         case 'threadTag'
-            threadIndex = reportInfo.General.Parameters.Plot.idxThread;
-            value = sprintf('FAIXA DE FREQUÊNCIA #%d: <b>%.3f - %.3f MHz</b>', threadIndex,                                ...
+            idxThread  = reportInfo.General.Parameters.Plot.idxThread;
+            idxBand    = reportInfo.General.Parameters.Plot.idxBand;
+
+            value = sprintf('FAIXA DE FREQUÊNCIA #%d: <b>%.3f - %.3f MHz</b>', idxBand,                                     ...
                                                                              specData(idxThread).MetaData.FreqStart * 1e-6, ...
                                                                              specData(idxThread).MetaData.FreqStop  * 1e-6);
         case 'channelTag'
-            threadIndex = reportInfo.General.Parameters.Plot.idxThread;
-            chIndex = reportInfo.General.Parameters.Plot.idxChannel;
+            idxThread  = reportInfo.General.Parameters.Plot.idxThread;
+            idxBand    = reportInfo.General.Parameters.Plot.idxBand;
+            idxChannel = reportInfo.General.Parameters.Plot.idxChannel;
             
             chTable = specData(idxThread).UserData.reportChannelTable;
-            chName  = extractBefore(chTable.Name{chIndex}, ' @');
+            chName  = extractBefore(chTable.Name{idxChannel}, ' @');
             if isempty(chName)
-                chName = chTable.Name{chIndex};
+                chName = chTable.Name{idxChannel};
             end
-            value = sprintf('CANAL #%d.%d: <b>%s @ %.3f MHz ⌂ %.1f kHz</b>', threadIndex, chIndex,  chName,   ...
-                                                                             chTable.FirstChannel(chIndex),    ...
-                                                                             chTable.ChannelBW(chIndex) * 1000);
+            value = sprintf('CANAL #%d.%d: <b>%s @ %.3f MHz ⌂ %.1f kHz</b>', idxBand, idxChannel,  chName,     ...
+                                                                             chTable.FirstChannel(idxChannel), ...
+                                                                             chTable.ChannelBW(idxChannel) * 1000);
         case 'emissionTag'
-            threadIndex = reportInfo.General.Parameters.Plot.idxThread;
-            emissionIndex = reportInfo.General.Parameters.Plot.idxEmission;
-            value = sprintf('EMISSÃO #%d.%d: <b>%.3f MHz ⌂ %.1f kHz</b>',    threadIndex, emissionIndex,                              ...
-                                                                             specData(idxThread).UserData.Emissions{emissionIndex,2}, ...
-                                                                             specData(idxThread).UserData.Emissions{emissionIndex,3});
+            idxThread   = reportInfo.General.Parameters.Plot.idxThread;
+            idxBand     = reportInfo.General.Parameters.Plot.idxBand;
+            idxEmission = reportInfo.General.Parameters.Plot.idxEmission;
+
+            value = sprintf('EMISSÃO #%d.%d: <b>%.3f MHz ⌂ %.1f kHz</b>',    idxBand, idxEmission,                                  ...
+                                                                             specData(idxThread).UserData.Emissions{idxEmission,2}, ...
+                                                                             specData(idxThread).UserData.Emissions{idxEmission,3});
     end
 end
 
@@ -392,7 +404,7 @@ function hContainer = PlotContainer(hFigure)
 end
 
 %-------------------------------------------------------------------------%
-function Image = Fcn_Image(specData, idxThread, tempBandObj, reportInfo, Recurrence, Children, plotInfo, hFigure)
+function Image = Fcn_Image(specData, idxThreads, idx, tempBandObj, reportInfo, Recurrence, Children, plotInfo, hFigure)
     global ID_imgExt
     global hContainer
 
@@ -403,11 +415,11 @@ function Image = Fcn_Image(specData, idxThread, tempBandObj, reportInfo, Recurre
                 hContainer = PlotContainer(hFigure);
             end
 
-            Image = plot.old_axesDraw.plot2report(hContainer, specData, idxThread, tempBandObj, reportInfo, plotInfo);
+            Image = reportLibConnection.Plot.Controller(hContainer, specData, idxThreads(idx), tempBandObj, reportInfo, plotInfo);
 
         case 'External'
             if Recurrence
-                Image     = specData(idxThread).UserData.reportAttachments.image;
+                Image     = specData(idxThreads(idx)).UserData.reportAttachments.image;
             else
                 ID_imgExt = ID_imgExt+1;    
                 try
@@ -426,7 +438,7 @@ end
 %-------------------------------------------------------------------------%
 % TABELA
 %-------------------------------------------------------------------------%
-function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList, Recurrence, Children)
+function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, peaksTable, exceptionList, Recurrence, Children)
 
     global ID_tabExt
     
@@ -436,8 +448,8 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
 
     else
         if Recurrence
-            Source    = SpecInfo(idx).UserData.reportAttachments.table.Source;
-            SheetID   = SpecInfo(idx).UserData.reportAttachments.table.SheetID;
+            Source    = specData(idxThreads(idx)).UserData.reportAttachments.table.Source;
+            SheetID   = specData(idxThreads(idx)).UserData.reportAttachments.table.SheetID;
         else
             ID_tabExt = ID_tabExt+1;
 
@@ -459,26 +471,32 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
     switch Origin
         case 'Internal'
             switch Source
-                case {'Algorithms', 'Channel'}
-                    Table = eval(sprintf('reportLibConnection.table.%s(SpecInfo, idx);', Source));
+                case 'Algorithms'
+                    Table = reportLibConnection.table.Algorithms(specData, idxThreads(idx));
                     Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
+
+                case 'Channel'
+                    chTable = specData(idxThreads(idx)).UserData.reportChannelAnalysis;
+                    if isempty(chTable)
+                        chTable = reportLibConnection.table.Channel(specData, idxThreads(idx), tempBandObj);
+                    end
+                    Table = Fcn_Table_PreProcess(chTable, reportInfo, Children);
 
                 case 'EmissionPerChannel'
                     chIndex = reportInfo.General.Parameters.Plot.idxChannel;
-                    chTable = SpecInfo(idx).UserData.reportChannelAnalysis;
+                    chTable = specData(idxThreads(idx)).UserData.reportChannelAnalysis;
                     if isempty(chTable)
-                        chTable = reportLibConnection.table.Channel(SpecInfo, idx);
+                        chTable = reportLibConnection.table.Channel(specData, idxThreads(idx), tempBandObj);
                     end
-                    Table = chTable.("Emissões"){chIndex};
-                    Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
+                    emissionTable = chTable.("Emissões"){chIndex};
+                    Table = Fcn_Table_PreProcess(emissionTable, reportInfo, Children);
         
-                case 'Peaks'
-                    if ~isempty(SpecInfo(idx).UserData.reportPeaksTable)                        
-                        Table = SpecInfo(idx).UserData.reportPeaksTable;
+                case 'EmissionPerBand'
+                    if ~isempty(specData(idxThreads(idx)).UserData.reportPeaksTable)                        
+                        Table = specData(idxThreads(idx)).UserData.reportPeaksTable;
                         Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
 
-                        LevelUnit = sprintf(' (%s)', SpecInfo(idx).MetaData.LevelUnit);
-                        Table.Properties.VariableNames = replace(Table.Properties.VariableNames, {'minLevel', 'meanLevel', 'maxLevel'}, strcat({'minLevel', 'meanLevel', 'maxLevel'}, LevelUnit));
+                        Table.Properties.VariableNames = replace(Table.Properties.VariableNames, '%LevelUnit%', specData(idxThreads(idx)).MetaData.LevelUnit);
                     end
         
                 case 'Summary'        
@@ -507,13 +525,13 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                     end
         
                     % Identifica quantidade de fluxos de espectro.
-                    MM = numel(SpecInfo);
+                    MM = numel(idxThreads);
                     
                     % Povoa a tabela.
                     Table = table('Size', [MM, NN], 'VariableTypes', VariableTypes,  'VariableNames', VariableNames);        
                     ll = 0;
-                    for jj = 1:MM
-                        if ismember(SpecInfo(jj).MetaData.DataType, class.Constants.specDataTypes)
+                    for jj = idxThreads
+                        if ismember(specData(jj).MetaData.DataType, class.Constants.specDataTypes)
                             ll = ll+1;
         
                             for kk = 1:NN
@@ -522,7 +540,7 @@ function Table = Fcn_Table(SpecInfo, idx, reportInfo, peaksTable, exceptionList,
                                     case 'ID'
                                         Table{ll,kk} = ll;
                                     otherwise
-                                        Table(ll,kk) = {Fcn_Source(SpecInfo, jj, reportInfo, Source)};
+                                        Table(ll,kk) = {Fcn_Source(specData, jj, reportInfo, Source)};
                                 end
                             end
                         end
@@ -552,17 +570,17 @@ function Table = Fcn_Table_PreProcess(Table, reportInfo, Children)
 
         switch Source
             case 'Channel'
-                idxThread   = reportInfo.General.Parameters.Plot.idxThread;
-                Table.ID(:) = string(idxThread) + "." + string(IDReference);
+                idxBand     = reportInfo.General.Parameters.Plot.idxBand;
+                Table.ID(:) = string(idxBand) + "." + string(IDReference);
 
             case 'EmissionPerChannel'
-                idxThread   = reportInfo.General.Parameters.Plot.idxThread;
+                idxBand     = reportInfo.General.Parameters.Plot.idxBand;
                 idxChannel  = reportInfo.General.Parameters.Plot.idxChannel;
-                Table.ID(:) = string(idxThread) + "." + string(idxChannel) + "." + string(IDReference);
+                Table.ID(:) = string(idxBand) + "." + string(idxChannel) + "." + string(IDReference);
 
-            case 'Peaks'
-                idxThread   = reportInfo.General.Parameters.Plot.idxThread;
-                Table.ID(:) = string(idxThread) + "." + string(IDReference);
+            case 'EmissionPerBand'
+                idxBand     = reportInfo.General.Parameters.Plot.idxBand;
+                Table.ID(:) = string(idxBand) + "." + string(IDReference);
 
             otherwise
                 Table.ID(:) = IDReference;

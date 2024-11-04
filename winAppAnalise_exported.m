@@ -122,7 +122,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         report_ModelNameLabel           matlab.ui.control.Label
         report_DocumentPanelLabel       matlab.ui.control.Label
         report_ProjectSave              matlab.ui.control.Image
-        report_ProjectOpen              matlab.ui.control.Image
         report_ProjectNew               matlab.ui.control.Image
         report_ProjectName              matlab.ui.control.TextArea
         report_ProjectNameLabel         matlab.ui.control.Label
@@ -2989,7 +2988,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 if isequal(idxThread, app.play_PlotPanel.UserData.NodeData)
                                     plot.draw2D.ClearWrite_old(app, idxThread, operationType, idxEmission)
                                 end                            
-                                play_UpdatePeaksTable(app, idxThread, 'signalAnalysis.EditOrDeleteEmission')    
+                                play_UpdatePeaksTable(app, idxThread, 'signalAnalysis.EditOrDeleteEmission')
+                            case 'PeakDescriptionChanged'
+                                play_FindPeaks_TreeSelectionChanged(app)
                             otherwise
                                 error('UnexpectedCall')
                         end
@@ -4804,13 +4805,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case app.play_FindPeaks_Description
                     userDescription = strtrim(app.play_FindPeaks_Description.Value);
                     userDescription(cellfun(@(x) isempty(x), userDescription)) = [];
-                    if isempty(userDescription)
-                        userDescription = '';
-                    end
-                    app.play_FindPeaks_Description.Value = userDescription;
+                    userDescription = strjoin(userDescription);
                     
-                    emissionInfo.Description = userDescription;
-                    app.specData(idx).UserData.Emissions.Detection{idxEmission} = jsonencode(emissionInfo, 'ConvertInfAndNaN', false);
+                    app.play_FindPeaks_Description.Value = userDescription;
                     app.specData(idx).UserData.Emissions.UserData(idxEmission).Description = userDescription;
             end
 
@@ -5417,8 +5414,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: report_ProjectNew, report_ProjectOpen, 
-        % ...and 1 other component
+        % Image clicked function: report_ProjectNew, report_ProjectSave
         function report_ProjectToolbarImageClicked(app, event)
             
             switch event.Source
@@ -5435,58 +5431,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
                     
                     DeleteProject(app, 'appAnalise:REPORT:NewProject')
-
-                %---------------------------------------------------------%
-                case app.report_ProjectOpen
-                    % if ~isempty(app.listOfProducts)
-                    %     msgQuestion   = 'Ao abrir um projeto, a lista de produtos sob análise será sobrescrita. Confirma a operação?';
-                    %     userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-                    %     if userSelection == "Não"
-                    %         return
-                    %     end
-                    % end
-
-                    % !! PENDENTE !! GERAR DOIS ARQUIVOS. UM MAT SPECTRAL
-                    % DATA. E OUTRO PROJECT DATA, DA NOVA VERSÃO, QUE SÓ
-                    % TEM OS DADOS ANALISADOS, E UM PONTEIRO COM A LISTA DE
-                    % ARQUIVOS BRUTOS. ELES PODEM POSSUIR O MESMO NOME, MAS
-                    % COM UMA EXTENSÃO DIFERENTE. .MAT E .PRJ (POR
-                    % EXEMPLO).
-                    
-                    % !! CHECA SE OS ARQUIVOS BINÁRIOS COINCIDEM COM O QUE É
-                    % NECESSÁRIO NO PROJETO !!
-
-                    % [fileName, filePath] = uigetfile({'*.mat', 'SCH (*.mat)'}, '', app.General.fileFolder.lastVisited);
-                    % figure(app.UIFigure)
-                    % 
-                    % if fileName
-                    %     fileFullPath = fullfile(filePath, fileName);
-                    % 
-                    %     try
-                    %         [~, ~, variables, ~]         = readFile.MAT(fileFullPath);
-                    %         app.listOfProducts           = variables.listOfProducts;
-                    % 
-                    %         % Atualizando os componentes da GUI...
-                    %         app.report_ProjectName.Value = fileFullPath;
-                    %         app.report_Issue.Value       = variables.projectIssue;
-                    %         app.report_Entity.Value      = variables.entityName;
-                    %         app.report_EntityID.Value    = variables.entityID;
-                    %         app.report_EntityType.Value  = variables.entityType;
-                    % 
-                    %         report_UpdatingTable(app)
-                    %         report_TableSelectionChanged(app)
-                    % 
-                    %         report_ListOfHomProductsUpdating(app)
-                    %         app.report_ProjectWarnIcon.Visible = 0;
-                    %
-                    %         app.General_I.fileFolder.lastVisited = filePath;
-                    %         app.General.fileFolder.lastVisited = filePath;
-                    %         appUtil.generalSettingsSave(class.Constants.appName, app.rootFolder, app.General_I, app.executionMode)
-                    % 
-                    %     catch ME
-                    %         appUtil.modalWindow(app.UIFigure, 'error', ME.message);
-                    %     end
-                    % end
 
                 %---------------------------------------------------------%
                 case app.report_ProjectSave
@@ -5507,7 +5451,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         return
                     end
 
-                    % app.progressDialog.Visible = 'visible';
+                    app.progressDialog.Visible = 'visible';
 
                     reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
                     [idx, reportInfo]   = report.GeneralInfo(app, 'Report', reportTemplateIndex);
@@ -5521,7 +5465,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     app.report_ProjectName.Value = fileFullPath;
                     app.report_ProjectWarnIcon.Visible = 0;
 
-                    % app.progressDialog.Visible = 'hidden';
+                    app.progressDialog.Visible = 'hidden';
             end
 
         end
@@ -7956,7 +7900,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create report_ControlsTab1Info
             app.report_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
-            app.report_ControlsTab1Info.ColumnWidth = {110, '1x', 16, 16, 16};
+            app.report_ControlsTab1Info.ColumnWidth = {110, '1x', 16, 16};
             app.report_ControlsTab1Info.RowHeight = {22, 44, 22, 224, 9, 8, '1x', 32};
             app.report_ControlsTab1Info.ColumnSpacing = 5;
             app.report_ControlsTab1Info.RowSpacing = 5;
@@ -7987,7 +7931,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ProjectName.Editable = 'off';
             app.report_ProjectName.FontSize = 11;
             app.report_ProjectName.Layout.Row = 2;
-            app.report_ProjectName.Layout.Column = [1 5];
+            app.report_ProjectName.Layout.Column = [1 4];
 
             % Create report_ProjectNew
             app.report_ProjectNew = uiimage(app.report_ControlsTab1Info);
@@ -7998,21 +7942,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ProjectNew.VerticalAlignment = 'bottom';
             app.report_ProjectNew.ImageSource = fullfile(pathToMLAPP, 'Icons', 'addFiles_32.png');
 
-            % Create report_ProjectOpen
-            app.report_ProjectOpen = uiimage(app.report_ControlsTab1Info);
-            app.report_ProjectOpen.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
-            app.report_ProjectOpen.Tooltip = {'Abre projeto'};
-            app.report_ProjectOpen.Layout.Row = 1;
-            app.report_ProjectOpen.Layout.Column = 4;
-            app.report_ProjectOpen.VerticalAlignment = 'bottom';
-            app.report_ProjectOpen.ImageSource = fullfile(pathToMLAPP, 'Icons', 'OpenFile_36x36.png');
-
             % Create report_ProjectSave
             app.report_ProjectSave = uiimage(app.report_ControlsTab1Info);
             app.report_ProjectSave.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
             app.report_ProjectSave.Tooltip = {'Salva projeto'};
             app.report_ProjectSave.Layout.Row = 1;
-            app.report_ProjectSave.Layout.Column = 5;
+            app.report_ProjectSave.Layout.Column = 4;
             app.report_ProjectSave.VerticalAlignment = 'bottom';
             app.report_ProjectSave.ImageSource = fullfile(pathToMLAPP, 'Icons', 'saveFile_32.png');
 
@@ -8028,7 +7963,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_DocumentPanel = uipanel(app.report_ControlsTab1Info);
             app.report_DocumentPanel.AutoResizeChildren = 'off';
             app.report_DocumentPanel.Layout.Row = 4;
-            app.report_DocumentPanel.Layout.Column = [1 5];
+            app.report_DocumentPanel.Layout.Column = [1 4];
 
             % Create GridLayout4
             app.GridLayout4 = uigridlayout(app.report_DocumentPanel);
@@ -8128,7 +8063,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_TreeAddImage.ImageClickedFcn = createCallbackFcn(app, @report_TreeAddImagePushed, true);
             app.report_TreeAddImage.Tooltip = {''};
             app.report_TreeAddImage.Layout.Row = 6;
-            app.report_TreeAddImage.Layout.Column = 5;
+            app.report_TreeAddImage.Layout.Column = 4;
             app.report_TreeAddImage.VerticalAlignment = 'bottom';
             app.report_TreeAddImage.ImageSource = fullfile(pathToMLAPP, 'Icons', 'addSymbol_32.png');
 
@@ -8136,7 +8071,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Tree = uitree(app.report_ControlsTab1Info, 'checkbox');
             app.report_Tree.FontSize = 10;
             app.report_Tree.Layout.Row = [7 8];
-            app.report_Tree.Layout.Column = [1 5];
+            app.report_Tree.Layout.Column = [1 4];
 
             % Create report_ControlsTab2Grid
             app.report_ControlsTab2Grid = uigridlayout(app.play_ControlsGrid);

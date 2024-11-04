@@ -37,7 +37,7 @@ function [infoTable, countTable] = Summary(peaksTable, exceptionList)
             end
         end
 
-        countTable.Tag = extractAfter(countTable.Tag, ': ');
+        countTable.Tag = extractAfter(countTable.Tag, newline);
         
         % Journal table 1:
         Bands = unique(countTable.Tag, 'stable');
