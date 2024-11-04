@@ -215,7 +215,19 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % INICIALIZAÇÃO
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource = ccTools.fcn.jsBackDoorHTMLSource();
+            app.jsBackDoor.HTMLSource           = ccTools.fcn.jsBackDoorHTMLSource();
+            app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)jsBackDoor_Listener(app, evt);
+        end
+
+        %-----------------------------------------------------------------%
+        function jsBackDoor_Listener(app, event)
+            switch event.HTMLEventName
+                case 'app.filter_Tree'
+                    filter_delFilter(app, struct('Source', app.filter_delButton))
+                otherwise
+                    % ...
+            end
+            drawnow
         end
 
         %-------------------------------------------------------------------------%
@@ -266,7 +278,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                                 ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
 
                             case 2 % FILTRAGEM
-                                % ...
+                                app.filter_Tree.UserData = struct(app.filter_Tree).Controller.ViewModel.Id;
+                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'app.filter_Tree', 'componentDataTag', app.filter_Tree.UserData, 'keyEvents', "Delete"))
+                                
                             case 3 % CONFIGURAÇÕES GERAIS
                                 % ...
                         end
@@ -944,7 +958,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             if ~isempty(idx1)
                 checkedNodes = {};
                 for ii = idx1
-                    idx2 = find(app.filterTable.RelatedID == ii)';
+                    idx2 = find(app.filterTable.RelatedID == app.filterTable.ID(ii))';
                     if isempty(idx2)
                         parentNode = uitreenode(app.filter_Tree, 'Text', sprintf('#%d: RFDataHub.("%s") %s %s', app.filterTable.ID(ii),                        ...
                                                                                                                 app.filterTable.Type{ii},                      ...
@@ -1897,7 +1911,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     if isempty(app.filter_Tree.SelectedNodes)
                         return
                     end
-                    idx1 = arrayfun(@(x) x.NodeData, app.filter_Tree.SelectedNodes);
+                    idx1 = app.filter_Tree.SelectedNodes.NodeData;
                     
                     % Identifica se algum dos fluxos selecionado é um nó de
                     % filtros, inserindo na lista os seus filhos.

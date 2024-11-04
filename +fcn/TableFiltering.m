@@ -8,47 +8,52 @@ function fLogical = TableFiltering(hTable, filterTable)
     % filtro que não tem serventia no webapp SCH, mas teria no appAnalise.
 
     % Eis um trabalho a fazer no futuro! :(
-        
-    if any(filterTable.Enable)
-        % Identifica "filtros nós".
-        idx1 = find(strcmp(filterTable.Order, 'Node'))';
 
-        % Descarta filtros nós cujos membros foram desativados na GUI.
-        for ii = idx1
-            idx2 = [ii, find(filterTable.RelatedID == ii)'];
-            if all(~filterTable.Enable(idx2))
-                idx1(idx1 == ii) = [];
-            end
-        end
-
-        % Cria vetor lógico.
-        fLogical   = ones(height(hTable), 1, 'logical');
-        fTolerance = class.Constants.floatDiffTolerance;
-
-        for ii = idx1
-            tempLogical = zeros(height(hTable), 1, 'logical');
-    
-            idx2 = [ii, find(filterTable.RelatedID == ii)'];
-            for jj = idx2
-                if ~filterTable.Enable(jj)
-                    continue
-                end
-
-                switch filterTable.Type{jj}
-                    case 'ROI'
-                        tempLogical = or(tempLogical, inROI(filterTable.Value{jj}{1}, hTable.Latitude, hTable.Longitude));
-                        
-                    otherwise
-                        Fcn = filterFcn(filterTable.Operation{jj}, filterTable.Value{jj}, fTolerance);
-                        tempLogical = or(tempLogical, Fcn(hTable{:, filterTable.Column(jj)}));
-                end
-            end
-    
-            fLogical = and(fLogical, tempLogical);
-        end
+    if isempty(filterTable)
+        fLogical = ones(height(hTable), 1, 'logical');
 
     else
-        fLogical = zeros(height(hTable), 1, 'logical');
+        if any(filterTable.Enable)
+            % Identifica "filtros nós".
+            idx1 = find(strcmp(filterTable.Order, 'Node'))';
+    
+            % Descarta filtros nós cujos membros foram desativados na GUI.
+            for ii = idx1
+                idx2 = [ii, find(filterTable.RelatedID == filterTable.ID(ii))'];
+                if all(~filterTable.Enable(idx2))
+                    idx1(idx1 == ii) = [];
+                end
+            end
+    
+            % Cria vetor lógico.
+            fLogical   = ones(height(hTable), 1, 'logical');
+            fTolerance = class.Constants.floatDiffTolerance;
+    
+            for ii = idx1
+                tempLogical = zeros(height(hTable), 1, 'logical');
+        
+                idx2 = [ii, find(filterTable.RelatedID == filterTable.ID(ii))'];
+                for jj = idx2
+                    if ~filterTable.Enable(jj)
+                        continue
+                    end
+    
+                    switch filterTable.Type{jj}
+                        case 'ROI'
+                            tempLogical = or(tempLogical, inROI(filterTable.Value{jj}{1}, hTable.Latitude, hTable.Longitude));
+                            
+                        otherwise
+                            Fcn = filterFcn(filterTable.Operation{jj}, filterTable.Value{jj}, fTolerance);
+                            tempLogical = or(tempLogical, Fcn(hTable{:, filterTable.Column(jj)}));
+                    end
+                end
+        
+                fLogical = and(fLogical, tempLogical);
+            end
+    
+        else
+            fLogical = zeros(height(hTable), 1, 'logical');
+        end
     end
 end
 
