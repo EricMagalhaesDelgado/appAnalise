@@ -107,15 +107,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         report_ControlsTab2Image        matlab.ui.control.Image
         report_ControlsTab2Label        matlab.ui.control.Label
         report_ControlsTab1Info         matlab.ui.container.GridLayout
+        report_AddProjectAttachment     matlab.ui.control.Image
         report_Tree                     matlab.ui.container.CheckBoxTree
         report_TreeAddImage             matlab.ui.control.Image
         report_DocumentPanel            matlab.ui.container.Panel
         GridLayout4                     matlab.ui.container.GridLayout
         report_IssueLabel               matlab.ui.control.Label
         report_Issue                    matlab.ui.control.NumericEditField
-        report_ExternalFiles            matlab.ui.control.Table
-        report_ExternalFilesLabel       matlab.ui.control.Label
-        report_AddProjectAttachment     matlab.ui.control.Image
         report_Version                  matlab.ui.control.DropDown
         report_VersionLabel             matlab.ui.control.Label
         report_ModelName                matlab.ui.control.DropDown
@@ -635,28 +633,31 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         app.rfdatahub_Undock.Visible      = 0;
                         app.config_Undock.Visible         = 0;
 
-                        app.General.operationMode.Debug   = false;
-                        app.General.operationMode.Dock    = true;
-
+                        app.General_I.operationMode.Debug = false;
+                        app.General_I.operationMode.Dock  = true;
+                        
                         % A pasta do usuário não é configurável, mas obtida por 
                         % meio de chamada a uiputfile. Para criação de arquivos 
                         % temporários, cria-se uma pasta da sessão.
                         tempDir = tempname;
                         mkdir(tempDir)
-                        app.General.fileFolder.userPath   = tempDir;
+                        app.General_I.fileFolder.userPath = tempDir;
     
                     otherwise    
                         % Resgata a pasta de trabalho do usuário (configurável).
-                        userPaths = appUtil.UserPaths(app.General.fileFolder.userPath);
-                        app.General.fileFolder.userPath = userPaths{end};
+                        userPaths = appUtil.UserPaths(app.General_I.fileFolder.userPath);
+                        app.General_I.fileFolder.userPath = userPaths{end};
 
                         switch app.executionMode
                             case 'desktopStandaloneApp'
-                                app.General.operationMode.Debug = false;
+                                app.General_I.operationMode.Debug = false;
                             case 'MATLABEnvironment'
-                                app.General.operationMode.Debug = true;
+                                app.General_I.operationMode.Debug = true;
                         end
                 end
+                app.General.operationMode = app.General_I.operationMode;
+                app.General.fileFolder    = app.General_I.fileFolder;
+
                 
                 % WELCOMEPAGE (continuação)
                 % 4/7: Diminui a opacidade do SplashScreen. Esse processo dura
@@ -687,15 +688,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             if ~strcmp(app.General_I.Plot.Waterfall.Decimation, 'auto')
-                app.General.Plot.Waterfall.Decimation = 'auto';
+                app.General_I.Plot.Waterfall.Decimation = 'auto';
             end
         
             if isempty(app.General_I.Merge.Distance)
-                app.General.Merge.Distance = Inf;
+                app.General_I.Merge.Distance = Inf;
             end
         
             if isempty(app.General_I.Integration.Trace)
-                app.General.Integration.Trace = Inf;
+                app.General_I.Integration.Trace = Inf;
             end
 
             app.General            = app.General_I;        
@@ -744,6 +745,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             if ismember(num2str(app.General.Integration.Trace), app.play_TraceIntegration.Items)
                 app.play_TraceIntegration.Value       = num2str(app.General.Integration.Trace);
             else
+                app.General_I.Integration.Trace       = Inf;
                 app.General.Integration.Trace         = Inf;
             end
 
@@ -1043,7 +1045,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function menu_LayoutPopupApp(app, auxiliarApp, varargin)
             arguments
                 app
-                auxiliarApp char {mustBeMember(auxiliarApp, {'WelcomePage', 'Detection', 'Classification', 'TimeFiltering', 'EditLocation', 'AddKFactor', 'AddChannel'})}
+                auxiliarApp char {mustBeMember(auxiliarApp, {'WelcomePage', 'Detection', 'Classification', 'AddFiles', 'TimeFiltering', 'EditLocation', 'AddKFactor', 'AddChannel'})}
             end
 
             arguments (Repeating)
@@ -1055,6 +1057,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case 'WelcomePage';    screenWidth  = 880; screenHeight = 480;
                 case 'Detection';      screenWidth  = 412; screenHeight = 282;
                 case 'Classification'; screenWidth  = 534; screenHeight = 248;
+                case 'AddFiles';       screenWidth  = 880; screenHeight = 480;
                 case 'TimeFiltering';  screenWidth  = 640; screenHeight = 480;
                 case 'EditLocation';   screenWidth  = 360; screenHeight = 210;
                 case 'AddKFactor';     screenWidth  = 480; screenHeight = 360;
@@ -2349,29 +2352,37 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function prePlot_updatingGeneralSettings(app)
-            app.General.Plot.Persistance = struct('Interpolation', app.play_Persistance_Interpolation.Value, ...
-                                                  'WindowSize',    app.play_Persistance_WindowSize.Value,    ...
-                                                  'Transparency',  app.play_Persistance_Transparency.Value,  ...
-                                                  'Colormap',      app.play_Persistance_Colormap.Value,      ...
-                                                  'LevelLimits',  [app.play_Persistance_cLim1.Value, app.play_Persistance_cLim2.Value]);
-
-
-            app.General.Plot.Waterfall   = struct('Fcn',           app.play_Waterfall_Fcn.Value,        ...
-                                                  'Decimation',    app.play_Waterfall_Decimation.Value, ...
-                                                  'MeshStyle',     app.play_Waterfall_MeshStyle.Value,  ...
-                                                  'Colormap',      app.play_Waterfall_Colormap.Value,   ...
-                                                  'Colorbar',      app.play_Waterfall_Colorbar.Value,   ...
-                                                  'LevelLimits',  [app.play_Waterfall_cLim1.Value, app.play_Waterfall_cLim2.Value]);
-
-            app.General.Plot.WaterfallTime.Visible = app.play_Waterfall_Timeline.Value;
+            % app.General_I
+            % (a) Persistance
+            app.General_I.Plot.Persistance = struct('Interpolation', app.play_Persistance_Interpolation.Value, ...
+                                                    'WindowSize',    app.play_Persistance_WindowSize.Value,    ...
+                                                    'Transparency',  app.play_Persistance_Transparency.Value,  ...
+                                                    'Colormap',      app.play_Persistance_Colormap.Value,      ...
+                                                    'LevelLimits',  [app.play_Persistance_cLim1.Value, app.play_Persistance_cLim2.Value]);
 
             if app.axesTool_Persistance.UserData.Value && strcmp(app.UIAxes1.UserData.CLimMode, 'auto')
-                app.General.Plot.Persistance.LevelLimits = [0, 0];
+                app.General_I.Plot.Persistance.LevelLimits = [0, 1];
             end
 
+            % (b) Waterfall
+            app.General_I.Plot.Waterfall   = struct('Fcn',           app.play_Waterfall_Fcn.Value,        ...
+                                                    'Decimation',    app.play_Waterfall_Decimation.Value, ...
+                                                    'MeshStyle',     app.play_Waterfall_MeshStyle.Value,  ...
+                                                    'Colormap',      app.play_Waterfall_Colormap.Value,   ...
+                                                    'Colorbar',      app.play_Waterfall_Colorbar.Value,   ...
+                                                    'LevelLimits',  [app.play_Waterfall_cLim1.Value, app.play_Waterfall_cLim2.Value]);
+
             if app.axesTool_Waterfall.UserData.Value && strcmp(app.UIAxes3.UserData.CLimMode, 'auto')
-                app.General.Plot.Waterfall.LevelLimits = [0, 0];
+                app.General_I.Plot.Waterfall.LevelLimits = [0, 1];
             end
+
+            % (c) WaterfallTime
+            app.General_I.Plot.WaterfallTime.Visible = app.play_Waterfall_Timeline.Value;
+            
+            % app.General
+            app.General.Plot.Persistance   = app.General_I.Plot.Persistance;
+            app.General.Plot.Waterfall     = app.General_I.Plot.Waterfall;
+            app.General.Plot.WaterfallTime = app.General_I.Plot.WaterfallTime;
         end
 
         %-----------------------------------------------------------------%
@@ -2728,7 +2739,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 for ii = 1:numel(receiverList)
                     idx2 = find(ic == ii)';
                     Category = uitreenode(app.report_Tree, 'Text', receiverList{ii},                               ...
-                                                           'NodeData', idxThreads(idx2),                                 ...
+                                                           'NodeData', idxThreads(idx2),                           ...
                                                            'Icon', fcn.treeNodeIcon('Receiver', receiverList{ii}), ...
                                                            'ContextMenu', app.report_ContextMenu);
                     
@@ -2785,7 +2796,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ProjectName.Value  = app.projectData.file;
             app.report_Issue.Value        = app.projectData.issue;
             app.report_ModelName.Value    = app.projectData.documentModel;
-            app.report_ExternalFiles.Data = app.projectData.externalFiles;
         end
 
         %-----------------------------------------------------------------%
@@ -3035,6 +3045,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     case {'auxApp.dockAddChannel',     'auxApp.dockAddChannel_exported',     ... % PLAYBACK:CHANNEL
                           'auxApp.dockDetection',      'auxApp.dockDetection_exported',      ... % REPORT:DETECTION
                           'auxApp.dockClassification', 'auxApp.dockClassification_exported', ... % REPORT:CLASSIFICATION
+                          'auxApp.dockAddFiles',       'auxApp.dockAddFiles_exported',       ... % REPORT:EXTERNALFILES
                           'auxApp.dockTimeFiltering',  'auxApp.dockTimeFiltering_exported',  ... % MISCELLANEOUS:TIMEFILTERING
                           'auxApp.dockEditLocation',   'auxApp.dockEditLocation_exported',   ... % MISCELLANEOUS:EDITLOCATION
                           'auxApp.dockAddKFactor',     'auxApp.dockAddKFactor_exported'}         % MISCELLANEOUS:ADDKFACTOR
@@ -3062,10 +3073,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                     idxThreads    = varargin{5};
                                     play_Channel_AddChannel(app, channel2Add, typeOfChannel, idxThreads)
 
-                                case 'REPORT'
-                                    idxThread = varargin{3};
+                                case {'REPORT:DETECTION', 'REPORT:CLASSIFICATION'}
+                                    idxThread     = varargin{3};
                                     report_Algorithms(app, idxThread)
-                                    report_SaveWarn(app)                                    
+                                    report_SaveWarn(app)
+
+                                case 'REPORT:EXTERNALFILES'
+                                    editionType   = varargin{3};
+                                    if editionType == "SpectralData"
+                                        report_TreeBuilding(app)
+                                    end
 
                                 case 'MISCELLANEOUS'
                                     SelectedNodesTextList = misc_SelectedNodesText(app);
@@ -3078,13 +3095,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
                         
                         app.popupContainerGrid.Visible = 0;
-
-                    % case 'auxApp.dockAddFiles_exported'
-                    %     if strcmp(varargin{1}, 'Fluxo de dados')
-                    %         report_TreeBuilding(app)
-                    %         app.report_Tree.SelectedNodes = app.report_Tree.Children(1).Children(1);
-                    %     end
-                    % 
     
                     otherwise
                         error('UnexpectedCall')
@@ -3846,7 +3856,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Value changed function: play_LineVisibility
         function play_LineVisibilityValueChanged(app, event)
             
-            app.General.Plot.ClearWrite.Visible = app.play_LineVisibility.Value;
+            app.General_I.Plot.ClearWrite.Visible = app.play_LineVisibility.Value;
+            app.General.Plot.ClearWrite.Visible   = app.play_LineVisibility.Value;
 
             try
                 set(app.hClearWrite,      'Visible', app.play_LineVisibility.Value)
@@ -3859,7 +3870,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Value changed function: play_TraceIntegration
         function play_TraceIntegrationValueChanged(app, event)
 
-            app.General.Integration.Trace = str2double(event.Value);
+            app.General_I.Integration.Trace = str2double(event.Value);
+            app.General.Integration.Trace   = str2double(event.Value);
 
             if isinf(app.General.Integration.Trace) || strcmp(event.PreviousValue, 'Inf')
                 if ~isempty(app.hMinHold)
@@ -5240,8 +5252,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Callback function: report_AddProjectAttachment, 
         % ...and 1 other component
         function report_ExternalFilesMenuSelected(app, event)
-            
-            focus(app.report_ExternalFiles)
 
             if isempty(app.report_Tree.Children)
                 msg = 'O relacionamento de arquivos externos ao projeto somente é possível se existir ao menos um fluxo espectral a processar.';
@@ -5251,19 +5261,22 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             switch event.Source
                 case app.report_AddProjectAttachment
-                    Type = 'Project';
+                    editionType = 'ProjectData';
+                    inputArguments = {};
+                    app.report_Tree.SelectedNodes = [];
 
                 case app.report_ContextMenu_ExternalFiles
-                    if isscalar(app.report_Tree.SelectedNodes.NodeData)
-                        Type = 'specData';
-                    else
-                        msg = 'Os arquivos externos ao fluxo espectral - uma imagem e uma tabela - devem ser incluídos individualmente. Portanto, deve-se selecionar apenas um único fluxo espectral.';
-                        appUtil.modalWindow(app.UIFigure, 'warning', msg);
+                    if isempty(app.report_Tree.SelectedNodes)
                         return
                     end
+
+                    editionType = 'SpectralData';
+
+                    idx = app.report_Tree.SelectedNodes.NodeData;
+                    inputArguments = {app.specData(idx)};
             end
 
-            auxApp.dockAddFiles_exported(app, Type)
+            menu_LayoutPopupApp(app, 'AddFiles', editionType, inputArguments{:})
 
         end
 
@@ -5642,6 +5655,19 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             menu_LayoutAuxiliarApp(app, 'CONFIG', 'Open')
 
+        end
+
+        % Selection changed function: report_Tree
+        function report_TreeSelectionChanged(app, event)
+            
+            selectedNode = app.report_Tree.SelectedNodes;
+
+            if selectedNode.Parent == app.report_Tree
+                app.report_ContextMenu_ExternalFiles.Enable = 0;
+            else
+                app.report_ContextMenu_ExternalFiles.Enable = 1;
+            end
+            
         end
     end
 
@@ -7901,7 +7927,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create report_ControlsTab1Info
             app.report_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
             app.report_ControlsTab1Info.ColumnWidth = {110, '1x', 16, 16};
-            app.report_ControlsTab1Info.RowHeight = {22, 44, 22, 224, 9, 8, '1x', 32};
+            app.report_ControlsTab1Info.RowHeight = {22, 44, 22, 112, 9, 8, '1x', 32};
             app.report_ControlsTab1Info.ColumnSpacing = 5;
             app.report_ControlsTab1Info.RowSpacing = 5;
             app.report_ControlsTab1Info.Padding = [0 0 0 0];
@@ -7968,7 +7994,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create GridLayout4
             app.GridLayout4 = uigridlayout(app.report_DocumentPanel);
             app.GridLayout4.ColumnWidth = {90, '1x', 64, 16};
-            app.GridLayout4.RowHeight = {17, 22, 17, 22, 4, 8, '1x'};
+            app.GridLayout4.RowHeight = {17, 22, 17, 22};
             app.GridLayout4.RowSpacing = 5;
             app.GridLayout4.Padding = [10 10 10 5];
             app.GridLayout4.BackgroundColor = [1 1 1];
@@ -8009,32 +8035,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Version.Layout.Column = [3 4];
             app.report_Version.Value = 'Preliminar';
 
-            % Create report_AddProjectAttachment
-            app.report_AddProjectAttachment = uiimage(app.GridLayout4);
-            app.report_AddProjectAttachment.ImageClickedFcn = createCallbackFcn(app, @report_ExternalFilesMenuSelected, true);
-            app.report_AddProjectAttachment.Layout.Row = 6;
-            app.report_AddProjectAttachment.Layout.Column = 4;
-            app.report_AddProjectAttachment.ImageSource = fullfile(pathToMLAPP, 'Icons', 'addSymbol_32.png');
-
-            % Create report_ExternalFilesLabel
-            app.report_ExternalFilesLabel = uilabel(app.GridLayout4);
-            app.report_ExternalFilesLabel.VerticalAlignment = 'bottom';
-            app.report_ExternalFilesLabel.WordWrap = 'on';
-            app.report_ExternalFilesLabel.FontSize = 10;
-            app.report_ExternalFilesLabel.Layout.Row = [5 6];
-            app.report_ExternalFilesLabel.Layout.Column = [1 2];
-            app.report_ExternalFilesLabel.Text = 'Arquivos externos:';
-
-            % Create report_ExternalFiles
-            app.report_ExternalFiles = uitable(app.GridLayout4);
-            app.report_ExternalFiles.ColumnName = {'ID'; 'TAG'; 'ARQUIVO'};
-            app.report_ExternalFiles.ColumnWidth = {40, 90, 'auto'};
-            app.report_ExternalFiles.RowName = {};
-            app.report_ExternalFiles.Tag = 'externalFiles';
-            app.report_ExternalFiles.Layout.Row = 7;
-            app.report_ExternalFiles.Layout.Column = [1 4];
-            app.report_ExternalFiles.FontSize = 10;
-
             % Create report_Issue
             app.report_Issue = uieditfield(app.GridLayout4, 'numeric');
             app.report_Issue.Limits = [-1 Inf];
@@ -8069,9 +8069,19 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create report_Tree
             app.report_Tree = uitree(app.report_ControlsTab1Info, 'checkbox');
+            app.report_Tree.SelectionChangedFcn = createCallbackFcn(app, @report_TreeSelectionChanged, true);
             app.report_Tree.FontSize = 10;
             app.report_Tree.Layout.Row = [7 8];
             app.report_Tree.Layout.Column = [1 4];
+
+            % Create report_AddProjectAttachment
+            app.report_AddProjectAttachment = uiimage(app.report_ControlsTab1Info);
+            app.report_AddProjectAttachment.ImageClickedFcn = createCallbackFcn(app, @report_ExternalFilesMenuSelected, true);
+            app.report_AddProjectAttachment.Tooltip = {'Mapeia arquivos externos '; 'relacionados ao projeto'};
+            app.report_AddProjectAttachment.Layout.Row = 3;
+            app.report_AddProjectAttachment.Layout.Column = 4;
+            app.report_AddProjectAttachment.VerticalAlignment = 'bottom';
+            app.report_AddProjectAttachment.ImageSource = fullfile(pathToMLAPP, 'Icons', 'attach_32.png');
 
             % Create report_ControlsTab2Grid
             app.report_ControlsTab2Grid = uigridlayout(app.play_ControlsGrid);

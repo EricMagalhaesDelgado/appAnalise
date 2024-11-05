@@ -137,7 +137,7 @@ classdef dockDetection_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function CallingMainApp(app, updateFlag, returnFlag, idxThread)
-            appBackDoor(app.CallingApp, app, 'REPORT', updateFlag, returnFlag, idxThread)
+            appBackDoor(app.CallingApp, app, 'REPORT:DETECTION', updateFlag, returnFlag, idxThread)
         end
     end
     

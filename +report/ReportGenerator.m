@@ -219,12 +219,10 @@ end
 %-------------------------------------------------------------------------%
 function internalFcn_counterCreation()
     global ID_img
-    global ID_imgExt
     global ID_tab    
     global ID_tabExt
 
     ID_img    = 0;
-    ID_imgExt = 0;
     ID_tab    = 0;    
     ID_tabExt = 0;
 end
@@ -405,7 +403,6 @@ end
 
 %-------------------------------------------------------------------------%
 function Image = Fcn_Image(specData, idxThreads, idx, tempBandObj, reportInfo, Recurrence, Children, plotInfo, hFigure)
-    global ID_imgExt
     global hContainer
 
     Image = '';
@@ -419,13 +416,15 @@ function Image = Fcn_Image(specData, idxThreads, idx, tempBandObj, reportInfo, R
 
         case 'External'
             if Recurrence
-                Image     = specData(idxThreads(idx)).UserData.reportAttachments.image;
+                idxImage  = find(strcmpi(specData(idxThreads(idx)).UserData.reportAttachments.Type, 'Image') | strcmpi(specData(idxThreads(idx)).UserData.reportAttachments.Tag,  plotInfo.Name));
+                if ~isempty(idxImage)
+                    Image = specData(idxThreads(idx)).UserData.reportAttachments.Filename{idxImage};
+                end
+
             else
-                ID_imgExt = ID_imgExt+1;    
-                try
-                    Image = reportInfo.Attachments.image{ID_imgExt};
-                catch
-                    ID_imgExt = ID_imgExt-1;
+                idxImage  = find(strcmpi(reportInfo.ExternalFiles.Type, 'Image') | strcmpi(reportInfo.ExternalFiles.Tag,  plotInfo.Name));
+                if ~isempty(idxImage)
+                    Image = sreportInfo.ExternalFiles.Filename{idxImage};
                 end
             end
     end

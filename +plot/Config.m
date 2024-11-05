@@ -17,7 +17,7 @@ function varargout = Config(plotTag, defaultProperties, customProperties, Contex
             % (a) O arquivo "GeneralSettings.json" tem como padrão o vetor [-1,-1]. 
             % (b) A customização desse parâmetro é possível apenas quando o tamanho 
             %     da janela da persistência é "full". 
-            if ~issorted(tempPlotConfig.LevelLimits, 'strictascend') || ~strcmp(tempPlotConfig.WindowSize, 'full')
+            if ~issorted(tempPlotConfig.LevelLimits, 'strictascend') || (tempPlotConfig.LevelLimits(1) == 0 && tempPlotConfig.LevelLimits(2) == 1) || ~strcmp(tempPlotConfig.WindowSize, 'full')
                 tempPlotConfig.LevelLimits = [];
             end
 

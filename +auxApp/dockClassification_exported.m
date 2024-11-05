@@ -66,7 +66,7 @@ classdef dockClassification_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function CallingMainApp(app, updateFlag, returnFlag, idxThread)
-            appBackDoor(app.CallingApp, app, 'REPORT', updateFlag, returnFlag, idxThread)
+            appBackDoor(app.CallingApp, app, 'REPORT:CLASSIFICATION', updateFlag, returnFlag, idxThread)
         end
     end
     
