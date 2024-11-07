@@ -107,11 +107,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         report_ControlsTab2Image        matlab.ui.control.Image
         report_ControlsTab2Label        matlab.ui.control.Label
         report_ControlsTab1Info         matlab.ui.container.GridLayout
-        report_AddProjectAttachment     matlab.ui.control.Image
         report_Tree                     matlab.ui.container.CheckBoxTree
         report_TreeAddImage             matlab.ui.control.Image
         report_DocumentPanel            matlab.ui.container.Panel
         GridLayout4                     matlab.ui.container.GridLayout
+        report_AddProjectAttachment     matlab.ui.control.Image
         report_IssueLabel               matlab.ui.control.Label
         report_Issue                    matlab.ui.control.NumericEditField
         report_Version                  matlab.ui.control.DropDown
@@ -381,7 +381,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_Channel_ContextMenu_addEmission  matlab.ui.container.Menu
         report_ContextMenu              matlab.ui.container.ContextMenu
         report_ContextMenu_del          matlab.ui.container.Menu
-        report_ContextMenu_ExternalFiles  matlab.ui.container.Menu
         play_BandLimits_ContextMenu     matlab.ui.container.ContextMenu
         play_BandLimits_ContextMenu_del  matlab.ui.container.Menu
     end
@@ -5211,75 +5210,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function
-        function report_SaveProjectButtonPushed(app, event)
-            
-            if isempty(app.report_Tree.Children)
-                msg = 'A criação/edição de um projeto somente é possível quando há ao menos um fluxo espectral a processar.';
-                appUtil.modalWindow(app.UIFigure, 'warning', msg);
-                return
-            end
-            
-            if isempty(app.report_ProjectName.Value{1})
-                defaultName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'ProjectData', app.report_Issue.Value);
-            else
-                defaultName = app.report_ProjectName.Value{1};
-            end
-
-            nameFormatMap = {'*.mat', 'appAnalise (*.mat)'};
-            fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
-            if isempty(fileFullPath)
-                return
-            end
-            
-            app.progressDialog.Visible = 'visible';
-
-            reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
-            [idx, reportInfo] = report.GeneralInfo(app, 'Report', reportTemplateIndex);
-            prjInfo = struct('reportInfo',    rmfield(reportInfo, 'Filename'), ...
-                             'peaksTable',    app.projectData.peaksTable,                  ...
-                             'exceptionList', app.projectData.exceptionList);
-            
-            fileWriter.MAT(fileFullPath, 'ProjectData', app.specData(idx), prjInfo)
-            
-            app.report_ProjectName.Value = fileName;
-            app.report_ProjectWarnIcon.Visible   = 0;
-
-            app.progressDialog.Visible = 'hidden';
-
-        end
-
-        % Callback function: report_AddProjectAttachment, 
-        % ...and 1 other component
-        function report_ExternalFilesMenuSelected(app, event)
-
-            if isempty(app.report_Tree.Children)
-                msg = 'O relacionamento de arquivos externos ao projeto somente é possível se existir ao menos um fluxo espectral a processar.';
-                appUtil.modalWindow(app.UIFigure, 'warning', msg);
-                return
-            end
-
-            switch event.Source
-                case app.report_AddProjectAttachment
-                    editionType = 'ProjectData';
-                    inputArguments = {};
-                    app.report_Tree.SelectedNodes = [];
-
-                case app.report_ContextMenu_ExternalFiles
-                    if isempty(app.report_Tree.SelectedNodes)
-                        return
-                    end
-
-                    editionType = 'SpectralData';
-
-                    idx = app.report_Tree.SelectedNodes.NodeData;
-                    inputArguments = {app.specData(idx)};
-            end
-
-            menu_LayoutPopupApp(app, 'AddFiles', editionType, inputArguments{:})
-
-        end
-
         % Value changed function: report_Issue
         function report_SaveWarn(app, event)
 
@@ -5483,15 +5413,35 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: report_EditClassification,
-        % report_EditDetection
+        % Callback function: report_AddProjectAttachment, 
+        % ...and 2 other components
         function report_ThreadAlgorithmsRefreshImageClicked(app, event)
             
             switch event.Source
                 case app.report_EditDetection
                     menu_LayoutPopupApp(app, 'Detection')
+
                 case app.report_EditClassification
                     menu_LayoutPopupApp(app, 'Classification')
+
+                case app.report_AddProjectAttachment
+                    idxTemplate = find(strcmp(app.General.Models.Name, app.report_ModelName.Value), 1);
+                    if isempty(idxTemplate)
+                        msgWarning = ['O modelo do relatório deve ser escolhido previamente à '  ...
+                                      'inclusão de arquivos externos relacionados ao projeto e ' ...
+                                      'aos fluxos espectrais a processar'];
+                        appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                        return
+                    end
+
+                    idxTemplate = find(strcmp(app.General.Models.Name, app.report_ModelName.Value), 1);
+                    if isempty(app.General.Models.ExternalFilesTags{idxTemplate})
+                        TAGs = '';
+                    else
+                        TAGs = jsonencode(app.General.Models.ExternalFilesTags{idxTemplate});
+                    end
+
+                    menu_LayoutPopupApp(app, 'AddFiles', app.play_TreeSort.UserData, TAGs)
             end
 
         end
@@ -5656,19 +5606,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             menu_LayoutAuxiliarApp(app, 'CONFIG', 'Open')
 
         end
-
-        % Selection changed function: report_Tree
-        function report_TreeSelectionChanged(app, event)
-            
-            selectedNode = app.report_Tree.SelectedNodes;
-
-            if selectedNode.Parent == app.report_Tree
-                app.report_ContextMenu_ExternalFiles.Enable = 0;
-            else
-                app.report_ContextMenu_ExternalFiles.Enable = 1;
-            end
-            
-        end
     end
 
     % Component initialization
@@ -5737,11 +5674,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create file_OpenFileButton
             app.file_OpenFileButton = uiimage(app.file_toolGrid);
+            app.file_OpenFileButton.ScaleMethod = 'none';
             app.file_OpenFileButton.ImageClickedFcn = createCallbackFcn(app, @file_ButtonPushed_OpenFile, true);
             app.file_OpenFileButton.Tooltip = {'Seleciona arquivos'};
             app.file_OpenFileButton.Layout.Row = 2;
             app.file_OpenFileButton.Layout.Column = 2;
-            app.file_OpenFileButton.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Import_24.png');
+            app.file_OpenFileButton.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Import_16.png');
 
             % Create file_SpecReadButton
             app.file_SpecReadButton = uibutton(app.file_toolGrid, 'push');
@@ -7993,7 +7931,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create GridLayout4
             app.GridLayout4 = uigridlayout(app.report_DocumentPanel);
-            app.GridLayout4.ColumnWidth = {90, '1x', 64, 16};
+            app.GridLayout4.ColumnWidth = {90, '1x', 16, 64, 16};
             app.GridLayout4.RowHeight = {17, 22, 17, 22};
             app.GridLayout4.RowSpacing = 5;
             app.GridLayout4.Padding = [10 10 10 5];
@@ -8004,7 +7942,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ModelNameLabel.VerticalAlignment = 'bottom';
             app.report_ModelNameLabel.FontSize = 10;
             app.report_ModelNameLabel.Layout.Row = 3;
-            app.report_ModelNameLabel.Layout.Column = [1 2];
+            app.report_ModelNameLabel.Layout.Column = 1;
             app.report_ModelNameLabel.Text = 'Modelo do relatório:';
 
             % Create report_ModelName
@@ -8015,7 +7953,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ModelName.FontSize = 11;
             app.report_ModelName.BackgroundColor = [1 1 1];
             app.report_ModelName.Layout.Row = 4;
-            app.report_ModelName.Layout.Column = [1 2];
+            app.report_ModelName.Layout.Column = [1 3];
             app.report_ModelName.Value = {};
 
             % Create report_VersionLabel
@@ -8023,7 +7961,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_VersionLabel.VerticalAlignment = 'bottom';
             app.report_VersionLabel.FontSize = 10;
             app.report_VersionLabel.Layout.Row = 3;
-            app.report_VersionLabel.Layout.Column = 3;
+            app.report_VersionLabel.Layout.Column = 4;
             app.report_VersionLabel.Text = 'Versão:';
 
             % Create report_Version
@@ -8032,7 +7970,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Version.FontSize = 11;
             app.report_Version.BackgroundColor = [1 1 1];
             app.report_Version.Layout.Row = 4;
-            app.report_Version.Layout.Column = [3 4];
+            app.report_Version.Layout.Column = [4 5];
             app.report_Version.Value = 'Preliminar';
 
             % Create report_Issue
@@ -8058,6 +7996,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_IssueLabel.Layout.Column = 1;
             app.report_IssueLabel.Text = 'Inspeção:';
 
+            % Create report_AddProjectAttachment
+            app.report_AddProjectAttachment = uiimage(app.GridLayout4);
+            app.report_AddProjectAttachment.ImageClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
+            app.report_AddProjectAttachment.Tooltip = {'Edita lista de arquivos externos '; 'relacionados ao projeto'};
+            app.report_AddProjectAttachment.Layout.Row = 3;
+            app.report_AddProjectAttachment.Layout.Column = 3;
+            app.report_AddProjectAttachment.VerticalAlignment = 'bottom';
+            app.report_AddProjectAttachment.ImageSource = fullfile(pathToMLAPP, 'Icons', 'attach_32.png');
+
             % Create report_TreeAddImage
             app.report_TreeAddImage = uiimage(app.report_ControlsTab1Info);
             app.report_TreeAddImage.ImageClickedFcn = createCallbackFcn(app, @report_TreeAddImagePushed, true);
@@ -8069,19 +8016,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create report_Tree
             app.report_Tree = uitree(app.report_ControlsTab1Info, 'checkbox');
-            app.report_Tree.SelectionChangedFcn = createCallbackFcn(app, @report_TreeSelectionChanged, true);
             app.report_Tree.FontSize = 10;
             app.report_Tree.Layout.Row = [7 8];
             app.report_Tree.Layout.Column = [1 4];
-
-            % Create report_AddProjectAttachment
-            app.report_AddProjectAttachment = uiimage(app.report_ControlsTab1Info);
-            app.report_AddProjectAttachment.ImageClickedFcn = createCallbackFcn(app, @report_ExternalFilesMenuSelected, true);
-            app.report_AddProjectAttachment.Tooltip = {'Mapeia arquivos externos '; 'relacionados ao projeto'};
-            app.report_AddProjectAttachment.Layout.Row = 3;
-            app.report_AddProjectAttachment.Layout.Column = 4;
-            app.report_AddProjectAttachment.VerticalAlignment = 'bottom';
-            app.report_AddProjectAttachment.ImageSource = fullfile(pathToMLAPP, 'Icons', 'attach_32.png');
 
             % Create report_ControlsTab2Grid
             app.report_ControlsTab2Grid = uigridlayout(app.play_ControlsGrid);
@@ -8992,11 +8929,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ContextMenu_del.MenuSelectedFcn = createCallbackFcn(app, @report_ContextMenu_delSelected, true);
             app.report_ContextMenu_del.Separator = 'on';
             app.report_ContextMenu_del.Text = 'Excluir';
-
-            % Create report_ContextMenu_ExternalFiles
-            app.report_ContextMenu_ExternalFiles = uimenu(app.report_ContextMenu);
-            app.report_ContextMenu_ExternalFiles.MenuSelectedFcn = createCallbackFcn(app, @report_ExternalFilesMenuSelected, true);
-            app.report_ContextMenu_ExternalFiles.Text = 'Arquivos externos';
 
             % Create play_BandLimits_ContextMenu
             app.play_BandLimits_ContextMenu = uicontextmenu(app.UIFigure);

@@ -219,12 +219,10 @@ end
 %-------------------------------------------------------------------------%
 function internalFcn_counterCreation()
     global ID_img
-    global ID_tab    
-    global ID_tabExt
+    global ID_tab
 
-    ID_img    = 0;
-    ID_tab    = 0;    
-    ID_tabExt = 0;
+    ID_img = 0;
+    ID_tab = 0;
 end
 
 %-------------------------------------------------------------------------%
@@ -416,13 +414,13 @@ function Image = Fcn_Image(specData, idxThreads, idx, tempBandObj, reportInfo, R
 
         case 'External'
             if Recurrence
-                idxImage  = find(strcmpi(specData(idxThreads(idx)).UserData.reportAttachments.Type, 'Image') | strcmpi(specData(idxThreads(idx)).UserData.reportAttachments.Tag,  plotInfo.Name));
+                idxImage  = find(strcmp(specData(idxThreads(idx)).UserData.reportExternalFiles.Type, 'Image') & strcmpi(specData(idxThreads(idx)).UserData.reportExternalFiles.Tag,  plotInfo.Name), 1);
                 if ~isempty(idxImage)
-                    Image = specData(idxThreads(idx)).UserData.reportAttachments.Filename{idxImage};
+                    Image = specData(idxThreads(idx)).UserData.reportExternalFiles.Filename{idxImage};
                 end
 
             else
-                idxImage  = find(strcmpi(reportInfo.ExternalFiles.Type, 'Image') | strcmpi(reportInfo.ExternalFiles.Tag,  plotInfo.Name));
+                idxImage  = find(strcmp(reportInfo.ExternalFiles.Type, 'Image') & strcmpi(reportInfo.ExternalFiles.Tag,  plotInfo.Name), 1);
                 if ~isempty(idxImage)
                     Image = sreportInfo.ExternalFiles.Filename{idxImage};
                 end
@@ -437,27 +435,24 @@ end
 %-------------------------------------------------------------------------%
 % TABELA
 %-------------------------------------------------------------------------%
-function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, peaksTable, exceptionList, Recurrence, Children)
-
-    global ID_tabExt
-    
+function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, peaksTable, exceptionList, Recurrence, Children)    
     Origin = Children.Data.Origin;
     if Origin == "Internal"
         Source = Children.Data.Source;
 
     else
         if Recurrence
-            Source    = specData(idxThreads(idx)).UserData.reportAttachments.table.Source;
-            SheetID   = specData(idxThreads(idx)).UserData.reportAttachments.table.SheetID;
-        else
-            ID_tabExt = ID_tabExt+1;
+            idxTable = find(strcmp(specData(idxThreads(idx)).UserData.reportExternalFiles.Type, 'Table') & strcmpi(specData(idxThreads(idx)).UserData.reportExternalFiles.Tag,  Children.Data.Source), 1);
+            if ~isempty(idxTable)
+                Source  = specData(idxThreads(idx)).UserData.reportExternalFiles.Filename{idxTable};
+                SheetID = specData(idxThreads(idx)).UserData.reportExternalFiles.ID(idxTable);
+            end
 
-            try
-                Source    = reportInfo.Attachments.table{ID_tabExt}.Source;
-                SheetID   = reportInfo.Attachments.table{ID_tabExt}.SheetID;
-            catch
-                Source    = [];
-                ID_tabExt = ID_tabExt-1;
+        else
+            idxTable = find(strcmp(reportInfo.ExternalFiles.Type, 'Table') & strcmpi(reportInfo.ExternalFiles.Tag,  Children.Data.Source), 1);
+            if ~isempty(idxTable)
+                Source  = reportInfo.ExternalFiles.Filename{idxTable};
+                SheetID = reportInfo.ExternalFiles.ID(idxTable);
             end
         end
     end
@@ -563,7 +558,7 @@ end
 
 %-------------------------------------------------------------------------%
 function Table = Fcn_Table_PreProcess(Table, reportInfo, Children)
-    if strcmp(Children.Data.Columns{1}, 'ID') && ~ismember('ID', Table.Properties.VariableNames)
+    if iscellstr(Children.Data.Columns) && strcmp(Children.Data.Columns{1}, 'ID') && ~ismember('ID', Table.Properties.VariableNames)
         Source = Children.Data.Source;
         IDReference = (1:height(Table))';
 

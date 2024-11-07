@@ -2,17 +2,25 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure      matlab.ui.Figure
-        GridLayout    matlab.ui.container.GridLayout
-        Document      matlab.ui.container.GridLayout
-        btnOK         matlab.ui.control.Button
-        btnImport     matlab.ui.control.Image
-        UITable       matlab.ui.control.Table
-        UITableLabel  matlab.ui.control.Label
-        btnClose      matlab.ui.control.Image
-        Title         matlab.ui.control.Label
-        ContextMenu   matlab.ui.container.ContextMenu
-        btnDelete     matlab.ui.container.Menu
+        UIFigure                      matlab.ui.Figure
+        GridLayout                    matlab.ui.container.GridLayout
+        Document                      matlab.ui.container.GridLayout
+        btnImport                     matlab.ui.control.Image
+        btnImport_2                   matlab.ui.control.Image
+        TAGsDEREFERNCIATextArea       matlab.ui.control.TextArea
+        TAGsDEREFERNCIATextAreaLabel  matlab.ui.control.Label
+        UITableLabel_3                matlab.ui.control.Label
+        report_Tree                   matlab.ui.container.Tree
+        ButtonGroup                   matlab.ui.container.ButtonGroup
+        FLUXOSAPROCESSARButton        matlab.ui.control.RadioButton
+        PROJETOButton                 matlab.ui.control.RadioButton
+        UITableLabel_2                matlab.ui.control.Label
+        btnOK                         matlab.ui.control.Button
+        UITable                       matlab.ui.control.Table
+        UITableLabel                  matlab.ui.control.Label
+        btnClose                      matlab.ui.control.Image
+        ContextMenu                   matlab.ui.container.ContextMenu
+        btnDelete                     matlab.ui.container.Menu
     end
 
     
@@ -24,50 +32,111 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
         CallingApp
         General
         specData
-        editionType
+        projectData
+        treeSortedType
+
+        emptyTable  = table('Size',          [0, 4],                           ...
+                            'VariableTypes', {'cell', 'cell', 'cell', 'int8'}, ...
+                            'VariableNames', {'Type', 'Tag', 'Filename', 'ID'});
+        editionType char {mustBeMember(editionType, {'ProjectData', 'SpectralData'})} = 'ProjectData'
         editionFlag = false
     end
     
 
     methods (Access = private)
         %-----------------------------------------------------------------%        
-        function initialValues(app)
-            app.UITable.Data = getTable(app);
+        function initialValues(app, TAGs)
+            app.TAGsDEREFERNCIATextArea.Value = TAGs;
+            TreeBuilding(app)
+            ButtonGroupSelectionChanged(app)
+        end
+
+        %-----------------------------------------------------------------%
+        function TreeBuilding(app)
+            initialNodeData = Index(app);
+
+            if ~isempty(app.report_Tree.Children)
+                delete(app.report_Tree.Children);
+            end            
+            
+            idxThreads = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+            [receiverList, ~, ic] = unique({app.specData(idxThreads).Receiver});
+
+            for ii = 1:numel(receiverList)
+                idx2 = find(ic == ii)';
+                parentNode = uitreenode(app.report_Tree, 'Text',     receiverList{ii}, ...
+                                                         'NodeData', idxThreads(idx2), ...
+                                                         'Icon',     fcn.treeNodeIcon('Receiver', receiverList{ii}));                
+                for jj = idx2
+                    idx3 = idxThreads(jj);
+                    childNode = uitreenode(parentNode, 'Text', misc_nodeTreeText(app, idx3), ...
+                                                       'NodeData', idx3);
+                    if ~isempty(app.specData(idx3).UserData.reportExternalFiles)
+                        childNode.Icon = 'attach_32.png';
+                    end
+                end
+            end
+            expand(app.report_Tree, 'all')
+
+            if ~isempty(initialNodeData)
+                idxSelectedTree = findobj(app.report_Tree.Children, 'NodeData', initialNodeData);
+                app.report_Tree.SelectedNodes = idxSelectedTree(end);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function nodeText = misc_nodeTreeText(app, idx)
+            threadID  = app.specData(idx).RelatedFiles.ID(1);
+            FreqStart = app.specData(idx).MetaData.FreqStart / 1e+6;
+            FreqStop  = app.specData(idx).MetaData.FreqStop  / 1e+6;
+
+            switch app.treeSortedType
+                case 'Receiver+ID'
+                    nodeText = sprintf('ID %d: %.3f - %.3f MHz',  threadID, FreqStart, FreqStop);
+                case 'Receiver+Frequency'
+                    nodeText = sprintf('%.3f - %.3f MHz (ID %d)', FreqStart, FreqStop, threadID);
+            end
         end
 
         %-----------------------------------------------------------------%
         function srcTable = getTable(app)
             switch app.editionType
                 case 'ProjectData'
-                    srcTable = app.CallingApp.projectData.externalFiles;
-                case 'SpectralData'
-                    srcTable = app.specData.UserData.reportExternalFiles;
+                    srcTable = app.projectData.externalFiles;
+                otherwise
+                    idx = Index(app);
+                    if isempty(idx)
+                        srcTable = app.emptyTable;
+                    else
+                        srcTable = app.specData(idx).UserData.reportExternalFiles;                        
+                    end
             end
-            srcTable.isFile  = isfile(srcTable.Filename);
         end
 
         %-----------------------------------------------------------------%
         function setTable(app)
             switch app.editionType
                 case 'ProjectData'
-                    app.CallingApp.projectData.externalFiles  = app.UITable.Data(:, 1:4);
-                case 'SpectralData'
-                    app.specData.UserData.reportExternalFiles = app.UITable.Data(:, 1:4);
+                    app.projectData.externalFiles = app.UITable.Data;
+                otherwise
+                    idx = Index(app);
+                    if isempty(idx)
+                        return                        
+                    end
+
+                    app.specData(idx).UserData.reportExternalFiles = app.UITable.Data;
             end
-            
-            app.btnOK.Enable = 1;
-            app.editionFlag  = true;
+
+            TreeBuilding(app)
+            app.editionFlag = true;
         end
 
         %-----------------------------------------------------------------%
-        function addExternalFile(app, fileFullName, fileTypeID)
-            for ii = 1:numel(fileFullName)
-                switch fileTypeID
-                    case 1; fileType = 'Image';
-                    case 2; fileType = 'Table';
-                end
-                app.UITable.Data(end+1, :) = {fileType, '-1', fileFullName{ii}, -1, true};
-                setTable(app)
+        function idx = Index(app)
+            if ~isempty(app.report_Tree.SelectedNodes) && isscalar(app.report_Tree.SelectedNodes.NodeData)
+                idx = app.report_Tree.SelectedNodes.NodeData;
+            else
+                idx = [];
             end
         end
     end
@@ -77,31 +146,15 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp, editionType, varargin)
-            
-            arguments
-                app
-                mainapp
-                editionType char {mustBeMember(editionType, {'ProjectData', 'SpectralData'})}
-            end
-
-            arguments (Repeating)
-                varargin
-            end
+        function startupFcn(app, mainapp, treeSortedType, TAGs)
 
             app.CallingApp  = mainapp;
             app.General     = mainapp.General;
+            app.specData    = mainapp.specData;
+            app.projectData = mainapp.projectData;
+            app.treeSortedType = treeSortedType;
 
-            app.editionType = editionType;
-            switch editionType
-                case 'ProjectData'
-                    app.Title.Text = '<font style="padding-left: 5px;">PROJETO</font>';
-                case 'SpectralData'
-                    app.Title.Text = '<font style="padding-left: 5px;">FLUXO A PROCESSAR SELECIONADO</font>';
-                    app.specData = varargin{1};
-            end
-
-            initialValues(app)
+            initialValues(app, TAGs)
             
         end
 
@@ -115,9 +168,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
         % Image clicked function: btnImport
         function btnImportPushed(app, event)
             
-            [fileName, filePath, fileIndexID] = uigetfile({'*.jpg;*.jpeg;*.png',              'Imagem (*.jpg, *.jpeg, *.png)';                 ...
-                                                           '*.xls;*.xlsx;*.csv;*.txt;*.json', 'Tabela (*.xls, *.xlsx, *.csv, *.txt, *.json)'}, ...
-                                                           '', app.General.fileFolder.lastVisited, 'MultiSelect', 'on');
+            [fileName, filePath] = uigetfile({'*.xls;*.xlsx;*.csv;*.txt;*.json;*.jpg;*.jpeg;*.png'}, '', app.General.fileFolder.lastVisited, 'MultiSelect', 'on');
             figure(app.UIFigure)
 
             if isequal(fileName, 0)
@@ -125,9 +176,44 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             elseif ~iscell(fileName)
                 fileName = {fileName};
             end
-
             app.General.fileFolder.lastVisited = filePath;
-            addExternalFile(app, fullfile(filePath, fileName), fileIndexID)
+
+            % Questiona usuário se o arquivo deve ser inserido na lista de
+            % arquivo relacionado a todos os fluxos espectrais
+            msgQuestion   = 'Deseja adicionar o(s) arquivo(s) selecionado(s) a todos os fluxos espectrais a processar?';
+            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+            switch userSelection
+                case 'Sim'
+                    idxThreads = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+                otherwise
+                    idxThreads = Index(app);
+            end
+
+            fileFullName  = fullfile(filePath, fileName);
+            for ii = 1:numel(fileFullName)
+                [~,~,fileExt] = fileparts(fileFullName{ii});
+
+                switch lower(fileExt)
+                    case {'.xls', '.xlsx', '.csv', '.txt', '.json'}
+                        fileType = 'Table';
+                    case {'.jpg', '.jpeg', '.png'}
+                        fileType = 'Image';
+                    otherwise
+                        continue
+                end
+                newRow = {fileType, '-1', fileFullName{ii}, -1};
+
+                app.UITable.Data(end+1, :) = newRow;
+                if strcmp(app.editionType, 'ProjectData')
+                    app.projectData.externalFiles(end+1, :) = newRow;
+                end
+
+                for jj = idxThreads
+                    app.specData(jj).UserData.reportExternalFiles(end+1, :) = newRow;
+                end
+            end
+
+            TreeBuilding(app)
 
         end
 
@@ -152,6 +238,57 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             end
 
         end
+
+        % Cell edit callback: UITable
+        function UITableCellEdit(app, event)
+            
+            setTable(app)
+
+        end
+
+        % Selection changed function: ButtonGroup
+        function ButtonGroupSelectionChanged(app, event)
+            
+            switch app.ButtonGroup.SelectedObject
+                case app.PROJETOButton
+                    app.editionType = 'ProjectData';
+                    app.report_Tree.Enable = 0;                    
+                otherwise
+                    app.editionType = 'SpectralData';
+                    app.report_Tree.Enable = 1;                    
+            end
+
+            app.UITable.Data = getTable(app);
+            
+        end
+
+        % Selection changed function: report_Tree
+        function report_TreeSelectionChanged(app, event)
+            
+            app.UITable.Data = getTable(app);
+            
+        end
+
+        % Image clicked function: btnImport_2
+        function btnImport_2ImageClicked(app, event)
+            
+            msgQuestion   = 'Deseja reiniciar o mapeamento entre o projeto e arquivos externos?';
+            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+            if strcmp(userSelection, 'Não')
+                return
+            end
+
+            app.projectData.externalFiles = app.emptyTable;
+            
+            idxThreads = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+            for ii = idxThreads
+                app.specData(ii).UserData.reportExternalFiles = app.emptyTable;
+            end
+
+            TreeBuilding(app)
+            app.UITable.Data = getTable(app);
+
+        end
     end
 
     % Component initialization
@@ -167,7 +304,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 880 480];
+                app.UIFigure.Position = [100 100 880 520];
                 app.UIFigure.Name = 'appAnalise';
                 app.UIFigure.Icon = 'icon_48.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -193,15 +330,6 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             app.GridLayout.Padding = [0 0 0 0];
             app.GridLayout.BackgroundColor = [0.902 0.902 0.902];
 
-            % Create Title
-            app.Title = uilabel(app.GridLayout);
-            app.Title.FontSize = 11;
-            app.Title.FontWeight = 'bold';
-            app.Title.Layout.Row = 1;
-            app.Title.Layout.Column = 1;
-            app.Title.Interpreter = 'html';
-            app.Title.Text = '<font style="padding-left: 5px;">PROJETO</font>';
-
             % Create btnClose
             app.btnClose = uiimage(app.GridLayout);
             app.btnClose.ScaleMethod = 'none';
@@ -213,8 +341,8 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {22, '1x', 90};
-            app.Document.RowHeight = {22, '1x', 22};
+            app.Document.ColumnWidth = {18, 22, '1x', '1x', 90};
+            app.Document.RowHeight = {17, 56, 22, '1x', 22, '1x', 22};
             app.Document.ColumnSpacing = 5;
             app.Document.RowSpacing = 5;
             app.Document.Padding = [10 10 10 5];
@@ -226,28 +354,21 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             app.UITableLabel = uilabel(app.Document);
             app.UITableLabel.VerticalAlignment = 'bottom';
             app.UITableLabel.FontSize = 10;
-            app.UITableLabel.Layout.Row = 1;
-            app.UITableLabel.Layout.Column = [1 3];
-            app.UITableLabel.Text = 'MAPEAMENTO DE ARQUIVOS EXTERNOS';
+            app.UITableLabel.Layout.Row = 5;
+            app.UITableLabel.Layout.Column = [1 5];
+            app.UITableLabel.Text = 'ARQUIVOS EXTERNOS';
 
             % Create UITable
             app.UITable = uitable(app.Document);
-            app.UITable.ColumnName = {'TIPO'; 'TAG'; 'ARQUIVO'; 'ID'; 'SITUAÇÃO'};
-            app.UITable.ColumnWidth = {70, 100, 'auto', 70, 70};
+            app.UITable.ColumnName = {'TIPO'; 'TAG'; 'ARQUIVO'; 'ID'};
+            app.UITable.ColumnWidth = {70, 110, 'auto', 70};
             app.UITable.RowName = {};
             app.UITable.SelectionType = 'row';
-            app.UITable.ColumnEditable = [false true false true false];
-            app.UITable.Layout.Row = 2;
-            app.UITable.Layout.Column = [1 3];
+            app.UITable.ColumnEditable = [false true false true];
+            app.UITable.CellEditCallback = createCallbackFcn(app, @UITableCellEdit, true);
+            app.UITable.Layout.Row = 6;
+            app.UITable.Layout.Column = [1 5];
             app.UITable.FontSize = 11;
-
-            % Create btnImport
-            app.btnImport = uiimage(app.Document);
-            app.btnImport.ScaleMethod = 'none';
-            app.btnImport.ImageClickedFcn = createCallbackFcn(app, @btnImportPushed, true);
-            app.btnImport.Layout.Row = 3;
-            app.btnImport.Layout.Column = 1;
-            app.btnImport.ImageSource = 'Import_16.png';
 
             % Create btnOK
             app.btnOK = uibutton(app.Document, 'push');
@@ -255,10 +376,84 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             app.btnOK.Tag = 'OK';
             app.btnOK.IconAlignment = 'right';
             app.btnOK.BackgroundColor = [0.9804 0.9804 0.9804];
-            app.btnOK.Enable = 'off';
-            app.btnOK.Layout.Row = 3;
-            app.btnOK.Layout.Column = 3;
+            app.btnOK.Layout.Row = 7;
+            app.btnOK.Layout.Column = 5;
             app.btnOK.Text = 'OK';
+
+            % Create UITableLabel_2
+            app.UITableLabel_2 = uilabel(app.Document);
+            app.UITableLabel_2.VerticalAlignment = 'bottom';
+            app.UITableLabel_2.FontSize = 10;
+            app.UITableLabel_2.Layout.Row = 1;
+            app.UITableLabel_2.Layout.Column = [1 3];
+            app.UITableLabel_2.Text = 'TIPO';
+
+            % Create ButtonGroup
+            app.ButtonGroup = uibuttongroup(app.Document);
+            app.ButtonGroup.SelectionChangedFcn = createCallbackFcn(app, @ButtonGroupSelectionChanged, true);
+            app.ButtonGroup.BackgroundColor = [1 1 1];
+            app.ButtonGroup.Layout.Row = 2;
+            app.ButtonGroup.Layout.Column = [1 3];
+
+            % Create PROJETOButton
+            app.PROJETOButton = uiradiobutton(app.ButtonGroup);
+            app.PROJETOButton.Text = 'PROJETO';
+            app.PROJETOButton.FontSize = 11;
+            app.PROJETOButton.Position = [10 27 74 22];
+            app.PROJETOButton.Value = true;
+
+            % Create FLUXOSAPROCESSARButton
+            app.FLUXOSAPROCESSARButton = uiradiobutton(app.ButtonGroup);
+            app.FLUXOSAPROCESSARButton.Text = 'FLUXOS A PROCESSAR';
+            app.FLUXOSAPROCESSARButton.FontSize = 11;
+            app.FLUXOSAPROCESSARButton.Position = [10 6 147 22];
+
+            % Create report_Tree
+            app.report_Tree = uitree(app.Document);
+            app.report_Tree.SelectionChangedFcn = createCallbackFcn(app, @report_TreeSelectionChanged, true);
+            app.report_Tree.Enable = 'off';
+            app.report_Tree.FontSize = 10;
+            app.report_Tree.Layout.Row = [2 4];
+            app.report_Tree.Layout.Column = [4 5];
+
+            % Create UITableLabel_3
+            app.UITableLabel_3 = uilabel(app.Document);
+            app.UITableLabel_3.VerticalAlignment = 'bottom';
+            app.UITableLabel_3.FontSize = 10;
+            app.UITableLabel_3.Layout.Row = 1;
+            app.UITableLabel_3.Layout.Column = [4 5];
+            app.UITableLabel_3.Text = 'FLUXOS A PROCESSAR';
+
+            % Create TAGsDEREFERNCIATextAreaLabel
+            app.TAGsDEREFERNCIATextAreaLabel = uilabel(app.Document);
+            app.TAGsDEREFERNCIATextAreaLabel.VerticalAlignment = 'bottom';
+            app.TAGsDEREFERNCIATextAreaLabel.FontSize = 10;
+            app.TAGsDEREFERNCIATextAreaLabel.Layout.Row = 3;
+            app.TAGsDEREFERNCIATextAreaLabel.Layout.Column = [1 3];
+            app.TAGsDEREFERNCIATextAreaLabel.Text = 'TAGs DE REFERÊNCIA';
+
+            % Create TAGsDEREFERNCIATextArea
+            app.TAGsDEREFERNCIATextArea = uitextarea(app.Document);
+            app.TAGsDEREFERNCIATextArea.FontSize = 11;
+            app.TAGsDEREFERNCIATextArea.Layout.Row = 4;
+            app.TAGsDEREFERNCIATextArea.Layout.Column = [1 3];
+
+            % Create btnImport_2
+            app.btnImport_2 = uiimage(app.Document);
+            app.btnImport_2.ImageClickedFcn = createCallbackFcn(app, @btnImport_2ImageClicked, true);
+            app.btnImport_2.Tooltip = {'Reinicia mapeamento de arquivos'};
+            app.btnImport_2.Layout.Row = 7;
+            app.btnImport_2.Layout.Column = 1;
+            app.btnImport_2.ImageSource = 'Refresh_18.png';
+
+            % Create btnImport
+            app.btnImport = uiimage(app.Document);
+            app.btnImport.ScaleMethod = 'none';
+            app.btnImport.ImageClickedFcn = createCallbackFcn(app, @btnImportPushed, true);
+            app.btnImport.Tooltip = {'Seleciona arquivos'};
+            app.btnImport.Layout.Row = 7;
+            app.btnImport.Layout.Column = 2;
+            app.btnImport.ImageSource = 'Import_16.png';
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);

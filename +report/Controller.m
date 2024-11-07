@@ -5,9 +5,7 @@ function Controller(app, operationType)
         
         switch operationType
             case 'Report'
-                d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'off', 'Interpreter', 'html', 'Cancelable', 'on', 'CancelText', 'Cancelar', 'Value', 0);
-                d.Message = ['<p style="font-size: 12px; text-align: justify;">Em andamento a análise dos fluxos de dados selecionados, o que inclui diversas manipulações, ' ...
-                             'como, por exemplo, a busca de emissões e a comparação com a base de dados de estações de telecomunicações.</p>'];
+                d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'off', 'Interpreter', 'html', 'Cancelable', 'on', 'CancelText', 'Cancelar', 'Value', 0, 'Message', 'Em andamento...');
 
                 % Verifica se o template e relatório selecionado demanda
                 % arquivos externos (imagens e tabelas).

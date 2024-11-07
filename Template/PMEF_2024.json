@@ -128,7 +128,7 @@
                     "Type": "Table",
                     "Data": {
                         "Origin": "External",
-                        "Source": "",
+                        "Source": "METODOLOGIA",
                         "Columns": [
                             1,
                             2,
@@ -152,37 +152,37 @@
                                 "Editable": "false",
                                 "ColumnName": "Sensor",
                                 "Precision": "%s",
-                                "Width": "80px"
+                                "Width": "110px"
                             },
                             {
                                 "Editable": "true",
-                                "ColumnName": "Início da monitoração",
+                                "ColumnName": "Início da<br>monitoração",
                                 "Precision": "%s",
-                                "Width": "60px"
+                                "Width": "110px"
                             },
                             {
                                 "Editable": "true",
-                                "ColumnName": "Término da monitoração",
+                                "ColumnName": "Término da<br>monitoração",
                                 "Precision": "%s",
-                                "Width": "60px"
+                                "Width": "110px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Frequência inicial",
                                 "Precision": "%s",
-                                "Width": "80px"
+                                "Width": "70px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Frequência final",
                                 "Precision": "%s",
-                                "Width": "80px"
+                                "Width": "70px"
                             },
                             {
                                 "Editable": "true",
                                 "ColumnName": "Tecnologia",
                                 "Precision": "%s",
-                                "Width": "80px"
+                                "Width": "130px"
                             },
                             {
                                 "Editable": "true",
@@ -278,10 +278,10 @@
                         "Layout": "1",
                         "Caption": "Imagem extraída do ROMES.",
                         "Settings": {
-                            "Width": "80%",
-                            "Height": "80%"
+                            "Width": "95%",
+                            "Height": "95%"
                         },
-                        "LineBreak": 1,
+                        "LineBreak": 0,
                         "Intro": "{\"Type\":\"Paragraph\",\"Text\":\"A coleta de dados que possibilita a realização do <i>Drive-test</i> foi conduzida por sensor fabricado pela Rohde & Schwarz, modelo TSMW. Os dados são pós-processados no ROMES e no NQDi, quando então são identificados, para cada emissão, os códigos MCC e MNC, os quais identificam o país e a operadora responsável pela estação geradora da emissão.\"}",
                         "Error": "{\"Type\":\"Paragraph\",\"Text\":\"A coleta de dados que possibilita a realização do <i>Drive-test</i> é conduzida por sensor fabricado pela Rohde & Schwarz, modelo TSMW, sendo os dados pós-processados no ROMES e no NQDi. Exceção ao caso em que não foi realizada a coleta de dados por impossibilidade ou adequação da fiscalização.\"}"
                     }
@@ -290,7 +290,7 @@
                     "Type": "Table",
                     "Data": {
                         "Origin": "External",
-                        "Source": "",
+                        "Source": "ROMES",
                         "Columns": [
                             1,
                             2,
@@ -570,7 +570,7 @@
                     "Type": "Table",
                     "Data": {
                         "Origin": "External",
-                        "Source": "",
+                        "Source": "ANÁLISE",
                         "Columns": [
                             1,
                             2,
@@ -600,7 +600,7 @@
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Estações não identificadas",
+                                "ColumnName": "Estações<br>não identificadas",
                                 "Precision": "%.0f",
                                 "Width": "auto"
                             }
