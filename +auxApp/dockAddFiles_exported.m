@@ -214,6 +214,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             end
 
             TreeBuilding(app)
+            app.editionFlag = true;
 
         end
 
@@ -223,7 +224,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             updateFlag = app.editionFlag;
             returnFlag = false;
 
-            appBackDoor(app.CallingApp, app, 'REPORT:EXTERNALFILES', updateFlag, returnFlag, app.editionType)
+            appBackDoor(app.CallingApp, app, 'REPORT:EXTERNALFILES', updateFlag, returnFlag)
             closeFcn(app)
 
         end
@@ -285,8 +286,9 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
                 app.specData(ii).UserData.reportExternalFiles = app.emptyTable;
             end
 
-            TreeBuilding(app)
             app.UITable.Data = getTable(app);
+            TreeBuilding(app)
+            app.editionFlag = true;
 
         end
     end
@@ -434,6 +436,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
 
             % Create TAGsDEREFERNCIATextArea
             app.TAGsDEREFERNCIATextArea = uitextarea(app.Document);
+            app.TAGsDEREFERNCIATextArea.Editable = 'off';
             app.TAGsDEREFERNCIATextArea.FontSize = 11;
             app.TAGsDEREFERNCIATextArea.Layout.Row = 4;
             app.TAGsDEREFERNCIATextArea.Layout.Column = [1 3];

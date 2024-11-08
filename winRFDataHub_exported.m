@@ -1476,7 +1476,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                         app.GridLayout.ColumnWidth(2:3) = {0,0};
                     else
                         app.tool_ControlPanelVisibility.ImageSource = 'ArrowLeft_32.png';
-                        app.GridLayout.ColumnWidth(2:3) = {325,10};
+                        app.GridLayout.ColumnWidth(2:3) = {320,10};
                     end
 
                 case app.tool_TableVisibility
@@ -2116,7 +2116,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {5, 325, 10, 5, 50, '1x', 10, '1x', 22, 22, 5};
+            app.GridLayout.ColumnWidth = {5, 320, 10, 5, 50, '1x', 10, '1x', 22, 22, 5};
             app.GridLayout.RowHeight = {5, 22, '1x', 10, '0.4x', 5, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;

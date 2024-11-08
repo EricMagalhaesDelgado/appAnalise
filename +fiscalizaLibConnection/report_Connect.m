@@ -4,10 +4,11 @@ function report_Connect(app, credentials, connectionType)
     try
         switch connectionType
             case 'OpenConnection'
-                if app.config_FiscalizaPD.Value
-                    homFlag = false;
-                else
-                    homFlag = true;
+                switch app.General.fiscaliza.systemVersion
+                    case 'HOM'
+                        homFlag = true;
+                    otherwise
+                        homFlag = false;
                 end        
                 app.fiscalizaObj = fiscalizaGUI(credentials.login, credentials.password, homFlag, app.report_FiscalizaGrid, app.report_Issue.Value);
 

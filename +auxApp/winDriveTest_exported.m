@@ -441,7 +441,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function startup_AppProperties(app)
             app.tempBandObj = class.Band('appAnalise:DRIVETEST', app);
-            app.General.Plot.Waterfall.Fcn = 'image';
+            app.General_I.Plot.Waterfall.Fcn = 'image';
+            app.General.Plot.Waterfall.Fcn   = 'image';
         end
 
         %-----------------------------------------------------------------%

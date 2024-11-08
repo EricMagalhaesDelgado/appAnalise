@@ -218,9 +218,11 @@ classdef specData < handle
                     obj(idxThreads(1)).RelatedFiles = relatedFiles;
 
                 case 'adjacent-channel'
-                    timeArray    = obj(idxThreads(1)).Data{1};
-                    dataMatrix   = [];
                     stepWidthRef = mode(mergeTable.StepWidth);
+                    [nSweepsRef, nSweepsRefIndex] = min(mergeTable.nSweeps);
+
+                    timeArray    = obj(idxThreads(nSweepsRefIndex)).Data{1};
+                    dataMatrix   = [];
 
                     for ii = 1:nThreads
                         newDataPoints = round((mergeTable.FreqStop(ii) - mergeTable.FreqStart(ii))/stepWidthRef + 1);
@@ -238,13 +240,12 @@ classdef specData < handle
                         end
 
                         if isequal(x, xq)
-                            newDataMatrix = obj(idxThreads(ii)).Data{2};
+                            newDataMatrix = obj(idxThreads(ii)).Data{2}(:, 1:nSweepsRef);
                         else
-                            nSweeps = mergeTable.nSweeps(ii);
-                            newDataMatrix = zeros(newDataPoints, nSweeps, 'single');
+                            newDataMatrix = zeros(newDataPoints, nSweepsRef, 'single');
 
-                            for jj = 1:nSweeps
-                                newDataMatrix(:,jj) = interp1(x, obj(idxThreads(ii)).Data{2}(:,jj), xq);
+                            for jj = 1:nSweepsRef
+                                newDataMatrix(:,jj) = interp1(x, obj(idxThreads(ii)).Data{2}(:, jj), xq);
                             end
                         end
 
@@ -263,8 +264,8 @@ classdef specData < handle
             end
 
             obj(idxThreads(1)).MetaData.Resolution = max(resolutionList);
-            obj(idxThreads(1)).Data{1} = timeArray;
-            obj(idxThreads(1)).Data{2} = dataMatrix;
+            obj(idxThreads(1)).Data{1}      = timeArray;
+            obj(idxThreads(1)).Data{2}      = dataMatrix;
             basicStats(obj, idxThreads(1))
 
             % PÓS-MESCLAGEM
@@ -588,8 +589,7 @@ classdef specData < handle
                 mergeType = 'co-channel';
 
             elseif issorted(mergeTable.FreqStart, "strictascend")                                             && ...
-               all(mergeTable.FreqStart(2:height(mergeTable)) <= mergeTable.FreqStop(1:height(mergeTable)-1)) && ...
-               isscalar(unique(mergeTable.nSweeps))
+               all(mergeTable.FreqStart(2:height(mergeTable)) <= mergeTable.FreqStop(1:height(mergeTable)-1))
                 mergeType = 'adjacent-channel';
             
             else

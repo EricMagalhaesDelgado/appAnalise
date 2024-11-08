@@ -216,6 +216,11 @@ classdef ChannelLib < handle
                 chRawInfo   = specData.UserData.channelManual(jj);
                 chPlotTable = PreparingData2Plot(obj, chPlotTable, chRawInfo);
             end
+
+            % Elimina canais cuja frequência central estão fora dos limites
+            % do fluxo espectral sob análise.
+            idxLogicalFilter = (chPlotTable.FirstChannel < specData.MetaData.FreqStart/1e+6) | (chPlotTable.FirstChannel > specData.MetaData.FreqStop/1e+6);
+            chPlotTable(idxLogicalFilter, :) = [];
         end
 
         %-----------------------------------------------------------------%

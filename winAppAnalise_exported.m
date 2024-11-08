@@ -3078,10 +3078,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                     report_SaveWarn(app)
 
                                 case 'REPORT:EXTERNALFILES'
-                                    editionType   = varargin{3};
-                                    if editionType == "SpectralData"
-                                        report_TreeBuilding(app)
-                                    end
+                                    report_TreeBuilding(app)
 
                                 case 'MISCELLANEOUS'
                                     SelectedNodesTextList = misc_SelectedNodesText(app);
@@ -3549,12 +3546,29 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Enable=0)
                 
                 case app.report_ControlsTab2Image
-                    app.play_ControlsGrid.RowHeight(2:2:12) = {0,0,0,0,'1x',0};
+                    if ~report_checkValidIssueID(app)
+                        appUtil.modalWindow(app.UIFigure, 'warning', 'Pendente inserir o número da Inspeção.');
+                        return
+                    end
+    
+                    if ~isempty(app.fiscalizaObj) && strcmp(app.fiscalizaObj.issueID, num2str(app.report_Issue.Value))
+                        app.play_ControlsGrid.RowHeight(2:2:12) = {0,0,0,0,'1x',0};
+    
+                    else
+                        msgQuestion   = sprintf('Deseja obter informações da Inspeção nº %.0f?', app.report_Issue.Value);
+                        userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                        if userSelection == "Não"
+                            return
+                        end
+        
+                        if isempty(app.fiscalizaObj)
+                            sendEventToHTMLSource(app.jsBackDoor, 'credentialDialog', struct('UUID', char(matlab.lang.internal.uuid())));
+                        else
+                            fiscalizaLibConnection.report_Connect(app, [], 'GetIssue')
+                        end
+                    end
+
                     fiscalizaLibConnection.report_ToolbarStatus(app)
-                
-                case app.report_ControlsTab2Image
-                    app.play_ControlsGrid.RowHeight(2:2:12) = {0,0,0,0,0,'1x'};
-                    fiscalizaLibConnection.report_StaticButtonPushed(app, event)
             end
 
         end
