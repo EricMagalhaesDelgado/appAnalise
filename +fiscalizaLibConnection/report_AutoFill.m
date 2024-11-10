@@ -1,6 +1,6 @@
 function report_AutoFill(app)
 
-    app.progressDialog.Visible = 'visible';
+    % app.progressDialog.Visible = 'visible';
     try
         automaticData = report_Info2AutoFill(app);
         AutoFillFields(app.fiscalizaObj, automaticData, 1)
@@ -8,7 +8,7 @@ function report_AutoFill(app)
     catch ME
         appUtil.modalWindow(app.UIFigure, 'error', ME.message);
     end
-    app.progressDialog.Visible = 'hidden';
+    % app.progressDialog.Visible = 'hidden';
 
 end
 
@@ -16,8 +16,18 @@ end
 %-----------------------------------------------------------------%
 function automaticData = report_Info2AutoFill(app)
 
-    automaticData = struct('tipo_de_inspecao',           'Certificação', ...
+    automaticData = struct('tipo_de_inspecao',           'Uso do Espectro - Monitoração', ...
                            'entidade_com_cadastro_stel', app.config_CadastroSTEL.Value);
+    % Transcrito da versão antiga do appAnalise.
+    automaticData = struct('Classe_da_Inspecao',            'Técnica',                       ...
+                           'tipo_de_inspecao',              'Uso do Espectro - Monitoração', ...
+                           'Uso_de_PF',                     'Não se aplica PF - uso apenas de formulários', ...
+                           'Acao_de_risco_a_vida_criada',   'Não',   ...
+                           'Impossibilidade_acesso_online', '0',     ...
+                           'Reservar_Instrumentos',         '0',     ...
+                           'Utilizou_algum_instrumento',    int8(0), ...
+                           'entidade_com_cadastro_stel',    app.config_CadastroSTEL.Value);
+
 
     % RELATÓRIO (VERSÃO DEFINITIVA)
     if ~isempty(app.General.fiscaliza.lastHTMLDocFullPath)

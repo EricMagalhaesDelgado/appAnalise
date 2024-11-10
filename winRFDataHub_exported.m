@@ -255,9 +255,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
 
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
-
                     % uialert, uiprogressdialog, uiconfirm
                     % sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mwDialog', ...
                     %                                                                        'classAttributes',  'background-color: white;'));
@@ -278,6 +275,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                                 ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
 
                             case 2 % FILTRAGEM
+                                ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
                                 app.filter_Tree.UserData = struct(app.filter_Tree).Controller.ViewModel.Id;
                                 sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'app.filter_Tree', 'componentDataTag', app.filter_Tree.UserData, 'keyEvents', "Delete"))
                                 
@@ -359,8 +357,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Customiza aspectos estéticos de componentes da GUI relacionados 
             % à aba selecionada.
-            [~, idxSelectedTab] = ismember(app.ControlTabGroup.SelectedTab, app.ControlTabGroup.Children);
-            jsBackDoor_Customizations(app, idxSelectedTab)
+            jsBackDoor_Customizations(app, 1)
         end
 
         %-----------------------------------------------------------------%

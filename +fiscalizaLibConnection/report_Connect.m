@@ -20,6 +20,7 @@ function report_Connect(app, credentials, connectionType)
                 RefreshGUI(app.fiscalizaObj)
         end
 
+        app.play_ControlsGrid.RowHeight(2:2:12) = {0,0,0,0,'1x',0};
         fiscalizaLibConnection.report_ToolbarStatus(app)
 
     catch ME
