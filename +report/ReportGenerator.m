@@ -30,7 +30,7 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
         parentNode = jsonScript(ii);
 
         if isfield(parentNode.Data, 'Variable') && ~isempty(parentNode.Data.Variable)
-            parentNode.Data.Text = internalFcn_FillWords(app.specData, idxThreads(1), reportInfo, parentNode);
+            parentNode.Data.Text = internalFcn_FillWords(app.specData, idxThreads, 1, reportInfo, parentNode);
         end
         htmlReport = [htmlReport, reportLib.sourceCode.htmlCreation(parentNode)];
 
@@ -179,7 +179,7 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThreads, idx, 
                 case {'ItemN2', 'ItemN3', 'Paragraph', 'List', 'Footnote'}
                     for jj = 1:numel(childNode.Data)
                         if isfield(childNode.Data(jj), 'Variable') && ~isempty(childNode.Data(jj).Variable)
-                            childNode.Data(jj).Text = internalFcn_FillWords(specData, idxThreads(idx), reportInfo, childNode);
+                            childNode.Data(jj).Text = internalFcn_FillWords(specData, idxThreads, idx, reportInfo, childNode);
                         end
                     end
     
@@ -226,22 +226,23 @@ function internalFcn_counterCreation()
 end
 
 %-------------------------------------------------------------------------%
-function Text = internalFcn_FillWords(specData, idxThread, reportInfo, Children)
+function Text = internalFcn_FillWords(specData, idxThreads, idx, reportInfo, Children)
     for ii = 1:numel(Children.Data.Variable)
         Precision = string(Children.Data.Variable(ii).Precision);
         fieldName = Children.Data.Variable(ii).Source;
         
-        FillWords(ii) = sprintf(Precision, Fcn_Source(specData, idxThread, reportInfo, fieldName));
+        FillWords(ii) = sprintf(Precision, Fcn_Source(specData, idxThreads, idx, reportInfo, fieldName));
     end
     
     Text = sprintf(Children.Data.Text, FillWords);
 end
 
 %-------------------------------------------------------------------------%
-function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
+function value = Fcn_Source(specData, idxThreads, idx, reportInfo, fieldName)
     arguments
         specData 
-        idxThread 
+        idxThreads
+        idx
         reportInfo 
         fieldName char {mustBeMember(fieldName, {'Band',             ...
                                                  'BeginTime',        ...
@@ -265,74 +266,74 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
 
     switch fieldName
         case 'Band'
-            value = sprintf('%.3f - %.3f MHz', specData(idxThread).MetaData.FreqStart * 1e-6, specData(idxThread).MetaData.FreqStop * 1e-6);
+            value = sprintf('%.3f - %.3f MHz', specData(idxThreads(idx)).MetaData.FreqStart * 1e-6, specData(idxThreads(idx)).MetaData.FreqStop * 1e-6);
         case 'BeginTime'
-            value = char(specData(idxThread).Data{1}(1));
+            value = char(specData(idxThreads(idx)).Data{1}(1));
         case 'Description'
-            value = specData(idxThread).RelatedFiles.Description{1};
+            value = specData(idxThreads(idx)).RelatedFiles.Description{1};
         case 'EndTime'
-            value = char(specData(idxThread).Data{1}(end));        
+            value = char(specData(idxThreads(idx)).Data{1}(end));        
         case 'FreqStart'
-            value = specData(idxThread).MetaData.FreqStart * 1e-6;
+            value = specData(idxThreads(idx)).MetaData.FreqStart * 1e-6;
         case 'FreqStop'
-            value = specData(idxThread).MetaData.FreqStop  * 1e-6;
+            value = specData(idxThreads(idx)).MetaData.FreqStop  * 1e-6;
         case 'GPS'
-            value = sprintf('%.6f, %.6f (%s)', specData(idxThread).GPS.Latitude,  specData(idxThread).GPS.Longitude, specData(idxThread).GPS.Location);
+            value = sprintf('%.6f, %.6f (%s)', specData(idxThreads(idx)).GPS.Latitude,  specData(idxThreads(idx)).GPS.Longitude, specData(idxThreads(idx)).GPS.Location);
         case 'Issue'
             value = reportInfo.Issue;
         case 'Location'
-            value = specData(idxThread).GPS.Location;
+            value = specData(idxThreads(idx)).GPS.Location;
         case 'ObservationTime'
-            BeginTime   = specData(idxThread).Data{1}(1);
-            EndTime     = specData(idxThread).Data{1}(end);
-            nSweeps     = numel(specData(idxThread).Data{1});
-            RevisitTime = mean(specData(idxThread).RelatedFiles.RevisitTime);
+            BeginTime   = specData(idxThreads(idx)).Data{1}(1);
+            EndTime     = specData(idxThreads(idx)).Data{1}(end);
+            nSweeps     = numel(specData(idxThreads(idx)).Data{1});
+            RevisitTime = mean(specData(idxThreads(idx)).RelatedFiles.RevisitTime);
             value = sprintf('%s - %s<br>%d varreduras<br>%.1f segundos (tempo de revisita estimado)', BeginTime, EndTime, nSweeps, RevisitTime);
         case 'Receiver'
-            value = specData(idxThread).Receiver;
+            value = specData(idxThreads(idx)).Receiver;
         case 'RelatedFiles'
-            value = strjoin(specData(idxThread).RelatedFiles.File, ', ');        
+            value = strjoin(specData(idxThreads(idx)).RelatedFiles.File, ', ');        
         case 'RelatedLocations'
-            value = strjoin(unique(arrayfun(@(x) x.GPS.Location, specData, 'UniformOutput', false)), ', ');
+            value = strjoin(unique(arrayfun(@(x) x.GPS.Location, specData(idxThreads), 'UniformOutput', false), 'stable'), ', ');
         case 'StepWidth'
-            value = ((specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / (specData(idxThread).MetaData.DataPoints - 1)) * 1e-3;
+            value = ((specData(idxThreads(idx)).MetaData.FreqStop - specData(idxThreads(idx)).MetaData.FreqStart) / (specData(idxThreads(idx)).MetaData.DataPoints - 1)) * 1e-3;
         case 'Parameters'
             value = {};
 
             % Description
-            value{end+1} = sprintf('• Descrição: "%s"', Fcn_Source(specData, idxThread, reportInfo, 'Description'));
+            value{end+1} = sprintf('• Descrição: "%s"', Fcn_Source(specData, idxThreads, idx, reportInfo, 'Description'));
             
             % TraceMode+TraceIntegration+Detector
-            if ~isempty(specData(idxThread).MetaData.TraceMode) 
+            if ~isempty(specData(idxThreads(idx)).MetaData.TraceMode) 
                 TraceIntegration = '';
-                if specData(idxThread).MetaData.TraceIntegration ~= -1
-                    TraceIntegration = sprintf(' (Integração: %d amostras)', specData(idxThread).MetaData.TraceIntegration);
+                if specData(idxThreads(idx)).MetaData.TraceIntegration ~= -1
+                    TraceIntegration = sprintf(' (Integração: %d amostras)', specData(idxThreads(idx)).MetaData.TraceIntegration);
                 end
 
-                if ~isempty(specData(idxThread).MetaData.Detector)
-                    Operation = sprintf('• Operação: %s-%s%s', specData(idxThread).MetaData.TraceMode, specData(idxThread).MetaData.Detector, TraceIntegration);
+                if ~isempty(specData(idxThreads(idx)).MetaData.Detector)
+                    Operation = sprintf('• Operação: %s-%s%s', specData(idxThreads(idx)).MetaData.TraceMode, specData(idxThreads(idx)).MetaData.Detector, TraceIntegration);
                 else
-                    Operation = sprintf('• Operação: %s%s', specData(idxThread).MetaData.TraceMode, TraceIntegration);
+                    Operation = sprintf('• Operação: %s%s', specData(idxThreads(idx)).MetaData.TraceMode, TraceIntegration);
                 end
 
-            elseif ~isempty(specData(idxThread).MetaData.Detector)
-                Operation = sprintf('• Operação: %s', specData(idxThread).MetaData.Detector);
+            elseif ~isempty(specData(idxThreads(idx)).MetaData.Detector)
+                Operation = sprintf('• Operação: %s', specData(idxThreads(idx)).MetaData.Detector);
             end
             value{end+1} = Operation;
 
             % DataPoints
-            value{end+1} = sprintf('• %d pontos por varredura', specData(idxThread).MetaData.DataPoints);
+            value{end+1} = sprintf('• %d pontos por varredura', specData(idxThreads(idx)).MetaData.DataPoints);
 
             % Resolution+VBW+StepWidth
-            RBW       = specData(idxThread).MetaData.Resolution/1000;
-            VBW       = specData(idxThread).MetaData.VBW/1000;
-            StepWidth = Fcn_Source(specData, idxThread, reportInfo, 'StepWidth');
+            RBW       = specData(idxThreads(idx)).MetaData.Resolution/1000;
+            VBW       = specData(idxThreads(idx)).MetaData.VBW/1000;
+            StepWidth = Fcn_Source(specData, idxThreads, idx, reportInfo, 'StepWidth');
 
-            if (specData(idxThread).MetaData.Resolution ~= -1) && (specData(idxThread).MetaData.VBW ~= -1)
+            if (specData(idxThreads(idx)).MetaData.Resolution ~= -1) && (specData(idxThreads(idx)).MetaData.VBW ~= -1)
                 Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (VBW), %.3f kHz (Passo da varredura)', RBW, VBW, StepWidth);
-            elseif specData(idxThread).MetaData.Resolution ~= -1
+            elseif specData(idxThreads(idx)).MetaData.Resolution ~= -1
                 Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (Passo da varredura)', RBW, StepWidth);
-            elseif specData(idxThread).MetaData.VBW ~= -1
+            elseif specData(idxThreads(idx)).MetaData.VBW ~= -1
                 Resolution = sprintf('• Resolução: %.3f kHz (VBW), %.3f kHz (Passo da varredura)', VBW, StepWidth);
             else
                 Resolution = sprintf('• Resolução: %.3f kHz (Passo da varredura)', StepWidth);
@@ -340,24 +341,24 @@ function value = Fcn_Source(specData, idxThread, reportInfo, fieldName)
             value{end+1} = Resolution;
 
             % Antenna
-            value{end+1} = sprintf('• Antena: %s', jsonencode(specData(idxThread).MetaData.Antenna));
+            value{end+1} = sprintf('• Antena: %s', jsonencode(specData(idxThreads(idx)).MetaData.Antenna));
 
             % GPS
-            value{end+1} = sprintf('• GPS: %.6f, %.6f (%s)', specData(idxThread).GPS.Latitude,  ...
-                                                             specData(idxThread).GPS.Longitude, ...
-                                                             specData(idxThread).GPS.Location);
+            value{end+1} = sprintf('• GPS: %.6f, %.6f (%s)', specData(idxThreads(idx)).GPS.Latitude,  ...
+                                                             specData(idxThreads(idx)).GPS.Longitude, ...
+                                                             specData(idxThreads(idx)).GPS.Location);
             % Lista de arquivos
-            value{end+1} = sprintf('• Arquivo(s): %s', Fcn_Source(specData, idxThread, reportInfo, 'RelatedFiles'));
+            value{end+1} = sprintf('• Arquivo(s): %s', Fcn_Source(specData, idxThreads, idx, reportInfo, 'RelatedFiles'));
 
             % Others
-            if ~isempty(specData(idxThread).MetaData.Others)
-                value{end+1} = sprintf('• Outros metadados: %s', specData(idxThread).MetaData.Others);
+            if ~isempty(specData(idxThreads(idx)).MetaData.Others)
+                value{end+1} = sprintf('• Outros metadados: %s', specData(idxThreads(idx)).MetaData.Others);
             end
 
             value = strjoin(value, '<br>');
         case 'threadTag'
-            idxThread  = reportInfo.General.Parameters.Plot.idxThread;
-            idxBand    = reportInfo.General.Parameters.Plot.idxBand;
+            idxThread = reportInfo.General.Parameters.Plot.idxThread;
+            idxBand   = reportInfo.General.Parameters.Plot.idxBand;
 
             value = sprintf('FAIXA DE FREQUÊNCIA #%d: <b>%.3f - %.3f MHz</b>', idxBand,                                     ...
                                                                              specData(idxThread).MetaData.FreqStart * 1e-6, ...
@@ -534,7 +535,7 @@ function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, p
                                     case 'ID'
                                         Table{ll,kk} = ll;
                                     otherwise
-                                        Table(ll,kk) = {Fcn_Source(specData, jj, reportInfo, Source)};
+                                        Table(ll,kk) = {Fcn_Source(specData, idxThreads, jj, reportInfo, Source)};
                                 end
                             end
                         end

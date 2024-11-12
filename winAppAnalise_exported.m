@@ -1404,6 +1404,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             set(findobj(app.menu_Grid, 'Type', 'uistatebutton'), 'Enable', 0)
             set(app.menu_Button1, 'Enable', 1, 'Value', 1)
             app.menu_Button7.Enable = 1;
+            app.menu_Button8.Enable = 1;
 
             menu_mainButtonPushed(app, struct('Source', app.menu_Button1, 'PreviousValue', false)) 
         end
@@ -5388,7 +5389,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                     app.progressDialog.Visible = 'visible';
 
-                    reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1);
+                    reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
                     [idx, reportInfo]   = report.GeneralInfo(app, 'Report', reportTemplateIndex);
                     prjInfo = struct('Name',          fileName,                        ...
                                      'reportInfo',    rmfield(reportInfo, 'Filename'), ...

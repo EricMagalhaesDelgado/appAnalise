@@ -89,7 +89,7 @@ classdef specData < handle
                         if prjInfoFlag
                             prjInfoFlag = false;
         
-                            callingApp.report_ProjectName.Value  = prjInfo.Name;
+                            callingApp.report_ProjectName.Value  = fullfile(fileparts(metaData(ii).File), prjInfo.Name);
                             callingApp.report_Issue.Value        = prjInfo.reportInfo.Issue;
 
                             prjModelIndex = find(strcmp(callingApp.report_ModelName.Items, prjInfo.reportInfo.Model.Name), 1);
@@ -107,7 +107,7 @@ classdef specData < handle
             end
             
             builtinDialog.Message = textFormatGUI.HTMLParagraph('Em andamento outras manipulações, como a aferição de dados estatísticos e a identificação do fluxo de ocupação.');
-            obj = FinalOrganizationOfData(obj);
+            obj = FinalOrganizationOfData(obj, prjInfo);
         end
         
         %-----------------------------------------------------------------%
@@ -545,7 +545,7 @@ classdef specData < handle
         end
 
         %-----------------------------------------------------------------%
-        function obj = FinalOrganizationOfData(obj)
+        function obj = FinalOrganizationOfData(obj, prjInfo)
             obj = sort(obj, obj(1).sortType);
 
             for ii = 1:numel(obj)
@@ -563,7 +563,7 @@ classdef specData < handle
                 % Estatística básica dos dados:
                 basicStats(obj, ii)
 
-                if ismember(obj(ii).MetaData.DataType, class.Constants.specDataTypes)        
+                if ismember(obj(ii).MetaData.DataType, class.Constants.specDataTypes) && isempty(prjInfo)
                     % Mapeamento entre os fluxos de espectro e as canalizações
                     % aplicáveis à cada faixa.
                     obj(ii).UserData(1).channelLibIndex = FindRelatedBands(obj(ii).callingApp.channelObj, obj(ii));

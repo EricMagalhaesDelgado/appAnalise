@@ -59,7 +59,9 @@ function [hWaterfall, Decimation] = Waterfall(operationType, varargin)
             
             postPlotConfig = {'YLim', yLim, 'CLim', cLimits};
             set(hAxes, postPlotConfig{:})
-            ysecondarylabel(hAxes, sprintf('%s - %s', specData.Data{1}(1), specData.Data{1}(end)))
+            if ~strcmp(Context, 'appAnalise:DRIVETEST')
+                ysecondarylabel(hAxes, sprintf('%s - %s', specData.Data{1}(1), specData.Data{1}(end)))
+            end
 
             plot.axes.Colormap(hAxes, colormapName)
             plot.datatip.Template(hWaterfall, 'Frequency+Timestamp+Level', bandObj.LevelUnit)

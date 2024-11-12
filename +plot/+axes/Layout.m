@@ -110,6 +110,7 @@ classdef (Abstract) Layout
 
                 set(findobj(UIAxes, '-not', {'Tag', 'ClearWrite', '-or', 'Tag', 'mkrLabels'}), 'Visible', axVisibility)
                 if kk == 3
+                    ysecondarylabel(UIAxes, 'Visible', axVisibility)
                     set(findobj(UIAxes.Parent.Children, 'Type', 'colorbar'), 'Visible', axVisibility)
                 end
 
