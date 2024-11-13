@@ -321,7 +321,6 @@ classdef winConfig_exported < matlab.apps.AppBase
                 case 'HOM'
                     app.config_FiscalizaHM.Value = 1;
             end
-            fiscalizaLibConnection.config_DefaultValues(app)
         end
 
         %-----------------------------------------------------------------%

@@ -109,7 +109,7 @@
                                 "Editable": "false",
                                 "ColumnName": "#",
                                 "Precision": "%.0f",
-                                "Width": "40px"
+                                "Width": "50px"
                             },
                             {
                                 "Editable": "false",
@@ -205,7 +205,7 @@
                                 "Editable": "false",
                                 "ColumnName": "#",
                                 "Precision": "%s",
-                                "Width": "40px"
+                                "Width": "50px"
                             },
                             {
                                 "Editable": "false",
@@ -326,7 +326,7 @@
                                             "Editable": "false",
                                             "ColumnName": "#",
                                             "Precision": "%s",
-                                            "Width": "40px"
+                                            "Width": "50px"
                                         },
                                         {
                                             "Editable": "false",
@@ -360,36 +360,6 @@
                             }
                         ]
                     }
-                }
-            ]
-        }
-    },
-    {
-        "Type": "ItemN1",
-        "Recurrence": 0,
-        "Data": {
-            "Editable": "false",
-            "Text": "ANÁLISE",
-            "Children": [
-                {
-                    "Type": "ItemN2",
-                    "Data": {
-                        "Editable": "true",
-                        "Text": "Em relação à monitoração sob análise, cabe destacar os seguintes aspectos:"
-                    }
-                },
-                {
-                    "Type": "List",
-                    "Data": [
-                        {
-                            "Editable": "true",
-                            "Text": "..."
-                        },
-                        {
-                            "Editable": "true",
-                            "Text": "..."
-                        }
-                    ]
                 }
             ]
         }
