@@ -12,6 +12,8 @@ classdef winConfig_exported < matlab.apps.AppBase
         Folders_Grid                    matlab.ui.container.GridLayout
         config_FolderMapPanel           matlab.ui.container.Panel
         config_FolderMapGrid            matlab.ui.container.GridLayout
+        config_Folder_tempPath          matlab.ui.control.EditField
+        config_Folder_tempPathLabel     matlab.ui.control.Label
         config_Folder_userPathButton    matlab.ui.control.Image
         config_Folder_userPath          matlab.ui.control.EditField
         config_Folder_userPathLabel     matlab.ui.control.Label
@@ -26,20 +28,6 @@ classdef winConfig_exported < matlab.apps.AppBase
         config_Folder_DataHubGETLabel   matlab.ui.control.Label
         config_FolderMapLabel           matlab.ui.control.Label
         APIFiscaliza_Grid               matlab.ui.container.GridLayout
-        config_DefaultIssueValuesPanel  matlab.ui.container.Panel
-        config_DefaultIssueValuesGrid   matlab.ui.container.GridLayout
-        config_ServicoInspecao          matlab.ui.container.CheckBoxTree
-        config_ServicoInspecaoLabel     matlab.ui.control.Label
-        config_MotivoLAI                matlab.ui.container.CheckBoxTree
-        config_MotivoLAILabel           matlab.ui.control.Label
-        config_TipoPLAI                 matlab.ui.control.DropDown
-        config_TipoPLAILabel            matlab.ui.control.Label
-        config_GerarPLAI                matlab.ui.control.DropDown
-        config_GerarPLAILabel           matlab.ui.control.Label
-        config_CadastroSTEL             matlab.ui.control.DropDown
-        config_CadastroSTELLabel        matlab.ui.control.Label
-        config_DefaultIssueValuesLock   matlab.ui.control.Image
-        config_DefaultIssueValuesLabel  matlab.ui.control.Label
         config_FiscalizaVersion         matlab.ui.container.ButtonGroup
         config_FiscalizaHM              matlab.ui.control.RadioButton
         config_FiscalizaPD              matlab.ui.control.RadioButton
@@ -365,8 +353,9 @@ classdef winConfig_exported < matlab.apps.AppBase
                         app.config_Folder_pythonPath.Value = pyEnv.Executable;
                     end
     
-                    % userPath
+                    % userPath & tempPath
                     app.config_Folder_userPath.Value = app.CallingApp.General.fileFolder.userPath;
+                    app.config_Folder_tempPath.Value = app.CallingApp.General.fileFolder.tempPath;
             end
         end
 
@@ -395,6 +384,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             LeftPanelRadioGroupSelectionChanged(app)
 
             if app.isDocked
+                app.GridLayout.Padding(4) = 19;
                 startup_Controller(app)
             else
                 appUtil.winPosition(app.UIFigure)
@@ -661,49 +651,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             saveGeneralSettings(app)
             appBackDoor(app.CallingApp, app, 'FiscalizaModeChanged')
             
-        end
-
-        % Image clicked function: config_DefaultIssueValuesLock
-        function config_FiscalizaUnlockEdition(app, event)
-            
-            focus(app.jsBackDoor)
-            
-            hComponents = findobj(app.config_DefaultIssueValuesGrid, 'Type', 'uidropdown', '-or', 'Type', 'uicheckboxtree');
-            if ~isempty(hComponents)
-                if hComponents(1).Enable
-                    app.config_DefaultIssueValuesLock.ImageSource = 'lockClose_18Gray.png';
-                    set(hComponents, 'Enable', 0)                    
-                else
-                    app.config_DefaultIssueValuesLock.ImageSource = 'lockOpen_18Gray.png';
-                    set(hComponents, 'Enable', 1)
-                end
-            end           
-
-        end
-
-        % Callback function: config_CadastroSTEL, config_GerarPLAI, 
-        % ...and 3 other components
-        function config_FiscalizaDefaultValueChanged(app, event)
-            
-            app.CallingApp.General.fiscaliza.defaultValues.entidade_com_cadastro_stel.value = app.config_CadastroSTEL.Value;
-            app.CallingApp.General.fiscaliza.defaultValues.gerar_plai.value                 = app.config_GerarPLAI.Value;
-            app.CallingApp.General.fiscaliza.defaultValues.tipo_do_processo_plai.value      = app.config_TipoPLAI.Value;
-
-            if ~isempty(app.config_MotivoLAI.CheckedNodes)
-                app.CallingApp.General.fiscaliza.defaultValues.motivo_de_lai.value          = {app.config_MotivoLAI.CheckedNodes.Text};
-            else
-                app.CallingApp.General.fiscaliza.defaultValues.motivo_de_lai.value          = {};
-            end
-
-            if ~isempty(app.config_ServicoInspecao.CheckedNodes)
-                app.CallingApp.General.fiscaliza.defaultValues.servicos_da_inspecao.value   = {app.config_ServicoInspecao.CheckedNodes.Text};
-            else
-                app.CallingApp.General.fiscaliza.defaultValues.servicos_da_inspecao.value   = {};
-            end
-
-            app.CallingApp.General_I.fiscaliza = app.CallingApp.General.fiscaliza;            
-            saveGeneralSettings(app)
-
         end
 
         % Image clicked function: config_Folder_DataHubGETButton, 
@@ -1271,126 +1218,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_FiscalizaHM.Position = [10 10 310 22];
             app.config_FiscalizaHM.Value = true;
 
-            % Create config_DefaultIssueValuesLabel
-            app.config_DefaultIssueValuesLabel = uilabel(app.APIFiscaliza_Grid);
-            app.config_DefaultIssueValuesLabel.VerticalAlignment = 'bottom';
-            app.config_DefaultIssueValuesLabel.FontSize = 10;
-            app.config_DefaultIssueValuesLabel.Layout.Row = [4 5];
-            app.config_DefaultIssueValuesLabel.Layout.Column = 1;
-            app.config_DefaultIssueValuesLabel.Text = 'VALORES PADRÕES DE CAMPOS DA INSPEÇÃO';
-
-            % Create config_DefaultIssueValuesLock
-            app.config_DefaultIssueValuesLock = uiimage(app.APIFiscaliza_Grid);
-            app.config_DefaultIssueValuesLock.ImageClickedFcn = createCallbackFcn(app, @config_FiscalizaUnlockEdition, true);
-            app.config_DefaultIssueValuesLock.Layout.Row = [5 6];
-            app.config_DefaultIssueValuesLock.Layout.Column = 2;
-            app.config_DefaultIssueValuesLock.ImageSource = 'lockClose_18Gray.png';
-
-            % Create config_DefaultIssueValuesPanel
-            app.config_DefaultIssueValuesPanel = uipanel(app.APIFiscaliza_Grid);
-            app.config_DefaultIssueValuesPanel.Layout.Row = 7;
-            app.config_DefaultIssueValuesPanel.Layout.Column = [1 2];
-
-            % Create config_DefaultIssueValuesGrid
-            app.config_DefaultIssueValuesGrid = uigridlayout(app.config_DefaultIssueValuesPanel);
-            app.config_DefaultIssueValuesGrid.ColumnWidth = {150, '1x'};
-            app.config_DefaultIssueValuesGrid.RowHeight = {17, 22, 17, 22, 17, '1x', 17, '1x'};
-            app.config_DefaultIssueValuesGrid.RowSpacing = 5;
-            app.config_DefaultIssueValuesGrid.BackgroundColor = [1 1 1];
-
-            % Create config_CadastroSTELLabel
-            app.config_CadastroSTELLabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_CadastroSTELLabel.VerticalAlignment = 'bottom';
-            app.config_CadastroSTELLabel.FontSize = 10;
-            app.config_CadastroSTELLabel.Layout.Row = 1;
-            app.config_CadastroSTELLabel.Layout.Column = [1 2];
-            app.config_CadastroSTELLabel.Text = 'Entidade com cadastro STEL?';
-
-            % Create config_CadastroSTEL
-            app.config_CadastroSTEL = uidropdown(app.config_DefaultIssueValuesGrid);
-            app.config_CadastroSTEL.Items = {};
-            app.config_CadastroSTEL.ValueChangedFcn = createCallbackFcn(app, @config_FiscalizaDefaultValueChanged, true);
-            app.config_CadastroSTEL.Enable = 'off';
-            app.config_CadastroSTEL.FontSize = 11;
-            app.config_CadastroSTEL.BackgroundColor = [1 1 1];
-            app.config_CadastroSTEL.Layout.Row = 2;
-            app.config_CadastroSTEL.Layout.Column = 1;
-            app.config_CadastroSTEL.Value = {};
-
-            % Create config_GerarPLAILabel
-            app.config_GerarPLAILabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_GerarPLAILabel.VerticalAlignment = 'bottom';
-            app.config_GerarPLAILabel.FontSize = 10;
-            app.config_GerarPLAILabel.Layout.Row = 3;
-            app.config_GerarPLAILabel.Layout.Column = 1;
-            app.config_GerarPLAILabel.Text = 'Gerar PLAI?';
-
-            % Create config_GerarPLAI
-            app.config_GerarPLAI = uidropdown(app.config_DefaultIssueValuesGrid);
-            app.config_GerarPLAI.Items = {};
-            app.config_GerarPLAI.ValueChangedFcn = createCallbackFcn(app, @config_FiscalizaDefaultValueChanged, true);
-            app.config_GerarPLAI.Enable = 'off';
-            app.config_GerarPLAI.FontSize = 11;
-            app.config_GerarPLAI.BackgroundColor = [1 1 1];
-            app.config_GerarPLAI.Layout.Row = 4;
-            app.config_GerarPLAI.Layout.Column = 1;
-            app.config_GerarPLAI.Value = {};
-
-            % Create config_TipoPLAILabel
-            app.config_TipoPLAILabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_TipoPLAILabel.VerticalAlignment = 'bottom';
-            app.config_TipoPLAILabel.FontSize = 10;
-            app.config_TipoPLAILabel.Layout.Row = 3;
-            app.config_TipoPLAILabel.Layout.Column = 2;
-            app.config_TipoPLAILabel.Text = 'Tipo do PLAI:';
-
-            % Create config_TipoPLAI
-            app.config_TipoPLAI = uidropdown(app.config_DefaultIssueValuesGrid);
-            app.config_TipoPLAI.Items = {};
-            app.config_TipoPLAI.ValueChangedFcn = createCallbackFcn(app, @config_FiscalizaDefaultValueChanged, true);
-            app.config_TipoPLAI.Enable = 'off';
-            app.config_TipoPLAI.FontSize = 11;
-            app.config_TipoPLAI.BackgroundColor = [1 1 1];
-            app.config_TipoPLAI.Layout.Row = 4;
-            app.config_TipoPLAI.Layout.Column = 2;
-            app.config_TipoPLAI.Value = {};
-
-            % Create config_MotivoLAILabel
-            app.config_MotivoLAILabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_MotivoLAILabel.VerticalAlignment = 'bottom';
-            app.config_MotivoLAILabel.FontSize = 10;
-            app.config_MotivoLAILabel.Layout.Row = 5;
-            app.config_MotivoLAILabel.Layout.Column = 1;
-            app.config_MotivoLAILabel.Text = 'Motivo de LAI:';
-
-            % Create config_MotivoLAI
-            app.config_MotivoLAI = uitree(app.config_DefaultIssueValuesGrid, 'checkbox');
-            app.config_MotivoLAI.Enable = 'off';
-            app.config_MotivoLAI.FontSize = 10;
-            app.config_MotivoLAI.Layout.Row = 6;
-            app.config_MotivoLAI.Layout.Column = [1 2];
-
-            % Assign Checked Nodes
-            app.config_MotivoLAI.CheckedNodesChangedFcn = createCallbackFcn(app, @config_FiscalizaDefaultValueChanged, true);
-
-            % Create config_ServicoInspecaoLabel
-            app.config_ServicoInspecaoLabel = uilabel(app.config_DefaultIssueValuesGrid);
-            app.config_ServicoInspecaoLabel.VerticalAlignment = 'bottom';
-            app.config_ServicoInspecaoLabel.FontSize = 10;
-            app.config_ServicoInspecaoLabel.Layout.Row = 7;
-            app.config_ServicoInspecaoLabel.Layout.Column = 1;
-            app.config_ServicoInspecaoLabel.Text = 'Serviços da Inspeção:';
-
-            % Create config_ServicoInspecao
-            app.config_ServicoInspecao = uitree(app.config_DefaultIssueValuesGrid, 'checkbox');
-            app.config_ServicoInspecao.Enable = 'off';
-            app.config_ServicoInspecao.FontSize = 10;
-            app.config_ServicoInspecao.Layout.Row = 8;
-            app.config_ServicoInspecao.Layout.Column = [1 2];
-
-            % Assign Checked Nodes
-            app.config_ServicoInspecao.CheckedNodesChangedFcn = createCallbackFcn(app, @config_FiscalizaDefaultValueChanged, true);
-
             % Create Folders_Grid
             app.Folders_Grid = uigridlayout(app.Document);
             app.Folders_Grid.ColumnWidth = {'1x'};
@@ -1418,7 +1245,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create config_FolderMapGrid
             app.config_FolderMapGrid = uigridlayout(app.config_FolderMapPanel);
             app.config_FolderMapGrid.ColumnWidth = {'1x', 20};
-            app.config_FolderMapGrid.RowHeight = {17, 22, 17, 22, 17, 22, 17, 22, '1x', '1x'};
+            app.config_FolderMapGrid.RowHeight = {17, 22, 17, 22, 17, 22, 17, 22, 17, 22, '1x'};
             app.config_FolderMapGrid.ColumnSpacing = 5;
             app.config_FolderMapGrid.RowSpacing = 5;
             app.config_FolderMapGrid.BackgroundColor = [1 1 1];
@@ -1514,6 +1341,21 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_Folder_userPathButton.Layout.Row = 8;
             app.config_Folder_userPathButton.Layout.Column = 2;
             app.config_Folder_userPathButton.ImageSource = 'OpenFile_36x36.png';
+
+            % Create config_Folder_tempPathLabel
+            app.config_Folder_tempPathLabel = uilabel(app.config_FolderMapGrid);
+            app.config_Folder_tempPathLabel.VerticalAlignment = 'bottom';
+            app.config_Folder_tempPathLabel.FontSize = 10;
+            app.config_Folder_tempPathLabel.Layout.Row = 9;
+            app.config_Folder_tempPathLabel.Layout.Column = 1;
+            app.config_Folder_tempPathLabel.Text = 'Pasta temporária:';
+
+            % Create config_Folder_tempPath
+            app.config_Folder_tempPath = uieditfield(app.config_FolderMapGrid, 'text');
+            app.config_Folder_tempPath.Editable = 'off';
+            app.config_Folder_tempPath.FontSize = 11;
+            app.config_Folder_tempPath.Layout.Row = 10;
+            app.config_Folder_tempPath.Layout.Column = 1;
 
             % Create tool_LeftPanelVisibility
             app.tool_LeftPanelVisibility = uiimage(app.GridLayout);

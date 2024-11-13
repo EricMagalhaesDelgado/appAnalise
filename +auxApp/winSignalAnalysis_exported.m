@@ -6,7 +6,6 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         GridLayout                    matlab.ui.container.GridLayout
         toolGrid                      matlab.ui.container.GridLayout
         tool_ControlPanelVisibility   matlab.ui.control.Image
-        tool_RefreshScreenSize        matlab.ui.control.Image
         jsBackDoor                    matlab.ui.control.HTML
         tool_ExportJSONFile           matlab.ui.control.Image
         tool_ShowGlobalExceptionList  matlab.ui.control.Image
@@ -653,7 +652,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             jsBackDoor_Initialization(app)
 
             if app.isDocked
-                app.tool_RefreshScreenSize.Visible = 0;
+                app.GridLayout.Padding(4) = 19;
                 startup_Controller(app, idxPrjPeaks)
             else
                 appUtil.winPosition(app.UIFigure)
@@ -671,7 +670,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         end
 
         % Image clicked function: tool_ControlPanelVisibility, 
-        % ...and 3 other components
+        % ...and 2 other components
         function toolbarCallbacks(app, event)
             
             focus(app.jsBackDoor)
@@ -693,11 +692,6 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 %---------------------------------------------------------%
                 case app.tool_ExportJSONFile
                     report.Controller(app, 'signalAnalysis.externalJSON')
-
-                %---------------------------------------------------------%
-                case app.tool_RefreshScreenSize
-                    app.UIFigure.Position(3:4) = [1244, 660];
-                    appUtil.winPosition(app.UIFigure)
 
                 %---------------------------------------------------------%
                 case app.tool_ControlPanelVisibility
@@ -1345,7 +1339,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
-            app.toolGrid.ColumnWidth = {22, 22, '1x', 22, 22, 22};
+            app.toolGrid.ColumnWidth = {22, 22, '1x', 22, 22};
             app.toolGrid.RowHeight = {4, 17, '1x'};
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
@@ -1376,18 +1370,11 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.jsBackDoor.Layout.Row = 2;
             app.jsBackDoor.Layout.Column = 4;
 
-            % Create tool_RefreshScreenSize
-            app.tool_RefreshScreenSize = uiimage(app.toolGrid);
-            app.tool_RefreshScreenSize.ImageClickedFcn = createCallbackFcn(app, @toolbarCallbacks, true);
-            app.tool_RefreshScreenSize.Layout.Row = 2;
-            app.tool_RefreshScreenSize.Layout.Column = 5;
-            app.tool_RefreshScreenSize.ImageSource = 'layout1_32.png';
-
             % Create tool_ControlPanelVisibility
             app.tool_ControlPanelVisibility = uiimage(app.toolGrid);
             app.tool_ControlPanelVisibility.ImageClickedFcn = createCallbackFcn(app, @toolbarCallbacks, true);
             app.tool_ControlPanelVisibility.Layout.Row = 2;
-            app.tool_ControlPanelVisibility.Layout.Column = 6;
+            app.tool_ControlPanelVisibility.Layout.Column = 5;
             app.tool_ControlPanelVisibility.ImageSource = 'ArrowRight_32.png';
 
             % Create ContextMenu_UITable

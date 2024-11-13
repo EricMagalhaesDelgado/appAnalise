@@ -1462,6 +1462,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             end
 
             if app.isDocked
+                app.GridLayout.Padding(4) = 19;
                 startup_Controller(app, idxThread, idxEmission)
             else
                 appUtil.winPosition(app.UIFigure)

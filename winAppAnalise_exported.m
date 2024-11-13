@@ -8,6 +8,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         SplashScreen                    matlab.ui.control.Image
         popupContainer                  matlab.ui.container.Panel
         menu_Grid                       matlab.ui.container.GridLayout
+        dockModule_Close                matlab.ui.control.Image
+        dockModule_Undock               matlab.ui.control.Image
         AppInfo                         matlab.ui.control.Image
         FigurePosition                  matlab.ui.control.Image
         jsBackDoor                      matlab.ui.control.HTML
@@ -347,25 +349,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_TreeTitle                  matlab.ui.control.Label
         play_TreeTitleImage             matlab.ui.control.Image
         Tab3_DriveTest                  matlab.ui.container.Tab
-        drivetest_Grid                  matlab.ui.container.GridLayout
-        drivetest_Close                 matlab.ui.control.Image
-        drivetest_Undock                matlab.ui.control.Image
-        drivetest_Container             matlab.ui.container.Panel
         Tab4_SignalAnalysis             matlab.ui.container.Tab
-        signalanalysis_Grid             matlab.ui.container.GridLayout
-        signalanalysis_Close            matlab.ui.control.Image
-        signalanalysis_Undock           matlab.ui.control.Image
-        signalanalysis_Container        matlab.ui.container.Panel
         Tab5_RFDataHub                  matlab.ui.container.Tab
-        rfdatahub_Grid                  matlab.ui.container.GridLayout
-        rfdatahub_Close                 matlab.ui.control.Image
-        rfdatahub_Undock                matlab.ui.control.Image
-        rfdatahub_Container             matlab.ui.container.Panel
         Tab6_Config                     matlab.ui.container.Tab
-        config_Grid                     matlab.ui.container.GridLayout
-        config_Close                    matlab.ui.control.Image
-        config_Undock                   matlab.ui.control.Image
-        config_Container                matlab.ui.container.Panel
         file_ContextMenu_Tree1          matlab.ui.container.ContextMenu
         file_ContextMenu_delTree1Node   matlab.ui.container.Menu
         file_ContextMenu_Tree2          matlab.ui.container.ContextMenu
@@ -527,13 +513,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
 
-                    % MATLAB R2024a Update 6 apresentou um BUG, não armazenando
-                    % alterações na propriedade "BorderColor" dos painéis quando
-                    % realizadas no ambiente do AppDesigner.
-                    app.drivetest_Container.BorderColor      = [.94,.94,.94];
-                    app.signalanalysis_Container.BorderColor = [.94,.94,.94];
-                    app.rfdatahub_Container.BorderColor      = [.94,.94,.94];
-
                 otherwise
                     if any(app.jsBackDoorFlag{tabIndex})
                         app.jsBackDoorFlag{tabIndex} = false;
@@ -633,10 +612,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         % Webapp também não suporta outras janelas, de forma que os 
                         % módulos auxiliares devem ser abertos na própria janela
                         % do appAnalise.
-                        app.drivetest_Undock.Visible      = 0;
-                        app.signalanalysis_Undock.Visible = 0;
-                        app.rfdatahub_Undock.Visible      = 0;
-                        app.config_Undock.Visible         = 0;
+                        app.dockModule_Undock.Visible     = 0;
 
                         app.General_I.operationMode.Debug = false;
                         app.General_I.operationMode.Dock  = true;
@@ -860,9 +836,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function menu_LayoutControl(app, tabIndex)
             switch tabIndex
                 case 1 % FILE
-                    % ...
+                    app.menu_Grid.ColumnWidth(end-1:end) = {0, 0};
 
                 case 2 % PLAYBACK, REPORT, MISC
+                    app.menu_Grid.ColumnWidth(end-1:end) = {0, 0};
+
                     if app.menu_Button2.Value
                         set(app.play_Tree, 'SelectedNodes', app.play_PlotPanel.UserData, 'Multiselect', 'off')
 
@@ -905,7 +883,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     play_TreeSelectionChanged(app, struct('Source', 'menu_LayoutControl'))
 
                 otherwise % DRIVETEST, SIGNALANALYSIS, RFDATAHUB, CONFIG
-                    % ...
+                    switch app.executionMode
+                        case 'webApp'
+                            app.menu_Grid.ColumnWidth(end-1:end) = {0, 20};
+                        otherwise
+                            app.menu_Grid.ColumnWidth(end-1:end) = {20, 20};
+                    end
             end
         end
 
@@ -927,7 +910,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     dockMenuButton       = app.menu_Button5;
                     dockMenuButtonEnable = true;
                     dockRefMenuButton    = app.menu_Button2; % PLAYBACK
-                    dockContainer        = app.drivetest_Container;
+                    dockContainer        = app.Tab3_DriveTest;
                     
                     FileHandle_MFILE     = @auxApp.winDriveTest_exported;
                     FileHandle_MLAPP     = @auxApp.winDriveTest;
@@ -937,7 +920,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     dockMenuButton       = app.menu_Button6;
                     dockMenuButtonEnable = true;
                     dockRefMenuButton    = app.menu_Button3; % REPORT
-                    dockContainer        = app.signalanalysis_Container;
+                    dockContainer        = app.Tab4_SignalAnalysis;
                     
                     FileHandle_MFILE     = @auxApp.winSignalAnalysis_exported;
                     FileHandle_MLAPP     = @auxApp.winSignalAnalysis;
@@ -947,7 +930,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     dockMenuButton       = app.menu_Button7;
                     dockMenuButtonEnable = false;
                     dockRefMenuButton    = app.menu_Button2; % PLAYBACK
-                    dockContainer        = app.rfdatahub_Container;
+                    dockContainer        = app.Tab5_RFDataHub;
                     
                     FileHandle_MFILE     = @winRFDataHub_exported;
                     FileHandle_MLAPP     = @winRFDataHub;
@@ -957,7 +940,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     dockMenuButton       = app.menu_Button8;
                     dockMenuButtonEnable = false;
                     dockRefMenuButton    = app.menu_Button2; % PLAYBACK
-                    dockContainer        = app.config_Container;
+                    dockContainer        = app.Tab6_Config;
                     
                     FileHandle_MFILE     = @auxApp.winConfig_exported;
                     FileHandle_MLAPP     = @auxApp.winConfig;
@@ -3203,25 +3186,29 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: config_Close, config_Undock, 
-        % ...and 6 other components
+        % Image clicked function: dockModule_Close, dockModule_Undock
         function menu_DockButtonPushed(app, event)
             
-            auxiliarApp = event.Source.Tag;
+            if     app.menu_Button5.Value; auxiliarAppTag = 'DRIVETEST';
+            elseif app.menu_Button6.Value; auxiliarAppTag = 'SIGNALANALYSIS';
+            elseif app.menu_Button7.Value; auxiliarAppTag = 'RFDATAHUB';
+            elseif app.menu_Button8.Value; auxiliarAppTag = 'CONFIG';
+            else;  return
+            end
 
             switch event.Source
-                case {app.drivetest_Undock, app.signalanalysis_Undock, app.rfdatahub_Undock, app.config_Undock}
+                case app.dockModule_Undock
                     initialDockState = app.General.operationMode.Dock;
                     app.General.operationMode.Dock = false;
 
-                    inputArguments   = menu_LayoutUndockingAuxiliarApp(app, auxiliarApp);
-                    menu_LayoutAuxiliarApp(app, auxiliarApp, 'Close')
-                    menu_LayoutAuxiliarApp(app, auxiliarApp, 'Open', inputArguments{:})
+                    inputArguments   = menu_LayoutUndockingAuxiliarApp(app, auxiliarAppTag);
+                    menu_LayoutAuxiliarApp(app, auxiliarAppTag, 'Close')
+                    menu_LayoutAuxiliarApp(app, auxiliarAppTag, 'Open', inputArguments{:})
 
                     app.General.operationMode.Dock = initialDockState;
 
-                case {app.drivetest_Close,  app.signalanalysis_Close,  app.rfdatahub_Close, app.config_Close}
-                    menu_LayoutAuxiliarApp(app, auxiliarApp, 'Close')
+                case app.dockModule_Close
+                    menu_LayoutAuxiliarApp(app, auxiliarAppTag, 'Close')
             end
 
         end
@@ -8525,162 +8512,21 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.Tab3_DriveTest = uitab(app.TabGroup);
             app.Tab3_DriveTest.Title = 'DRIVE-TEST';
 
-            % Create drivetest_Grid
-            app.drivetest_Grid = uigridlayout(app.Tab3_DriveTest);
-            app.drivetest_Grid.ColumnWidth = {'1x', 22, 22};
-            app.drivetest_Grid.RowHeight = {20, '1x'};
-            app.drivetest_Grid.ColumnSpacing = 2;
-            app.drivetest_Grid.RowSpacing = 0;
-            app.drivetest_Grid.Padding = [0 0 0 20];
-
-            % Create drivetest_Container
-            app.drivetest_Container = uipanel(app.drivetest_Grid);
-            app.drivetest_Container.BorderType = 'none';
-            app.drivetest_Container.Title = ' ';
-            app.drivetest_Container.BackgroundColor = [0.9412 0.9412 0.9412];
-            app.drivetest_Container.Layout.Row = [1 2];
-            app.drivetest_Container.Layout.Column = [1 3];
-
-            % Create drivetest_Undock
-            app.drivetest_Undock = uiimage(app.drivetest_Grid);
-            app.drivetest_Undock.ScaleMethod = 'none';
-            app.drivetest_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
-            app.drivetest_Undock.Tag = 'DRIVETEST';
-            app.drivetest_Undock.Tooltip = {'Reabre módulo em outra janela'};
-            app.drivetest_Undock.Layout.Row = 1;
-            app.drivetest_Undock.Layout.Column = 2;
-            app.drivetest_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
-
-            % Create drivetest_Close
-            app.drivetest_Close = uiimage(app.drivetest_Grid);
-            app.drivetest_Close.ScaleMethod = 'none';
-            app.drivetest_Close.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
-            app.drivetest_Close.Tag = 'DRIVETEST';
-            app.drivetest_Close.Tooltip = {'Fecha módulo'};
-            app.drivetest_Close.Layout.Row = 1;
-            app.drivetest_Close.Layout.Column = 3;
-            app.drivetest_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_12SVG.svg');
-
             % Create Tab4_SignalAnalysis
             app.Tab4_SignalAnalysis = uitab(app.TabGroup);
             app.Tab4_SignalAnalysis.Title = 'SIGNALANALYSIS';
-
-            % Create signalanalysis_Grid
-            app.signalanalysis_Grid = uigridlayout(app.Tab4_SignalAnalysis);
-            app.signalanalysis_Grid.ColumnWidth = {'1x', 22, 22};
-            app.signalanalysis_Grid.RowHeight = {20, '1x'};
-            app.signalanalysis_Grid.ColumnSpacing = 2;
-            app.signalanalysis_Grid.RowSpacing = 0;
-            app.signalanalysis_Grid.Padding = [0 0 0 20];
-
-            % Create signalanalysis_Container
-            app.signalanalysis_Container = uipanel(app.signalanalysis_Grid);
-            app.signalanalysis_Container.BorderType = 'none';
-            app.signalanalysis_Container.Title = ' ';
-            app.signalanalysis_Container.Layout.Row = [1 2];
-            app.signalanalysis_Container.Layout.Column = [1 3];
-
-            % Create signalanalysis_Undock
-            app.signalanalysis_Undock = uiimage(app.signalanalysis_Grid);
-            app.signalanalysis_Undock.ScaleMethod = 'none';
-            app.signalanalysis_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
-            app.signalanalysis_Undock.Tag = 'SIGNALANALYSIS';
-            app.signalanalysis_Undock.Tooltip = {'Reabre módulo em outra janela'};
-            app.signalanalysis_Undock.Layout.Row = 1;
-            app.signalanalysis_Undock.Layout.Column = 2;
-            app.signalanalysis_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
-
-            % Create signalanalysis_Close
-            app.signalanalysis_Close = uiimage(app.signalanalysis_Grid);
-            app.signalanalysis_Close.ScaleMethod = 'none';
-            app.signalanalysis_Close.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
-            app.signalanalysis_Close.Tag = 'SIGNALANALYSIS';
-            app.signalanalysis_Close.Tooltip = {'Fecha módulo'};
-            app.signalanalysis_Close.Layout.Row = 1;
-            app.signalanalysis_Close.Layout.Column = 3;
-            app.signalanalysis_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_12SVG.svg');
 
             % Create Tab5_RFDataHub
             app.Tab5_RFDataHub = uitab(app.TabGroup);
             app.Tab5_RFDataHub.Title = 'RFDATAHUB';
 
-            % Create rfdatahub_Grid
-            app.rfdatahub_Grid = uigridlayout(app.Tab5_RFDataHub);
-            app.rfdatahub_Grid.ColumnWidth = {'1x', 22, 22};
-            app.rfdatahub_Grid.RowHeight = {20, '1x'};
-            app.rfdatahub_Grid.ColumnSpacing = 2;
-            app.rfdatahub_Grid.RowSpacing = 0;
-            app.rfdatahub_Grid.Padding = [0 0 0 20];
-
-            % Create rfdatahub_Container
-            app.rfdatahub_Container = uipanel(app.rfdatahub_Grid);
-            app.rfdatahub_Container.BorderType = 'none';
-            app.rfdatahub_Container.Title = ' ';
-            app.rfdatahub_Container.Layout.Row = [1 2];
-            app.rfdatahub_Container.Layout.Column = [1 3];
-
-            % Create rfdatahub_Undock
-            app.rfdatahub_Undock = uiimage(app.rfdatahub_Grid);
-            app.rfdatahub_Undock.ScaleMethod = 'none';
-            app.rfdatahub_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
-            app.rfdatahub_Undock.Tag = 'RFDATAHUB';
-            app.rfdatahub_Undock.Tooltip = {'Reabre módulo em outra janela'};
-            app.rfdatahub_Undock.Layout.Row = 1;
-            app.rfdatahub_Undock.Layout.Column = 2;
-            app.rfdatahub_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
-
-            % Create rfdatahub_Close
-            app.rfdatahub_Close = uiimage(app.rfdatahub_Grid);
-            app.rfdatahub_Close.ScaleMethod = 'none';
-            app.rfdatahub_Close.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
-            app.rfdatahub_Close.Tag = 'RFDATAHUB';
-            app.rfdatahub_Close.Tooltip = {'Fecha módulo'};
-            app.rfdatahub_Close.Layout.Row = 1;
-            app.rfdatahub_Close.Layout.Column = 3;
-            app.rfdatahub_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_12SVG.svg');
-
             % Create Tab6_Config
             app.Tab6_Config = uitab(app.TabGroup);
             app.Tab6_Config.Title = 'CONFIG';
 
-            % Create config_Grid
-            app.config_Grid = uigridlayout(app.Tab6_Config);
-            app.config_Grid.ColumnWidth = {'1x', 22, 22};
-            app.config_Grid.RowHeight = {20, '1x'};
-            app.config_Grid.ColumnSpacing = 2;
-            app.config_Grid.RowSpacing = 0;
-            app.config_Grid.Padding = [0 0 0 20];
-
-            % Create config_Container
-            app.config_Container = uipanel(app.config_Grid);
-            app.config_Container.BorderType = 'none';
-            app.config_Container.Title = ' ';
-            app.config_Container.Layout.Row = [1 2];
-            app.config_Container.Layout.Column = [1 3];
-
-            % Create config_Undock
-            app.config_Undock = uiimage(app.config_Grid);
-            app.config_Undock.ScaleMethod = 'none';
-            app.config_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
-            app.config_Undock.Tag = 'CONFIG';
-            app.config_Undock.Tooltip = {'Reabre módulo em outra janela'};
-            app.config_Undock.Layout.Row = 1;
-            app.config_Undock.Layout.Column = 2;
-            app.config_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18.png');
-
-            % Create config_Close
-            app.config_Close = uiimage(app.config_Grid);
-            app.config_Close.ScaleMethod = 'none';
-            app.config_Close.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
-            app.config_Close.Tag = 'CONFIG';
-            app.config_Close.Tooltip = {'Fecha módulo'};
-            app.config_Close.Layout.Row = 1;
-            app.config_Close.Layout.Column = 3;
-            app.config_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_12SVG.svg');
-
             % Create menu_Grid
             app.menu_Grid = uigridlayout(app.GridLayout);
-            app.menu_Grid.ColumnWidth = {28, 5, 28, 28, 28, 5, 28, 28, 28, 28, '1x', 20, 20, 20};
+            app.menu_Grid.ColumnWidth = {28, 5, 28, 28, 28, 5, 28, 28, 28, 28, '1x', 20, 20, 20, 0, 0};
             app.menu_Grid.RowHeight = {7, '1x', 7};
             app.menu_Grid.ColumnSpacing = 5;
             app.menu_Grid.RowSpacing = 0;
@@ -8825,6 +8671,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.FigurePosition = uiimage(app.menu_Grid);
             app.FigurePosition.ImageClickedFcn = createCallbackFcn(app, @menu_ToolbarImageCliced, true);
             app.FigurePosition.Visible = 'off';
+            app.FigurePosition.Tooltip = {'Reposiciona janela'};
             app.FigurePosition.Layout.Row = 2;
             app.FigurePosition.Layout.Column = 13;
             app.FigurePosition.ImageSource = fullfile(pathToMLAPP, 'Icons', 'layout1_32White.png');
@@ -8832,9 +8679,30 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create AppInfo
             app.AppInfo = uiimage(app.menu_Grid);
             app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @menu_ToolbarImageCliced, true);
+            app.AppInfo.Tooltip = {'Informações gerais'};
             app.AppInfo.Layout.Row = 2;
             app.AppInfo.Layout.Column = 14;
             app.AppInfo.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Dots_32White.png');
+
+            % Create dockModule_Undock
+            app.dockModule_Undock = uiimage(app.menu_Grid);
+            app.dockModule_Undock.ScaleMethod = 'none';
+            app.dockModule_Undock.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
+            app.dockModule_Undock.Tag = 'DRIVETEST';
+            app.dockModule_Undock.Tooltip = {'Reabre módulo em outra janela'};
+            app.dockModule_Undock.Layout.Row = 2;
+            app.dockModule_Undock.Layout.Column = 15;
+            app.dockModule_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18White.png');
+
+            % Create dockModule_Close
+            app.dockModule_Close = uiimage(app.menu_Grid);
+            app.dockModule_Close.ScaleMethod = 'none';
+            app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @menu_DockButtonPushed, true);
+            app.dockModule_Close.Tag = 'DRIVETEST';
+            app.dockModule_Close.Tooltip = {'Fecha módulo'};
+            app.dockModule_Close.Layout.Row = 2;
+            app.dockModule_Close.Layout.Column = 16;
+            app.dockModule_Close.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Delete_12SVG_white.svg');
 
             % Create popupContainerGrid
             app.popupContainerGrid = uigridlayout(app.GridLayout);

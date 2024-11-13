@@ -1410,6 +1410,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 % estar em modo DOCK ou UNDOCK, o que é definido em configuração
                 % no próprio appAnalise.
                 if app.isDocked
+                    app.GridLayout.Padding(4) = 19;
                     startup_Controller(app)
                 else
                     appUtil.winPosition(app.UIFigure)
