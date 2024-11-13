@@ -1,19 +1,19 @@
-function [idx, reportInfo] = GeneralInfo(app, Mode, reportTemplateIndex)
+function [idxThreads, reportInfo] = GeneralInfo(app, Mode, reportTemplateIndex)
     switch Mode
         case 'Report'
-            idx = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+            idxThreads    = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
             detectionMode = 'Automatic+Manual';
 
         case 'Preview'
-            idx = unique([app.report_Tree.CheckedNodes.NodeData]);
+            idxThreads    = unique([app.report_Tree.CheckedNodes.NodeData]);
             detectionMode = 'Automatic+Manual';
 
         case 'playback.AddEditOrDeleteEmission'
-            idx = app.play_PlotPanel.UserData.NodeData;
+            idxThreads    = app.play_PlotPanel.UserData.NodeData;
             detectionMode = 'Manual';
 
         case {'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission', 'signalAnalysis.externalJSON'}
-            idx = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+            idxThreads    = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
             detectionMode = 'Manual';
     end
     

@@ -96,11 +96,24 @@ classdef specData < handle
                             if ~isempty(prjModelIndex)
                                 callingApp.report_ModelName.Value = callingApp.report_ModelName.Items{prjModelIndex};
                             end
-        
-                            if ~isempty(prjInfo.exceptionList)                    
-                                callingApp.projectData.exceptionList     = prjInfo.exceptionList;
-                                callingApp.projectData.exceptionList.Tag = replace(prjInfo.exceptionList.Tag, 'ThreadID', 'ID');
-                            end                 
+
+                            if ~isempty(prjInfo.generatedZIPFile) && isfield(prjInfo.generatedZIPFile, 'lastZIPFullPath') && isfile(prjInfo.generatedZIPFile.lastZIPFullPath)
+                                unzipFiles = unzip(prjInfo.generatedZIPFile.lastZIPFullPath, callingApp.General.fileFolder.tempPath);
+                                for ll = 1:numel(unzipFiles)
+                                    [~, ~, unizipFileExt] = fileparts(unzipFiles{ll});
+                                    switch lower(unizipFileExt)
+                                        case '.html'
+                                            callingApp.projectData.generatedFiles.lastHTMLDocFullPath = unzipFiles{ll};
+                                        case '.json'
+                                            callingApp.projectData.generatedFiles.lastTableFullPath   = unzipFiles{ll};
+                                        case '.mat'
+                                            callingApp.projectData.generatedFiles.lastMATFullPath     = unzipFiles{ll};
+                                    end
+                                end
+                            end
+
+                            callingApp.projectData.peaksTable     = prjInfo.peaksTable;
+                            callingApp.projectData.exceptionList  = prjInfo.exceptionList;
                         end
                     end
                 end

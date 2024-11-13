@@ -1,7 +1,7 @@
 function Controller(app, operationType)
 
     try
-        [idx, reportInfo] = ReportGenerator_Aux1(app, operationType);
+        [idxThreads, reportInfo] = ReportGenerator_Aux1(app, operationType);
         
         switch operationType
             case 'Report'
@@ -19,18 +19,18 @@ function Controller(app, operationType)
                 end
 
                 % Verifica...
-                [htmlReport, Peaks] = report.ReportGenerator(app, idx, reportInfo, d);
-                report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
+                [htmlReport, Peaks] = report.ReportGenerator(app, idxThreads, reportInfo, d);
+                report.ReportGenerator_PeaksUpdate(app, idxThreads, Peaks)
 
                 switch app.report_Version.Value
                     case 'Definitiva'
-                        BaseFileName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'Report', app.report_Issue.Value);
-                        HTMLDocFullPath = [BaseFileName '.html'];
+                        [baseFullFileName, baseFileName] = appUtil.DefaultFileName(app.General.fileFolder.tempPath, 'Report', app.report_Issue.Value);
+                        HTMLDocFullPath = [baseFullFileName '.html'];
                         fileID = fopen(HTMLDocFullPath, 'w', 'native', 'ISO-8859-1');
  
                     case 'Preliminar'
-                        BaseFileName = class.Constants.DefaultFileName(app.General.fileFolder.userPath, '~Report', app.report_Issue.Value);
-                        HTMLDocFullPath = [BaseFileName '.html'];
+                        [baseFullFileName, baseFileName] = appUtil.DefaultFileName(app.General.fileFolder.tempPath, '~Report', app.report_Issue.Value);
+                        HTMLDocFullPath = [baseFullFileName '.html'];
                         fileID = fopen(HTMLDocFullPath, 'w');
                 end
                 
@@ -39,25 +39,26 @@ function Controller(app, operationType)
     
                 switch app.report_Version.Value
                     case 'Definitiva'
-                        JSONFile = [BaseFileName '.json'];
-                        MATFile  = [BaseFileName '.mat'];
-                        ZIPFile  = [BaseFileName '.zip'];
+                        JSONFile = [baseFullFileName '.json'];
+                        MATFile  = [baseFullFileName '.mat'];
+                        ZIPFile  = fullfile(app.General.fileFolder.userPath, [baseFileName '.zip']);
                         
-                        [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo);
+                        [ReportProject, tableStr] = ReportGenerator_Aux2(app, idxThreads, reportInfo);
                         save(MATFile, 'ReportProject', '-mat', '-v7.3')
                         writematrix(tableStr, JSONFile, "FileType", "text", "QuoteStrings", "none")
     
-                        app.General.fiscaliza.lastHTMLDocFullPath = HTMLDocFullPath;
-                        app.General.fiscaliza.lastTableFullPath   = JSONFile;
-                        app.General.fiscaliza.lastMATFullPath     = MATFile;
+                        app.projectData.generatedFiles.lastHTMLDocFullPath = HTMLDocFullPath;
+                        app.projectData.generatedFiles.lastTableFullPath   = JSONFile;
+                        app.projectData.generatedFiles.lastMATFullPath     = MATFile;
 
                         nameFormatMap = {'*.zip', 'appAnalise (*.zip)'};
-                        fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, ZIPFile);
-                        if isempty(fileFullPath)
+                        ZIPFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, ZIPFile);
+                        if isempty(ZIPFullPath)
                             return
                         end
                         
-                        zip(fileFullPath, {HTMLDocFullPath, JSONFile, MATFile})
+                        zip(ZIPFullPath, {HTMLDocFullPath, JSONFile, MATFile})
+                        app.projectData.generatedFiles.lastZIPFullPath     = ZIPFullPath;
 
                     case 'Preliminar'
                         web(HTMLDocFullPath, '-new')
@@ -67,24 +68,24 @@ function Controller(app, operationType)
             case {'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission'}
                 app.progressDialog.Visible = 'visible';
 
-                Peaks = report.PreviewGenerator(app, idx, reportInfo.DetectionMode);
-                report.ReportGenerator_PeaksUpdate(app, idx, Peaks)
+                Peaks = report.PreviewGenerator(app, idxThreads, reportInfo.DetectionMode);
+                report.ReportGenerator_PeaksUpdate(app, idxThreads, Peaks)
 
                 app.progressDialog.Visible = 'hidden';
 
 
             case 'signalAnalysis.externalJSON'
                 [~, countTable] = reportLibConnection.table.Summary(app.projectData.peaksTable, app.projectData.exceptionList);
-                tableStr = ReportGenerator_Aux3(app, idx, countTable);
+                tableStr = ReportGenerator_Aux3(app, idxThreads, countTable);
 
                 nameFormatMap   = {'*.json', 'appAnalise (*.json)'};
                 defaultFilename = class.Constants.DefaultFileName(app.CallingApp.General.fileFolder.userPath, 'preReport', app.CallingApp.report_Issue.Value);
-                fileFullPath    = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultFilename);
-                if isempty(fileFullPath)
+                JSONFullPath    = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultFilename);
+                if isempty(JSONFullPath)
                     return
                 end
                 
-                writematrix(tableStr, fileFullPath, "FileType", "text", "QuoteStrings", "none")
+                writematrix(tableStr, JSONFullPath, "FileType", "text", "QuoteStrings", "none")
         end
         
     catch ME
@@ -98,7 +99,7 @@ end
 
 
 %-------------------------------------------------------------------------%
-function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
+function [idxThreads, reportInfo] = ReportGenerator_Aux1(app, Mode)
     switch Mode
         case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission'}
             if isempty(app.General.AppVersion.fiscaliza) && strcmp(Mode, 'Report')
@@ -106,17 +107,17 @@ function [idx, reportInfo] = ReportGenerator_Aux1(app, Mode)
             end
         
             reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
-            [idx, reportInfo]   = report.GeneralInfo(app, Mode, reportTemplateIndex);
+            [idxThreads, reportInfo]   = report.GeneralInfo(app, Mode, reportTemplateIndex);
 
         case 'signalAnalysis.externalJSON'
             reportTemplateIndex = find(strcmp(app.CallingApp.report_ModelName.Items, app.CallingApp.report_ModelName.Value), 1) - 1;
-            [idx, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
+            [idxThreads, reportInfo]   = report.GeneralInfo(app.CallingApp, Mode, reportTemplateIndex);
     end
 end
 
 
 %-------------------------------------------------------------------------%
-function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
+function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idxThreads, reportInfo)
 
     % Variável que possibilitará o preenchimento dos campos
     % estruturados da inspeção (no Fiscaliza).
@@ -133,26 +134,26 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
     % Definir FreqStart, FreqStop, Latitude, Longitude e City que
     % irão compor inspeção no Fiscaliza.
     ReportProject.Bands = {};
-    for ii = 1:numel(idx)
+    for ii = idxThreads
         if ismember(app.specData(ii).MetaData.DataType, class.Constants.specDataTypes)
             ReportProject.Bands(end+1) = {sprintf('%.3f - %.3f MHz', app.specData(ii).MetaData.FreqStart / 1e+6, ...
                                                                      app.specData(ii).MetaData.FreqStop  / 1e+6)};
             
             if isempty(ReportProject.Latitude)
-                ReportProject.Latitude  = app.specData(idx(ii)).GPS.Latitude;
-                ReportProject.Longitude = app.specData(idx(ii)).GPS.Longitude;
-                ReportProject.City      = {app.specData(idx(ii)).GPS.Location};
+                ReportProject.Latitude  = app.specData(ii).GPS.Latitude;
+                ReportProject.Longitude = app.specData(ii).GPS.Longitude;
+                ReportProject.City      = {sprintf('%s/%s', app.specData(ii).GPS.Location(end-1:end), app.specData(ii).GPS.Location(1:end-3))};
                 
-                ReportProject.F0 = app.specData(idx(ii)).MetaData.FreqStart;
-                ReportProject.F1 = app.specData(idx(ii)).MetaData.FreqStop;
+                ReportProject.F0 = app.specData(ii).MetaData.FreqStart;
+                ReportProject.F1 = app.specData(ii).MetaData.FreqStop;
             
             else
-                if ~ismember(app.specData(idx(ii)).GPS.Location, ReportProject.City)
-                    ReportProject.City{end+1,1} = app.specData(idx(ii)).GPS.Location;
+                if ~ismember(app.specData(ii).GPS.Location, ReportProject.City)
+                    ReportProject.City{end+1,1} = sprintf('%s/%s', app.specData(ii).GPS.Location(end-1:end), app.specData(ii).GPS.Location(1:end-3));
                 end                        
                 
-                ReportProject.F0 = min(ReportProject.F0, app.specData(idx(ii)).MetaData.FreqStart);
-                ReportProject.F1 = max(ReportProject.F1, app.specData(idx(ii)).MetaData.FreqStop);
+                ReportProject.F0 = min(ReportProject.F0, app.specData(ii).MetaData.FreqStart);
+                ReportProject.F1 = max(ReportProject.F1, app.specData(ii).MetaData.FreqStop);
             end
         end
     end
@@ -167,12 +168,12 @@ function [ReportProject, tableStr] = ReportGenerator_Aux2(app, idx, reportInfo)
     ReportProject.emissionsValue3 = sum(infoTable{:,5:8}, 'all');                               % Qtd. emissões identificadas
 
     % Arquivo JSON
-    tableStr = ReportGenerator_Aux3(app, idx, countTable);
+    tableStr = ReportGenerator_Aux3(app, idxThreads, countTable);
 end
 
 
 %-------------------------------------------------------------------------%
-function tableStr = ReportGenerator_Aux3(app, idx, countTable)
+function tableStr = ReportGenerator_Aux3(app, idxThreads, countTable)
     
     % Tabelas que irão compor o JSON que será carregado como anexo
     % à inspeção (no Fiscaliza).
@@ -198,7 +199,7 @@ function tableStr = ReportGenerator_Aux3(app, idx, countTable)
     ClassificationTable(1:numel(Classification),:) = [num2cell((1:numel(Classification))'), Classification];
 
     jj = 0;
-    for ii = idx
+    for ii = idxThreads
         if ismember(app.specData(ii).MetaData.DataType, class.Constants.specDataTypes)
             jj = jj+1;
 

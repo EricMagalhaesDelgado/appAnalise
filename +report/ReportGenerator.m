@@ -535,7 +535,7 @@ function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, p
                                     case 'ID'
                                         Table{ll,kk} = ll;
                                     otherwise
-                                        Table(ll,kk) = {Fcn_Source(specData, idxThreads, jj, reportInfo, Source)};
+                                        Table(ll,kk) = {Fcn_Source(specData, jj, 1, reportInfo, Source)};
                                 end
                             end
                         end

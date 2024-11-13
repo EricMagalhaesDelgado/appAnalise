@@ -52,9 +52,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         Tab2_Playback                   matlab.ui.container.Tab
         play_Grid                       matlab.ui.container.GridLayout
         play_toolGrid                   matlab.ui.container.GridLayout
+        tool_FiscalizaAutoFill          matlab.ui.control.Image
         tool_LayoutRight                matlab.ui.control.Image
         tool_FiscalizaUpdate            matlab.ui.control.Image
-        tool_FiscalizaAutoFill          matlab.ui.control.Image
         tool_ReportGenerator            matlab.ui.control.Image
         tool_ReportAnalysis             matlab.ui.control.Image
         tool_ExceptionList              matlab.ui.control.Image
@@ -619,6 +619,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 startup_AppProperties(app)
                 startup_GUIComponents(app)
 
+                % Para criação de arquivos temporários, cria-se uma pasta da 
+                % sessão.
+                tempDir = tempname;
+                mkdir(tempDir)
+                app.General_I.fileFolder.tempPath = tempDir;
+
                 switch app.executionMode
                     case 'webApp'
                         % Força a exclusão do SplashScreen do MATLAB WebDesigner.
@@ -636,10 +642,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         app.General_I.operationMode.Dock  = true;
                         
                         % A pasta do usuário não é configurável, mas obtida por 
-                        % meio de chamada a uiputfile. Para criação de arquivos 
-                        % temporários, cria-se uma pasta da sessão.
-                        tempDir = tempname;
-                        mkdir(tempDir)
+                        % meio de chamada a uiputfile. 
                         app.General_I.fileFolder.userPath = tempDir;
     
                     otherwise    
@@ -1093,8 +1096,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ProjectName.Value = '';
             app.report_Issue.Value       = -1;       
             app.report_ProjectWarnIcon.Visible = 0;
-
-            fiscalizaLibConnection.report_ResetGUI(app)
 
             switch operationType
                 case 'appAnalise:MISC:RestartAnalysis'
@@ -3151,13 +3152,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             % DELETE TEMP FILES
-            switch app.executionMode
-                case 'webApp'
-                    rmdir(app.General.fileFolder.userPath, 's');
-                otherwise
-                    delete(fullfile(app.General.fileFolder.userPath, '~Report*.html'))
-                    delete(fullfile(app.General.fileFolder.userPath, '~Image*.*'))
-            end
+            rmdir(app.General_I.fileFolder.tempPath, 's');
 
             % DELETE AUXILIAR APPS
             delete(app.hDriveTest)
@@ -5391,10 +5386,18 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                     reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
                     [idx, reportInfo]   = report.GeneralInfo(app, 'Report', reportTemplateIndex);
-                    prjInfo = struct('Name',          fileName,                        ...
-                                     'reportInfo',    rmfield(reportInfo, 'Filename'), ...
-                                     'peaksTable',    app.projectData.peaksTable,      ...
-                                     'exceptionList', app.projectData.exceptionList);
+                    
+                    if ~isempty(app.projectData.generatedFiles) && isfield(app.projectData.generatedFiles, 'lastZIPFullPath') && isfile(app.projectData.generatedFiles.lastZIPFullPath)
+                        generatedZIPFile = app.projectData.generatedFiles.lastZIPFullPath;
+                    else
+                        generatedZIPFile = [];
+                    end
+
+                    prjInfo = struct('Name',           fileName,                        ...
+                                     'reportInfo',     rmfield(reportInfo, 'Filename'), ...
+                                     'generatedFiles', generatedZIPFile,                ...
+                                     'peaksTable',     app.projectData.peaksTable,      ...
+                                     'exceptionList',  app.projectData.exceptionList);
                     
                     fileWriter.MAT(fileFullPath, 'ProjectData', app.specData(idx), prjInfo)
 
@@ -8489,17 +8492,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_ReportGenerator.Layout.Column = 16;
             app.tool_ReportGenerator.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Publish_HTML_16.png');
 
-            % Create tool_FiscalizaAutoFill
-            app.tool_FiscalizaAutoFill = uiimage(app.play_toolGrid);
-            app.tool_FiscalizaAutoFill.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaStaticButtonPushed, true);
-            app.tool_FiscalizaAutoFill.Tag = 'FISCALIZA';
-            app.tool_FiscalizaAutoFill.Enable = 'off';
-            app.tool_FiscalizaAutoFill.Visible = 'off';
-            app.tool_FiscalizaAutoFill.Tooltip = {'Preenche campos automaticamente'};
-            app.tool_FiscalizaAutoFill.Layout.Row = 2;
-            app.tool_FiscalizaAutoFill.Layout.Column = 17;
-            app.tool_FiscalizaAutoFill.ImageSource = fullfile(pathToMLAPP, 'Icons', 'AutoFill_36Blue.png');
-
             % Create tool_FiscalizaUpdate
             app.tool_FiscalizaUpdate = uiimage(app.play_toolGrid);
             app.tool_FiscalizaUpdate.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaStaticButtonPushed, true);
@@ -8517,6 +8509,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_LayoutRight.Layout.Row = 2;
             app.tool_LayoutRight.Layout.Column = 19;
             app.tool_LayoutRight.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowRight_32.png');
+
+            % Create tool_FiscalizaAutoFill
+            app.tool_FiscalizaAutoFill = uiimage(app.play_toolGrid);
+            app.tool_FiscalizaAutoFill.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaStaticButtonPushed, true);
+            app.tool_FiscalizaAutoFill.Tag = 'FISCALIZA';
+            app.tool_FiscalizaAutoFill.Enable = 'off';
+            app.tool_FiscalizaAutoFill.Visible = 'off';
+            app.tool_FiscalizaAutoFill.Tooltip = {'Preenche campos automaticamente'};
+            app.tool_FiscalizaAutoFill.Layout.Row = 2;
+            app.tool_FiscalizaAutoFill.Layout.Column = 17;
+            app.tool_FiscalizaAutoFill.ImageSource = fullfile(pathToMLAPP, 'Icons', 'AutoFill_36Blue.png');
 
             % Create Tab3_DriveTest
             app.Tab3_DriveTest = uitab(app.TabGroup);

@@ -1,5 +1,5 @@
 {
-    "version": 0.82,
+    "version": 0.83,
     "operationMode": {
         "Debug": false,
         "Dock": false,
@@ -19,9 +19,6 @@
     },
     "fiscaliza": {
         "systemVersion": "HOM",
-        "lastHTMLDocFullPath": "",
-        "lastTableFullPath": "",
-        "lastMATFullPath": "",
         "defaultValues": {
             "entidade_com_cadastro_stel": {
                 "value": "Não",
@@ -169,6 +166,7 @@
                     "800 - COLETIVO - RETRANSMISSAO DE T.V.",
                     "801 - COLETIVO - RETRANSMISSÃO DE RADIODIFUSÃO DE SONS E IMAGENS - DIGITAL",
                     "802 - COLETIVO - PLANO BÁSICO DE RADIODIFUSÃO DE SONS E IMAGENS - DIGITAL",
+                    "805 - COLETIVO - RETRANSMISSÃO DE RÁDIO (RTR) NA AMAZÔNIA LEGAL",
                     "810 - COLETIVO - DISTRIBUICAO DE SINAIS DE TELEVISAO - DISTV",
                     "820 - RESTRITO - DE TELEV. EM CIRCUITO FECHADO (RADIOENLACE)",
                     "900 - COLETIVO - FUST",
