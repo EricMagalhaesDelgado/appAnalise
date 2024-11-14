@@ -770,16 +770,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Painel "CONFIG >> PYTHON"
             pythonPath = app.General.fileFolder.pythonPath;
             if isfile(pythonPath)
-                pyenv('Version', pythonPath);
+                try
+                    pyenv('Version', pythonPath);
+                catch ME
+                    appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
+                end
             end
 
             % Painel "REPORT >> FISCALIZA"
-            switch app.General.fiscaliza.systemVersion
-                case 'PROD'
-                    app.report_ControlsTab2Label.Text   = 'API FISCALIZA';        
-                case 'HOM'
-                    app.report_ControlsTab2Label.Text   = 'API FISCALIZA HOMOLOGAÇÃO';
-            end
+            misc_FiscalizaModeChanged(app)
         end
 
         %-----------------------------------------------------------------%
@@ -1158,7 +1157,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         % lidos anteriormente.
                         if strcmp(warnID, 'MATLAB:load:variableNotFound')
                             msgWarning = sprintf('O arquivo indicado a seguir não foi gerado pelo appAnalise ou appColeta.\n•&thinsp;%s', fileName{ii});
-                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);                                                        
+                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                             continue
                             
                         elseif any(strcmpi(fileFullPath, {app.metaData.File}))
@@ -2943,6 +2942,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             fileReader.MAT_UserData(app, fileFullPath)
         end
 
+        %-----------------------------------------------------------------%
+        function misc_FiscalizaModeChanged(app)
+            switch app.General.fiscaliza.systemVersion
+                case 'PROD'
+                    app.report_ControlsTab2Label.Text = 'API FISCALIZA';        
+                case 'HOM'
+                    app.report_ControlsTab2Label.Text = 'API FISCALIZA HOMOLOGAÇÃO';
+            end
+        end
+
 
         %-----------------------------------------------------------------%
         % AUXILIAR FUNCTIONS TO OTHERS APPS OR EXTERNAL FUNCTIONS
@@ -3014,6 +3023,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                         app.tool_FiscalizaUpdate.Enable   = 0;
                                     end
                                 end
+                                misc_FiscalizaModeChanged(app)
                             otherwise
                                 error('UnexpectedCall')
                         end
