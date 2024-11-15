@@ -97,8 +97,8 @@ classdef specData < handle
                                 callingApp.report_ModelName.Value = callingApp.report_ModelName.Items{prjModelIndex};
                             end
 
-                            if ~isempty(prjInfo.generatedZIPFile) && isfield(prjInfo.generatedZIPFile, 'lastZIPFullPath') && isfile(prjInfo.generatedZIPFile.lastZIPFullPath)
-                                unzipFiles = unzip(prjInfo.generatedZIPFile.lastZIPFullPath, callingApp.General.fileFolder.tempPath);
+                            if ~isempty(prjInfo.generatedFiles) && isfield(prjInfo.generatedFiles, 'lastZIPFullPath') && isfile(prjInfo.generatedFiles.lastZIPFullPath)
+                                unzipFiles = unzip(prjInfo.generatedFiles.lastZIPFullPath, callingApp.General.fileFolder.tempPath);
                                 for ll = 1:numel(unzipFiles)
                                     [~, ~, unizipFileExt] = fileparts(unzipFiles{ll});
                                     switch lower(unizipFileExt)

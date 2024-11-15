@@ -2375,6 +2375,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 % exceto os DataTips, os quais são atualizados apenas quando
                 % é selecionado outro fluxo espectral.
 
+                if ~app.axesTool_Persistance.UserData.Value
+                    app.play_Persistance_cLim1.Value = 0;
+                    app.play_Persistance_cLim2.Value = 1;
+                end
+
+                if ~app.axesTool_Waterfall.UserData.Value
+                    app.play_Waterfall_cLim1.Value   = 0;
+                    app.play_Waterfall_cLim2.Value   = 1;
+                end
+
                 app.specData(idx).UserData.customPlayback.Type = 'manual';
                 app.specData(idx).UserData.customPlayback.Parameters.Controls      = struct('MinHold',          app.axesTool_MinHold.UserData.Value,     ...
                                                                                             'Average',          app.axesTool_Average.UserData.Value,     ...
@@ -2397,6 +2407,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                                                                             'LevelLimits',     [app.play_Waterfall_cLim1.Value, app.play_Waterfall_cLim2.Value]);
                 app.specData(idx).UserData.customPlayback.Parameters.WaterfallTime = struct('Visible',          app.play_Waterfall_Timeline.Value, ...
                                                                                             'ZData',           [1000, 1000]);
+
             else
                 app.specData(idx).UserData.customPlayback = struct('Type', 'auto', 'Parameters', []);
             end
@@ -3943,32 +3954,35 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             switch event.Source
-                case app.play_Persistance_Interpolation
-                    app.hPersistanceObj.handle.Interpolation = app.play_Persistance_Interpolation.Value;
-
-                case app.play_Persistance_WindowSize
-                    idx = app.play_PlotPanel.UserData.NodeData;
-
-                    plot_Draw_Persistance(app, 'Delete', -1)
-
-                    prePlot_updatingGeneralSettings(app)
-                    prePlot_updatingCustomProperties(app, idx)
-                    plot_Draw_Persistance(app, 'Creation', idx)
-
-                case app.play_Persistance_Transparency
-                    app.hPersistanceObj.handle.CData(isnan(app.hPersistanceObj.handle.CData)) = 0; 
-                    app.hPersistanceObj.handle.AlphaData = double(logical(app.hPersistanceObj.handle.CData)) * app.play_Persistance_Transparency.Value;
-
-                case app.play_Persistance_Colormap
-                    plot.axes.Colormap(app.UIAxes1, app.play_Persistance_Colormap.Value)
-
                 case app.play_Persistance_cLim_Mode
                     app.UIAxes1.CLimMode = 'auto';
                     app.play_Persistance_cLim1.Value = app.UIAxes1.CLim(1);
                     app.play_Persistance_cLim2.Value = app.UIAxes1.CLim(2);
 
                     app.UIAxes1.UserData.CLimMode = 'auto';
-            end                
+
+                otherwise
+                    idx = app.play_PlotPanel.UserData.NodeData;
+                    
+                    prePlot_updatingGeneralSettings(app)
+                    prePlot_updatingCustomProperties(app, idx)
+
+                    switch event.Source
+                        case app.play_Persistance_Interpolation
+                            app.hPersistanceObj.handle.Interpolation = app.play_Persistance_Interpolation.Value;
+        
+                        case app.play_Persistance_WindowSize
+                            plot_Draw_Persistance(app, 'Delete', -1)
+                            plot_Draw_Persistance(app, 'Creation', idx)
+        
+                        case app.play_Persistance_Transparency
+                            app.hPersistanceObj.handle.CData(isnan(app.hPersistanceObj.handle.CData)) = 0; 
+                            app.hPersistanceObj.handle.AlphaData = double(logical(app.hPersistanceObj.handle.CData)) * app.play_Persistance_Transparency.Value;
+        
+                        case app.play_Persistance_Colormap
+                            plot.axes.Colormap(app.UIAxes1, app.play_Persistance_Colormap.Value)
+                    end
+            end
             drawnow
             
         end
