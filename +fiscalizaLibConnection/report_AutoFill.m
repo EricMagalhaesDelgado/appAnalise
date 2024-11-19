@@ -1,6 +1,6 @@
 function report_AutoFill(app)
 
-    % app.progressDialog.Visible = 'visible';
+    app.progressDialog.Visible = 'visible';
     try
         automaticData = report_Info2AutoFill(app);
         AutoFillFields(app.fiscalizaObj, automaticData, 1)
@@ -8,7 +8,7 @@ function report_AutoFill(app)
     catch ME
         appUtil.modalWindow(app.UIFigure, 'error', ME.message);
     end
-    % app.progressDialog.Visible = 'hidden';
+    app.progressDialog.Visible = 'hidden';
 
 end
 
@@ -49,7 +49,7 @@ function automaticData = report_Info2AutoFill(app)
 
     % SERVIÇOS DA INSPEÇÃO
     if ~isfield(automaticData, 'servicos_da_inspecao')
-        automaticData.servicos_da_inspecao          = app.General.fiscaliza.defaultValues.servicos_da_inspecao.value;
+        automaticData.servicos_da_inspecao              = app.General.fiscaliza.defaultValues.servicos_da_inspecao.value;
     end
 
     % FISCAL RESPONSÁVEL E FISCAIS
