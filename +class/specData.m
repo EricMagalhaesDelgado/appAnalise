@@ -92,9 +92,11 @@ classdef specData < handle
                             callingApp.report_ProjectName.Value  = fullfile(fileparts(metaData(ii).File), prjInfo.Name);
                             callingApp.report_Issue.Value        = prjInfo.reportInfo.Issue;
 
-                            prjModelIndex = find(strcmp(callingApp.report_ModelName.Items, prjInfo.reportInfo.Model.Name), 1);
-                            if ~isempty(prjModelIndex)
-                                callingApp.report_ModelName.Value = callingApp.report_ModelName.Items{prjModelIndex};
+                            if isfield(prjInfo.reportInfo, 'Model')
+                                prjModelIndex = find(strcmp(callingApp.report_ModelName.Items, prjInfo.reportInfo.Model.Name), 1);
+                                if ~isempty(prjModelIndex)
+                                    callingApp.report_ModelName.Value = callingApp.report_ModelName.Items{prjModelIndex};
+                                end
                             end
 
                             if ~isempty(prjInfo.generatedFiles) && isfield(prjInfo.generatedFiles, 'lastZIPFullPath') && isfile(prjInfo.generatedFiles.lastZIPFullPath)
