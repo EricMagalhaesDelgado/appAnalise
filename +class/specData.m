@@ -715,11 +715,15 @@ classdef specData < handle
                                   'Latitude',         ...
                                   'Longitude'};
                 otherwise
-                    fieldsList = [];
+                    fieldsList = {};
             end
 
-            secundaryMetaData = rmfield(originalMetaData, fieldsList);
+            fieldList2Remove  = fieldnames(originalMetaData);
+            fieldList2Remove  = fieldList2Remove(ismember(fieldList2Remove, fieldsList));
+
+            secundaryMetaData = rmfield(originalMetaData, fieldList2Remove);
             secundaryMetaData.FileFormat = fileFormat;
+
             secundaryMetaData = structUtil.sortByFieldNames(secundaryMetaData);
             secundaryMetaData = jsonencode(secundaryMetaData);
         end
