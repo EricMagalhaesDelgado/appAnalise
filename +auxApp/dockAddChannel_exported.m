@@ -22,7 +22,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         Container
-        isDocked = true
+        isDocked = false
 
         CallingApp
         specData

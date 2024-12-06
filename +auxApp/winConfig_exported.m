@@ -395,7 +395,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
             
-            appBackDoor(app.CallingApp, app, 'closeFcn')
+            appBackDoor(app.CallingApp, app, 'closeFcn', 'CONFIG')
             delete(app)
             
         end

@@ -583,7 +583,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 
                 % 2/7: Adiciona transparência ao Grid do Container, que confere 
                 %      o efeito de janela modal à auxApp.dockWelcomePage.
-                ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
+                ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
                 
                 % 3/7: Inicia auxApp.dockWelcomePage.
                 menu_LayoutPopupApp(app, 'WelcomePage')
@@ -1053,7 +1053,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Executa o app auxiliar, mas antes tenta configurar transparência
             % do BackgroundColor do Grid (caso não tenha sido aplicada anteriormente).
-            ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
+            ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
             inputArguments = [{app}, varargin];
             eval(sprintf('auxApp.dock%s_exported(app.popupContainer, inputArguments{:})', auxiliarApp))
             app.popupContainerGrid.Visible = 1;
