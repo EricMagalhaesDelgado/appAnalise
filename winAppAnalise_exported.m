@@ -648,12 +648,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 % 5/7: Torna visível o container do auxApp.popupContainer, forçando
                 %      a exclusão do SplashScreen.
-                app.TabGroup.Visible = 1;
-                app.popupContainer.Visible = 1;                
                 if isvalid(app.SplashScreen)
                     pause(1)
                     delete(app.SplashScreen)
                 end
+                app.popupContainer.Visible = 1;
             end
         end
 
