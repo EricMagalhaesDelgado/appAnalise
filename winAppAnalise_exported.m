@@ -2096,14 +2096,25 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             idx = app.play_PlotPanel.UserData.NodeData;
 
             NN = numel(newEmissionIndex);
-            emissionUserData = repmat(class.userData.emissionUserDataTemplate(), NN, 1);
-            
-            app.specData(idxThread).UserData.Emissions(end+1:end+NN,1:6) = table(newEmissionIndex,     ...
-                                                                                 newEmissionFrequency, ...
-                                                                                 newEmissionBW,        ...
-                                                                                 true(NN, 1),          ...
-                                                                                 newEmissionMethod,    ...
-                                                                                 emissionUserData);
+            emissionUserData = class.userData.emissionUserDataTemplate();
+
+            for ii = 1:NN
+                idxEmission = height(app.specData(idxThread).UserData.Emissions) + 1;
+                app.specData(idxThread).UserData.Emissions(idxEmission,:) = table(newEmissionIndex(ii),     ...
+                                                                                  newEmissionFrequency(ii), ...
+                                                                                  newEmissionBW(ii),        ...
+                                                                                  true,                     ...
+                                                                                  newEmissionMethod(ii),    ...
+                                                                                  emissionUserData);
+                
+                userDescription = '';
+                try
+                    emissionMethod  = jsondecode(newEmissionMethod{ii});
+                    userDescription = emissionMethod.Description;
+                catch
+                end
+                app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description = userDescription;
+            end
 
             play_BandLimits_updateEmissions(app, idxThread, newEmissionIndex, idx==idxThread)
             play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')

@@ -27,13 +27,18 @@ function [infoTable, countTable] = Summary(peaksTable, exceptionList)
 
         % Itera em relação à lista de emissões, buscando aquelas que foram
         % incluídas por arquivo.
-        fileDetectionIndex = find(contains(countTable.Detection, '"Algorithm":"ExternalFile"'))';
         for ii = 1:height(countTable)
             fileDetectionInfo = jsondecode(countTable.Detection{ii});
 
             if isfield(fileDetectionInfo, 'Description')
+                % Outra camada de segurança...
+                userDescription = fileDetectionInfo.Description;
+                if iscellstr(userDescription) || (isstring(userDescription) && ~isscalar(userDescription))
+                    userDescription = strjoin(userDescription);
+                end
+
                 countTable.Detection{ii}   = jsonencode(rmfield(fileDetectionInfo, 'Description'));
-                countTable.Description{ii} = sprintf('%s (%s)', countTable.Description{ii}, strjoin(fileDetectionInfo.Description, ' ')); 
+                countTable.Description{ii} = sprintf('%s (%s)', countTable.Description{ii}, userDescription);
             end
         end
 
