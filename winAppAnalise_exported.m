@@ -473,7 +473,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     play_FindPeaks_delEmission(app)
                 case 'app.report_Tree'
                     report_ContextMenu_delSelected(app)
-                case 'credentialDialog'
+                case 'customForm'
                     fiscalizaLibConnection.report_Connect(app, event.HTMLEventData, 'OpenConnection')
                 case 'BackgroundColorTurnedInvisible'
                     switch event.HTMLEventData
