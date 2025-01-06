@@ -5530,7 +5530,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                             if ~isempty(app.specData(idxThreads).UserData.reportOCC)
                                 app.specData(idxThreads).UserData.reportOCC = [];
-                                class.userData.reportProperties_DefaultValues(app, idxThreads)
+                                class.userData.reportProperties_DefaultValues(app.specData, idxThreads, app)
                             end
                         end
     
