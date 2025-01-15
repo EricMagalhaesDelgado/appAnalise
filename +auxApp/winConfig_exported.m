@@ -469,8 +469,8 @@ classdef winConfig_exported < matlab.apps.AppBase
                 end
 
                 while true
-                    status = system(sprintf('rename "%s" "%s"', fullfile(app.rootFolder, 'DataBase', 'RFDataHub.mat'), 'RFDataHub_old.mat'));
-                    if ~status
+                    status = movefile(fullfile(app.rootFolder, 'DataBase', 'RFDataHub.mat'), fullfile(app.rootFolder, 'DataBase', 'RFDataHub_old.mat'), 'f');
+                    if status
                         break
                     end
                     pause(.1)

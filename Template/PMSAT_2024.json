@@ -342,7 +342,7 @@
                                         },
                                         {
                                             "Editable": "false",
-                                            "ColumnName": "FCO<br>(%)",
+                                            "ColumnName": "FCO médio<br>no tempo (%)",
                                             "Precision": "%.1f",
                                             "Width": "70px"
                                         },
