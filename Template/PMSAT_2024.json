@@ -80,14 +80,14 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "A Agência captura dados de monitoração por meio de receptores e analisadores de espectro, armazenando-os em arquivos de diferentes formatos, como CRFS BIN, Argus CSV e appColeta BIN. O pós-processamento desses dados engloba a aferição da ocupação por <i>bin</i> ou canal, a detecção de emissões e a geração de representações gráficas."
+                        "Text": "A Agência captura dados de monitoração por meio de receptores e analisadores de espectro, armazenando-os em arquivos de diferentes formatos, como CRFS BIN, Argus CSV e appColeta BIN. O pós-processamento desses dados engloba a aferição da ocupação por faixa, canal ou ponto de frequência, a detecção de emissões e a geração de representações gráficas."
                     }
                 },
                 {
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "A ocupação é aferida para cada um dos canais sob análise, utilizando métricas complementares — Frequency Channel Occupancy (FCO) e Frequency Band Occupancy (FBO) —, o que possibilita identificar não apenas se um canal está ocupado ao longo do tempo, mas também quanto deste canal está ocupado."
+                        "Text": "A ocupação é aferida para cada um dos canais sob análise, utilizando métricas complementares — Frequency Channel Occupancy (FCO) e Frequency Band Occupancy (FBO) —, o que possibilita identificar não apenas se um canal está ocupado ao longo do tempo, mas também o grau de ocupação desse canal. Além disso, a FCO é calculada para o ponto de frequência correspondente à frequência central de cada uma das emissões detectadas na análise."
                     }
                 },
                 {
@@ -215,7 +215,7 @@
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Frequência<br>(MHz)",
+                                "ColumnName": "Frequência<br>central (MHz)",
                                 "Precision": "%.3f",
                                 "Width": "70px"
                             },
@@ -269,7 +269,7 @@
                             }
                         ],
                         "LineBreak": 0,
-                        "Intro": "{\"Type\":\"Paragraph\",\"Text\":\"Na tabela apresentada a seguir constam informações dos canais sob análise. Para os canais nos quais foram identificadas emissões, são exibidas representações gráficas específicas, destacando as emissões e suas especificidades, como a frequência central e a ocupação por <i>bin</i>.\"}",
+                        "Intro": "{\"Type\":\"Paragraph\",\"Text\":\"Na tabela apresentada a seguir constam informações dos canais sob análise. Para os canais nos quais foram identificadas emissões, são exibidas representações gráficas específicas, destacando as emissões e suas especificidades, como a frequência central e a ocupação por ponto de frequência.\"}",
                         "Error": "{\"Type\":\"Paragraph\",\"Text\":\"Como a faixa de frequência sob análise não está relacionada a uma canalização, a análise orientada a canais resta prejudicada.\"}"
                     }
                 },
@@ -330,7 +330,7 @@
                                         },
                                         {
                                             "Editable": "false",
-                                            "ColumnName": "Frequência<br>(MHz)",
+                                            "ColumnName": "Frequência<br>central (MHz)",
                                             "Precision": "%.3f",
                                             "Width": "70px"
                                         },
@@ -342,7 +342,7 @@
                                         },
                                         {
                                             "Editable": "false",
-                                            "ColumnName": "FCO médio<br>no tempo (%)",
+                                            "ColumnName": "FCO ponto<br>central (%)",
                                             "Precision": "%.1f",
                                             "Width": "70px"
                                         },
