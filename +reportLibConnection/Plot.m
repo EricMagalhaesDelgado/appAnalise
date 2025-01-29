@@ -292,6 +292,7 @@ classdef (Abstract) Plot
                 plotMode    = specData.UserData.Emissions.UserData(idxEmission).DriveTest.plotType;
                 plotSize    = specData.UserData.Emissions.UserData(idxEmission).DriveTest.plotSize;
                 Basemap     = specData.UserData.Emissions.UserData(idxEmission).DriveTest.Basemap;
+                Colormap    = specData.UserData.Emissions.UserData(idxEmission).DriveTest.Colormap;
     
                 switch Source
                     case {'Raw', 'Filtered'}
@@ -303,6 +304,7 @@ classdef (Abstract) Plot
                 if ~strcmp(hAxes.Basemap, Basemap)
                     hAxes.Basemap = Basemap;
                 end
+                colormap(hAxes, Colormap)
     
                 plot.DriveTest.DistortionAndDensityPlot(hAxes, tempBandObj, srcTable, plotMode, plotSize)
                 plot.axes.StackingOrder.execute(hAxes, 'appAnalise:DRIVETEST')
