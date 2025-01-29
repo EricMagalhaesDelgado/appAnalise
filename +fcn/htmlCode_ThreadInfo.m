@@ -32,7 +32,7 @@ function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
         end
 
         % Metadados:
-        dataStruct(end+1) = struct('group', 'METADADOS', 'value', rmfield(specData.MetaData, {'DataType', 'FreqStart', 'FreqStop'}));        
+        dataStruct(end+1) = struct('group', 'METADADOS', 'value', rmfield(specData.MetaData, {'DataType'}));        
         if specData.MetaData.Resolution ~= -1
             dataStruct(end).value.Resolution = sprintf('%.1f kHz', dataStruct(end).value.Resolution/1000);
         end

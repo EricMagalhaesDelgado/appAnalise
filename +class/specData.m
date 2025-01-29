@@ -232,7 +232,7 @@ classdef specData < handle
                     obj(idxThreads(1)).GPS = rmfield(fcn.gpsSummary(relatedFiles.GPS), 'Matrix');
                     obj(idxThreads(1)).RelatedFiles = relatedFiles;
 
-                case 'adjacent-channel'
+                case {'adjacent-channel', 'gap-adjacent-channel'}
                     stepWidthRef = mode(mergeTable.StepWidth);
                     [nSweepsRef, nSweepsRefIndex] = min(mergeTable.nSweeps);
 
@@ -246,7 +246,7 @@ classdef specData < handle
                         xq = linspace(mergeTable.FreqStart(ii), mergeTable.FreqStop(ii), newDataPoints);
 
                         if ii > 1
-                            if mergeTable.FreqStart(ii) < mergeTable.FreqStop(ii-1)
+                            if (mergeTable.FreqStart(ii) ~= mergeTable.FreqStop(ii-1)) && ~isequal(unique(mergeTable.FreqStart(2:end)-mergeTable.FreqStop(1:end-1)), unique(mergeTable.StepWidth))
                                 newFreqStart = mergeTable.FreqStop(ii-1);
                                 newDataPoints = round((mergeTable.FreqStop(ii) - newFreqStart)/stepWidthRef + 1);
     
@@ -260,14 +260,15 @@ classdef specData < handle
                             newDataMatrix = zeros(newDataPoints, nSweepsRef, 'single');
 
                             for jj = 1:nSweepsRef
-                                newDataMatrix(:,jj) = interp1(x, obj(idxThreads(ii)).Data{2}(:, jj), xq);
+                                refMinValue = min(obj(idxThreads(ii)).Data{2}(:, jj));
+                                newDataMatrix(:,jj) = interp1(x, obj(idxThreads(ii)).Data{2}(:, jj), xq, "linear", refMinValue);
                             end
                         end
 
                         % Elimina o primeiro bin do conjunto de dados atual 
                         % pois ele coincide com o último do conjunto de dados 
                         % anterior.
-                        if ii > 1
+                        if strcmp(mergeType, 'adjacent-channel') && (ii > 1)
                             newDataMatrix = newDataMatrix(2:end,:);
                         end
 
@@ -603,9 +604,13 @@ classdef specData < handle
                isscalar(unique(mergeTable.DataPoints))
                 mergeType = 'co-channel';
 
-            elseif issorted(mergeTable.FreqStart, "strictascend")                                             && ...
+            elseif issorted(mergeTable.FreqStart, "strictascend") && ...
                all(mergeTable.FreqStart(2:height(mergeTable)) <= mergeTable.FreqStop(1:height(mergeTable)-1))
                 mergeType = 'adjacent-channel';
+            
+            elseif issorted(mergeTable.FreqStart, "strictascend") && ...
+                   issorted(mergeTable.FreqStop,  "strictascend")
+                mergeType = 'gap-adjacent-channel';
             
             else
                 error(ErrorMessage(obj, 'merge'))

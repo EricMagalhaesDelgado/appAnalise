@@ -38,10 +38,7 @@ function specData = CellPlanDBM(fileName, ReadType, metaData)
     end
 
     rawData = fread(fileID2, [1, inf], 'uint8=>uint8');
-    fclose(fileID2);    
-    
-  % fileFormat = char(rawData(2:rawData(1)+1));                             % 'CellSpec dll v. 1001'
-    rawData(1:rawData(1)+1) = [];    
+    fclose(fileID2);
 
     switch ReadType
         case {'MetaData', 'SingleFile'}
@@ -116,22 +113,35 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
         metaBlockArray = rawData(metaIndex1:metaIndex2);
         specBlockArray = rawData(specIndex1:specIndex2);
 
-        % Metadados do bloco:
-        FreqCenter = typecast(metaBlockArray(17:24), 'double');
-        FreqSpan   = typecast(metaBlockArray(33:40), 'double')*1e+6;
+        % Lista completa de metadados incluídos no bloco:
+      % NumberOfBlocksInFile    = typecast(metaBlockArray( 1: 4), 'int32');
+        DataPoints              = double(typecast(metaBlockArray( 5: 8), 'int32'));
+      % ext_NoiseLevelOffset    = typecast(metaBlockArray( 9:16), 'double');
+        ext_freq_Hz             = typecast(metaBlockArray(17:24), 'double');
+      % ext_ReducedFreqSpan_MHz = typecast(metaBlockArray(25:32), 'double');
+      % ext_FullFreqSpan_MHz    = typecast(metaBlockArray(33:40), 'double');
+        ext_ResBw_Hz            = typecast(metaBlockArray(41:48), 'double') * 1000;
+      % ext_Decimation          = typecast(metaBlockArray(49:52), 'int32');
+      % ext_SamplesPerPacket    = typecast(metaBlockArray(53:56), 'int32');
+      % ext_PacketsPerBlock     = typecast(metaBlockArray(57:60), 'int32');
+      % ext_ppm                 = typecast(metaBlockArray(61:68), 'double');
+      % ext_NominalGain         = typecast(metaBlockArray(69:72), 'int32');
+      % RecordSize              = typecast(metaBlockArray(73:76), 'int32');
+      % Buffer_nElems           = typecast(metaBlockArray(77:80), 'int32');
 
-        metaDataInfo.FreqStart  = FreqCenter - FreqSpan/2;
-        metaDataInfo.FreqStop   = FreqCenter + FreqSpan/2;
-        metaDataInfo.DataPoints = double(typecast(metaBlockArray(5:8), 'int32'));
-        metaDataInfo.Resolution = typecast(metaBlockArray(41:48), 'double')*1e+3;
+        % Lista calculada de metadados:
+        % (formulação passada por email pela CellPlan)
+        metaDataInfo.FreqStart  = ext_freq_Hz - ext_ResBw_Hz * DataPoints/2;
+        metaDataInfo.FreqStop   = ext_freq_Hz + ext_ResBw_Hz * (DataPoints/2 - 1);
+        metaDataInfo.DataPoints = DataPoints;
+        metaDataInfo.Resolution = ext_ResBw_Hz;
 
+        % Mapeamento da leitura dos dados de espectro, além de identificação
+        % do fluxo de GPS.
         [specData, idx] = checkNewBlock(specData, metaDataInfo, specIndex1, specIndex2);
-
-        % GPS e mapeamento da leitura dos dados de espectro:
         if idx == 1
             gpsData = Read_GPSInfo(gpsData, specBlockArray);
-        end
-        
+        end        
     end
 
     % GPS
@@ -140,11 +150,34 @@ function specData = Fcn_MetaDataReader(rawData, fileName)
     end
     gpsData = fcn.gpsSummary({gpsData});
 
+    % Confirma que se tratam de fluxos diferentes, ou apenas um único fluxo
+    % que a CellPlan dividiu em diversos blocos por extrapolar o limite de
+    % 40 ou 100 MHz.
+    if ~isscalar(specData)
+        FreqStartArray  = arrayfun(@(x) x.MetaData.FreqStart,  specData);
+        FreqStopArray   = arrayfun(@(x) x.MetaData.FreqStop,   specData);
+        DataPointsArray = arrayfun(@(x) x.MetaData.DataPoints, specData);
+        StepWidthArray  = (FreqStopArray - FreqStartArray) ./ (DataPointsArray - 1);
+        nSweepsArray    = arrayfun(@(x) height(x.FileMap{1}), specData);
+
+        if isscalar(unique(nSweepsArray)) && ...
+                isequal(unique(FreqStartArray(2:end) - FreqStopArray(1:end-1)), unique(StepWidthArray))
+
+            specData(1).MetaData.FreqStart  = min(FreqStartArray);
+            specData(1).MetaData.FreqStop   = max(FreqStopArray);
+            specData(1).MetaData.DataPoints = sum(DataPointsArray);
+            specData(1).FileMap             = arrayfun(@(x) x.FileMap{1}, specData, UniformOutput=false);
+            
+            delete(specData(2:end))
+            specData(2:end) = [];
+        end
+    end
+
     for jj = 1:numel(specData)
         specData(jj).Receiver = Receiver;
         specData(jj).GPS      = rmfield(gpsData, 'Matrix');
 
-        nSweeps = height(specData(jj).FileMap);
+        nSweeps = height(specData(jj).FileMap{1});
         [BeginTime, EndTime, RevisitTime] = Read_ObservationTime(specData(jj), rawData, nSweeps);
         specData(jj).RelatedFiles(1,:) = {[file ext], 'Undefined', ThreadID, 'Undefined', BeginTime, EndTime, nSweeps, RevisitTime, {gpsData}, char(matlab.lang.internal.uuid())};
     end
@@ -165,12 +198,12 @@ function [specData, idx] = checkNewBlock(specData, metaDataInfo, specIndex1, spe
 
     if idx > numel(specData)
         specData(idx).MetaData = metaDataInfo;
-        specData(idx).FileMap  = table('Size',          [0, 2],               ...
-                                       'VariableTypes', {'double', 'double'}, ...
-                                       'VariableNames', {'StartByte', 'StopByte'});
+        specData(idx).FileMap  = {table('Size',          [0, 2],               ...
+                                        'VariableTypes', {'double', 'double'}, ...
+                                        'VariableNames', {'StartByte', 'StopByte'})};
     end
 
-    specData(idx).FileMap(end+1,:) = {specIndex1, specIndex2};
+    specData(idx).FileMap{1}(end+1,:) = {specIndex1, specIndex2};
 end
 
 
@@ -180,15 +213,25 @@ function specData = Fcn_SpecDataReader(specData, rawData)
     for ii = 1:numel(specData)
         if specData(ii).Enable
             PreAllocationData(specData(ii))
-            nSweeps  = specData(ii).RelatedFiles.nSweeps;
+
+            nSweeps = specData(ii).RelatedFiles.nSweeps;
+            nBlocks = numel(specData(ii).FileMap);
             
             for jj = 1:nSweeps
-                specIndex1     = specData(ii).FileMap.StartByte(jj);
-                specIndex2     = specData(ii).FileMap.StopByte(jj);
-                specBlockArray = rawData(specIndex1:specIndex2);
-            
-                specData(ii).Data{1}(jj)   = Read_TimeStamp(specBlockArray);
-                specData(ii).Data{2}(:,jj) = (typecast(specBlockArray(25:end), 'single'))';
+                specMergedArray = [];
+
+                for kk = 1:nBlocks
+                    specIndex1      = specData(ii).FileMap{kk}.StartByte(jj);
+                    specIndex2      = specData(ii).FileMap{kk}.StopByte(jj);
+                    specBlockArray  = rawData(specIndex1:specIndex2);
+                    specMergedArray = [specMergedArray; (typecast(specBlockArray(25:end), 'single'))'];
+
+                    if kk == 1
+                        specData(ii).Data{1}(jj) = Read_TimeStamp(specBlockArray);
+                    end
+                end
+
+                specData(ii).Data{2}(:,jj) = specMergedArray;
             end
         end
     
@@ -227,8 +270,8 @@ end
 %-------------------------------------------------------------------------%
 function [BeginTime, EndTime, RevisitTime] = Read_ObservationTime(specData, rawData, nSweeps)
 
-    BeginTime = Read_TimeStamp(rawData(specData.FileMap.StartByte(1)  :specData.FileMap.StopByte(1)));
-    EndTime   = Read_TimeStamp(rawData(specData.FileMap.StartByte(end):specData.FileMap.StopByte(end)));
+    BeginTime = Read_TimeStamp(rawData(specData.FileMap{1}.StartByte(1)  :specData.FileMap{1}.StopByte(1)));
+    EndTime   = Read_TimeStamp(rawData(specData.FileMap{1}.StartByte(end):specData.FileMap{1}.StopByte(end)));
 
     BeginTime.Format = 'dd/MM/yyyy HH:mm:ss';
     EndTime.Format   = 'dd/MM/yyyy HH:mm:ss';
