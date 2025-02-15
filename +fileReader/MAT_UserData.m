@@ -35,16 +35,19 @@ function MAT_UserData(app, fileName)
 
             newFreq  = [];
             newBW    = [];
-            Method   = {};            
+            Method   = {};
+            UserData = struct('Description', {}, 'ChannelAssigned', {}, 'DriveTest', {});
+
             for jj = idx2'
-                newFreq  = [newFreq; Emissions.Frequency(jj)];
-                newBW    = [newBW;   Emissions.BW(jj)];
-                Method   = [Method;  Emissions.Detection(jj)];
+                newFreq  = [newFreq;  Emissions.Frequency(jj)];
+                newBW    = [newBW;    Emissions.BW(jj)];
+                Method   = [Method;   Emissions.Detection(jj)];
+                UserData = [UserData; Emissions.UserData(jj)];
             end
             newIndex = round((newFreq*1e+6 - bCoef) / aCoef);
             
             NN = numel(newIndex);
-            app.specData(ii).UserData.Emissions(end+1:end+NN,1:5) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), Method);
+            app.specData(ii).UserData.Emissions(end+1:end+NN,:) = table(newIndex, newFreq, newBW, true(numel(newIndex),1), Method, UserData);
 
             updatePlotFlag = false;
             if ii == idx1

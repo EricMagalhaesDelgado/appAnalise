@@ -1,6 +1,6 @@
 function gpsProperty(specData, idxThreads)
     arguments
-        specData   class.specData
+        specData   model.SpecData
         idxThreads (1,:) {mustBeVector}
     end
 

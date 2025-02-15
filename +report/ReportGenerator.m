@@ -206,7 +206,6 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThreads, idx, 
             htmlContent = [htmlContent, htmlTempContent];
     
         catch ME
-            struct2table(ME.stack)
             msgError = extractAfter(ME.message, 'Configuration file error message: ');
     
             if ~isempty(msgError)
@@ -438,6 +437,8 @@ end
 %-------------------------------------------------------------------------%
 function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, peaksTable, exceptionList, Recurrence, Children)    
     Origin = Children.Data.Origin;
+    Source = '';
+    
     if Origin == "Internal"
         Source = Children.Data.Source;
 
@@ -496,7 +497,13 @@ function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, p
         
                 case 'Summary'        
                     if ~isempty(peaksTable)
-                        Table = reportLibConnection.table.Summary(peaksTable, exceptionList);
+                        Table = reportLibConnection.table.Summary(peaksTable, exceptionList, 'TotalSummaryTable');
+                        Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
+                    end
+
+                case 'Irregular'
+                    if ~isempty(peaksTable)
+                        Table = reportLibConnection.table.Summary(peaksTable, exceptionList, 'IrregularTable');
                         Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
                     end
         

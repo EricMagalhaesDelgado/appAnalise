@@ -249,8 +249,8 @@ classdef ChannelLib < handle
     methods (Access = private)
         %-----------------------------------------------------------------%
         function Channels = ChannelList(obj, specData, truncatedType, Channels, idxEmission)
-            emission_downLim = specData.UserData.Emissions.Frequency(idxEmission) - specData.UserData.Emissions.BW(idxEmission)/2000;
-            emission_upLim   = specData.UserData.Emissions.Frequency(idxEmission) + specData.UserData.Emissions.BW(idxEmission)/2000;
+            emission_downLim = specData.UserData.Emissions.Frequency(idxEmission) - specData.UserData.Emissions.BW_kHz(idxEmission)/2000;
+            emission_upLim   = specData.UserData.Emissions.Frequency(idxEmission) + specData.UserData.Emissions.BW_kHz(idxEmission)/2000;
 
             switch truncatedType
                 case 'Lib'

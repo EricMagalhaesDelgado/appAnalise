@@ -22,8 +22,8 @@ classdef dockDetection_exported < matlab.apps.AppBase
         meanOCC                  matlab.ui.control.Spinner
         Prominence2              matlab.ui.control.Spinner
         Prominence2Label         matlab.ui.control.Label
-        BW                       matlab.ui.control.Spinner
-        BWLabel                  matlab.ui.control.Label
+        BW_kHz                   matlab.ui.control.Spinner
+        BW_kHzLabel              matlab.ui.control.Label
         Distance                 matlab.ui.control.Spinner
         DistanceLabel            matlab.ui.control.Label
         FindPeaksClass           matlab.ui.control.DropDown
@@ -65,13 +65,13 @@ classdef dockDetection_exported < matlab.apps.AppBase
                     app.NPeaks.Value         = app.specData(idxThread).UserData.reportDetection.Parameters.NPeaks;
                     app.THR.Value            = app.specData(idxThread).UserData.reportDetection.Parameters.THR;
                     app.Prominence.Value     = app.specData(idxThread).UserData.reportDetection.Parameters.Prominence;
-                    app.Distance.Value       = app.specData(idxThread).UserData.reportDetection.Parameters.Distance;
-                    app.BW.Value             = app.specData(idxThread).UserData.reportDetection.Parameters.BW;
+                    app.Distance.Value       = app.specData(idxThread).UserData.reportDetection.Parameters.Distance_kHz;
+                    app.BW_kHz.Value         = app.specData(idxThread).UserData.reportDetection.Parameters.BW_kHz;
 
                 case 'FindPeaks+OCC'
                     set(app.FindPeaksClass, 'Items', [{''}; app.channelObj.FindPeaks.Name], 'Value', '')
-                    app.Distance.Value       = app.specData(idxThread).UserData.reportDetection.Parameters.Distance;
-                    app.BW.Value             = app.specData(idxThread).UserData.reportDetection.Parameters.BW;
+                    app.Distance.Value       = app.specData(idxThread).UserData.reportDetection.Parameters.Distance_kHz;
+                    app.BW_kHz.Value         = app.specData(idxThread).UserData.reportDetection.Parameters.BW_kHz;
                     app.Prominence1.Value    = app.specData(idxThread).UserData.reportDetection.Parameters.Prominence1;
                     app.Prominence2.Value    = app.specData(idxThread).UserData.reportDetection.Parameters.Prominence2;
                     app.meanOCC.Value        = app.specData(idxThread).UserData.reportDetection.Parameters.meanOCC;
@@ -111,22 +111,22 @@ classdef dockDetection_exported < matlab.apps.AppBase
             else
                 switch app.Algorithm.Value
                     case 'FindPeaks'
-                        if ~isequal(app.Trace.Value,       app.specData(idxThread).UserData.reportDetection.Parameters.Fcn)        || ...
-                           ~isequal(app.NPeaks.Value,      app.specData(idxThread).UserData.reportDetection.Parameters.NPeaks)     || ...
-                           ~isequal(app.THR.Value,         app.specData(idxThread).UserData.reportDetection.Parameters.THR)        || ...
-                           ~isequal(app.Prominence.Value,  app.specData(idxThread).UserData.reportDetection.Parameters.Prominence) || ...
-                           ~isequal(app.Distance.Value,    app.specData(idxThread).UserData.reportDetection.Parameters.Distance)   || ...
-                           ~isequal(app.BW.Value,          app.specData(idxThread).UserData.reportDetection.Parameters.BW)
+                        if ~isequal(app.Trace.Value,       app.specData(idxThread).UserData.reportDetection.Parameters.Fcn)          || ...
+                           ~isequal(app.NPeaks.Value,      app.specData(idxThread).UserData.reportDetection.Parameters.NPeaks)       || ...
+                           ~isequal(app.THR.Value,         app.specData(idxThread).UserData.reportDetection.Parameters.THR)          || ...
+                           ~isequal(app.Prominence.Value,  app.specData(idxThread).UserData.reportDetection.Parameters.Prominence)   || ...
+                           ~isequal(app.Distance.Value,    app.specData(idxThread).UserData.reportDetection.Parameters.Distance_kHz) || ...
+                           ~isequal(app.BW_kHz.Value,      app.specData(idxThread).UserData.reportDetection.Parameters.BW_kHz)
                             
                             editionFlag = true;
                         end
 
                     case 'FindPeaks+OCC'
-                        if ~isequal(app.Distance.Value,    app.specData(idxThread).UserData.reportDetection.Parameters.Distance)    || ...
-                           ~isequal(app.BW.Value,          app.specData(idxThread).UserData.reportDetection.Parameters.BW)          || ...
-                           ~isequal(app.Prominence1.Value, app.specData(idxThread).UserData.reportDetection.Parameters.Prominence1) || ...
-                           ~isequal(app.Prominence2.Value, app.specData(idxThread).UserData.reportDetection.Parameters.Prominence2) || ...
-                           ~isequal(app.meanOCC.Value,     app.specData(idxThread).UserData.reportDetection.Parameters.meanOCC)     || ...
+                        if ~isequal(app.Distance.Value,    app.specData(idxThread).UserData.reportDetection.Parameters.Distance_kHz) || ...
+                           ~isequal(app.BW_kHz.Value,      app.specData(idxThread).UserData.reportDetection.Parameters.BW_kHz)       || ...
+                           ~isequal(app.Prominence1.Value, app.specData(idxThread).UserData.reportDetection.Parameters.Prominence1)  || ...
+                           ~isequal(app.Prominence2.Value, app.specData(idxThread).UserData.reportDetection.Parameters.Prominence2)  || ...
+                           ~isequal(app.meanOCC.Value,     app.specData(idxThread).UserData.reportDetection.Parameters.meanOCC)      || ...
                            ~isequal(app.maxOCC.Value,      app.specData(idxThread).UserData.reportDetection.Parameters.maxOCC)
                             
                             editionFlag = true;
@@ -179,7 +179,7 @@ classdef dockDetection_exported < matlab.apps.AppBase
 
                 if idxFindPeaks    
                     app.Distance.Value    = 1000 * app.channelObj.FindPeaks.Distance(idxFindPeaks);
-                    app.BW.Value          = 1000 * app.channelObj.FindPeaks.BW(idxFindPeaks);
+                    app.BW_kHz.Value      = 1000 * app.channelObj.FindPeaks.BW(idxFindPeaks);
                     app.Prominence1.Value = app.channelObj.FindPeaks.Prominence1(idxFindPeaks);
                     app.Prominence2.Value = app.channelObj.FindPeaks.Prominence2(idxFindPeaks);
                     app.meanOCC.Value     = app.channelObj.FindPeaks.meanOCC(idxFindPeaks);
@@ -208,7 +208,7 @@ classdef dockDetection_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: BW, Distance, NPeaks, Prominence, 
+        % Value changed function: BW_kHz, Distance, NPeaks, Prominence, 
         % ...and 4 other components
         function ParameterValueChanged(app, event)
             
@@ -231,19 +231,19 @@ classdef dockDetection_exported < matlab.apps.AppBase
                     app.specData(idxThread).UserData.reportDetection.Algorithm = app.Algorithm.Value;
                     switch app.Algorithm.Value
                         case 'FindPeaks'
-                            app.specData(idxThread).UserData.reportDetection.Parameters = struct('Fcn',        app.Trace.Value,        ...
-                                                                                                 'NPeaks',     app.NPeaks.Value,       ...
-                                                                                                 'THR',        app.THR.Value,          ...
-                                                                                                 'Prominence', app.Prominence.Value,   ...
-                                                                                                 'Distance',   app.Distance.Value,     ...
-                                                                                                 'BW',         app.BW.Value);
+                            app.specData(idxThread).UserData.reportDetection.Parameters = struct('Fcn',          app.Trace.Value,       ...
+                                                                                                 'NPeaks',       app.NPeaks.Value,      ...
+                                                                                                 'THR',          app.THR.Value,         ...
+                                                                                                 'Prominence',   app.Prominence.Value,  ...
+                                                                                                 'Distance_kHz', app.Distance.Value,    ...
+                                                                                                 'BW_kHz',       app.BW_kHz.Value);
                         case 'FindPeaks+OCC'
-                            app.specData(idxThread).UserData.reportDetection.Parameters = struct('Distance',    app.Distance.Value,    ...
-                                                                                                 'BW',          app.BW.Value,          ...
-                                                                                                 'Prominence1', app.Prominence1.Value, ...
-                                                                                                 'Prominence2', app.Prominence2.Value, ...
-                                                                                                 'meanOCC',     app.meanOCC.Value,     ...
-                                                                                                 'maxOCC',      app.maxOCC.Value);
+                            app.specData(idxThread).UserData.reportDetection.Parameters = struct('Distance_kHz', app.Distance.Value,    ...
+                                                                                                 'BW_kHz',       app.BW_kHz.Value,      ...
+                                                                                                 'Prominence1',  app.Prominence1.Value, ...
+                                                                                                 'Prominence2',  app.Prominence2.Value, ...
+                                                                                                 'meanOCC',      app.meanOCC.Value,     ...
+                                                                                                 'maxOCC',       app.maxOCC.Value);
                     end
 
                     updateFlag = true;
@@ -448,26 +448,26 @@ classdef dockDetection_exported < matlab.apps.AppBase
             app.Distance.Layout.Column = 2;
             app.Distance.Value = 25;
 
-            % Create BWLabel
-            app.BWLabel = uilabel(app.ParametersGrid);
-            app.BWLabel.VerticalAlignment = 'bottom';
-            app.BWLabel.WordWrap = 'on';
-            app.BWLabel.FontSize = 10;
-            app.BWLabel.Layout.Row = 3;
-            app.BWLabel.Layout.Column = 3;
-            app.BWLabel.Text = {'Largura ocupada '; '(kHz):'};
+            % Create BW_kHzLabel
+            app.BW_kHzLabel = uilabel(app.ParametersGrid);
+            app.BW_kHzLabel.VerticalAlignment = 'bottom';
+            app.BW_kHzLabel.WordWrap = 'on';
+            app.BW_kHzLabel.FontSize = 10;
+            app.BW_kHzLabel.Layout.Row = 3;
+            app.BW_kHzLabel.Layout.Column = 3;
+            app.BW_kHzLabel.Text = {'Largura ocupada '; '(kHz):'};
 
-            % Create BW
-            app.BW = uispinner(app.ParametersGrid);
-            app.BW.Step = 10;
-            app.BW.Limits = [0 Inf];
-            app.BW.RoundFractionalValues = 'on';
-            app.BW.ValueDisplayFormat = '%.0f';
-            app.BW.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
-            app.BW.FontSize = 10;
-            app.BW.Layout.Row = 4;
-            app.BW.Layout.Column = 3;
-            app.BW.Value = 10;
+            % Create BW_kHz
+            app.BW_kHz = uispinner(app.ParametersGrid);
+            app.BW_kHz.Step = 10;
+            app.BW_kHz.Limits = [0 Inf];
+            app.BW_kHz.RoundFractionalValues = 'on';
+            app.BW_kHz.ValueDisplayFormat = '%.0f';
+            app.BW_kHz.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.BW_kHz.FontSize = 10;
+            app.BW_kHz.Layout.Row = 4;
+            app.BW_kHz.Layout.Column = 3;
+            app.BW_kHz.Value = 10;
 
             % Create MaxHoldPanel
             app.MaxHoldPanel = uipanel(app.ParametersGrid);

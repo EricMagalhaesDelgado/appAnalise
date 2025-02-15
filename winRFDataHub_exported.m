@@ -186,7 +186,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         progressDialog
 
         % Propriedades do app.
-        specData = class.specData.empty
+        specData = model.SpecData.empty
 
         %-----------------------------------------------------------------%
         % ESPECIFICIDADES AUXAPP.WINDRIVETEST

@@ -1,4 +1,4 @@
-function Peaks = Classification(app, SpecInfo, idxThread, Peaks)
+function Peaks = Classification(app, specData, idxThread, Peaks)
 
     % Trata-se de algoritmo de classificação de emissões, comparando-as com a base 
     % *anatelDB*.
@@ -10,10 +10,10 @@ function Peaks = Classification(app, SpecInfo, idxThread, Peaks)
     % a sua classificação.
     Peaks.Truncated(:) = single(-1);
     for ii = 1:height(Peaks)
-        if SpecInfo(idxThread).UserData.Emissions.isTruncated(ii)
-            Peaks.Truncated(ii) = TruncatedFrequency(app.channelObj, SpecInfo(idxThread), ii);
+        if specData(idxThread).UserData.Emissions.isTruncated(ii)
+            Peaks.Truncated(ii) = TruncatedFrequency(app.channelObj, specData(idxThread), ii);
         else
-            Peaks.Truncated(ii) = SpecInfo(idxThread).UserData.Emissions.Frequency(ii);
+            Peaks.Truncated(ii) = specData(idxThread).UserData.Emissions.Frequency(ii);
         end
     end
 
@@ -21,33 +21,37 @@ function Peaks = Classification(app, SpecInfo, idxThread, Peaks)
     % Informações relacionadas à frequência central das emissões. Ou seja,
     % o nível mínimo ou máximo, por exemplo, não se refere à EMISSÃO ou ao
     % CANAL, mas ao BIN da emissão que corresponde à sua frequência central.
-    Peaks.minLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).Data{3}(Peaks.Index,1)),                             'UniformOutput', false);
-    Peaks.meanLevel = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).Data{3}(Peaks.Index,2)),                             'UniformOutput', false);
-    Peaks.maxLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).Data{3}(Peaks.Index,3)),                             'UniformOutput', false);
 
-    occIndex = SpecInfo(idxThread).UserData.occMethod.CacheIndex;
-    Peaks.meanOCC   = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).UserData.occCache(occIndex).Data{3}(Peaks.Index,2)), 'UniformOutput', false);
-    Peaks.maxOCC    = cellfun(@(x) sprintf('%.1f', x), num2cell(SpecInfo(idxThread).UserData.occCache(occIndex).Data{3}(Peaks.Index,3)), 'UniformOutput', false);
+    % MIGRAR FORMULAÇÕES P/ +RF
+
+
+    Peaks.minLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(specData(idxThread).Data{3}(Peaks.idxFrequency,1)),                             'UniformOutput', false);
+    Peaks.meanLevel = cellfun(@(x) sprintf('%.1f', x), num2cell(specData(idxThread).Data{3}(Peaks.idxFrequency,2)),                             'UniformOutput', false);
+    Peaks.maxLevel  = cellfun(@(x) sprintf('%.1f', x), num2cell(specData(idxThread).Data{3}(Peaks.idxFrequency,3)),                             'UniformOutput', false);
+
+    occIndex = specData(idxThread).UserData.occMethod.CacheIndex;
+    Peaks.meanOCC   = cellfun(@(x) sprintf('%.1f', x), num2cell(specData(idxThread).UserData.occCache(occIndex).Data{3}(Peaks.idxFrequency,2)), 'UniformOutput', false);
+    Peaks.maxOCC    = cellfun(@(x) sprintf('%.1f', x), num2cell(specData(idxThread).UserData.occCache(occIndex).Data{3}(Peaks.idxFrequency,3)), 'UniformOutput', false);
     
 
     % Valores iniciais da classificação de cada emissão...
-    Peaks.Type(:)           = {'Pendente identificação'};
-    Peaks.Regulatory(:)     = {'Não licenciada'};
-    Peaks.Service(:)        = int16(-1);
-    Peaks.Station(:)        = int32(-1);
-    Peaks.Description(:)    = {'-'};
-    Peaks.Distance(:)       = {'-'};
-    Peaks.Irregular(:)      = {'Sim'};
-    Peaks.RiskLevel(:)      = {'Baixo'};
-    Peaks.occMethod(:)      = {jsonencode(SpecInfo(idxThread).UserData.reportOCC)};
-    Peaks.Classification(:) = {jsonencode(SpecInfo(idxThread).UserData.reportClassification)};
+    Peaks.Type(:)            = {'Pendente identificação'};
+    Peaks.Regulatory(:)      = {'Não licenciada'};
+    Peaks.Service(:)         = int16(-1);
+    Peaks.Station(:)         = int32(-1);
+    Peaks.Description(:)     = {'-'};
+    Peaks.Distance(:)        = {'-'};
+    Peaks.Irregular(:)       = {'Sim'};
+    Peaks.RiskLevel(:)       = {'Baixo'};
+    Peaks.occMethod(:)       = {jsonencode(specData(idxThread).UserData.reportOCC)};
+    Peaks.Classification(:)  = {jsonencode(specData(idxThread).UserData.reportClassification)};
 
 
     % Organização da tabela, de forma que fique idêntica à app.peaksTable.
     % peaksTable    = table('Size', [0, 23],                                                                                                                                                                                                         ...
     %                       'VariableTypes', {'cell', 'single', 'single', 'uint16', 'double', 'single', 'double', 'cell', 'cell', 'cell', 'cell', 'cell', 'cell', 'cell', 'int16', 'int32', 'cell', 'cell', 'cell', 'cell', 'cell', 'cell', 'cell'}, ...
     %                       'VariableNames', {'Tag', 'Latitude', 'Longitude', 'Index', 'Frequency', 'Truncated', 'BW', 'minLevel', 'meanLevel', 'maxLevel', 'meanOCC', 'maxOCC', 'Type', 'Regulatory', 'Service', 'Station', 'Description', 'Distance', 'Irregular', 'RiskLevel', 'occMethod', 'Detection', 'Classification'});
-    Peaks = Peaks(:,[1:5, 9, 6, 10:22, 23, 8, 24]);
+    Peaks = Peaks(:, [1:5, 10, 6, 11:23, 9, 24, 8, 25]);
     Peaks = sortrows(Peaks, {'Tag', 'Frequency'});
 
 
@@ -56,10 +60,10 @@ function Peaks = Classification(app, SpecInfo, idxThread, Peaks)
     %     dados sob análise.
     % (b) Parâmetros relacionados ao algoritmo de classificação
     %     implementado - "Contour", "ClassMultiplier" e "bwFactors".
-    findPeaks       = FindPeaksOfPrimaryBand(app.channelObj, SpecInfo(idxThread)); 
-    RuralContour    = SpecInfo(idxThread).UserData.reportClassification.Parameters.Contour;
-    classMultiplier = SpecInfo(idxThread).UserData.reportClassification.Parameters.ClassMultiplier;
-    bwFactors       = SpecInfo(idxThread).UserData.reportClassification.Parameters.bwFactors / 100;
+    findPeaks       = FindPeaksOfPrimaryBand(app.channelObj, specData(idxThread)); 
+    RuralContour    = specData(idxThread).UserData.reportClassification.Parameters.Contour;
+    classMultiplier = specData(idxThread).UserData.reportClassification.Parameters.ClassMultiplier;
+    bwFactors       = specData(idxThread).UserData.reportClassification.Parameters.bwFactors / 100;
 
 
     % Classificação...        
@@ -77,7 +81,7 @@ function Peaks = Classification(app, SpecInfo, idxThread, Peaks)
             auxDistance = [];
             
             if ~isempty(idx2)
-                auxDistance = deg2km(distance(SpecInfo(idxThread).GPS.Latitude, SpecInfo(idxThread).GPS.Longitude, RFDataHub.Latitude(idx2), RFDataHub.Longitude(idx2)));
+                auxDistance = deg2km(distance(specData(idxThread).GPS.Latitude, specData(idxThread).GPS.Longitude, RFDataHub.Latitude(idx2), RFDataHub.Longitude(idx2)));
             end
 
             % Como referência de BW, usa-se a BW da própria emissão. Caso o

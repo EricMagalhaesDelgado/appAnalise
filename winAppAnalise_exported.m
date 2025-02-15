@@ -146,8 +146,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_FindPeaks_add              matlab.ui.control.Image
         play_FindPeaks_ParametersPanel  matlab.ui.container.Panel
         play_FindPeaks_ParametersGrid   matlab.ui.container.GridLayout
-        play_FindPeaks_Class            matlab.ui.control.DropDown
-        play_FindPeaks_ClassLabel       matlab.ui.control.Label
         play_FindPeaks_MaxHoldPanel     matlab.ui.container.Panel
         play_FindPeaks_MaxHoldGrid      matlab.ui.container.GridLayout
         play_FindPeaks_maxOCC           matlab.ui.control.Spinner
@@ -163,6 +161,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_FindPeaks_BWLabel          matlab.ui.control.Label
         play_FindPeaks_distance         matlab.ui.control.Spinner
         play_FindPeaks_distanceLabel    matlab.ui.control.Label
+        play_FindPeaks_Class            matlab.ui.control.DropDown
+        play_FindPeaks_ClassLabel       matlab.ui.control.Label
         play_FindPeaks_prominence       matlab.ui.control.Spinner
         play_FindPeaks_prominenceLabel  matlab.ui.control.Label
         play_FindPeaks_THR              matlab.ui.control.Spinner
@@ -330,9 +330,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         axesTool_MinHold                matlab.ui.control.Image
         play_PlotPanel                  matlab.ui.container.Panel
         play_TreeGrid                   matlab.ui.container.GridLayout
-        report_EditDetection            matlab.ui.control.Hyperlink
-        report_EditClassification       matlab.ui.control.Hyperlink
         report_DetectionManualMode      matlab.ui.control.CheckBox
+        report_EditClassification       matlab.ui.control.Hyperlink
+        report_EditDetection            matlab.ui.control.Hyperlink
         report_ThreadAlgorithmsPanel    matlab.ui.container.Panel
         report_ThreadAlgorithmsGrid     matlab.ui.container.GridLayout
         report_ThreadAlgorithms         matlab.ui.control.HTML
@@ -414,8 +414,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % PROPRIEDADES ESPECÍFICAS
         %-----------------------------------------------------------------%
-        metaData    = class.metaData.empty
-        specData    = class.specData.empty
+        metaData    = model.MetaData.empty
+        specData    = model.SpecData.empty
         projectData
 
         bandObj
@@ -878,7 +878,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
 
                     play_TreeSecundaryPanelVisibility(app)
-                    play_TreeSelectionChanged(app, struct('Source', 'menu_LayoutControl'))
+                    play_TreeSelectionChanged(app)
 
                 otherwise % DRIVETEST, SIGNALANALYSIS, RFDATAHUB, CONFIG
                     switch app.executionMode
@@ -1185,25 +1185,19 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
                 
                 try
-                    % Chama método público da classe "class.metaData".
-                    InitialFileReading(app.metaData(idx))
+                    app.metaData(idx).Data    = read(app.metaData(idx).Data, fileFullPath, 'MetaData');
+                    app.metaData(idx).Samples = sweepsPerThread(app.metaData(idx).Data);
+                    app.metaData(idx).Memory  = estimateMemory(app.metaData(idx).Data);
 
                 catch ME
                     appUtil.modalWindow(app.UIFigure, 'error', ME.message);
 
-                    % Se ocorre um erro no processo de leitura, e esse erro
-                    % não for um dos mapeados, o objeto app.metaData será reiniciado.
-                    switch ME.identifier
-                        case {'metaData:Read:NotImplementedReader', 'metaData:Read:UnexpectedFileFormat', 'metaData:Read:EmptySpectralData'}
-                            delete(app.metaData(idx))
-                            app.metaData(idx) = [];
+                    delete(app.metaData(idx))
+                    app.metaData(idx) = [];
+                    fclose('all');
 
-                        otherwise
-                            delete(app.metaData)
-                            app.metaData = class.metaData.empty;
-
-                            fclose all;
-                            break
+                    if ~isvalid(app.metaData)
+                        app.metaData = model.MetaData.empty;
                     end
                 end
             end
@@ -1232,8 +1226,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 for ii = 1:numel(app.metaData)
                     [~, fileName, fileExt] = fileparts(app.metaData(ii).File);
                     
-                    fileNode = uitreenode(app.file_Tree, 'Text',        [fileName fileExt],                         ...
-                                                         'NodeData',    struct('level', 1, 'idx1', ii, 'idx2', []), ...
+                    fileNode = uitreenode(app.file_Tree, 'Text',        [fileName fileExt],                                                     ...
+                                                         'NodeData',    struct('level', 1, 'idx1', ii, 'idx2', 1:numel(app.metaData(ii).Data)), ...
                                                          'ContextMenu', app.file_ContextMenu_Tree1);
 
                     receiverRawList = {app.metaData(ii).Data.Receiver};
@@ -1251,26 +1245,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                                             'Icon',        fcn.treeNodeIcon('Receiver', receiverList{jj}),              ...
                                                             'ContextMenu', app.file_ContextMenu_Tree1);                        
                         for kk = idx
-                            if ismember(app.metaData(ii).Data(kk).MetaData.DataType, class.Constants.specDataTypes)
-                                nodeTextNote = '';
-                                nodeIcon     = fcn.treeNodeIcon('DataType', 'SpectralData');
-
-                            elseif ismember(app.metaData(ii).Data(kk).MetaData.DataType, class.Constants.occDataTypes)
+                            nodeTextNote = '';
+                            if ismember(app.metaData(ii).Data(kk).MetaData.DataType, class.Constants.occDataTypes)
                                 nodeTextNote = ' (Ocupação)';
-                                nodeIcon     = fcn.treeNodeIcon('DataType', 'Occupancy');
-
-                            else
-                                error('winAppAnalise:UnexpectedDataType', 'Unexpeted data type %d', app.metaData(ii).Data(kk).MetaData.DataType)
                             end
 
                             dataNode = uitreenode(receiverNode, 'Text',        sprintf('ID %d: %.3f - %.3f MHz%s', app.metaData(ii).Data(kk).RelatedFiles.ID(1),                       ...
                                                                                                                    app.metaData(ii).Data(kk).MetaData.FreqStart .* 1e-6,               ...
                                                                                                                    app.metaData(ii).Data(kk).MetaData.FreqStop .* 1e-6, nodeTextNote), ...
                                                                 'NodeData',    struct('level', 3, 'idx1', ii, 'idx2', kk),                                                             ...
-                                                                'Icon',        nodeIcon,                                                                                               ...
                                                                 'ContextMenu', app.file_ContextMenu_Tree1);
                             if ~app.metaData(ii).Data(kk).Enable
-                                dataNode.Icon = '';
                                 filteredNodes = [filteredNodes, dataNode];
                             end
                         end
@@ -1291,6 +1276,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.file_FilteringType3_Description.Value = '';
                 
             end
+
             file_specReadButtonVisibility(app)
         end
 
@@ -1380,7 +1366,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function file_DataReaderError(app)
             if ~isempty(app.specData)
                 delete(app.specData)
-                app.specData = class.specData.empty;
+                app.specData = model.SpecData.empty;
             end
 
             set(findobj(app.menu_Grid, 'Type', 'uistatebutton'), 'Enable', 0)
@@ -1427,7 +1413,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
 
                     specNode = uitreenode(receiverNode, 'Text', specNodeText, ...
-                                                        'NodeData', jj);
+                                                        'NodeData', jj,       ...
+                                                        'Tag', 'BAND');
 
                     % TEMPO DE OBSERVAÇÃO
                     uitreenode(specNode, 'Text', sprintf('%s - %s', datestr(app.specData(jj).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), ...
@@ -1475,41 +1462,48 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
                 end
             end
-            play_TreeNodeStyle(app)
 
-            for ii = 1:numel(app.play_Tree.Children)
-                expand(app.play_Tree.Children(ii));
-            end
+            arrayfun(@(x) expand(x), app.play_Tree.Children)
         end
 
         %-----------------------------------------------------------------%
-        function play_TreeNodeStyle(app)
+        function play_changingTreeNodeStyleFromPlayback(app, idx)
             % specIndex..: índices dos fluxos de dados de espectro.
             % occIndex...: índices dos fluxos de dados de ocupação.
             % reportIndex: subconjunto de specIndex, representando os índices dos 
             %              fluxos de dados que serão analisados no modo "RELATÓRIO".
-        
+
             removeStyle(app.play_Tree)
-        
-            hTree1 = allchild(app.play_Tree);
-            hTree2 = [];
-            for ii = 1:numel(hTree1)
-                hTree2 = [hTree2; allchild(hTree1(ii))];
+
+            nodeTreeList      = findobj(app.play_Tree, 'Tag', 'BAND');
+            nodeDataTreeList  = [nodeTreeList.NodeData];
+            [~, idxSelection] = ismember(idx, nodeDataTreeList);
+
+            if ~isempty(app.play_PlotPanel.UserData) && isvalid(app.play_PlotPanel.UserData)
+                [~, idxPreviousSelection] = ismember(app.play_PlotPanel.UserData.NodeData, nodeDataTreeList);
+                collapse(nodeTreeList(idxPreviousSelection))
             end
-            refTreeIndex = [hTree2.NodeData];
-        
-            specIndex    = find(arrayfun(@(x) ismember(x.MetaData.DataType, class.Constants.specDataTypes), app.specData));
-            reportIndex  = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
-            occIndex     = setdiff(1:numel(app.specData), specIndex);
 
-            [~, specTreeIndex]   = ismember(setdiff(specIndex, reportIndex), refTreeIndex);
-            [~, reportTreeIndex] = ismember(reportIndex, refTreeIndex);
-            [~, occTreeIndex]    = ismember(occIndex, refTreeIndex);
+            if idxSelection
+                addStyle(app.play_Tree, uistyle('FontColor', [0,0,0]), 'node', [findobj(nodeTreeList(idxSelection)); nodeTreeList(idxSelection).Parent])
 
-        
-            set(hTree2(specTreeIndex),   Icon=fcn.treeNodeIcon('DataType', 'SpectralData'))
-            set(hTree2(reportTreeIndex), Icon='Report_32.png')
-            set(hTree2(occTreeIndex),    Icon=fcn.treeNodeIcon('DataType', 'Occupancy'))
+                expand(nodeTreeList(idxSelection))
+                scroll(app.play_Tree, nodeTreeList(idxSelection).Children(end))
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function play_changingTreeNodeStyleFromReport(app)
+            idx = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+
+            if ~isempty(idx)
+                nodeTreeList     = findobj(app.play_Tree, 'Tag', 'BAND');
+                nodeDataTreeList = [nodeTreeList.NodeData];
+                [~, idxReport]   = ismember(idx, nodeDataTreeList);
+
+                set(nodeTreeList(idxReport),                        'Icon', 'Report_32.png')
+                set(setdiff(nodeTreeList, nodeTreeList(idxReport)), 'Icon', '')
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -1562,37 +1556,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
 
                 case 'REPORT'
-                    app.play_TreeGrid.RowHeight(4:10)  = {0,0,0,22,'1x',15,22};
+                    app.play_TreeGrid.RowHeight(4:8) = {0,0,0,22,'1x'};
+                    report_ModelOrVersionValueChanged(app, struct('Source', app.report_Version))
             end
-        end
-
-        %-----------------------------------------------------------------%
-        function play_TreeCollapseStyle(app)
-            collapse(app.play_Tree, 'all')
-            for ii = 1:numel(app.play_Tree.Children)
-                expand(app.play_Tree.Children(ii))
-            end
-
-            hUnderFocus = [];
-            generation = misc_findGenerationOfTreeNode(app, app.play_Tree.SelectedNodes(1));
-            
-            for ii = 1:numel(app.play_Tree.SelectedNodes)
-                hComponent = app.play_Tree.SelectedNodes(ii);
-                if isempty(hUnderFocus)
-                    hUnderFocus = hComponent;
-                end
-
-                switch generation
-                    case 2
-                        hComponent = hComponent.Parent;
-                    case 3
-                        hComponent = hComponent.Parent.Parent;
-                end
-                
-                expand(hComponent, 'all')
-            end
-
-            scroll(app.play_Tree, hUnderFocus)         
         end
 
 
@@ -1621,6 +1587,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function occIndex = play_OCCIndex(app, idx, srcFcn)
+            arguments
+                app
+                idx
+                srcFcn char {mustBeMember(srcFcn, {'PLAYBACK/REPORT', 'PLAYBACK', 'REPORT'})}
+            end
+
             switch srcFcn
                 case 'PLAYBACK/REPORT'
                     if isempty(app.specData(idx).UserData.reportOCC)
@@ -1641,7 +1613,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             
             if isempty(occIndex)
                 occIndex = numel(app.specData(idx).UserData.occCache)+1;
-                occTHR   = class.OCC.Threshold(app.specData(idx), occInfo);
+                occTHR   = RF.Occupancy.Threshold(occInfo.Method, occInfo, app.specData(idx), app.play_OCC_Orientation.Value);
 
                 switch occInfo.Method
                     case 'Linear fixo (COLETA)'
@@ -1649,7 +1621,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                     otherwise
                         app.specData(idx).UserData.occMethod.SelectedIndex = [];
-                        occData = class.OCC.Analysis(app.specData(idx), occInfo, occTHR);
+                        occData = RF.Occupancy.Analysis(app.specData(idx).Data{1}, app.specData(idx).Data{2}, occInfo, occTHR);
                 end
 
                 app.specData(idx).UserData.occCache(occIndex) = struct('Info',  occInfo, ...
@@ -2011,7 +1983,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             fcn.Detection_BandLimits(app.specData(idx))
 
             if updatePlotFlag
-                selectedEmission = find(app.specData(idx).UserData.Emissions.Index == newIndex(1), 1);
+                selectedEmission = find(app.specData(idx).UserData.Emissions.idxFrequency == newIndex(1), 1);
                 if isempty(selectedEmission)
                     if ~isempty(app.specData(idx).UserData.Emissions)
                         selectedEmission = 1;
@@ -2067,22 +2039,22 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             if ~isempty(app.specData(idx).UserData.Emissions)
-                emissionTable = app.specData(idx).UserData.Emissions;
+                emissionsTable = app.specData(idx).UserData.Emissions;
 
-                for ii = 1:height(emissionTable)
-                    if emissionTable.isTruncated(ii)
+                for ii = 1:height(emissionsTable)
+                    if emissionsTable.isTruncated(ii)
                         Icon = 'signalTruncated_32.png';
                     else
                         Icon = 'signalUntruncated_32.png';
                     end
 
-                    if isempty(emissionTable.UserData(ii).DriveTest)
+                    if isempty(emissionsTable.auxAppData(ii).DriveTest)
                         DriveTestFlag = '';
                     else
                         DriveTestFlag = ' (DT)';
                     end
 
-                    uitreenode(app.play_FindPeaks_Tree, 'Text', sprintf('%d: %.3f MHz ⌂ %.1f kHz%s', ii, emissionTable.Frequency(ii), emissionTable.BW(ii), DriveTestFlag), ...
+                    uitreenode(app.play_FindPeaks_Tree, 'Text', sprintf('%d: %.3f MHz ⌂ %.1f kHz%s', ii, emissionsTable.Frequency(ii), emissionsTable.BW_kHz(ii), DriveTestFlag), ...
                                                         'NodeData', ii, 'Icon', Icon, 'ContextMenu', app.play_FindPeaks_ContextMenu);
                 end
 
@@ -2092,31 +2064,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function play_AddEmission2List(app, idxThread, newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionMethod)
+        function play_AddEmission2List(app, idxThread, newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm)
+            model.UserData.updateEmissionsTable('Add', app.specData(idxThread), newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm)
+            
             idx = app.play_PlotPanel.UserData.NodeData;
-
-            NN = numel(newEmissionIndex);
-            emissionUserData = class.userData.emissionUserDataTemplate();
-
-            for ii = 1:NN
-                idxEmission = height(app.specData(idxThread).UserData.Emissions) + 1;
-                app.specData(idxThread).UserData.Emissions(idxEmission,:) = table(newEmissionIndex(ii),     ...
-                                                                                  newEmissionFrequency(ii), ...
-                                                                                  newEmissionBW(ii),        ...
-                                                                                  true,                     ...
-                                                                                  newEmissionMethod(ii),    ...
-                                                                                  emissionUserData);
-                
-                userDescription = '';
-                try
-                    emissionMethod  = jsondecode(newEmissionMethod{ii});
-                    userDescription = emissionMethod.Description;
-                catch
-                end
-                app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description = userDescription;
-            end
-
-            play_BandLimits_updateEmissions(app, idxThread, newEmissionIndex, idx==idxThread)
+            play_BandLimits_updateEmissions(app, idxThread, newEmissionIndex, idx == idxThread)
+            
             play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')
         end
 
@@ -2278,10 +2231,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function prePlot_HTMLPanels(app, idxThread)
-            app.play_Metadata.HTMLSource  = fcn.htmlCode_ThreadInfo(app.specData, idxThread);
-
-            ysecondarylabel(app.UIAxes1, {app.specData(idxThread).Receiver; sprintf('%.3f - %.3f MHz', app.bandObj.FreqStart, app.bandObj.FreqStop)})            
-            app.tool_TimestampLabel.Text  = sprintf('1 de %d\n%s', app.bandObj.nSweeps, app.specData(idxThread).Data{1}(1));
+            app.play_Metadata.HTMLSource = fcn.htmlCode_ThreadInfo(app.specData, idxThread);
+            app.tool_TimestampLabel.Text = sprintf('1 de %d\n%s', app.bandObj.nSweeps, app.specData(idxThread).Data{1}(1));
+            ysecondarylabel(app.UIAxes1, sprintf('%s\n%.3f - %.3f MHz\n', app.specData(idxThread).Receiver, app.bandObj.FreqStart, app.bandObj.FreqStop))
         end
 
         %-----------------------------------------------------------------%
@@ -2726,7 +2678,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             
             % Atualizando a árvore principal de fluxos de dados, destacando
             % os fluxos incluídos para análise (no modo RELATÓRIO).
-            play_TreeNodeStyle(app)
+            play_changingTreeNodeStyleFromReport(app)
 
             % E, posteriormente, ajusta os elementos do painel do modo
             % RELATÓRIO.
@@ -2735,9 +2687,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.projectData.peaksTable(:,:) = [];
                 app.tool_ReportAnalysis.Enable  = 0;
                 app.tool_ReportGenerator.Enable = 0;
+
             else
                 app.tool_ReportAnalysis.Enable  = 1;
-                report_ModelNameValueChanged(app)                
+                report_ModelOrVersionValueChanged(app, struct('Source', app.report_ModelName))
                 
                 [receiverList, ~, ic] = unique({app.specData(idxThreads).Receiver});                
                 for ii = 1:numel(receiverList)
@@ -2761,38 +2714,30 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 expand(app.report_Tree, 'all')
             end
 
-            play_TreeSelectionChanged(app, struct('Source', 'report_TreeBuilding'))
+            play_TreeSelectionChanged(app)
             play_UpdatePeaksTable(app, idxThreads, 'report.AddOrDeleteThread')
         end
 
         %-----------------------------------------------------------------%
         function report_Algorithms(app, idx)
             if isscalar(idx) && app.specData(idx).UserData.reportFlag
-                app.report_ThreadAlgorithms.HTMLSource = fcn.htmlCode_ReportAlgorithms(app.specData(idx));
-                set(app.report_DetectionManualMode, Value=app.specData(idx).UserData.reportDetection.ManualMode, Enable=1)
-                app.report_EditClassification.Enable = 1;
-                if app.specData(idx).UserData.reportDetection.ManualMode
-                    app.report_EditDetection.Enable  = 0;
-                else
-                    app.report_EditDetection.Enable  = 1;
-                end                
+                if isempty(app.report_ThreadAlgorithms.UserData) || ~isequal(app.report_ThreadAlgorithms.UserData, app.play_PlotPanel.UserData)
+                    set(app.report_ThreadAlgorithms, 'HTMLSource', fcn.htmlCode_ReportAlgorithms(app.specData(idx)), ...
+                                                     'UserData',   app.play_PlotPanel.UserData)
+    
+                    app.report_EditDetection.Enable      = ~app.specData(idx).UserData.reportDetection.ManualMode;
+                    app.report_EditClassification.Enable = 1;                
+                    set(app.report_DetectionManualMode, 'Enable', 1, 'Value', app.specData(idx).UserData.reportDetection.ManualMode)
+                end
 
             else
-                app.report_ThreadAlgorithms.HTMLSource = fullfile(app.rootFolder, 'Icons', 'Warning.html');
-                app.report_EditDetection.Enable        = 0;
-                app.report_EditClassification.Enable   = 0;
-                set(app.report_DetectionManualMode, Value=0, Enable=0)
+                set(app.report_ThreadAlgorithms, 'HTMLSource', fullfile(app.rootFolder, 'Icons', 'Warning.html'), ...
+                                                 'UserData',   [])
+
+                app.report_EditDetection.Enable      = 0;
+                app.report_EditClassification.Enable = 0;
+                set(app.report_DetectionManualMode, 'Enable', 0, 'Value', 0)
             end            
-        end
-
-        %-----------------------------------------------------------------%
-        function report_LayoutPlaybackOnly(app)
-
-            if app.report_DetectionManualMode.Value
-                set(findall(groot, 'Parent', app.report_DetectionGrid, 'Tag', 'Detection'), 'Enable', 0)
-            else
-                set(findall(groot, 'Parent', app.report_DetectionGrid, 'Tag', 'Detection'), 'Enable', 1)
-            end
         end
 
         %-----------------------------------------------------------------%
@@ -3363,18 +3308,19 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Limpa eventuais informações de um projeto antigo, no modo REPORT. 
             % Essas informações serão preenchidas, caso esteja sendo lido um arquivo 
-            % MAT (de projeto) no método "read" da classe "class.specData".
+            % MAT (de projeto) no método "read" da classe "model.SpecData".
             app.report_ProjectName.Value = '';
 
             % Reinicia a variável, caso não vazia...
             if ~isempty(app.specData)
                 delete(app.specData)
-                app.specData = class.specData.empty;
+                app.specData = model.SpecData.empty;
             end
            
-            builtinDialog = [];
+            d = [];
             try
-                [app.specData, builtinDialog] = read(app.specData, app.metaData, app);
+                d = appUtil.modalWindow(app.UIFigure, 'progressdlg', 'Em andamento...');
+                app.specData  = spectrumRead(app.specData, app.metaData, app, d);
 
                 if isempty(app.UIAxes1)
                     startup_Axes(app)
@@ -3403,7 +3349,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 file_DataReaderError(app)
             end
 
-            delete(builtinDialog)
+            delete(d)
 
         end
 
@@ -3633,20 +3579,30 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Selection changed function: play_Tree
         function play_TreeSelectionChanged(app, event)
             
-            idx = [];
-            if ~isempty(app.play_Tree.SelectedNodes)
-                idx = unique([app.play_Tree.SelectedNodes.NodeData]);
+            % De forma geral, espera-se que exista ao menos um nó da árvore
+            % selecionado. Caso ocorra um BUG, a condição abaixo assegura 
+            % que o app volte a operar como é esperado.
+            if isempty(app.play_Tree.SelectedNodes)
+                app.play_Tree.SelectedNodes = app.play_Tree.Children(1).Children(1);
             end
 
-            if isscalar(idx) || isempty(app.play_PlotPanel.UserData) || ~isvalid(app.play_PlotPanel.UserData)
+            idx = unique([app.play_Tree.SelectedNodes.NodeData]);
+
+            % Será desenhado o plot nas seguintes hipóteses:
+            % (a) Inicialização;
+            % (b) Altera seleção de fluxo espectral;
+            % (c) Busca emissões.
+            renderFlag = true;
+            if ~isempty(app.play_PlotPanel.UserData) && isvalid(app.play_PlotPanel.UserData) && ismember(app.play_PlotPanel.UserData.NodeData, idx)
+                renderFlag = false;
+            end
+
+            if renderFlag
                 idx = idx(1);
-                
-                % Garante que apenas ficará selecionado um único nó da árvore.
-                % Posteriormente, ajusta visualização da árvore, expandindo
-                % os nós relacionados ao nó selecionado.
-                if isempty(app.play_PlotPanel.UserData) || ~isvalid(app.play_PlotPanel.UserData) || ~isequal(app.play_PlotPanel.UserData.NodeData, idx)
-                    play_TreeCollapseStyle(app)
-                end                
+
+                % Edita-se a estética dos nós da árvore, de forma a destacar
+                % o nó selecionado.
+                play_changingTreeNodeStyleFromPlayback(app, idx)
 
                 % Em relação ao FLUXO ANTERIORMENTE SELECIONADO, atualiza-se
                 % o controle de customização do playback, caso habilitado.
@@ -3657,31 +3613,25 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 % Ao plotar dados relacionados a um fluxo de espectro, salva-se
                 % o handle do nó selecionado da árvore na propriedade "UserData"
                 % do painel app.play_PlotPanel. A propriedade "NodeData" deste 
-                % nó armazena o índice do app.specData. Se for alterada a seleção 
-                % da árvore, e isso resultar na escolha de um único fluxo de 
-                % espectro, atualiza-se o plot.
+                % nó armazena o índice do app.specData.
                 if app.plotFlag
                     if ~isequal(app.play_PlotPanel.UserData.NodeData, idx)
+                        % Ao fazer app.plotFlag = -1, o plot será atualizado, 
+                        % mas não a partir daqui, mas do método plot_mainLoop(app)
                         app.plotFlag = -1;
                     end
+
                 else
-                    if isempty(app.play_PlotPanel.UserData) || ~isvalid(app.play_PlotPanel.UserData) || ~isequal(app.play_PlotPanel.UserData.NodeData, idx)
-                        plot_startupFcn(app, idx)
-                        plot_Draw(app, idx)
-                    end
+                    plot_startupFcn(app, idx)
+                    plot_Draw(app, idx)
                 end
             end
 
-            % Aspectos relacionados aos outros modos - REPORT (app.menu_Button3) e EDIT (app.menu_Button4).
+            % Aspectos relacionados a modos auxiliares - inicialmente, necessário 
+            % apenas p/ modo REPORT (app.menu_Button3).
             if app.menu_Button3.Value
                 app.report_Tree.SelectedNodes = [];
-                
-                if exist('event', 'var') && (isequal(event.Source, app.play_Tree) || ismember(event.Source, {'menu_LayoutControl', 'report_TreeBuilding'}))
-                    report_Algorithms(app, app.play_PlotPanel.UserData.NodeData)
-                end
-
-            elseif app.menu_Button4.Value
-
+                report_Algorithms(app, app.play_PlotPanel.UserData.NodeData)
             end
             drawnow
             
@@ -4555,12 +4505,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 idxEmission = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
 
                 set(app.play_FindPeaks_PeakCF, 'Value', round(app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), 3), 'Enable', 1)
-                set(app.play_FindPeaks_PeakBW, 'Value', round(app.specData(idxThread).UserData.Emissions.BW(idxEmission), 3),        'Enable', 1)
+                set(app.play_FindPeaks_PeakBW, 'Value', round(app.specData(idxThread).UserData.Emissions.BW_kHz(idxEmission), 1),    'Enable', 1)
 
-                if isnumeric(app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description)
-                    app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description = '';
+                if ismissing(app.specData(idxThread).UserData.Emissions.Description(idxEmission))
+                    app.specData(idxThread).UserData.Emissions.Description(idxEmission) = "";
                 end
-                userDescription = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description;
+                userDescription = app.specData(idxThread).UserData.Emissions.Description(idxEmission);
                 set(app.play_FindPeaks_Description, 'Value', userDescription, 'Enable', 1)
 
                 if strcmp(app.play_FindPeaks_Tree.SelectedNodes.Icon, 'signalTruncated_32.png')
@@ -4679,24 +4629,24 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         case app.play_FindPeaks_auto
                             switch app.play_FindPeaks_Algorithm.Value
                                 case 'FindPeaks'
-                                    Attributes = struct('Algorithm',  app.play_FindPeaks_Algorithm.Value,  ...
-                                                        'Fcn',        app.play_FindPeaks_Trace.Value,      ...
-                                                        'NPeaks',     app.play_FindPeaks_Numbers.Value,    ...
-                                                        'THR',        app.play_FindPeaks_THR.Value,        ...
-                                                        'Prominence', app.play_FindPeaks_prominence.Value, ...
-                                                        'Distance',   app.play_FindPeaks_distance.Value,   ...
-                                                        'BW',         app.play_FindPeaks_BW.Value);
+                                    Attributes = struct('Algorithm',    app.play_FindPeaks_Algorithm.Value,  ...
+                                                        'Fcn',          app.play_FindPeaks_Trace.Value,      ...
+                                                        'NPeaks',       app.play_FindPeaks_Numbers.Value,    ...
+                                                        'THR',          app.play_FindPeaks_THR.Value,        ...
+                                                        'Prominence',   app.play_FindPeaks_prominence.Value, ...
+                                                        'Distance_kHz', app.play_FindPeaks_distance.Value,   ...
+                                                        'BW_kHz',       app.play_FindPeaks_BW.Value);
         
                                     [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaks(app.specData, idx, Attributes);
         
                                 case 'FindPeaks+OCC'
-                                    Attributes = struct('Algorithm',   app.play_FindPeaks_Algorithm.Value,   ...
-                                                        'Distance',    app.play_FindPeaks_distance.Value,    ...
-                                                        'BW',          app.play_FindPeaks_BW.Value,          ...
-                                                        'Prominence1', app.play_FindPeaks_Prominence1.Value, ...
-                                                        'Prominence2', app.play_FindPeaks_Prominence2.Value, ...
-                                                        'meanOCC',     app.play_FindPeaks_meanOCC.Value,     ...
-                                                        'maxOCC',      app.play_FindPeaks_maxOCC.Value);
+                                    Attributes = struct('Algorithm',    app.play_FindPeaks_Algorithm.Value,   ...
+                                                        'Distance_kHz', app.play_FindPeaks_distance.Value,    ...
+                                                        'BW_kHz',       app.play_FindPeaks_BW.Value,          ...
+                                                        'Prominence1',  app.play_FindPeaks_Prominence1.Value, ...
+                                                        'Prominence2',  app.play_FindPeaks_Prominence2.Value, ...
+                                                        'meanOCC',      app.play_FindPeaks_meanOCC.Value,     ...
+                                                        'maxOCC',       app.play_FindPeaks_maxOCC.Value);
                                     
                                     [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaksPlusOCC(app, app.specData, idx, Attributes);
                             end    
@@ -4775,12 +4725,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function play_FindPeaks_delEmission(app, event)
             
             if ~isempty(app.play_FindPeaks_Tree.SelectedNodes)
-                idx = app.play_PlotPanel.UserData.NodeData;
-                idxEmission = [app.play_FindPeaks_Tree.SelectedNodes.NodeData];
-                app.specData(idx).UserData.Emissions(idxEmission,:) = [];
+                idxThread    = app.play_PlotPanel.UserData.NodeData;
+                idxEmissions = [app.play_FindPeaks_Tree.SelectedNodes.NodeData];
+
+                model.UserData.updateEmissionsTable('Delete', app.specData(idxThread), idxEmissions)
                 
-                plot.draw2D.ClearWrite_old(app, idx, 'DeleteButtonPushed', 1)
-                play_UpdatePeaksTable(app, idx, 'playback.AddEditOrDeleteEmission')
+                plot.draw2D.ClearWrite_old(app, idxThread, 'DeleteButtonPushed', 1)
+                play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')
             end
             
         end
@@ -4789,49 +4740,40 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % ...and 2 other components
         function play_FindPeaks_editEmission(app, event)
             
-            idx = app.play_PlotPanel.UserData.NodeData;
+            idxThread   = app.play_PlotPanel.UserData.NodeData;
             idxEmission = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
-
-            % Ao alterar as características de frequência e BW de uma emissão, 
-            % a emissão alterada é considerada como uma NOVA emissão. Logo,
-            % as informações eventualmente geradas no módulo de Drive-Test
-            % são perdidas.
-
-            emissionInfo = jsondecode(app.specData(idx).UserData.Emissions.Detection{idxEmission});
 
             switch event.Source
                 case app.play_FindPeaks_PeakCF
-                    if (app.play_FindPeaks_PeakCF.Value*1e+6 < app.specData(idx).MetaData.FreqStart) || ...
-                       (app.play_FindPeaks_PeakCF.Value*1e+6 > app.specData(idx).MetaData.FreqStop)
+                    if (app.play_FindPeaks_PeakCF.Value*1e+6 < app.specData(idxThread).MetaData.FreqStart) || ...
+                       (app.play_FindPeaks_PeakCF.Value*1e+6 > app.specData(idxThread).MetaData.FreqStop)
                     
-                       app.play_FindPeaks_PeakCF.Value = round(app.specData(idx).UserData.Emissions.Frequency(idxEmission), 3);
+                       app.play_FindPeaks_PeakCF.Value = round(app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), 3);
                        return
                     end
                     
-                    newIndex = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
-                    app.play_FindPeaks_PeakCF.Value = app.bandObj.xArray(newIndex);
+                    idxFreq = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
+                    FreqCenter = app.bandObj.xArray(idxFreq);
 
-                    emissionInfo.Algorithm = 'Manual';                    
-                    app.specData(idx).UserData.Emissions(idxEmission,[1,2,5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, jsonencode(emissionInfo, 'ConvertInfAndNaN', false)};
-                    app.specData(idx).UserData.Emissions.UserData(idxEmission).DriveTest = [];
-                    play_BandLimits_updateEmissions(app, idx, newIndex)
+                    model.UserData.updateEmissionsTable('Edit', 'Frequency', app.specData(idxThread), idxEmission, idxFreq, FreqCenter)
+                    app.play_FindPeaks_PeakCF.Value = FreqCenter;
+                    play_BandLimits_updateEmissions(app, idxThread, idxFreq)
 
                 case app.play_FindPeaks_PeakBW
-                    emissionInfo.Algorithm = 'Manual';
-                    app.specData(idx).UserData.Emissions(idxEmission,[3,5]) = {app.play_FindPeaks_PeakBW.Value, jsonencode(emissionInfo, 'ConvertInfAndNaN', false)};
-                    app.specData(idx).UserData.Emissions.UserData(idxEmission).DriveTest = [];
-                    plot.draw2D.ClearWrite_old(app, idx, 'PeakValueChanged', idxEmission)
+                    BandWidth = app.play_FindPeaks_PeakBW.Value;
+
+                    model.UserData.updateEmissionsTable('Edit', 'BandWidth', app.specData(idxThread), idxEmission, BandWidth)
+                    fcn.Detection_BandLimits(app.specData(idxThread))
+                    plot.draw2D.ClearWrite_old(app, idxThread, 'PeakValueChanged', idxEmission)
 
                 case app.play_FindPeaks_Description
-                    userDescription = strtrim(app.play_FindPeaks_Description.Value);
-                    userDescription(cellfun(@(x) isempty(x), userDescription)) = [];
-                    userDescription = strjoin(userDescription);
+                    Description = textFormatGUI.cellstr2TextField(app.play_FindPeaks_Description.Value);
                     
-                    app.play_FindPeaks_Description.Value = userDescription;
-                    app.specData(idx).UserData.Emissions.UserData(idxEmission).Description = userDescription;
+                    model.UserData.updateEmissionsTable('Edit', 'Description', app.specData(idxThread), idxEmission, Description)
+                    app.play_FindPeaks_Description.Value = Description;
             end
 
-            play_UpdatePeaksTable(app, idx, 'playback.AddEditOrDeleteEmission')
+            play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')
             
         end
 
@@ -4912,7 +4854,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 % Identificar o índice da emissão selecionada, para o qual
                 % foi desenhado um ROI no app.axes1.
                 idxEmission = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
-                newIndex = app.specData(idx).UserData.Emissions.Index(idxEmission);
+                newIndex = app.specData(idx).UserData.Emissions.idxFrequency(idxEmission);
 
                 play_BandLimits_updateEmissions(app, idx, newIndex)
                 play_UpdatePeaksTable(app, idx, 'playback.AddEditOrDeleteEmission')
@@ -4988,11 +4930,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 % Identificar o índice da emissão selecionada, para o qual
                 % foi desenhado um ROI no app.axes1.
-                idxEmission = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
-                newIndex = app.specData(idx).UserData.Emissions.Index(idxEmission);
+                idxEmission  = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
+                idxFrequency = app.specData(idx).UserData.Emissions.idxFrequency(idxEmission);
 
                 app.specData(idx).UserData.bandLimitsTable = bandLimitsTable;
-                play_BandLimits_updateEmissions(app, idx, newIndex)
+                play_BandLimits_updateEmissions(app, idx, idxFrequency)
                 play_UpdatePeaksTable(app, idx, 'playback.AddEditOrDeleteEmission')
 
             else
@@ -5021,7 +4963,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     
                 app.specData(idx).UserData.bandLimitsTable(idxBandLimits,:) = [];
                 if exist('userSelection', 'var')
-                    play_BandLimits_updateEmissions(app, idx, app.specData(idx).UserData.Emissions.Index)
+                    play_BandLimits_updateEmissions(app, idx, app.specData(idx).UserData.Emissions.idxFrequency)
                     play_UpdatePeaksTable(app, idx,'playback.AddEditOrDeleteEmission')
                 end
     
@@ -5251,7 +5193,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 if any(~ismember(idxThreads, find(arrayfun(@(x) x.UserData.reportFlag, app.specData))))
                     app.progressDialog.Visible = 'visible';
 
-                    class.userData.reportProperties_DefaultValues(app.specData, idxThreads, app)
+                    model.UserData.updateReportFields('Creation', app.specData, idxThreads, app.channelObj, @app.play_OCCIndex)
                     report_TreeBuilding(app)
                     report_SaveWarn(app)
 
@@ -5310,6 +5252,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 return
 
             elseif strcmp(Mode, 'Report') && strcmp(app.report_Version.Value, 'Definitiva')
+                if ~report_checkValidIssueID(app)
+                    msgWarning = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
+                    appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                    return
+                end
+
                 if ~report_checkValidIssueID(app)
                     msgWarning = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
                     appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
@@ -5463,13 +5411,31 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: report_ModelName
-        function report_ModelNameValueChanged(app, event)
+        % Value changed function: report_ModelName, report_Version
+        function report_ModelOrVersionValueChanged(app, event)
             
-            if ~isempty(app.report_ModelName.Value)
-                app.tool_ReportGenerator.Enable = 1;
-            else
-                app.tool_ReportGenerator.Enable = 0;
+            switch event.Source
+                case app.report_ModelName
+                    if ~isempty(app.report_ModelName.Value)
+                        app.tool_ReportGenerator.Enable = 1;
+                    else
+                        app.tool_ReportGenerator.Enable = 0;
+                    end
+
+                case app.report_Version
+                    switch app.report_Version.Value
+                        case 'Definitiva'
+                            app.play_TreeGrid.RowHeight(9:10)      = {0,0};
+                            app.report_EditDetection.Visible       = 0;
+                            app.report_EditClassification.Visible  = 0;
+                            app.report_DetectionManualMode.Visible = 0;
+
+                        otherwise
+                            app.play_TreeGrid.RowHeight(9:10)      = {15,22};                            
+                            app.report_EditDetection.Visible       = 1;
+                            app.report_EditClassification.Visible  = 1;
+                            app.report_DetectionManualMode.Visible = 1;
+                    end
             end
 
         end
@@ -5530,7 +5496,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                             if ~isempty(app.specData(idxThreads).UserData.reportOCC)
                                 app.specData(idxThreads).UserData.reportOCC = [];
-                                class.userData.reportProperties_DefaultValues(app.specData, idxThreads, app)
+                                model.UserData.updateReportFields('Creation', app.specData, idxThreads, app.channelObj, @app.play_OCCIndex)
                             end
                         end
     
@@ -5960,6 +5926,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_Tree.Multiselect = 'on';
             app.play_Tree.SelectionChangedFcn = createCallbackFcn(app, @play_TreeSelectionChanged, true);
             app.play_Tree.FontSize = 10;
+            app.play_Tree.FontColor = [0.651 0.651 0.651];
             app.play_Tree.Layout.Row = 3;
             app.play_Tree.Layout.Column = [1 5];
 
@@ -6015,15 +5982,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ThreadAlgorithms.Layout.Row = 1;
             app.report_ThreadAlgorithms.Layout.Column = 1;
 
-            % Create report_DetectionManualMode
-            app.report_DetectionManualMode = uicheckbox(app.play_TreeGrid);
-            app.report_DetectionManualMode.ValueChangedFcn = createCallbackFcn(app, @report_DetectionManualModeValueChanged, true);
-            app.report_DetectionManualMode.Enable = 'off';
-            app.report_DetectionManualMode.Text = 'Restringir detecção de emissões ao PLAYBACK.';
-            app.report_DetectionManualMode.WordWrap = 'on';
-            app.report_DetectionManualMode.FontSize = 11;
-            app.report_DetectionManualMode.Layout.Row = 10;
-            app.report_DetectionManualMode.Layout.Column = [1 5];
+            % Create report_EditDetection
+            app.report_EditDetection = uihyperlink(app.play_TreeGrid);
+            app.report_EditDetection.HyperlinkClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
+            app.report_EditDetection.VisitedColor = [0 0.4 0.8];
+            app.report_EditDetection.VerticalAlignment = 'top';
+            app.report_EditDetection.FontSize = 10;
+            app.report_EditDetection.FontColor = [0 0.4 0.8];
+            app.report_EditDetection.Enable = 'off';
+            app.report_EditDetection.Layout.Row = 9;
+            app.report_EditDetection.Layout.Column = 1;
+            app.report_EditDetection.Text = 'DETECÇÃO';
 
             % Create report_EditClassification
             app.report_EditClassification = uihyperlink(app.play_TreeGrid);
@@ -6038,17 +6007,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_EditClassification.Layout.Column = [3 5];
             app.report_EditClassification.Text = 'CLASSIFICAÇÃO';
 
-            % Create report_EditDetection
-            app.report_EditDetection = uihyperlink(app.play_TreeGrid);
-            app.report_EditDetection.HyperlinkClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
-            app.report_EditDetection.VisitedColor = [0 0.4 0.8];
-            app.report_EditDetection.VerticalAlignment = 'top';
-            app.report_EditDetection.FontSize = 10;
-            app.report_EditDetection.FontColor = [0 0.4 0.8];
-            app.report_EditDetection.Enable = 'off';
-            app.report_EditDetection.Layout.Row = 9;
-            app.report_EditDetection.Layout.Column = 1;
-            app.report_EditDetection.Text = 'DETECÇÃO';
+            % Create report_DetectionManualMode
+            app.report_DetectionManualMode = uicheckbox(app.play_TreeGrid);
+            app.report_DetectionManualMode.ValueChangedFcn = createCallbackFcn(app, @report_DetectionManualModeValueChanged, true);
+            app.report_DetectionManualMode.Enable = 'off';
+            app.report_DetectionManualMode.Text = 'Restringir detecção de emissões ao PLAYBACK.';
+            app.report_DetectionManualMode.WordWrap = 'on';
+            app.report_DetectionManualMode.FontSize = 11;
+            app.report_DetectionManualMode.Layout.Row = 10;
+            app.report_DetectionManualMode.Layout.Column = [1 5];
 
             % Create play_PlotPanel
             app.play_PlotPanel = uipanel(app.play_Grid);
@@ -7571,6 +7538,26 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_FindPeaks_prominence.Layout.Column = 1;
             app.play_FindPeaks_prominence.Value = 30;
 
+            % Create play_FindPeaks_ClassLabel
+            app.play_FindPeaks_ClassLabel = uilabel(app.play_FindPeaks_ParametersGrid);
+            app.play_FindPeaks_ClassLabel.VerticalAlignment = 'bottom';
+            app.play_FindPeaks_ClassLabel.FontSize = 10;
+            app.play_FindPeaks_ClassLabel.Visible = 'off';
+            app.play_FindPeaks_ClassLabel.Layout.Row = 5;
+            app.play_FindPeaks_ClassLabel.Layout.Column = 1;
+            app.play_FindPeaks_ClassLabel.Text = {'Classe de '; 'emissão:'};
+
+            % Create play_FindPeaks_Class
+            app.play_FindPeaks_Class = uidropdown(app.play_FindPeaks_ParametersGrid);
+            app.play_FindPeaks_Class.Items = {};
+            app.play_FindPeaks_Class.ValueChangedFcn = createCallbackFcn(app, @play_FindPeaks_ClassValueChanged, true);
+            app.play_FindPeaks_Class.Visible = 'off';
+            app.play_FindPeaks_Class.FontSize = 11;
+            app.play_FindPeaks_Class.BackgroundColor = [1 1 1];
+            app.play_FindPeaks_Class.Layout.Row = 6;
+            app.play_FindPeaks_Class.Layout.Column = 1;
+            app.play_FindPeaks_Class.Value = {};
+
             % Create play_FindPeaks_distanceLabel
             app.play_FindPeaks_distanceLabel = uilabel(app.play_FindPeaks_ParametersGrid);
             app.play_FindPeaks_distanceLabel.VerticalAlignment = 'bottom';
@@ -7716,26 +7703,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_FindPeaks_maxOCC.Layout.Row = 2;
             app.play_FindPeaks_maxOCC.Layout.Column = 5;
             app.play_FindPeaks_maxOCC.Value = 10;
-
-            % Create play_FindPeaks_ClassLabel
-            app.play_FindPeaks_ClassLabel = uilabel(app.play_FindPeaks_ParametersGrid);
-            app.play_FindPeaks_ClassLabel.VerticalAlignment = 'bottom';
-            app.play_FindPeaks_ClassLabel.FontSize = 10;
-            app.play_FindPeaks_ClassLabel.Visible = 'off';
-            app.play_FindPeaks_ClassLabel.Layout.Row = 5;
-            app.play_FindPeaks_ClassLabel.Layout.Column = 1;
-            app.play_FindPeaks_ClassLabel.Text = {'Classe de '; 'emissão:'};
-
-            % Create play_FindPeaks_Class
-            app.play_FindPeaks_Class = uidropdown(app.play_FindPeaks_ParametersGrid);
-            app.play_FindPeaks_Class.Items = {};
-            app.play_FindPeaks_Class.ValueChangedFcn = createCallbackFcn(app, @play_FindPeaks_ClassValueChanged, true);
-            app.play_FindPeaks_Class.Visible = 'off';
-            app.play_FindPeaks_Class.FontSize = 11;
-            app.play_FindPeaks_Class.BackgroundColor = [1 1 1];
-            app.play_FindPeaks_Class.Layout.Row = 6;
-            app.play_FindPeaks_Class.Layout.Column = 1;
-            app.play_FindPeaks_Class.Value = {};
 
             % Create play_FindPeaks_add
             app.play_FindPeaks_add = uiimage(app.play_ControlsTab3Info);
@@ -7965,7 +7932,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create report_ModelName
             app.report_ModelName = uidropdown(app.GridLayout4);
             app.report_ModelName.Items = {};
-            app.report_ModelName.ValueChangedFcn = createCallbackFcn(app, @report_ModelNameValueChanged, true);
+            app.report_ModelName.ValueChangedFcn = createCallbackFcn(app, @report_ModelOrVersionValueChanged, true);
             app.report_ModelName.Tag = 'documentModel';
             app.report_ModelName.FontSize = 11;
             app.report_ModelName.BackgroundColor = [1 1 1];
@@ -7984,6 +7951,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create report_Version
             app.report_Version = uidropdown(app.GridLayout4);
             app.report_Version.Items = {'Preliminar', 'Definitiva'};
+            app.report_Version.ValueChangedFcn = createCallbackFcn(app, @report_ModelOrVersionValueChanged, true);
             app.report_Version.FontSize = 11;
             app.report_Version.BackgroundColor = [1 1 1];
             app.report_Version.Layout.Row = 4;

@@ -21,8 +21,8 @@ function [newIndex, newFreq, newBW, Method] = Detection_FindPeaks(SpecInfo, idx1
     idxRange   = matlab.findpeaks(SpecInfo(idx1).Data{3}(:,idx2), 'NPeaks',            Attributes.NPeaks,                  ...
                                                                   'MinPeakHeight',     Attributes.THR,                     ...
                                                                   'MinPeakProminence', Attributes.Prominence,              ...
-                                                                  'MinPeakDistance',   1000 * Attributes.Distance / aCoef, ... % kHz >> Hertz
-                                                                  'MinPeakWidth',      1000 * Attributes.BW       / aCoef, ... % kHz >> Hertz
+                                                                  'MinPeakDistance',   1000 * Attributes.Distance_kHz / aCoef, ... % kHz >> Hertz
+                                                                  'MinPeakWidth',      1000 * Attributes.BW_kHz       / aCoef, ... % kHz >> Hertz
                                                                   'SortStr',           'descend');
 
     if ~isempty(idxRange)

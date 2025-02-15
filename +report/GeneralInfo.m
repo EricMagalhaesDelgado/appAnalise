@@ -2,7 +2,13 @@ function [idxThreads, reportInfo] = GeneralInfo(app, Mode, reportTemplateIndex)
     switch Mode
         case 'Report'
             idxThreads    = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
-            detectionMode = 'Automatic+Manual';
+
+             switch app.report_Version.Value
+                    case 'Definitiva'
+                    detectionMode = 'Manual';
+                 otherwise
+                     detectionMode = 'Automatic+Manual';
+             end
 
         case 'Preview'
             idxThreads    = unique([app.report_Tree.CheckedNodes.NodeData]);

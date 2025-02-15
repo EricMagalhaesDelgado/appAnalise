@@ -1,6 +1,6 @@
 function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
     
-    if isa(dataSource, 'class.metaData')
+    if isa(dataSource, 'model.MetaData')
         idxFile    = varargin{1};
         idxThread  = varargin{2};    
         specData   = dataSource(idxFile).Data(idxThread);
@@ -16,18 +16,17 @@ function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
         end
         dataStruct(end+1) = struct('group', 'RECEPTOR',  'value', receiverList);
 
-    else % 'class.specData'
+    else % 'model.SpecData'
         idxThread  = varargin{1};
         specData   = dataSource(idxThread);
         dataStruct = struct('group', 'RECEPTOR', 'value', specData(1).Receiver);
     end    
     
-    htmlContent = {};
     if isscalar(specData)
         threadTag = sprintf('%.3f - %.3f MHz', specData.MetaData.FreqStart/1e+6, specData.MetaData.FreqStop/1e+6);
 
         % Tempo de observação:
-        if isa(dataSource, 'class.specData')
+        if isa(dataSource, 'model.SpecData')
             dataStruct(end+1) = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData.Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData.Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));
         end
 
@@ -60,13 +59,15 @@ function htmlContent = htmlCode_ThreadInfo(dataSource, varargin)
                                                        'RevisitTime',     sprintf('%.3f segundos', specData.RelatedFiles.RevisitTime(ii))));
         end
 
-        if ~isempty(specData.UserData) && ~isempty(specData.UserData.LOG)
+        if isprop(specData, 'UserData') && ~isempty(specData.UserData) && ~isempty(specData.UserData.LOG)
             dataStruct(end+1) = struct('group', 'LOG', 'value', strjoin(specData.UserData.LOG));
         end
-
-        htmlContent{end+1} = sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', threadTag);
+    
+    else
+        threadTag = strjoin(arrayfun(@(x) sprintf('%.3f - %.3f MHz', x.MetaData.FreqStart/1e+6, x.MetaData.FreqStop/1e+6), specData, "UniformOutput", false), '<br>');
     end
 
-    htmlContent{end+1} = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete');
-    htmlContent        = strjoin(htmlContent);
+    htmlContent = {sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 16px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', threadTag), ...
+                   textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')};
+    htmlContent = strjoin(htmlContent);
 end

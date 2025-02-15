@@ -181,8 +181,8 @@ classdef (Abstract) draw2D
             switch plotType
                     case 'TreeSelectionChanged'
                         idx2 = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
-                        app.hSelectedEmission.Position(:, [1, 3]) = [app.specData(idx).UserData.Emissions.Frequency(idx2) - app.specData(idx).UserData.Emissions.BW(idx2)/(2*1000), ...
-                                                                     app.specData(idx).UserData.Emissions.BW(idx2)/1000];
+                        app.hSelectedEmission.Position(:, [1, 3]) = [app.specData(idx).UserData.Emissions.Frequency(idx2) - app.specData(idx).UserData.Emissions.BW_kHz(idx2)/(2*1000), ...
+                                                                     app.specData(idx).UserData.Emissions.BW_kHz(idx2)/1000];
                         return
                     
                     case 'PeakValueChanged'
@@ -202,7 +202,7 @@ classdef (Abstract) draw2D
                 app.hClearWrite.MarkerIndices = [];
         
             else
-                app.hClearWrite.MarkerIndices = app.specData(idx).UserData.Emissions.Index;
+                app.hClearWrite.MarkerIndices = app.specData(idx).UserData.Emissions.idxFrequency;
         
                 yLevel1   = app.restoreView(1).yLim(1) + 1;
                 yLevel2   = diff(app.restoreView(1).yLim) - 2;
@@ -211,9 +211,9 @@ classdef (Abstract) draw2D
                 for ii = 1:height(app.specData(idx).UserData.Emissions)
                     mkrLabels = [mkrLabels {['  ' num2str(ii)]}];
         
-                    FreqStart = app.specData(idx).UserData.Emissions.Frequency(ii) - app.specData(idx).UserData.Emissions.BW(ii)/(2*1000);
-                    FreqStop  = app.specData(idx).UserData.Emissions.Frequency(ii) + app.specData(idx).UserData.Emissions.BW(ii)/(2*1000);
-                    BW        = app.specData(idx).UserData.Emissions.BW(ii)/1000;            
+                    FreqStart = app.specData(idx).UserData.Emissions.Frequency(ii) - app.specData(idx).UserData.Emissions.BW_kHz(ii)/(2*1000);
+                    FreqStop  = app.specData(idx).UserData.Emissions.Frequency(ii) + app.specData(idx).UserData.Emissions.BW_kHz(ii)/(2*1000);
+                    BW        = app.specData(idx).UserData.Emissions.BW_kHz(ii)/1000;            
                     
                     % Cria uma linha por emissão, posicionando-o na parte inferior
                     % do plot.
@@ -246,7 +246,7 @@ classdef (Abstract) draw2D
                     end
                 end
         
-                app.hEmissionMarkers = text(app.UIAxes1, app.specData(idx).UserData.Emissions.Frequency, double(app.specData(idx).Data{2}(app.specData(idx).UserData.Emissions.Index, app.idxTime)), mkrLabels, ...
+                app.hEmissionMarkers = text(app.UIAxes1, app.specData(idx).UserData.Emissions.Frequency, double(app.specData(idx).Data{2}(app.specData(idx).UserData.Emissions.idxFrequency, app.idxTime)), mkrLabels, ...
                                                          Color=[0.40,0.73,0.88], FontSize=11, FontWeight='bold', FontName='Helvetica', FontSmoothing='on', Tag='mkrLabels', Visible=app.play_LineVisibility.Value);
             end
         end        
@@ -289,10 +289,12 @@ classdef (Abstract) draw2D
                     idx2 = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;            
                     newIndex = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
         
-                    emissionInfo = jsondecode(app.specData(idx1).UserData.Emissions.Detection{idx2});
+                    emissionInfo = jsondecode(app.specData(idx1).UserData.Emissions.Algorithm(idx2).Detection);
                     emissionInfo.Algorithm = 'Manual';
                     
-                    app.specData(idx1).UserData.Emissions(idx2,[1:3, 5]) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value, jsonencode(emissionInfo, 'ConvertInfAndNaN', false)};
+                    app.specData(idx1).UserData.Emissions(idx2, 1:3) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value};
+                    app.specData(idx1).UserData.Emissions.Algorithm(idx2).Detection = jsonencode(emissionInfo, 'ConvertInfAndNaN', false);
+
                     play_BandLimits_updateEmissions(app, idx1, newIndex)
                     play_UpdatePeaksTable(app, idx1, 'playback.AddEditOrDeleteEmission')
             end
