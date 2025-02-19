@@ -1,2 +1,7 @@
-# List of untracked files to ignore
-/DataBase/RFDataHub.mat
+# List of folder to ignore:
+appAnalise_desktopCompiler/
+appAnalise_webappCompiler/
+resources/
+
+# List of untracked files to ignore:
+src/config/DataBase/RFDataHub.mat
