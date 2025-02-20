@@ -198,7 +198,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function startup_checkPythonVersion(app)
             if isempty(app.CallingApp.General.AppVersion.fiscaliza)
-                app.CallingApp.General.AppVersion = fcn.envVersion(app.rootFolder, 'full+Python');
+                app.CallingApp.General.AppVersion = util.getAppVersion(app.rootFolder, app.CallingApp.entryPointFolder, app.CallingApp.General.fileFolder.tempPath, 'full+Python');
             end
         end
 

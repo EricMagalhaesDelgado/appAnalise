@@ -103,7 +103,7 @@ function [idxThreads, reportInfo] = ReportGenerator_Aux1(app, Mode)
     switch Mode
         case {'Report', 'Preview', 'playback.AddEditOrDeleteEmission', 'report.AddOrDeleteThread', 'signalAnalysis.EditOrDeleteEmission'}
             if isempty(app.General.AppVersion.fiscaliza) && strcmp(Mode, 'Report')
-                app.General.AppVersion = fcn.envVersion(app.rootFolder, 'full+Python');
+                app.General.AppVersion = util.getAppVersion(app.rootFolder, app.entryPointFolder, app.General.fileFolder.tempPath, 'full+Python');
             end
         
             reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;

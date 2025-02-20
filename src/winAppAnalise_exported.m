@@ -378,7 +378,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         General
         General_I
+
         rootFolder
+        entryPointFolder        
 
         % Essa propriedade registra o tipo de execução da aplicação, podendo
         % ser: 'built-in', 'desktopApp' ou 'webApp'.
@@ -573,9 +575,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
                 end
 
-                appName           = class.Constants.appName;
-                MFilePath         = fileparts(mfilename('fullpath'));
-                app.rootFolder    = appUtil.RootFolder(appName, MFilePath);
+                app.entryPointFolder = fileparts(mfilename('fullpath'));
+                app.rootFolder = appUtil.RootFolder(class.Constants.appName, app.entryPointFolder);
                 
                 % WELCOMEPAGE
                 % 1/7: Insere estilo ao container do auxApp.dockWelcomePage.
@@ -685,7 +686,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             app.General            = app.General_I;        
-            app.General.AppVersion = fcn.envVersion(app.rootFolder, 'full', tempDir);
+            app.General.AppVersion = util.getAppVersion(app.rootFolder, app.entryPointFolder, tempDir, 'full');
 
             % Um dos arquivos que compõem a subpasta "config", copiada para
             % "ProgramData/ANATEL/appAnalise" na primeira execução, é o arquivo 
@@ -1974,7 +1975,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function play_BandLimits_updateEmissions(app, idx, newIndex, updatePlotFlag)
+        function plot_updateSelectedEmission(app, idxThread, idxEmission, updatePlotFlag)
             % Analisa se as emissões incluídas/editadas pertencem às subfaixas 
             % sob análise. 
             %
@@ -1989,24 +1990,22 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             %     Função externa report.ReportGenerator_Peaks(...)
             arguments
                 app
-                idx
-                newIndex
+                idxThread
+                idxEmission
                 updatePlotFlag = true
             end
 
-            fcn.Detection_BandLimits(app.specData(idx))
-
             if updatePlotFlag
-                selectedEmission = find(app.specData(idx).UserData.Emissions.idxFrequency == newIndex(1), 1);
-                if isempty(selectedEmission)
-                    if ~isempty(app.specData(idx).UserData.Emissions)
-                        selectedEmission = 1;
+                idxEmission = find(app.specData(idxThread).UserData.Emissions.idxFrequency == idxEmission(1), 1);
+                if isempty(idxEmission)
+                    if ~isempty(app.specData(idxThread).UserData.Emissions)
+                        idxEmission = 1;
                     else
                         delete(app.hSelectedEmission)
                         app.hSelectedEmission = [];
                     end
                 end
-                plot.draw2D.ClearWrite_old(app, idx, 'PeakValueChanged', selectedEmission)
+                plot.draw2D.ClearWrite_old(app, idxThread, 'PeakValueChanged', idxEmission)
             end
         end
 
@@ -2014,14 +2013,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function play_BandLimits_Layout(app, idx)
 
             if app.play_BandLimits_Status.Value
-                app.specData(idx).UserData.bandLimitsStatus = true;
+                update(app.specData(idx), 'UserData:BandLimits', 'Status:Edit', true)
                 
                 set(app.play_BandLimits_Grid.Children, Enable=1)
                 app.play_BandLimits_add.Enable  = 1;
                 app.play_BandLimits_Tree.Enable = 1;
 
             else
-                app.specData(idx).UserData.bandLimitsStatus = false;
+                update(app.specData(idx), 'UserData:BandLimits', 'Status:Edit', false)
 
                 set(findobj(app.play_BandLimits_Grid, 'Type', 'uinumericeditfield'), Enable=0)
                 app.play_BandLimits_add.Enable  = 0;
@@ -2079,11 +2078,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function play_AddEmission2List(app, idxThread, newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm)
-            update(app.specData(idxThread), 'UserData:Emissions', 'Add', newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm)
+            update(app.specData(idxThread), 'UserData:Emissions', 'Add', newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm)            
             
             idx = app.play_PlotPanel.UserData.NodeData;
-            play_BandLimits_updateEmissions(app, idxThread, newEmissionIndex, idx == idxThread)
-            
+            plot_updateSelectedEmission(app, idxThread, newEmissionIndex, idx == idxThread)            
             play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')
         end
 
@@ -2361,29 +2359,29 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     app.play_Waterfall_cLim2.Value   = 1;
                 end
 
-                app.specData(idx).UserData.customPlayback.Type = 'manual';
-                app.specData(idx).UserData.customPlayback.Parameters.Controls      = struct('MinHold',          app.axesTool_MinHold.UserData.Value,     ...
-                                                                                            'Average',          app.axesTool_Average.UserData.Value,     ...
-                                                                                            'MaxHold',          app.axesTool_MaxHold.UserData.Value,     ...
-                                                                                            'Persistance',      app.axesTool_Persistance.UserData.Value, ...
-                                                                                            'Occupancy',        app.axesTool_Occupancy.UserData.Value,   ...
-                                                                                            'Waterfall',        app.axesTool_Waterfall.UserData.Value,   ...
-                                                                                            'LayoutRatio',      app.play_LayoutRatio.Value,              ...
-                                                                                            'FrequencyLimits', [app.play_Limits_xLim1.Value, app.play_Limits_xLim2.Value],  ...
-                                                                                            'LevelLimits',     [app.play_Limits_yLim1.Value, app.play_Limits_yLim2.Value]);
-                app.specData(idx).UserData.customPlayback.Parameters.Persistance   = struct('Interpolation',    app.play_Persistance_Interpolation.Value, ...
-                                                                                            'WindowSize',       app.play_Persistance_WindowSize.Value, ...
-                                                                                            'Transparency',     app.play_Persistance_Transparency.Value, ...
-                                                                                            'Colormap',         app.play_Persistance_Colormap.Value, ...
-                                                                                            'LevelLimits',     [app.play_Persistance_cLim1.Value, app.play_Persistance_cLim2.Value]);
-                app.specData(idx).UserData.customPlayback.Parameters.Waterfall     = struct('Fcn',              app.play_Waterfall_Fcn.Value, ...
-                                                                                            'Decimation',       app.play_Waterfall_Decimation.Value, ...
-                                                                                            'MeshStyle',        app.play_Waterfall_MeshStyle.Value, ...
-                                                                                            'Colormap',         app.play_Waterfall_Colormap.Value, ...
-                                                                                            'LevelLimits',     [app.play_Waterfall_cLim1.Value, app.play_Waterfall_cLim2.Value]);
-                app.specData(idx).UserData.customPlayback.Parameters.WaterfallTime = struct('Visible',          app.play_Waterfall_Timeline.Value, ...
-                                                                                            'ZData',           [1000, 1000]);
+                customPlayback = struct('Controls',      struct('MinHold',          app.axesTool_MinHold.UserData.Value,                                  ...
+                                                                'Average',          app.axesTool_Average.UserData.Value,                                  ...
+                                                                'MaxHold',          app.axesTool_MaxHold.UserData.Value,                                  ...
+                                                                'Persistance',      app.axesTool_Persistance.UserData.Value,                              ...
+                                                                'Occupancy',        app.axesTool_Occupancy.UserData.Value,                                ...
+                                                                'Waterfall',        app.axesTool_Waterfall.UserData.Value,                                ...
+                                                                'LayoutRatio',      app.play_LayoutRatio.Value,                                           ...
+                                                                'FrequencyLimits', [app.play_Limits_xLim1.Value, app.play_Limits_xLim2.Value],            ...
+                                                                'LevelLimits',     [app.play_Limits_yLim1.Value, app.play_Limits_yLim2.Value]),           ...
+                                        'Persistance',   struct('Interpolation',    app.play_Persistance_Interpolation.Value,                             ...
+                                                                'WindowSize',       app.play_Persistance_WindowSize.Value,                                ...
+                                                                'Transparency',     app.play_Persistance_Transparency.Value,                              ...
+                                                                'Colormap',         app.play_Persistance_Colormap.Value,                                  ...
+                                                                'LevelLimits',     [app.play_Persistance_cLim1.Value, app.play_Persistance_cLim2.Value]), ...
+                                        'Waterfall',     struct('Fcn',              app.play_Waterfall_Fcn.Value,                                         ...
+                                                                'Decimation',       app.play_Waterfall_Decimation.Value,                                  ...
+                                                                'MeshStyle',        app.play_Waterfall_MeshStyle.Value,                                   ...
+                                                                'Colormap',         app.play_Waterfall_Colormap.Value,                                    ...
+                                                                'LevelLimits',     [app.play_Waterfall_cLim1.Value, app.play_Waterfall_cLim2.Value]),     ...
+                                        'WaterfallTime', struct('Visible',          app.play_Waterfall_Timeline.Value,                                    ...
+                                                                'ZData',           [1000, 1000]));
 
+                update(app.specData(idx), 'UserData:CustomPlayback', 'Edit', customPlayback)
             else
                 update(app.specData(idx), 'UserData:CustomPlayback', 'Refresh')
             end
@@ -2888,11 +2886,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             switch fileExt
                 case '.mat'
-                    fileWriter.MAT(    fileFullPath, 'SpectralData', app.specData(idx));
+                    model.fileWriter.MAT(fileFullPath, 'SpectralData', app.specData(idx), [], {'UserData', 'callingApp', 'sortType'})
                 case '.bin'
-                    fileWriter.CRFSBin(fileFullPath, app.specData(idx));
+                    model.fileWriter.CRFSBin(fileFullPath, app.specData(idx))
                 case '.sm1809'
-                    fileWriter.SM1809( fileFullPath, app.specData(idx));
+                    model.fileWriter.SM1809( fileFullPath, app.specData(idx))
             end
 
             app.progressDialog.Visible = 'hidden';
@@ -2900,6 +2898,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function misc_ExportUserData(app, idx)
+            if numel(idx) < numel(app.specData)
+                msgQuestion   = 'Você deseja exportar a lista de emissões apenas dos fluxos espectrais selecionados ou de todos os fluxos espectrais?';
+                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Apenas seleção', 'Todos', 'Cancelar'}, 1, 3);
+                switch userSelection
+                    case 'Todos'
+                        idx = 1:numel(app.specData);
+                    case 'Cancelar'
+                        return
+                end
+            end
+
             nameFormatMap = {'*.mat', 'appAnalise (*.mat)'};
             defaultName   = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'UserData', -1); 
             fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
@@ -2908,18 +2917,29 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
             
             prjInfo  = struct('exceptionList', app.projectData.exceptionList);
-            fileWriter.MAT(fileFullPath, 'UserData', app.specData(idx), prjInfo);
+            model.fileWriter.MAT(fileFullPath, 'UserData', app.specData(idx), prjInfo, {'Data', 'callingApp', 'sortType'})
         end
 
         %-----------------------------------------------------------------%
-        function fileFullPath = misc_ImportUserData(app)
+        function fileFullPath = misc_ImportUserData(app, idx)
+            if numel(idx) < numel(app.specData)
+                msgQuestion   = 'Você deseja importar a lista de emissões apenas para os fluxos espectrais selecionados ou para todos os fluxos espectrais?';
+                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Apenas seleção', 'Todos', 'Cancelar'}, 1, 3);
+                switch userSelection
+                    case 'Todos'
+                        idx = 1:numel(app.specData);
+                    case 'Cancelar'
+                        return
+                end
+            end
+
             [fileFullPath, fileFolder] = appUtil.modalWindow(app.UIFigure, 'uigetfile', '', {'*.mat', 'appAnalise (*.mat)'}, app.General.fileFolder.lastVisited);
             if isempty(fileFullPath)
                 return
             end
             misc_updateLastVisitedFolder(app, fileFolder)
             
-            fileReader.MAT_UserData(app, fileFullPath)
+            util.importAnalysis(app, app.specData(idx), fileFullPath)
         end
 
         %-----------------------------------------------------------------%
@@ -3911,7 +3931,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 if app.play_Customization.Value
                     [ParentTag, DataIndex] = plot.datatip.Search(app.UIFigure);
-                    app.specData(idx).UserData.customPlayback.Parameters.Datatip = struct('ParentTag', ParentTag, 'DataIndex', DataIndex);    
+                    update(app.specData(idx), 'UserData:CustomPlayback', 'DataTip', ParentTag, DataIndex)
                 end            
             end            
             
@@ -4146,7 +4166,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function play_Channel_AutomaticChannelListUpdate(app, event)
             
             idx = app.play_PlotPanel.UserData.NodeData;
-            app.specData(idx).UserData.channelLibIndex = FindRelatedBands(app.channelObj, app.specData(idx));
+            update(app.specData(idx), 'UserData:Channel', 'ChannelLibIndex:Add', app.channelObj)
             play_Channel_TreeBuilding(app, idx, 'play_Channel_ListUpdateImageClicked')
 
         end
@@ -4366,7 +4386,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % canalização selecionada.
 
             if ~isempty(app.play_Channel_Tree.SelectedNodes)
-                idxThread = app.play_PlotPanel.UserData.NodeData;
+                idx = app.play_PlotPanel.UserData.NodeData;
 
                 for ii = numel(app.play_Channel_Tree.SelectedNodes):-1:1
                     srcChannel = app.play_Channel_Tree.SelectedNodes(ii).NodeData.src;
@@ -4374,14 +4394,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     
                     switch srcChannel
                         case 'channelLib'
-                            app.specData(idxThread).UserData.channelLibIndex = setdiff(app.specData(idxThread).UserData.channelLibIndex, idxChannel);
+                            update(app.specData(idx), 'UserData:Channel', 'ChannelLibIndex:Edit', idxChannel)
                         case 'manual'
-                            app.specData(idxThread).UserData.channelManual(idxChannel) = [];
+                            update(app.specData(idx), 'UserData:Channel', 'ChannelManual:Refresh')
                     end
                 end
             end
 
-            play_Channel_TreeBuilding(app, idxThread, 'play_Channel_ContextMenu_delChannel')
+            play_Channel_TreeBuilding(app, idx, 'play_Channel_ContextMenu_delChannel')
 
         end
 
@@ -4586,7 +4606,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                     case 'Generic (csv, txt, json, xls, xlsx)'
                                         rawTable = readtable(fileFullPath);
                                     case 'Romes (csv)'
-                                        rawTable = fileReader.RomesCSV(fileFullPath);
+                                        rawTable = util.readFileGeneratedByRomes(fileFullPath);
                                 end
                         end
                         rawTable.Properties.VariableNames = {'Frequency', 'BW', 'Description'};
@@ -4771,14 +4791,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                     update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'Frequency',   idxEmission, idxNewFrequency, newFrequency)
                     app.play_FindPeaks_PeakCF.Value = newFrequency;
-                    play_BandLimits_updateEmissions(app, idxThread, idxNewFrequency)
+                    plot_updateSelectedEmission(app, idxThread, idxNewFrequency)
 
                 case app.play_FindPeaks_PeakBW
+                    idxFrequency = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
                     newBandWidth = app.play_FindPeaks_PeakBW.Value;
 
                     update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'BandWidth',   idxEmission, newBandWidth)
-                    fcn.Detection_BandLimits(app.specData(idxThread))
-                    plot.draw2D.ClearWrite_old(app, idxThread, 'PeakValueChanged', idxEmission)
+                    plot_updateSelectedEmission(app, idxThread, idxFrequency)
 
                 case app.play_FindPeaks_Description
                     newDescription = textFormatGUI.cellstr2TextField(app.play_FindPeaks_Description.Value);
@@ -4870,7 +4890,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 idxEmission = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
                 newIndex = app.specData(idx).UserData.Emissions.idxFrequency(idxEmission);
 
-                play_BandLimits_updateEmissions(app, idx, newIndex)
+                plot_updateSelectedEmission(app, idx, newIndex)
                 play_UpdatePeaksTable(app, idx, 'playback.AddEditOrDeleteEmission')
             end
 
@@ -4945,12 +4965,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 idxEmission  = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
                 idxFrequency = app.specData(idx).UserData.Emissions.idxFrequency(idxEmission);
 
-                update(app.specData(idx), 'UserData:BandLimitsTable', 'Edit', bandLimitsTable)
-                play_BandLimits_updateEmissions(app, idx, idxFrequency)
+                update(app.specData(idx), 'UserData:BandLimits', 'Table:Edit', bandLimitsTable)
+                plot_updateSelectedEmission(app, idx, idxFrequency)
                 play_UpdatePeaksTable(app, idx, 'playback.AddEditOrDeleteEmission')
 
             else
-                update(app.specData(idx), 'UserData:BandLimitsTable', 'Edit', bandLimitsTable)
+                update(app.specData(idx), 'UserData:BandLimits', 'Table:Edit', bandLimitsTable)
             end
 
             play_BandLimits_TreeBuilding(app, idx)
@@ -4973,9 +4993,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
                 end
 
-                update(app.specData(idx), 'UserData:BandLimitsTable', 'Delete', idxBandLimits)
+                update(app.specData(idx), 'UserData:BandLimits', 'Table:DeleteRows', idxBandLimits)
                 if exist('userSelection', 'var')
-                    play_BandLimits_updateEmissions(app, idx, app.specData(idx).UserData.Emissions.idxFrequency)
+                    plot_updateSelectedEmission(app, idx, app.specData(idx).UserData.Emissions.idxFrequency)
                     play_UpdatePeaksTable(app, idx,'playback.AddEditOrDeleteEmission')
                 end
     
@@ -5231,9 +5251,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Value changed function: report_DetectionManualMode
         function report_DetectionManualModeValueChanged(app, event)
             
-            idx = app.play_PlotPanel.UserData.NodeData;
-            app.specData(idx).UserData.reportDetection.ManualMode = double(app.report_DetectionManualMode.Value);
-
+            idx = app.play_PlotPanel.UserData.NodeData;            
+            update(app.specData(idx), 'UserData:ReportFields', 'ReportDetection:ManualMode:Edit', double(app.report_DetectionManualMode.Value))
             report_Algorithms(app, idx)
 
         end
@@ -5374,7 +5393,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                      'peaksTable',     app.projectData.peaksTable,      ...
                                      'exceptionList',  app.projectData.exceptionList);
                     
-                    fileWriter.MAT(fileFullPath, 'ProjectData', app.specData(idx), prjInfo)
+                    model.fileWriter.MAT(fileFullPath, 'ProjectData', app.specData(idx), prjInfo, {'callingApp', 'sortType'})
+                    
 
                     app.report_ProjectName.Value = fileFullPath;
                     app.report_ProjectWarnIcon.Visible = 0;
@@ -5525,7 +5545,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             return
                         end
 
-                        if isempty(misc_ImportUserData(app))
+                        if isempty(misc_ImportUserData(app, idxThreads))
                             return
                         end
 

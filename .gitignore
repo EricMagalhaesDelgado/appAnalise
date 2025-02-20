@@ -1,6 +1,6 @@
 # List of folder to ignore:
-appAnalise_desktopCompiler/
-appAnalise_webappCompiler/
+deploy/desktop/
+deploy/webapp/
 resources/
 
 # List of untracked files to ignore:

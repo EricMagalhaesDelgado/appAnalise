@@ -160,10 +160,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Essa propriedade registra o tipo de execução da aplicação, podendo
         % ser: 'built-in', 'desktopApp' ou 'webApp'.
         executionMode
-        
-        % Essa propriedade registra se o RFDataHub está em modo "standalone"
-        % (true) ou como módulo do appAnalise (false).
-        standaloneFlag
 
         % A função do timer é executada uma única vez após a renderização
         % da figura, lendo arquivos de configuração, iniciando modo de operação
@@ -321,23 +317,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             
             app.progressDialog.Visible = 'visible';
 
-            if app.standaloneFlag
-                % PATH SEARCH
-                appName        = class.Constants.appName;
-                MFilePath      = fileparts(mfilename('fullpath'));
-                app.rootFolder = appUtil.RootFolder(appName, MFilePath);
-                app.executionMode = appUtil.ExecutionMode(app.UIFigure);
-
-                % "GeneralSettings.json"
-                startup_Files2Read(app)
-
-                % userPath
-                if ~strcmp(app.executionMode, 'webApp')
-                    userPaths = appUtil.UserPaths(app.General.fileFolder.userPath);
-                    app.General.fileFolder.userPath = userPaths{end};
-                end
-            end
-
             switch app.executionMode
                 case 'webApp'
                     % ...
@@ -358,17 +337,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % Customiza aspectos estéticos de componentes da GUI relacionados 
             % à aba selecionada.
             jsBackDoor_Customizations(app, 1)
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_Files2Read(app)
-            % "GeneralSettings.json"
-            [app.General, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder);
-            if ~isempty(msgWarning)
-                appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
-            end
-            
-            app.General.AppVersion = fcn.envVersion(app.rootFolder, 'full');
         end
 
         %-----------------------------------------------------------------%
@@ -1379,28 +1347,15 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp, filterTable)
             
-            try
-                % Inicialmente, verifica se foi passado mainapp como argumento 
-                % de entrada. 
-                % • Caso sim, trata-se de app executado como módulo do appAnalise.
-                % • Caso não, trata-se de app executado em modo standalone.
-                if nargin == 1
-                    app.standaloneFlag = true;
+            try    
+                app.CallingApp    = mainapp;
+                app.General       = mainapp.General;
+                app.rootFolder    = mainapp.rootFolder;
+                app.executionMode = mainapp.executionMode;
+                app.specData      = mainapp.specData;
     
-                    appUtil.disablingWarningMessages()
-                    set(app.UIFigure, 'Name', 'RFDataHub', 'Icon', 'mosaic_18Gray.png')
-                else
-                    app.standaloneFlag = false;
-    
-                    app.CallingApp    = mainapp;
-                    app.General       = mainapp.General;
-                    app.rootFolder    = mainapp.rootFolder;
-                    app.executionMode = mainapp.executionMode;
-                    app.specData      = mainapp.specData;
-
-                    if nargin == 3
-                        app.filterTable = filterTable;
-                    end
+                if nargin == 3
+                    app.filterTable = filterTable;
                 end
     
                 app.GridLayout.ColumnWidth(7:10) = {0,0,0,0};
@@ -2056,12 +2011,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % os callbacks de cada parâmetro. O botão ficará invisível até 
             % ajuste desses pontos.
 
-            if ~app.standaloneFlag
-                app.General = app.CallingApp.General;
+            app.General = app.CallingApp.General;
 
-                app.misc_ElevationAPISource.Value = app.General.Elevation.Server;
-                app.misc_ElevationNPoints.Value      = num2str(app.General.Elevation.Points);
-            end
+            app.misc_ElevationAPISource.Value = app.General.Elevation.Server;
+            app.misc_ElevationNPoints.Value      = num2str(app.General.Elevation.Points);
 
             % % Eixo geográfico - app.UIAxes1
             app.config_Colormap.Value             = 'turbo';            

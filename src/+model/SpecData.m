@@ -3,13 +3,10 @@ classdef SpecData < model.SpecDataBase
     properties
         %-----------------------------------------------------------------%
         UserData = model.UserData.empty
-    end
-
-    properties (Access = private)
-        %-----------------------------------------------------------------%
         callingApp
         sortType
     end
+    
 
     methods
         %-----------------------------------------------------------------%
@@ -21,9 +18,8 @@ classdef SpecData < model.SpecDataBase
                 obj
                 propertyName char {mustBeMember(propertyName, {'GPS',                      ...
                                                                'UserData:AntennaHeight',   ...
-                                                               'UserData:BandLimitsTable', ...
-                                                               'UserData:ChannelLibIndex', ...
-                                                               'UserData:ChannelManual',   ...
+                                                               'UserData:BandLimits',      ...
+                                                               'UserData:Channel',         ...
                                                                'UserData:CustomPlayback',  ...
                                                                'UserData:Emissions',       ...
                                                                'UserData:OccupancyFields', ...
@@ -57,21 +53,26 @@ classdef SpecData < model.SpecDataBase
                             error('Unexpected update type')
                     end
 
-                case 'UserData:BandLimitsTable'
+                case 'UserData:BandLimits'
                     if numel(obj) > 1
                         error('Unexpected non scalar object')
                     end
 
                     switch updateType
-                        case 'Edit'
-                            obj.UserData.bandLimitsTable = varargin{1};
+                        case 'Status:Edit'
+                            obj.UserData.bandLimitsStatus = varargin{1};
 
-                        case 'Delete'
+                        case 'Table:Edit'
+                            obj.UserData.bandLimitsTable  = varargin{1};
+
+                        case 'Table:DeleteRows'
                             obj.UserData.bandLimitsTable(varargin{1}, :) = [];
 
                         otherwise 
                             error('Unexpected update type')
                     end
+
+                    checkIfEmissionsInSearchableBand(obj)
 
                 case 'UserData:AntennaHeight' % Origem: auxApp.dockEditLocation
                     idxThreads = varargin{1};
@@ -91,11 +92,30 @@ classdef SpecData < model.SpecDataBase
                         obj(ii).UserData.AntennaHeight = newAntennaHeight;
                     end
 
-                case 'UserData:ChannelLibIndex'
-                    % PENDENTE
+                case 'UserData:Channel'
+                    if numel(obj) > 1
+                        error('Unexpected non scalar object')
+                    end
 
-                case 'UserData:ChannelManual'
-                    % PENDENTE
+                    switch updateType
+                        case 'ChannelLibIndex:Add'
+                            channelObj = varargin{1};
+                            obj.UserData.channelLibIndex = FindRelatedBands(channelObj, obj);
+
+                        case 'ChannelLibIndex:Edit'
+                            idxChannel = varargin{1};
+                            obj.UserData.channelLibIndex = setdiff(obj.UserData.channelLibIndex, idxChannel);
+
+                        case 'ChannelManual:Refresh'
+                            idxChannel = varargin{1};
+                            obj.UserData.channelManual(idxChannel) = [];
+
+                        case 'ChannelManual:Edit'
+                            % Pendente
+
+                        otherwise 
+                            error('Unexpected update type')
+                    end
 
                 case 'UserData:CustomPlayback'
                     if numel(obj) > 1
@@ -104,7 +124,16 @@ classdef SpecData < model.SpecDataBase
 
                     switch updateType
                         case 'Edit'
-                            % PENDENTE
+                            customPlayback = varargin{1};
+
+                            obj.UserData.customPlayback.Parameters.Type          = 'manual';
+                            obj.UserData.customPlayback.Parameters.Controls      = customPlayback.Controls;
+                            obj.UserData.customPlayback.Parameters.Persistance   = customPlayback.Persistance;
+                            obj.UserData.customPlayback.Parameters.Waterfall     = customPlayback.Waterfall;
+                            obj.UserData.customPlayback.Parameters.WaterfallTime = customPlayback.WaterfallTime;
+
+                        case 'DataTip'
+                            obj.UserData.customPlayback.Parameters.Datatip       = struct('ParentTag', varargin{1}, 'DataIndex', varargin{2});
 
                         case 'Refresh'
                             obj.UserData.customPlayback = struct('Type', 'auto', 'Parameters', []);
@@ -182,10 +211,13 @@ classdef SpecData < model.SpecDataBase
                             idxEmissions = varargin{1};
         
                             obj.UserData.Emissions(idxEmissions, :) = [];
+                            return
 
                         otherwise 
                             error('Unexpected update type')
                     end
+
+                    checkIfEmissionsInSearchableBand(obj)
 
                 case 'UserData:OccupancyFields'
                     switch updateType
@@ -294,6 +326,13 @@ classdef SpecData < model.SpecDataBase
                             occCache = varargin{1};
                             obj.UserData.reportOCC = occCache;
 
+                        case 'ReportDetection:ManualMode:Edit'
+                            if numel(obj) > 1
+                                error('Unexpected non scalar object')
+                            end
+
+                            obj.UserData.reportDetection.ManualMode = varargin{1};
+
                         otherwise
                             error('Unexpected update type')
                     end
@@ -318,6 +357,39 @@ classdef SpecData < model.SpecDataBase
                         otherwise
                             error('Unexpected update type')
                     end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        % Toda vez que é incluída emissão à tabela, ou editada, verifica-se
+        % se a emissão consta no trecho espectral pesquisável do fluxo sob
+        % análise.
+        %-----------------------------------------------------------------%
+        function checkIfEmissionsInSearchableBand(obj)
+            for ii = 1:numel(obj)
+                bandLimitsStatus = obj(ii).UserData.bandLimitsStatus;
+                bandLimitsTable  = obj(ii).UserData.bandLimitsTable;
+            
+                if bandLimitsStatus && ~isempty(bandLimitsTable)
+                    emissionsTable = obj(ii).UserData.Emissions;
+
+                    for jj = height(emissionsTable):-1:1
+                        emissionsInSearchableBand = any((emissionsTable.Frequency(jj) >= bandLimitsTable.FreqStart) & (emissionsTable.Frequency(jj) <= bandLimitsTable.FreqStop));
+
+                        if ~emissionsInSearchableBand
+                            emissionsTable(jj, :) = [];
+                        end
+                    end
+
+                    % Insere a coluna "Base64", que retorna um Hash do tag da emissão, no
+                    % formato "100.300 MHz ⌂ 256.0 kHz", por exemplo. Esse Hash é usado p/
+                    % identificar as emissões únicas.
+                    emissionsBase64Hash = cellfun(@(x) Base64Hash.encode(x), arrayfun(@(x, y) sprintf('%.3f MHz ⌂ %.1f kHz', x, y), emissionsTable.Frequency, emissionsTable.BW_kHz, "UniformOutput", false), 'UniformOutput', false);
+                    [~, uniqueIndex]    = unique(emissionsBase64Hash);
+                    emissionsTable      = sortrows(emissionsTable(uniqueIndex, :), {'idxFrequency', 'BW_kHz'});
+
+                    obj(ii).UserData.Emissions = emissionsTable;
+                end
             end
         end
 
@@ -423,18 +495,6 @@ classdef SpecData < model.SpecDataBase
 
             sortedObj = obj(sortIndex);
             occupancyMapping(sortedObj)
-        end
-
-        %-----------------------------------------------------------------%
-        function copyObj = copy(obj, fields2remove)            
-            copyObj  = model.SpecData();
-            propList = setdiff(properties(copyObj), fields2remove);
-
-            for ii = 1:numel(obj)
-                for jj = 1:numel(propList)
-                    copyObj(ii).(propList{jj}) = obj(ii).(propList{jj});                
-                end
-            end
         end
 
         %-----------------------------------------------------------------%
