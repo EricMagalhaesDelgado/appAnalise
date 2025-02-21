@@ -1,9 +1,14 @@
-function report_StaticButtonPushed(app, event)
+function varargout = report_StaticButtonPushed(app, event)
+
+    varargout = {};
 
     switch event.Source
-        case app.report_ControlsTab2Image
+        case app.submenu_Button5Icon
+            varargout{1} = true;
+
             if ~report_checkValidIssueID(app)
                 appUtil.modalWindow(app.UIFigure, 'warning', 'Pendente inserir o número da Inspeção.');
+                varargout{1} = false;
                 return
             end
 
@@ -55,5 +60,5 @@ function report_FiscalizaStartup(app)
     end
 
     fiscalizaLibConnection.report_ToolbarStatus(app)
-    app.play_ControlsGrid.RowHeight(2:2:12) = {0,0,0,0,'1x',0};
+    app.play_ControlsGrid.RowHeight(2:7) = {0,0,0,0,'1x',0};
 end

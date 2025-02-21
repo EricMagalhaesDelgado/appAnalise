@@ -446,7 +446,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         % Image clicked function: tool_RFDataHubButton
         function tool_RFDataHubButtonPushed(app, event)
             
-            if isequal(app.CallingApp.General.AppVersion.RFDataHub,  app.stableVersion.RFDataHub)
+            if isequal(app.CallingApp.General.AppVersion.rfDataHub,  app.stableVersion.rfDataHub)
                 app.tool_RFDataHubButton.Enable = 0;
                 appUtil.modalWindow(app.UIFigure, 'warning', 'Módulo RFDataHub já atualizado!');
                 return
@@ -487,7 +487,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                 % Atualiza versão.
                 global RFDataHub_info
-                app.CallingApp.General.AppVersion.RFDataHub = RFDataHub_info;
+                app.CallingApp.General.AppVersion.rfDataHub = RFDataHub_info;
                 app.tool_RFDataHubButton.Enable = 0;
                 
             catch ME
@@ -579,7 +579,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                         graphRender = opengl('data');
                         
                         app.CallingApp.General.openGL = app.gpuType.Value;
-                        app.CallingApp.General.AppVersion.OpenGL = rmfield(graphRender, {'MaxTextureSize', 'Visual', 'SupportsGraphicsSmoothing', 'SupportsDepthPeelTransparency', 'SupportsAlignVertexCenters', 'Extensions', 'MaxFrameBufferSize'});
+                        app.CallingApp.General.AppVersion.openGL = rmfield(graphRender, {'MaxTextureSize', 'Visual', 'SupportsGraphicsSmoothing', 'SupportsDepthPeelTransparency', 'SupportsAlignVertexCenters', 'Extensions', 'MaxFrameBufferSize'});
                     end
 
                 case {app.imgFormat, app.imgResolution}

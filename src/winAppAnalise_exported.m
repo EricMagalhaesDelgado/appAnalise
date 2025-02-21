@@ -3,6 +3,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure                        matlab.ui.Figure
+        report_ProjectWarnIcon          matlab.ui.control.Image
         GridLayout                      matlab.ui.container.GridLayout
         popupContainerGrid              matlab.ui.container.GridLayout
         SplashScreen                    matlab.ui.control.Image
@@ -42,6 +43,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         file_Metadata                   matlab.ui.control.HTML
         file_MetadataLabel              matlab.ui.control.Label
         file_docGrid                    matlab.ui.container.GridLayout
+        Image                           matlab.ui.control.Image
         file_Tree                       matlab.ui.container.Tree
         file_TreeLabel                  matlab.ui.control.Label
         file_TitleGrid                  matlab.ui.container.GridLayout
@@ -58,16 +60,32 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         tool_LayoutRight                matlab.ui.control.Image
         tool_FiscalizaUpdate            matlab.ui.control.Image
         tool_ReportGenerator            matlab.ui.control.Image
-        tool_ReportAnalysis             matlab.ui.control.Image
-        tool_ExceptionList              matlab.ui.control.Image
-        tool_DriveTest                  matlab.ui.control.Image
-        tool_RFDataHub                  matlab.ui.control.Image
         tool_TimestampLabel             matlab.ui.control.Label
         tool_TimestampSlider            matlab.ui.control.Slider
         tool_LoopControl                matlab.ui.control.Image
         tool_Play                       matlab.ui.control.Image
         tool_LayoutLeft                 matlab.ui.control.Image
         play_ControlsGrid               matlab.ui.container.GridLayout
+        submenu_Grid                    matlab.ui.container.GridLayout
+        submenu_Button6Grid             matlab.ui.container.GridLayout
+        submenu_Button6Icon             matlab.ui.control.Image
+        submenu_Button6Label            matlab.ui.control.Label
+        submenu_Button5Grid             matlab.ui.container.GridLayout
+        submenu_Button5Icon             matlab.ui.control.Image
+        submenu_Button5Label            matlab.ui.control.Label
+        submenu_Button4Grid             matlab.ui.container.GridLayout
+        submenu_Button4Icon             matlab.ui.control.Image
+        submenu_Button4Label            matlab.ui.control.Label
+        submenu_Button3Grid             matlab.ui.container.GridLayout
+        submenu_Button3Icon             matlab.ui.control.Image
+        submenu_Button3Label            matlab.ui.control.Label
+        submenu_Button2Grid             matlab.ui.container.GridLayout
+        submenu_Button2Icon             matlab.ui.control.Image
+        submenu_Button2Label            matlab.ui.control.Label
+        submenu_Button1Grid             matlab.ui.container.GridLayout
+        submenu_Button1Icon             matlab.ui.control.Image
+        submenu_Button1Label            matlab.ui.control.Label
+        submenuUnderline                matlab.ui.control.Image
         misc_ControlsTab1Info           matlab.ui.container.GridLayout
         misc_Panel1                     matlab.ui.container.Panel
         misc_Grid1                      matlab.ui.container.GridLayout
@@ -93,40 +111,30 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         misc_SaveLabel                  matlab.ui.control.Label
         misc_Save                       matlab.ui.control.Button
         misc_Label1                     matlab.ui.control.Label
-        misc_ControlsTab1Grid           matlab.ui.container.GridLayout
-        misc_ControlsTab1Image          matlab.ui.control.Image
-        misc_ControlsTab1Label          matlab.ui.control.Label
         report_ControlsTab2Info         matlab.ui.container.GridLayout
         report_FiscalizaPanel           matlab.ui.container.Panel
         report_FiscalizaGrid            matlab.ui.container.GridLayout
         report_FiscalizaIcon            matlab.ui.control.Image
         report_FiscalizaRefresh         matlab.ui.control.Image
         report_Fiscaliza_PanelLabel     matlab.ui.control.Label
-        report_ControlsTab2Grid         matlab.ui.container.GridLayout
-        report_ControlsTab2Image        matlab.ui.control.Image
-        report_ControlsTab2Label        matlab.ui.control.Label
         report_ControlsTab1Info         matlab.ui.container.GridLayout
-        report_Tree                     matlab.ui.container.CheckBoxTree
+        report_Tree                     matlab.ui.container.Tree
         report_TreeAddImage             matlab.ui.control.Image
+        report_TreeLabel                matlab.ui.control.Label
         report_DocumentPanel            matlab.ui.container.Panel
         GridLayout4                     matlab.ui.container.GridLayout
-        report_AddProjectAttachment     matlab.ui.control.Image
-        report_IssueLabel               matlab.ui.control.Label
-        report_Issue                    matlab.ui.control.NumericEditField
         report_Version                  matlab.ui.control.DropDown
         report_VersionLabel             matlab.ui.control.Label
         report_ModelName                matlab.ui.control.DropDown
+        report_AddProjectAttachment     matlab.ui.control.Image
         report_ModelNameLabel           matlab.ui.control.Label
+        report_IssueLabel               matlab.ui.control.Label
+        report_Issue                    matlab.ui.control.NumericEditField
         report_DocumentPanelLabel       matlab.ui.control.Label
+        report_ProjectName              matlab.ui.control.TextArea
         report_ProjectSave              matlab.ui.control.Image
         report_ProjectNew               matlab.ui.control.Image
-        report_ProjectName              matlab.ui.control.TextArea
         report_ProjectNameLabel         matlab.ui.control.Label
-        report_ThreadAlgorithmsLabel    matlab.ui.control.Label
-        report_ControlsTab1Grid         matlab.ui.container.GridLayout
-        report_ControlsTab1Image        matlab.ui.control.Image
-        report_ProjectWarnIcon          matlab.ui.control.Image
-        report_ControlsTab1Label        matlab.ui.control.Label
         play_ControlsTab3Info           matlab.ui.container.GridLayout
         play_FindPeaks_ExternalFilePanel  matlab.ui.container.Panel
         play_FindPeaks_ExternalFileGrid  matlab.ui.container.GridLayout
@@ -176,9 +184,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_FindPeaks_ROI              matlab.ui.control.RadioButton
         play_FindPeaks_auto             matlab.ui.control.RadioButton
         play_FindPeaks_Label            matlab.ui.control.Label
-        play_ControlsTab3Grid           matlab.ui.container.GridLayout
-        play_ControlsTab3Image          matlab.ui.control.Image
-        play_ControlsTab3Label          matlab.ui.control.Label
         play_ControlsTab2Info           matlab.ui.container.GridLayout
         play_Channel_ShowPlot           matlab.ui.control.Image
         play_BandLimits_Tree            matlab.ui.container.Tree
@@ -221,9 +226,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_Channel_Multiples          matlab.ui.control.RadioButton
         play_Channel_ReferenceList      matlab.ui.control.RadioButton
         play_Channel_Label              matlab.ui.control.Label
-        play_ControlsTab2Grid           matlab.ui.container.GridLayout
-        play_ControlsTab2Image          matlab.ui.control.Image
-        play_ControlsTab2Label          matlab.ui.control.Label
         play_ControlsTab1Info           matlab.ui.container.GridLayout
         play_Customization              matlab.ui.control.CheckBox
         play_Waterfall_Panel            matlab.ui.container.Panel
@@ -315,9 +317,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_LayoutRatio                matlab.ui.control.DropDown
         play_LayoutRatioLabel           matlab.ui.control.Label
         play_GeneralPanelLabel          matlab.ui.control.Label
-        play_ControlsTab1Grid           matlab.ui.container.GridLayout
-        play_ControlsTab1Image          matlab.ui.control.Image
-        play_ControlsTab1Label          matlab.ui.control.Label
         play_axesToolbar                matlab.ui.container.GridLayout
         axesTool_RestoreView            matlab.ui.control.Image
         axesTool_Pan                    matlab.ui.control.Image
@@ -336,7 +335,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         report_ThreadAlgorithmsPanel    matlab.ui.container.Panel
         report_ThreadAlgorithmsGrid     matlab.ui.container.GridLayout
         report_ThreadAlgorithms         matlab.ui.control.HTML
-        report_TreeLabel                matlab.ui.control.Label
+        report_ThreadAlgorithmsLabel    matlab.ui.control.Label
         play_MetadataPanel              matlab.ui.container.Panel
         play_MetadataGrid               matlab.ui.container.GridLayout
         play_Metadata                   matlab.ui.control.HTML
@@ -346,6 +345,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_TreePanelVisibility        matlab.ui.control.Image
         play_TreeLabel                  matlab.ui.control.Label
         play_TreeTitleGrid              matlab.ui.container.GridLayout
+        Image2                          matlab.ui.control.Image
         play_TreeTitle                  matlab.ui.control.Label
         play_TreeTitleImage             matlab.ui.control.Image
         Tab3_DriveTest                  matlab.ui.container.Tab
@@ -357,14 +357,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         file_ContextMenu_Tree2          matlab.ui.container.ContextMenu
         file_ContextMenu_delTree2Node   matlab.ui.container.Menu
         play_FindPeaks_ContextMenu      matlab.ui.container.ContextMenu
+        ConsultarMenu                   matlab.ui.container.Menu
         play_FindPeaks_ContextMenu_edit  matlab.ui.container.Menu
         play_FindPeaks_ContextMenu_analog  matlab.ui.container.Menu
         play_FindPeaks_ContextMenu_digital  matlab.ui.container.Menu
         play_FindPeaks_ContextMenu_del  matlab.ui.container.Menu
         play_Channel_ContextMenu        matlab.ui.container.ContextMenu
-        play_Channel_ContextMenu_del    matlab.ui.container.Menu
         play_Channel_ContextMenu_addBandLimit  matlab.ui.container.Menu
         play_Channel_ContextMenu_addEmission  matlab.ui.container.Menu
+        play_Channel_ContextMenu_del    matlab.ui.container.Menu
         report_ContextMenu              matlab.ui.container.ContextMenu
         report_ContextMenu_del          matlab.ui.container.Menu
         play_BandLimits_ContextMenu     matlab.ui.container.ContextMenu
@@ -397,6 +398,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % não visíveis. E a customização de componentes, usando a lib ccTools, 
         % somente é possível após a sua renderização. Controla-se a aplicação 
         % da customizaçao por meio dessa propriedade jsBackDoorFlag.
+        tabGroupController
         jsBackDoorFlag = {true, ...
                           true, ...
                           true, ...
@@ -443,11 +445,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         hTHRLabel                                                           % OCC roi/line label ("THR")            
         hWaterfall
         hWaterfallTime                                                      % Waterfall timestamp
-
-        hDriveTest                                                          % auxApp.winDriveTest.mlapp      | auxApp.winDriveTest_exported.m
-        hSignalAnalysis                                                     % auxApp.winSignalAnalysis.mlapp | auxApp.winSignalAnalysis_exported.m
-        hRFDataHub                                                          % winRFDataHub.mlapp             | winRFDataHub_exported.m
-        hConfig                                                             % auxApp.dockConfig.mlapp        | auxApp.dockConfig_exported.m
     end
     
     
@@ -711,17 +708,20 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_GUIComponents(app)
+            % Cria o objeto que conecta o TabGroup com o GraphicMenu.
+            app.tabGroupController = tabGroupGraphicMenu(app.menu_Grid, app.TabGroup, app.progressDialog, @app.jsBackDoor_Customizations, @app.menu_LayoutControl);
+
+            addComponent(app.tabGroupController, "Built-in", "",                         app.menu_Button1, "AlwaysOn", struct('On', 'OpenFile_32Yellow.png',         'Off', 'OpenFile_32White.png'),         matlab.graphics.GraphicsPlaceholder, 1)
+            addComponent(app.tabGroupController, "Built-in", "",                         app.menu_Button2, "AlwaysOn", struct('On', 'Playback_32Yellow.png',         'Off', 'Playback_32White.png'),         matlab.graphics.GraphicsPlaceholder, 2)
+            addComponent(app.tabGroupController, "Built-in", "",                         app.menu_Button3, "AlwaysOn", struct('On', 'Report_32Yellow.png',           'Off', 'Report_32White.png'),           matlab.graphics.GraphicsPlaceholder, 2)
+            addComponent(app.tabGroupController, "Built-in", "",                         app.menu_Button4, "AlwaysOn", struct('On', 'Misc_32Yellow.png',             'Off', 'Misc_32White.png'),             matlab.graphics.GraphicsPlaceholder, 2)
+            addComponent(app.tabGroupController, "External", "auxApp.winDriveTest",      app.menu_Button5, "On/Off",   struct('On', 'DriveTestDensity_32Yellow.png', 'Off', 'DriveTestDensity_32White.png'), app.menu_Button2,                    3)
+            addComponent(app.tabGroupController, "External", "auxApp.winSignalAnalysis", app.menu_Button6, "On/Off",   struct('On', 'exceptionList_32Yellow.png',    'Off', 'exceptionList_32White.png'),    app.menu_Button2,                    4)
+            addComponent(app.tabGroupController, "External", "auxApp.winRFDataHub",      app.menu_Button7, "AlwaysOn", struct('On', 'mosaic_32Yellow.png',           'Off', 'mosaic_32White.png'),           app.menu_Button1,                    5)
+            addComponent(app.tabGroupController, "External", "auxApp.winConfig",         app.menu_Button8, "AlwaysOn", struct('On', 'Settings_36Yellow.png',         'Off', 'Settings_36White.png'),         app.menu_Button1,                    6)
+
             % Salva na propriedade "UserData" as opções de ícone e o índice 
-            % da aba, simplificando os ajustes decorrentes de uma alteração...
-            app.menu_Button1.UserData                 = struct('iconOptions', {{'OpenFile_32White.png',         'OpenFile_32Yellow.png'}},         'tabGroup', 1);
-            app.menu_Button2.UserData                 = struct('iconOptions', {{'Playback_32White.png',         'Playback_32Yellow.png'}},         'tabGroup', 2);
-            app.menu_Button3.UserData                 = struct('iconOptions', {{'Report_32White.png',           'Report_32Yellow.png'}},           'tabGroup', 2);
-            app.menu_Button4.UserData                 = struct('iconOptions', {{'Misc_32White.png',             'Misc_32Yellow.png'}},             'tabGroup', 2);
-            app.menu_Button5.UserData                 = struct('iconOptions', {{'DriveTestDensity_32White.png', 'DriveTestDensity_32Yellow.png'}}, 'tabGroup', 3);
-            app.menu_Button6.UserData                 = struct('iconOptions', {{'exceptionList_32White.png',    'exceptionList_32Yellow.png'}},    'tabGroup', 4);
-            app.menu_Button7.UserData                 = struct('iconOptions', {{'mosaic_32White.png',           'mosaic_32Yellow.png'}},           'tabGroup', 5);
-            app.menu_Button8.UserData                 = struct('iconOptions', {{'Settings_36White.png',         'Settings_36Yellow.png'}},         'tabGroup', 6);
-                        
+            % da aba, simplificando os ajustes decorrentes de uma alteração...                        
             app.play_TreeSort.UserData                = 'Receiver+Frequency';
             app.file_Tree.UserData                    = struct('previousSelectedFileIndex', []);
             app.play_TreePanelVisibility.UserData     = struct('Mode', 'PLAYBACK', 'Visible', true);
@@ -847,201 +847,139 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     end
 
 
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        % TABGROUPCONTROLLER
+        %-----------------------------------------------------------------%
+        function hAuxApp = auxAppHandle(app, auxAppName)
+            arguments
+                app
+                auxAppName string {mustBeMember(auxAppName, ["DRIVETEST", "SIGNALANALYSIS", "RFDATAHUB", "CONFIG"])}
+            end
+
+            hAuxApp = app.tabGroupController.Components.appHandle{app.tabGroupController.Components.Tag == auxAppName};
+        end
+
+        %-----------------------------------------------------------------%
+        function inputArguments = auxAppInputArguments(app, auxAppName)
+            arguments
+                app
+                auxAppName char {mustBeMember(auxAppName, {'FILE', 'PLAYBACK', 'REPORT', 'MISC', 'DRIVETEST', 'SIGNALANALYSIS', 'RFDATAHUB', 'CONFIG'})}
+            end
+            
+            [auxAppIsOpen, ...
+             auxAppHandle] = checkStatusModule(app.tabGroupController, auxAppName);
+
+            inputArguments = {app};
+
+            switch auxAppName
+                case 'DRIVETEST'
+                    idxThread   = app.play_PlotPanel.UserData.NodeData;
+                    idxEmission = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
+
+                    compatibilityMode = false;
+                    if ~ismember(app.specData(idxThread).MetaData.DataType, [1, 2])                || ...
+                       app.specData(idxThread).GPS.Count ~= numel(app.specData(idxThread).Data{1}) || ...
+                       ~ismember(app.specData(idxThread).MetaData.LevelUnit, {'dBm', 'dBµV'})
+
+                        compatibilityMode = true;
+                    end
+
+                    inputArguments = {app, compatibilityMode, idxThread, idxEmission};
+
+                case 'SIGNALANALYSIS'                    
+                    if auxAppIsOpen
+                        idxPrjPeaks    = auxAppHandle.UITable.Selection;
+                        inputArguments = {app, idxPrjPeaks};                        
+                    end
+
+                case 'RFDATAHUB'
+                    if auxAppIsOpen
+                        filterTable    = auxAppHandle.filterTable;
+                        inputArguments = {app, filterTable};
+                    end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function userSelection = auxAppStatus(app, operationType)
+            arguments
+                app
+                operationType char {mustBeMember(operationType, {'RELER INFORMAÇÃO ESPECTRAL', ...
+                                                                 'MESCLAR FLUXOS',             ...
+                                                                 'DELETAR FLUXO',              ...
+                                                                 'IMPORTAR ANÁLISE'})}
+            end
+
+            userSelection = 'Sim';
+
+            if checkStatusModule(app.tabGroupController, 'DRIVETEST') || checkStatusModule(app.tabGroupController, 'SIGNALANALYSIS')
+                msgQuestion   = sprintf(['A operação "%s" demanda que os módulos auxiliares "DRIVETEST" e "SIGNALANALYSIS" sejam fechados, '        ...
+                                         'caso abertos, pois as informações espectrais consumidas por esses módulos poderão ficar desatualizadas. ' ...
+                                         'Deseja continuar?'], operationType);
+                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+
+                if userSelection == "Sim"
+                    closeModule(app.tabGroupController, 'DRIVETEST',      app.General)
+                    closeModule(app.tabGroupController, 'SIGNALANALYSIS', app.General)
+                end
+            end
+        end
+    end
+
+
     methods
         %-----------------------------------------------------------------%
         % CUSTOMIZAÇÃO DECORRENTE DA TROCA DO MODO DE OPERAÇÃO
         %-----------------------------------------------------------------%
         function menu_LayoutControl(app, tabIndex)
-            switch tabIndex
-                case 1 % FILE
-                    app.menu_Grid.ColumnWidth(end-1:end) = {0, 0};
-
-                case 2 % PLAYBACK, REPORT, MISC
-                    app.menu_Grid.ColumnWidth(end-1:end) = {0, 0};
-
-                    if app.menu_Button2.Value
-                        set(app.play_Tree, 'SelectedNodes', app.play_PlotPanel.UserData, 'Multiselect', 'off')
-
-                        app.play_TreePanelVisibility.Visible       = 1;
-                        app.play_TreePanelVisibility.UserData.Mode = 'PLAYBACK';
-
-                        app.play_ControlsGrid.RowHeight   = {22,'1x',22,0,22,0,0,0,0,0,0,0};
-                        set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=1)
-                        set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=0)
-                        set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=0)
-
-                    elseif app.menu_Button3.Value
-                        app.play_Tree.Multiselect = "on";
-                        
-                        app.play_TreePanelVisibility.Visible       = 0;
-                        app.play_TreePanelVisibility.UserData.Mode = 'REPORT';
-
-                        app.play_ControlsGrid.RowHeight = {0,0,0,0,0,0,22,'1x',22,0,0,0};
-                        set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=0)
-                        set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=1)
-                        set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=1, Enable=0)
-
-                    elseif app.menu_Button4.Value
-                        app.play_Tree.Multiselect = "on";
-                        
-                        switch app.play_TreePanelVisibility.UserData.Mode
-                            case 'PLAYBACK'
-                                app.play_TreePanelVisibility.Visible = 1;
-                            case 'REPORT'
-                                app.play_TreePanelVisibility.Visible = 0;
-                        end
-                        
-                        app.play_ControlsGrid.RowHeight   = {0,0,0,0,0,0,0,0,0,0,22,'1x'};
-                        set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=0)
-                        set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=0)
-                        set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=0)
-                    end
-
-                    play_TreeSecundaryPanelVisibility(app)
-                    play_TreeSelectionChanged(app)
-
-                otherwise % DRIVETEST, SIGNALANALYSIS, RFDATAHUB, CONFIG
-                    switch app.executionMode
-                        case 'webApp'
-                            app.menu_Grid.ColumnWidth(end-1:end) = {0, 20};
-                        otherwise
-                            app.menu_Grid.ColumnWidth(end-1:end) = {20, 20};
-                    end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function menu_LayoutAuxiliarApp(app, auxiliarApp, operationType, varargin)
-            arguments
-                app
-                auxiliarApp   char {mustBeMember(auxiliarApp,   {'DRIVETEST', 'SIGNALANALYSIS', 'RFDATAHUB', 'CONFIG'})}
-                operationType char {mustBeMember(operationType, {'Open', 'Close', 'Undocking'})}
+            if tabIndex ~= 2
+                return
             end
 
-            arguments (Repeating)
-                varargin
+            if app.menu_Button2.Value
+                set(app.play_Tree, 'SelectedNodes', app.play_PlotPanel.UserData, 'Multiselect', 'off')
+
+                app.play_TreePanelVisibility.Visible       = 1;
+                app.play_TreePanelVisibility.UserData.Mode = 'PLAYBACK';
+
+                set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=1)
+                set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=0)
+                set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=0)
+
+                play_submenuButtonPushed(app, struct('Source', app.submenu_Button1Icon))
+
+            elseif app.menu_Button3.Value
+                app.play_Tree.Multiselect = "on";
+                
+                app.play_TreePanelVisibility.Visible       = 0;
+                app.play_TreePanelVisibility.UserData.Mode = 'REPORT';
+
+                set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=0)
+                set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=1)
+                set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=1, Enable=0)
+
+                play_submenuButtonPushed(app, struct('Source', app.submenu_Button4Icon))
+
+            elseif app.menu_Button4.Value
+                app.play_Tree.Multiselect = "on";
+                
+                switch app.play_TreePanelVisibility.UserData.Mode
+                    case 'PLAYBACK'
+                        app.play_TreePanelVisibility.Visible = 1;
+                    case 'REPORT'
+                        app.play_TreePanelVisibility.Visible = 0;
+                end
+
+                set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=0)
+                set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=0)
+                set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=0)
+
+                play_submenuButtonPushed(app, struct('Source', app.submenu_Button6Icon))
             end
 
-            switch auxiliarApp
-                case 'DRIVETEST'
-                    propertyName         = 'hDriveTest';                    
-                    dockMenuButton       = app.menu_Button5;
-                    dockMenuButtonEnable = true;
-                    dockRefMenuButton    = app.menu_Button2; % PLAYBACK
-                    dockContainer        = app.Tab3_DriveTest;
-                    
-                    FileHandle_MFILE     = @auxApp.winDriveTest_exported;
-                    FileHandle_MLAPP     = @auxApp.winDriveTest;
-
-                case 'SIGNALANALYSIS'
-                    propertyName         = 'hSignalAnalysis';
-                    dockMenuButton       = app.menu_Button6;
-                    dockMenuButtonEnable = true;
-                    dockRefMenuButton    = app.menu_Button3; % REPORT
-                    dockContainer        = app.Tab4_SignalAnalysis;
-                    
-                    FileHandle_MFILE     = @auxApp.winSignalAnalysis_exported;
-                    FileHandle_MLAPP     = @auxApp.winSignalAnalysis;
-
-                case 'RFDATAHUB'
-                    propertyName         = 'hRFDataHub';
-                    dockMenuButton       = app.menu_Button7;
-                    dockMenuButtonEnable = false;
-                    dockRefMenuButton    = app.menu_Button2; % PLAYBACK
-                    dockContainer        = app.Tab5_RFDataHub;
-                    
-                    FileHandle_MFILE     = @winRFDataHub_exported;
-                    FileHandle_MLAPP     = @winRFDataHub;
-
-                case 'CONFIG'
-                    propertyName         = 'hConfig';
-                    dockMenuButton       = app.menu_Button8;
-                    dockMenuButtonEnable = false;
-                    dockRefMenuButton    = app.menu_Button2; % PLAYBACK
-                    dockContainer        = app.Tab6_Config;
-                    
-                    FileHandle_MFILE     = @auxApp.winConfig_exported;
-                    FileHandle_MLAPP     = @auxApp.winConfig;
-            end
-
-            switch operationType
-                case 'Open'
-                    if isempty(app.(propertyName)) || ~isvalid(app.(propertyName))
-                        app.progressDialog.Visible = 'visible';
-
-                        if isempty(varargin)
-                            varargin = {app};
-                        end
-
-                        if app.General.operationMode.Dock
-                            app.(propertyName) = FileHandle_MFILE(dockContainer, varargin{:});
-
-                            set(dockMenuButton, 'Enable', 1, 'Value', 1)
-                            menu_mainButtonPushed(app, struct('Source', dockMenuButton, 'PreviousValue', 0))
-                        else
-                            dockMenuButton.Value = 0;
-
-                            if app.General.operationMode.Debug
-                                app.(propertyName) = FileHandle_MLAPP(varargin{:});
-                            else
-                                app.(propertyName) = FileHandle_MFILE([], varargin{:});
-                            end                            
-                        end
-
-                        app.progressDialog.Visible = 'hidden';
-    
-                    else
-                        if app.(propertyName).isDocked
-                            dockMenuButton.Value = 1;
-                            menu_mainButtonPushed(app, struct('Source', dockMenuButton, 'PreviousValue', 0))
-                        else
-                            figure(app.(propertyName).UIFigure)
-                        end
-                    end
-
-                otherwise % 'Close'
-                    if dockMenuButtonEnable
-                        dockMenuButton.Enable = 0;
-                    end
-
-                    if dockMenuButton.Value
-                        if ~dockRefMenuButton.Enable
-                            dockRefMenuButton = app.menu_Button1;
-                        end
-
-                        dockRefMenuButton.Value = 1;
-                        menu_mainButtonPushed(app, struct('Source', dockRefMenuButton, 'PreviousValue', 0))
-                    end
-
-                    delete(app.(propertyName))
-                    app.(propertyName) = [];
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function inputArguments = menu_LayoutUndockingAuxiliarApp(app, auxiliarApp)
-            arguments
-                app
-                auxiliarApp   char {mustBeMember(auxiliarApp,   {'DRIVETEST', 'SIGNALANALYSIS', 'RFDATAHUB', 'CONFIG'})}
-            end
-
-            switch auxiliarApp
-                case 'DRIVETEST'
-                    compatibilityMode = app.hDriveTest.compatibilityMode;
-                    [idxThread, idxEmission] = specDataIndex(app.hDriveTest, 'EmissionShowed');
-                    inputArguments = {app, compatibilityMode, idxThread, idxEmission};
-
-                case 'SIGNALANALYSIS'
-                    idxPrjPeaks = app.hSignalAnalysis.UITable.Selection;
-                    inputArguments = {app, idxPrjPeaks};
-
-                case 'RFDATAHUB'
-                    filterTable = app.hRFDataHub.filterTable;
-                    inputArguments = {app, filterTable};
-
-                otherwise
-                    inputArguments = {app};
-            end
+            play_TreeSecundaryPanelVisibility(app)
+            play_TreeSelectionChanged(app)
         end
 
         %-----------------------------------------------------------------%
@@ -1084,7 +1022,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function DeleteAll(app)
             DeleteProject(app, 'appAnalise:MISC:RestartAnalysis')
-            DeleteAuxiliarApps(app)
+
+            closeModule(app.tabGroupController, "DRIVETEST",      app.General)
+            closeModule(app.tabGroupController, "SIGNALANALYSIS", app.General)
+            closeModule(app.tabGroupController, "RFDATAHUB",      app.General)
 
             file_DataReaderError(app)
             file_specReadButtonVisibility(app)
@@ -1114,24 +1055,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     % Fecha o app auxiliar SIGNALANALYSIS porque ele demanda 
                     % ao menos um fluxo espectral a processar, o que não existe
                     % neste momento.
-                    if ~isempty(app.hSignalAnalysis)
-                        menu_LayoutAuxiliarApp(app, 'SIGNALANALYSIS', 'Close')
-                    end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function DeleteAuxiliarApps(app)
-            if ~isempty(app.hDriveTest)
-                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Close')
-            end
-
-            if ~isempty(app.hSignalAnalysis)
-                menu_LayoutAuxiliarApp(app, 'SIGNALANALYSIS', 'Close')
-            end
-
-            if ~isempty(app.hRFDataHub)
-                menu_LayoutAuxiliarApp(app, 'RFDATAHUB', 'Close')
+                    closeModule(app.tabGroupController, "SIGNALANALYSIS",  app.General)
             end
         end
         
@@ -2090,22 +2014,23 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             idxReport = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
 
             if isempty(idxReport)
-                if ~isempty(app.hSignalAnalysis)
-                    menu_LayoutAuxiliarApp(app, 'SIGNALANALYSIS', 'Close')
-                end
+                closeModule(app.tabGroupController, "SIGNALANALYSIS", app.General)
+
             else
                 if any(ismember(idxThreads, idxReport))
                     report.Controller(app, operationType)
-    
-                    if ~isempty(app.hSignalAnalysis) && isvalid(app.hSignalAnalysis)
-                        idxPrjPeaks = app.hSignalAnalysis.UITable.Selection;
-                        renderProjectDataOnScreen(app.hSignalAnalysis, idxPrjPeaks)
+
+                    hSignalAnalysis = auxAppHandle(app, 'SIGNALANALYSIS');
+                    if ~isempty(hSignalAnalysis) && isvalid(hSignalAnalysis)
+                        idxPrjPeaks = hSignalAnalysis.UITable.Selection;
+                        renderProjectDataOnScreen(hSignalAnalysis, idxPrjPeaks)
                     end
                 end
             end
 
-            if ~isempty(app.hDriveTest) && isvalid(app.hDriveTest)
-                EmissionListUpdated(app.hDriveTest)
+            hDriveTest = auxAppHandle(app, 'DRIVETEST');
+            if ~isempty(hDriveTest) && isvalid(hDriveTest)
+                EmissionListUpdated(hDriveTest)
             end
         end
 
@@ -2697,11 +2622,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             idxThreads = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
             if isempty(idxThreads)
                 app.projectData.peaksTable(:,:) = [];
-                app.tool_ReportAnalysis.Enable  = 0;
                 app.tool_ReportGenerator.Enable = 0;
 
             else
-                app.tool_ReportAnalysis.Enable  = 1;
                 report_ModelOrVersionValueChanged(app, struct('Source', app.report_ModelName))
                 
                 [receiverList, ~, ic] = unique({app.specData(idxThreads).Receiver});                
@@ -2799,27 +2722,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     generation = generation+1;
                 else
                     break
-                end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function userSelection = misc_checkIfAuxiliarAppIsOpen(app, operationType)
-            userSelection = 'Sim';
-
-            if ~isempty(app.hSignalAnalysis) || ~isempty(app.hDriveTest)
-                msgQuestion   = sprintf(['A operação "%s" demanda que os módulos auxiliares "SignalAnalysis" e "DriveTest" sejam fechados, '        ...
-                                         'caso abertos, pois as informações espectrais consumidas por esses módulos poderão ficar desatualizadas. ' ...
-                                         'Deseja continuar?'], operationType);
-                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                if userSelection == "Sim"
-                    if ~isempty(app.hDriveTest)
-                        menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Close')
-                    end
-        
-                    if ~isempty(app.hSignalAnalysis)
-                        menu_LayoutAuxiliarApp(app, 'SIGNALANALYSIS', 'Close')
-                    end
                 end
             end
         end
@@ -2946,9 +2848,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function misc_FiscalizaModeChanged(app)
             switch app.General.fiscaliza.systemVersion
                 case 'PROD'
-                    app.report_ControlsTab2Label.Text = 'API FISCALIZA';        
+                    app.submenu_Button5Label.Text = 'API FISCALIZA';        
                 case 'HOM'
-                    app.report_ControlsTab2Label.Text = 'API FISCALIZA HOMOLOGAÇÃO';
+                    app.submenu_Button5Label.Text = 'API FISCALIZA HOMOLOGAÇÃO';
             end
         end
 
@@ -2983,7 +2885,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     case {'auxApp.winSignalAnalysis', 'auxApp.winSignalAnalysis_exported'}
                         switch operationType
                             case 'closeFcn'
-                                menu_LayoutAuxiliarApp(app, 'SIGNALANALYSIS', 'Close')    
+                                closeModule(app.tabGroupController, "SIGNALANALYSIS", app.General)
                             case {'DeleteButtonPushed', 'PeakValueChanged'}
                                 idxThread = varargin{1};
                                 idxEmission = varargin{2};
@@ -3001,7 +2903,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     case {'auxApp.winDriveTest', 'auxApp.winDriveTest_exported'}
                         switch operationType
                             case 'closeFcn'
-                                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Close')
+                                closeModule(app.tabGroupController, "DRIVETEST", app.General)
                             otherwise
                                 error('UnexpectedCall')
                         end
@@ -3009,7 +2911,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     case {'auxApp.winConfig', 'auxApp.winConfig_exported'}
                         switch operationType
                             case 'closeFcn'
-                                menu_LayoutAuxiliarApp(app, 'CONFIG', 'Close')
+                                closeModule(app.tabGroupController, "CONFIG", app.General)
                             case 'FiscalizaModeChanged'
                                 % Reinicia o objeto, caso necessário...
                                 if ~isempty(app.fiscalizaObj)
@@ -3028,10 +2930,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 error('UnexpectedCall')
                         end
 
-                    case {'winRFDataHub', 'winRFDataHub_exported'}
+                    case {'auxApp.winRFDataHub', 'auxApp.winRFDataHub_exported'}
                         switch operationType
                             case 'closeFcn'
-                                menu_LayoutAuxiliarApp(app, 'RFDATAHUB', 'Close')
+                                closeModule(app.tabGroupController, "RFDATAHUB", app.General)
                             otherwise
                                 error('UnexpectedCall')
                         end
@@ -3133,7 +3035,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            % RUNNING PROJECT CHECK
+            % Especificidade "winAppAnalise":
             projectName = char(app.report_ProjectName.Value);
             if ~isempty(projectName) && app.report_ProjectWarnIcon.Visible
                 msgQuestion   = sprintf(['O projeto aberto - registrado no arquivo <b>"%s"</b> - foi alterado.\n\n' ...
@@ -3144,111 +3046,92 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
             end
 
-            % DELETE TEMP FILES
-            rmdir(app.General_I.fileFolder.tempPath, 's');
-
-            % DELETE AUXILIAR APPS
-            delete(app.hDriveTest)
-            delete(app.hSignalAnalysis)
-            delete(app.hRFDataHub)
-
-            % TIMER
-            h = timerfindall;
-            if ~isempty(h)
-                stop(h); delete(h); clear h
-            end
-
-            % MATLAB RUNTIME
-            % Ao fechar um webapp, o MATLAB WebServer demora uns 10 segundos para
-            % fechar o Runtime que suportava a sessão do webapp. Dessa forma, a 
-            % liberação do recurso, que ocorre com a inicialização de uma nova 
-            % sessão do Runtime, fica comprometida.
-            appUtil.killingMATLABRuntime(app.executionMode)
-
+            % Aspectos gerais (comum em todos os apps):
+            appUtil.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
             delete(app)
             
         end
 
         % Value changed function: menu_Button1, menu_Button2, 
-        % ...and 4 other components
+        % ...and 6 other components
         function menu_mainButtonPushed(app, event)
 
-            clickedButton = event.Source;
+            clickedButton  = event.Source;
+            auxAppName     = clickedButton.Tag;
+            
+            switch auxAppName
+                case 'DRIVETEST'
+                    hAuxiliarApp = auxAppHandle(app, auxAppName);
 
-            if event.PreviousValue
-                clickedButton.Value = true;
-                return
+                    if isempty(hAuxiliarApp) || ~isvalid(hAuxiliarApp)
+                        idx = app.play_PlotPanel.UserData.NodeData;
+        
+                        if ~app.specData(idx).GPS.Status
+                            msgError = ['Monitoração não registrou coordenadas geográficas válidas. Neste caso, para abrir o módulo ' ...
+                                        '"DRIVE-TEST" em modo de compatibilidade, deve-se editar manualmente as coordenadas '         ...
+                                        'geográficas do local da monitoração.'];
+                            appUtil.modalWindow(app.UIFigure, 'error', msgError);
+                            
+                            clickedButton.Value = 0;
+                            return
+                        end
+        
+                        if ~ismember(app.specData(idx).MetaData.DataType, [1, 2])          || ...
+                           app.specData(idx).GPS.Count ~= numel(app.specData(idx).Data{1}) || ...
+                           ~ismember(app.specData(idx).MetaData.LevelUnit, {'dBm', 'dBµV'})
+
+                            msgQuestion   = sprintf(['O módulo "DRIVE-TEST" foi construído para possibilitar a visualização em '      ...
+                                                     'mapa de dados obtidos em monitorações móveis conduzidas pelo appColeta.\n\nA '  ...
+                                                     'emissão selecionada, contudo, está relacionada ao(s) seguinte(s) aspecto(s):\n' ...
+                                                     '%s\n\nDeseja continuar, abrindo o módulo em modo de compatibilidade?'], textFormatGUI.cellstr2Bullets(msgWarning));
+                            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+
+                            if strcmp(userSelection, 'Não')
+                                clickedButton.Value = 0;
+                                return
+                            end
+                        end
+                    end
+
+                case 'RFDATAHUB'
+                    hAuxiliarApp = auxAppHandle(app, auxAppName);
+
+                    if isempty(hAuxiliarApp) || ~isvalid(hAuxiliarApp)
+                        msgQuestion   = ['O RFDataHub é uma ETL de dados de estações de telecomunicações composta por '       ...
+                                         'registros extraídos de bases de dados do MOSAICO, STEL, SRD, ICAO, AISWEB, GEOAIS ' ...
+                                         'e REDEMET.<br><br>Deseja abrir o módulo de consulta ao RFDataHub?'];
+                        userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+
+                        if userSelection == "Não"
+                            clickedButton.Value = 0;
+                            return
+                        end
+                    end
             end
-            
-            nonClickedButtons = findobj(app.menu_Grid, 'Type', 'uistatebutton', '-not', 'Tag', clickedButton.Tag);
-            arrayfun(@(x) set(x, 'Value', 0, 'Icon', x.UserData.iconOptions{1}), nonClickedButtons)
-            set(clickedButton, 'Icon', clickedButton.UserData.iconOptions{2})
-            
-            tabIndex = clickedButton.UserData.tabGroup;
-            app.TabGroup.SelectedTab = app.TabGroup.Children(tabIndex);
-            drawnow
 
-            % A customização somente pode tem efeito se os componentes
-            % já tiverem sido renderizados no HTML. Por essa razão, inclui-se 
-            % um drawnow após a mudança da aba.
-            jsBackDoor_Customizations(app, tabIndex)
-            menu_LayoutControl(app, tabIndex)
+            inputArguments = auxAppInputArguments(app, auxAppName);
+            openModule(app.tabGroupController, event.Source, event.PreviousValue, app.General, inputArguments{:})
             
         end
 
         % Image clicked function: dockModule_Close, dockModule_Undock
         function menu_DockButtonPushed(app, event)
             
-            if     app.menu_Button5.Value; auxiliarAppTag = 'DRIVETEST';
-            elseif app.menu_Button6.Value; auxiliarAppTag = 'SIGNALANALYSIS';
-            elseif app.menu_Button7.Value; auxiliarAppTag = 'RFDATAHUB';
-            elseif app.menu_Button8.Value; auxiliarAppTag = 'CONFIG';
-            else;  return
-            end
+            clickedButton = findobj(app.menu_Grid, 'Type', 'uistatebutton', 'Value', true);
+            auxAppTag     = clickedButton.Tag;
 
             switch event.Source
                 case app.dockModule_Undock
-                    initialDockState = app.General.operationMode.Dock;
-                    app.General.operationMode.Dock = false;
+                    appGeneral = app.General;
+                    appGeneral.operationMode.Dock = false;
 
-                    inputArguments   = menu_LayoutUndockingAuxiliarApp(app, auxiliarAppTag);
-                    menu_LayoutAuxiliarApp(app, auxiliarAppTag, 'Close')
-                    menu_LayoutAuxiliarApp(app, auxiliarAppTag, 'Open', inputArguments{:})
-
-                    app.General.operationMode.Dock = initialDockState;
+                    inputArguments = auxAppInputArguments(app, auxAppTag);
+                    closeModule(app.tabGroupController, auxAppTag, app.General)
+                    openModule(app.tabGroupController, clickedButton, false, appGeneral, inputArguments{:})
 
                 case app.dockModule_Close
-                    menu_LayoutAuxiliarApp(app, auxiliarAppTag, 'Close')
+                    closeModule(app.tabGroupController, auxAppTag, app.General)
             end
-
-        end
-
-        % Value changed function: menu_Button7
-        function menu_OpenRFDataHubModule(app, event)
-
-            clickedButton = event.Source;
-
-            if ~isempty(app.hRFDataHub) && isvalid(app.hRFDataHub) && ~app.hRFDataHub.isDocked
-                clickedButton.Value = false;
-                figure(app.hRFDataHub.UIFigure)
-                return
-            elseif event.PreviousValue
-                clickedButton.Value = true;
-                return
-            end            
-
-            if isempty(app.hRFDataHub) || ~isvalid(app.hRFDataHub)
-                msgQuestion   = ['O RFDataHub é uma ETL de dados de estações de telecomunicações composta por '       ...
-                                 'registros extraídos de bases de dados do MOSAICO, STEL, SRD, ICAO, AISWEB, GEOAIS ' ...
-                                 'e REDEMET.<br><br>Deseja abrir o módulo de consulta ao RFDataHub?'];
-                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-                if userSelection == "Não"
-                    clickedButton.Value = 0;
-                    return
-                end
-            end
-
-            menu_LayoutAuxiliarApp(app, 'RFDATAHUB', 'Open')
 
         end
 
@@ -3320,11 +3203,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Verificar se há ao menos um fluxo a ser lido...
             flag = false;
             for ii = 1:numel(app.metaData)
-                for jj = 1:numel(app.metaData(ii).Data)
-                    if app.metaData(ii).Data(jj).Enable
-                        flag = true;
-                        break
-                    end
+                if any([app.metaData(ii).Data.Enable])
+                    flag = true;
+                    break
                 end
             end
 
@@ -3336,7 +3217,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Verifica se os módulos auxiliares abaixo descritos estão abertos.
             % - auxiliarWin1: winSignalAnalysis
             % - auxiliarWin2: winDriveTest
-            if strcmp(misc_checkIfAuxiliarAppIsOpen(app, 'RELER INFORMAÇÃO ESPECTRAL'), 'Não')
+            if strcmp(auxAppStatus(app, 'RELER INFORMAÇÃO ESPECTRAL'), 'Não')
                 return
             end
 
@@ -3521,27 +3402,68 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: play_ControlsTab1Image, 
+        % Image clicked function: submenu_Button1Icon, 
         % ...and 4 other components
-        function play_TabGroupVisibility(app, event)
+        function play_submenuButtonPushed(app, event)
+            
+            switch event.Source.Tag
+                case 'PLAYBACK:GENERAL'
+                    submenuColumnWidth     = {'1x',22,22,0,0,0};
+                    submenuUnderlineColumn = 1;
+                    app.play_ControlsGrid.RowHeight(2:7) = {'1x',0,0,0,0,0};
+                    
+                    app.submenu_Button1Grid.ColumnWidth = {18,'1x'};
+                    app.submenu_Button2Grid.ColumnWidth = {18,0};
+                    app.submenu_Button3Grid.ColumnWidth = {18,0};
+                
+                case 'PLAYBACK:CHANNEL'
+                    submenuColumnWidth     = {22,'1x',22,0,0,0};
+                    submenuUnderlineColumn = 2;
+                    app.play_ControlsGrid.RowHeight(2:7) = {0,'1x',0,0,0,0};
 
-            switch event.Source
-                case app.play_ControlsTab1Image
-                    app.play_ControlsGrid.RowHeight(2:2:12) = {'1x',0,0,0,0,0};
+                    app.submenu_Button1Grid.ColumnWidth = {18,0};
+                    app.submenu_Button2Grid.ColumnWidth = {18,'1x'};
+                    app.submenu_Button3Grid.ColumnWidth = {18,0};
                 
-                case app.play_ControlsTab2Image
-                    app.play_ControlsGrid.RowHeight(2:2:12) = {0,'1x',0,0,0,0};
+                case 'PLAYBACK:EMISSION'
+                    submenuColumnWidth     = {22,22,'1x',0,0,0};
+                    submenuUnderlineColumn = 3;
+                    app.play_ControlsGrid.RowHeight(2:7) = {0,0,'1x',0,0,0};
+
+                    app.submenu_Button1Grid.ColumnWidth = {18,0};
+                    app.submenu_Button2Grid.ColumnWidth = {18,0};
+                    app.submenu_Button3Grid.ColumnWidth = {18,'1x'};
                 
-                case app.play_ControlsTab3Image
-                    app.play_ControlsGrid.RowHeight(2:2:12) = {0,0,'1x',0,0,0};
+                case 'REPORT:GENERAL'
+                    submenuColumnWidth     = {0,0,0,'1x',22,0};
+                    submenuUnderlineColumn = 4;
+                    app.play_ControlsGrid.RowHeight(2:7) = {0,0,0,'1x',0,0};
+                    set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), 'Enable', 0)
+
+                    app.submenu_Button4Grid.ColumnWidth = {18,'1x'};
+                    app.submenu_Button5Grid.ColumnWidth = {18,0};
                 
-                case app.report_ControlsTab1Image
-                    app.play_ControlsGrid.RowHeight(2:2:12) = {0,0,0,'1x',0,0};
-                    set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Enable=0)
-                
-                case app.report_ControlsTab2Image
-                    fiscalizaLibConnection.report_StaticButtonPushed(app, event)
+                case 'REPORT:FISCALIZA'
+                    submenuColumnWidth     = {0,0,0,22,'1x',0};
+                    submenuUnderlineColumn = 5;
+                    
+                    if ~fiscalizaLibConnection.report_StaticButtonPushed(app, event)
+                        return
+                    end
+
+                    app.submenu_Button4Grid.ColumnWidth = {18,0};
+                    app.submenu_Button5Grid.ColumnWidth = {18,'1x'};
+
+                case 'MISC:GENERAL'
+                    submenuColumnWidth     = {0,0,0,0,0,'1x'};
+                    submenuUnderlineColumn = 6;
+                    app.play_ControlsGrid.RowHeight(2:7) = {0,0,0,0,0,'1x'};
             end
+
+            app.submenu_Grid.ColumnWidth       = submenuColumnWidth;
+            app.submenuUnderline.Layout.Column = submenuUnderlineColumn;
+
+            focus(app.jsBackDoor)
 
         end
 
@@ -3782,9 +3704,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     end
         
                     if ~isempty(idx) && ~app.plotFlag
-                        if ~isempty(app.hDriveTest) && isvalid(app.hDriveTest) && app.hDriveTest.plotFlag
-                            app.hDriveTest.plotFlag = 0;
-                            app.hDriveTest.tool_Play.ImageSource = 'play_32.png';
+                        hDriveTest = auxAppHandle(app, 'DRIVETEST');
+
+                        if ~isempty(hDriveTest) && isvalid(hDriveTest) && hDriveTest.plotFlag
+                            hDriveTest.plotFlag = 0;
+                            hDriveTest.tool_Play.ImageSource = 'play_32.png';
                             drawnow
                         end
 
@@ -4554,8 +4478,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     app.play_FindPeaks_ContextMenu_digital.Enable = 1;
                     app.play_FindPeaks_ContextMenu_analog.Enable  = 0;
                 end
-                app.tool_RFDataHub.Enable = 1;
-                app.tool_DriveTest.Enable = 1;
 
                 if exist('event', 'var')
                     plot.draw2D.ClearWrite_old(app, idxThread, 'TreeSelectionChanged', [])
@@ -4567,8 +4489,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 set(app.play_FindPeaks_Description, 'Value', '', 'Enable', 0)
 
                 set(app.play_FindPeaks_ContextMenu_edit.Children, 'Enable', 1)
-                app.tool_RFDataHub.Enable = 0;
-                app.tool_DriveTest.Enable = 0;
             end
             
         end
@@ -5005,7 +4925,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: tool_RFDataHub
+        % Menu selected function: ConsultarMenu
         function play_RFDataHubButtonPushed(app, event)
             
             global RFDataHub
@@ -5054,56 +4974,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             appUtil.modalWindow(app.UIFigure, 'warning', msg);
-
-        end
-
-        % Image clicked function: tool_DriveTest
-        function play_DriveTestButtonPushed(app, event)
-            
-            if isempty(app.hDriveTest) || ~isvalid(app.hDriveTest)
-                idxThread = app.play_PlotPanel.UserData.NodeData;
-
-                if ~app.specData(idxThread).GPS.Status
-                    msgError = ['Monitoração não registrou coordenadas geográficas válidas. Neste caso, para abrir o módulo ' ...
-                                '"DRIVE-TEST" em modo de compatibilidade, deve-se editar manualmente as coordenadas '         ...
-                                'geográficas do local da monitoração.'];
-                    appUtil.modalWindow(app.UIFigure, 'error', msgError);
-                    return
-                end
-    
-                msgWarning = {};
-                if ~ismember(app.specData(idxThread).MetaData.DataType, [1, 2])
-                    msgWarning{end+1} = 'Monitoração não conduzida pelo appColeta.';
-                end
-
-                if app.specData(idxThread).GPS.Count ~= numel(app.specData(idxThread).Data{1})
-                    msgWarning{end+1} = 'Número de coordenadas geográficas registradas diferente do número de varreduras.';
-                end
-
-                if ~ismember(app.specData(idxThread).MetaData.LevelUnit, {'dBm', 'dBµV'})
-                    msgWarning{end+1} = 'Monitoração não apresenta uma das unidades esperadas ("dBm" ou "dBµV") para que a potência do canal seja expressa em "dBm".';
-                end
-
-                compatibilityMode = false;
-                if ~isempty(msgWarning)
-                    msgQuestion   = sprintf(['O módulo "DRIVE-TEST" foi construído para possibilitar a visualização em '      ...
-                                             'mapa de dados obtidos em monitorações móveis conduzidas pelo appColeta.\n\nA '  ...
-                                             'emissão selecionada, contudo, está relacionada ao(s) seguinte(s) aspecto(s):\n' ...
-                                             '%s\n\nDeseja continuar, abrindo o módulo em modo de compatibilidade?'], textFormatGUI.cellstr2Bullets(msgWarning));
-                    userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                    if strcmp(userSelection, 'Não')
-                        return
-                    end
-
-                    compatibilityMode = true;
-                end
-
-                idxEmission = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
-                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open', app, compatibilityMode, idxThread, idxEmission)
-                
-            else
-                menu_LayoutAuxiliarApp(app, 'DRIVETEST', 'Open')
-            end
 
         end
 
@@ -5257,13 +5127,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: tool_ReportAnalysis, tool_ReportGenerator
+        % Image clicked function: tool_ReportGenerator
         function report_playButtonPushed(app, event)
-            
-            switch event.Source
-                case app.tool_ReportAnalysis;  Mode = 'Preview';
-                case app.tool_ReportGenerator; Mode = 'Report';
-            end
             
             % VALIDAÇÕES:
             if ~sum(arrayfun(@(x) x.UserData.reportFlag, app.specData))
@@ -5276,7 +5141,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                 return
 
-            elseif strcmp(Mode, 'Report') && strcmp(app.report_Version.Value, 'Definitiva')
+            elseif strcmp(app.report_Version.Value, 'Definitiva')
                 if ~report_checkValidIssueID(app)
                     msgWarning = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
                     appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
@@ -5294,19 +5159,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 if userSelection == "Não"
                     return
                 end
-                
-            elseif strcmp(Mode, 'Preview')
-                if isempty(app.report_Tree.CheckedNodes)
-                    msgWarning = 'Necessário selecionar ao menos um dos fluxos espectrais a processar.';
-                    appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-                    return
-                end
             end
 
-            report.Controller(app, Mode)
-            if ~isempty(app.hSignalAnalysis) && isvalid(app.hSignalAnalysis)
-                idxPrjPeaks = app.hSignalAnalysis.UITable.Selection;
-                renderProjectDataOnScreen(app.hSignalAnalysis, idxPrjPeaks)
+            report.Controller(app, 'Report')
+            
+            hSignalAnalysis = auxAppHandle(app, 'SIGNALANALYSIS');
+            if ~isempty(hSignalAnalysis) && isvalid(hSignalAnalysis)
+                idxPrjPeaks = hSignalAnalysis.UITable.Selection;
+                renderProjectDataOnScreen(hSignalAnalysis, idxPrjPeaks)
             end
 
             % LAYOUT:
@@ -5316,18 +5176,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_Tree.SelectedNodes = app.play_PlotPanel.UserData;
             app.play_PlotPanel.UserData = [];
             play_TreeSelectionChanged(app)
-
-        end
-
-        % Image clicked function: tool_ExceptionList
-        function report_OpenSignalAnalysis(app, event)
-            
-            if ~isempty(app.projectData.peaksTable)
-                menu_LayoutAuxiliarApp(app, 'SIGNALANALYSIS', 'Open', app, 1)
-            else
-                msg = 'Funcionalidade acessível apenas quando detectada ao menos uma emissão nos fluxos espectrais a processar.';
-                appUtil.modalWindow(app.UIFigure, 'warning', msg);
-            end
 
         end
 
@@ -5508,7 +5356,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     
                     %-----------------------------------------------------%
                     case app.misc_Merge
-                        if strcmp(misc_checkIfAuxiliarAppIsOpen(app, 'MESCLAR FLUXOS'), 'Não')
+                        if strcmp(auxAppStatus(app, 'MESCLAR FLUXOS'), 'Não')
                             return
                         end
                         
@@ -5522,7 +5370,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     
                     %-----------------------------------------------------%
                     case app.misc_Del
-                        if strcmp(misc_checkIfAuxiliarAppIsOpen(app, 'DELETAR FLUXO'), 'Não')
+                        if strcmp(auxAppStatus(app, 'DELETAR FLUXO'), 'Não')
                             return
                         end
 
@@ -5541,7 +5389,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     
                     %-----------------------------------------------------%
                     case app.misc_Import
-                        if strcmp(misc_checkIfAuxiliarAppIsOpen(app, 'IMPORTAR ANÁLISE'), 'Não')
+                        if strcmp(auxAppStatus(app, 'IMPORTAR ANÁLISE'), 'Não')
                             return
                         end
 
@@ -5591,24 +5439,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
         end
-
-        % Value changed function: menu_Button8
-        function menu_Button8ValueChanged(app, event)
-            
-            clickedButton = event.Source;
-
-            if ~isempty(app.hConfig) && isvalid(app.hConfig) && ~app.hConfig.isDocked
-                clickedButton.Value = false;
-                figure(app.hConfig.UIFigure)
-                return
-            elseif event.PreviousValue
-                clickedButton.Value = true;
-                return
-            end
-
-            menu_LayoutAuxiliarApp(app, 'CONFIG', 'Open')
-
-        end
     end
 
     % Component initialization
@@ -5624,7 +5454,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.AutoResizeChildren = 'off';
             app.UIFigure.Color = [0.9412 0.9412 0.9412];
-            app.UIFigure.Position = [100 100 1244 4000];
+            app.UIFigure.Position = [100 100 1244 3200];
             app.UIFigure.Name = 'appAnalise R2024b';
             app.UIFigure.Icon = 'icon_48.png';
             app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -5700,9 +5530,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create file_docGrid
             app.file_docGrid = uigridlayout(app.file_Grid);
             app.file_docGrid.ColumnWidth = {320, '1x'};
-            app.file_docGrid.RowHeight = {22, 22, '1x'};
+            app.file_docGrid.RowHeight = {23, 3, 5, 22, 5, '1x'};
             app.file_docGrid.ColumnSpacing = 5;
-            app.file_docGrid.RowSpacing = 5;
+            app.file_docGrid.RowSpacing = 0;
             app.file_docGrid.Padding = [5 0 0 0];
             app.file_docGrid.Layout.Row = 1;
             app.file_docGrid.Layout.Column = 1;
@@ -5738,7 +5568,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.file_TreeLabel = uilabel(app.file_docGrid);
             app.file_TreeLabel.VerticalAlignment = 'bottom';
             app.file_TreeLabel.FontSize = 10;
-            app.file_TreeLabel.Layout.Row = 2;
+            app.file_TreeLabel.Layout.Row = 4;
             app.file_TreeLabel.Layout.Column = 1;
             app.file_TreeLabel.Text = 'LISTA DE ARQUIVOS';
 
@@ -5747,8 +5577,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.file_Tree.Multiselect = 'on';
             app.file_Tree.SelectionChangedFcn = createCallbackFcn(app, @file_TreeSelectionChanged, true);
             app.file_Tree.FontSize = 10;
-            app.file_Tree.Layout.Row = 3;
+            app.file_Tree.Layout.Row = 6;
             app.file_Tree.Layout.Column = [1 2];
+
+            % Create Image
+            app.Image = uiimage(app.file_docGrid);
+            app.Image.ScaleMethod = 'scaleup';
+            app.Image.Layout.Row = 2;
+            app.Image.Layout.Column = 1;
+            app.Image.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineH.png');
 
             % Create file_panelGrid
             app.file_panelGrid = uigridlayout(app.file_Grid);
@@ -5881,7 +5718,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_TreeGrid
             app.play_TreeGrid = uigridlayout(app.play_Grid);
             app.play_TreeGrid.ColumnWidth = {64, '1x', 54, 16, 16};
-            app.play_TreeGrid.RowHeight = {22, 22, '1x', 22, '1x', 42, 22, '1x', 15, 22};
+            app.play_TreeGrid.RowHeight = {26, 22, '1x', 22, '1x', 42, 22, '1x', 15, 22};
             app.play_TreeGrid.ColumnSpacing = 5;
             app.play_TreeGrid.RowSpacing = 5;
             app.play_TreeGrid.Padding = [5 0 0 0];
@@ -5892,10 +5729,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_TreeTitleGrid
             app.play_TreeTitleGrid = uigridlayout(app.play_TreeGrid);
             app.play_TreeTitleGrid.ColumnWidth = {18, '1x'};
-            app.play_TreeTitleGrid.RowHeight = {'1x'};
-            app.play_TreeTitleGrid.ColumnSpacing = 5;
-            app.play_TreeTitleGrid.RowSpacing = 5;
-            app.play_TreeTitleGrid.Padding = [2 2 2 2];
+            app.play_TreeTitleGrid.RowHeight = {'1x', 3};
+            app.play_TreeTitleGrid.RowSpacing = 0;
+            app.play_TreeTitleGrid.Padding = [0 0 0 0];
             app.play_TreeTitleGrid.Tag = 'COLORLOCKED';
             app.play_TreeTitleGrid.Layout.Row = 1;
             app.play_TreeTitleGrid.Layout.Column = [1 5];
@@ -5914,6 +5750,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_TreeTitle.Layout.Row = 1;
             app.play_TreeTitle.Layout.Column = 2;
             app.play_TreeTitle.Text = 'DADOS';
+
+            % Create Image2
+            app.Image2 = uiimage(app.play_TreeTitleGrid);
+            app.Image2.ScaleMethod = 'scaleup';
+            app.Image2.Layout.Row = 2;
+            app.Image2.Layout.Column = [1 2];
+            app.Image2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineH.png');
 
             % Create play_TreeLabel
             app.play_TreeLabel = uilabel(app.play_TreeGrid);
@@ -5977,13 +5820,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_Metadata.Layout.Row = 1;
             app.play_Metadata.Layout.Column = 1;
 
-            % Create report_TreeLabel
-            app.report_TreeLabel = uilabel(app.play_TreeGrid);
-            app.report_TreeLabel.VerticalAlignment = 'bottom';
-            app.report_TreeLabel.FontSize = 10;
-            app.report_TreeLabel.Layout.Row = 7;
-            app.report_TreeLabel.Layout.Column = [1 2];
-            app.report_TreeLabel.Text = 'ALGORITMOS';
+            % Create report_ThreadAlgorithmsLabel
+            app.report_ThreadAlgorithmsLabel = uilabel(app.play_TreeGrid);
+            app.report_ThreadAlgorithmsLabel.VerticalAlignment = 'bottom';
+            app.report_ThreadAlgorithmsLabel.FontSize = 10;
+            app.report_ThreadAlgorithmsLabel.Layout.Row = 7;
+            app.report_ThreadAlgorithmsLabel.Layout.Column = [1 2];
+            app.report_ThreadAlgorithmsLabel.Text = 'ALGORITMOS';
 
             % Create report_ThreadAlgorithmsPanel
             app.report_ThreadAlgorithmsPanel = uipanel(app.play_TreeGrid);
@@ -6138,40 +5981,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_ControlsGrid
             app.play_ControlsGrid = uigridlayout(app.play_Grid);
             app.play_ControlsGrid.ColumnWidth = {'1x'};
-            app.play_ControlsGrid.RowHeight = {22, 880, 22, 600, 22, 600, 22, 500, 22, 80, 22, '1x'};
+            app.play_ControlsGrid.RowHeight = {26, 880, 600, 600, 500, '1x', 320};
             app.play_ControlsGrid.ColumnSpacing = 5;
             app.play_ControlsGrid.RowSpacing = 5;
             app.play_ControlsGrid.Padding = [0 0 5 0];
             app.play_ControlsGrid.Layout.Row = [1 2];
             app.play_ControlsGrid.Layout.Column = 7;
             app.play_ControlsGrid.BackgroundColor = [1 1 1];
-
-            % Create play_ControlsTab1Grid
-            app.play_ControlsTab1Grid = uigridlayout(app.play_ControlsGrid);
-            app.play_ControlsTab1Grid.ColumnWidth = {18, '1x'};
-            app.play_ControlsTab1Grid.RowHeight = {'1x'};
-            app.play_ControlsTab1Grid.ColumnSpacing = 5;
-            app.play_ControlsTab1Grid.RowSpacing = 5;
-            app.play_ControlsTab1Grid.Padding = [2 2 2 2];
-            app.play_ControlsTab1Grid.Tag = 'COLORLOCKED';
-            app.play_ControlsTab1Grid.Layout.Row = 1;
-            app.play_ControlsTab1Grid.Layout.Column = 1;
-            app.play_ControlsTab1Grid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create play_ControlsTab1Label
-            app.play_ControlsTab1Label = uilabel(app.play_ControlsTab1Grid);
-            app.play_ControlsTab1Label.FontSize = 11;
-            app.play_ControlsTab1Label.Layout.Row = 1;
-            app.play_ControlsTab1Label.Layout.Column = 2;
-            app.play_ControlsTab1Label.Text = 'PLAYBACK';
-
-            % Create play_ControlsTab1Image
-            app.play_ControlsTab1Image = uiimage(app.play_ControlsTab1Grid);
-            app.play_ControlsTab1Image.ImageClickedFcn = createCallbackFcn(app, @play_TabGroupVisibility, true);
-            app.play_ControlsTab1Image.Layout.Row = 1;
-            app.play_ControlsTab1Image.Layout.Column = [1 2];
-            app.play_ControlsTab1Image.HorizontalAlignment = 'left';
-            app.play_ControlsTab1Image.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Playback_32.png');
 
             % Create play_ControlsTab1Info
             app.play_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
@@ -7018,33 +6834,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_Customization.Layout.Row = 8;
             app.play_Customization.Layout.Column = 1;
 
-            % Create play_ControlsTab2Grid
-            app.play_ControlsTab2Grid = uigridlayout(app.play_ControlsGrid);
-            app.play_ControlsTab2Grid.ColumnWidth = {18, '1x'};
-            app.play_ControlsTab2Grid.RowHeight = {'1x'};
-            app.play_ControlsTab2Grid.ColumnSpacing = 5;
-            app.play_ControlsTab2Grid.RowSpacing = 5;
-            app.play_ControlsTab2Grid.Padding = [2 2 2 2];
-            app.play_ControlsTab2Grid.Tag = 'COLORLOCKED';
-            app.play_ControlsTab2Grid.Layout.Row = 3;
-            app.play_ControlsTab2Grid.Layout.Column = 1;
-            app.play_ControlsTab2Grid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create play_ControlsTab2Label
-            app.play_ControlsTab2Label = uilabel(app.play_ControlsTab2Grid);
-            app.play_ControlsTab2Label.FontSize = 11;
-            app.play_ControlsTab2Label.Layout.Row = 1;
-            app.play_ControlsTab2Label.Layout.Column = 2;
-            app.play_ControlsTab2Label.Text = 'CANAIS';
-
-            % Create play_ControlsTab2Image
-            app.play_ControlsTab2Image = uiimage(app.play_ControlsTab2Grid);
-            app.play_ControlsTab2Image.ImageClickedFcn = createCallbackFcn(app, @play_TabGroupVisibility, true);
-            app.play_ControlsTab2Image.Layout.Row = 1;
-            app.play_ControlsTab2Image.Layout.Column = [1 2];
-            app.play_ControlsTab2Image.HorizontalAlignment = 'left';
-            app.play_ControlsTab2Image.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Channel_32.png');
-
             % Create play_ControlsTab2Info
             app.play_ControlsTab2Info = uigridlayout(app.play_ControlsGrid);
             app.play_ControlsTab2Info.ColumnWidth = {'1x', 16, 16};
@@ -7052,7 +6841,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_ControlsTab2Info.ColumnSpacing = 5;
             app.play_ControlsTab2Info.RowSpacing = 5;
             app.play_ControlsTab2Info.Padding = [0 0 0 0];
-            app.play_ControlsTab2Info.Layout.Row = 4;
+            app.play_ControlsTab2Info.Layout.Row = 3;
             app.play_ControlsTab2Info.Layout.Column = 1;
             app.play_ControlsTab2Info.BackgroundColor = [1 1 1];
 
@@ -7398,33 +7187,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_Channel_ShowPlot.VerticalAlignment = 'bottom';
             app.play_Channel_ShowPlot.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'EyeNegative_32.png');
 
-            % Create play_ControlsTab3Grid
-            app.play_ControlsTab3Grid = uigridlayout(app.play_ControlsGrid);
-            app.play_ControlsTab3Grid.ColumnWidth = {18, '1x'};
-            app.play_ControlsTab3Grid.RowHeight = {'1x'};
-            app.play_ControlsTab3Grid.ColumnSpacing = 5;
-            app.play_ControlsTab3Grid.RowSpacing = 5;
-            app.play_ControlsTab3Grid.Padding = [2 2 2 2];
-            app.play_ControlsTab3Grid.Tag = 'COLORLOCKED';
-            app.play_ControlsTab3Grid.Layout.Row = 5;
-            app.play_ControlsTab3Grid.Layout.Column = 1;
-            app.play_ControlsTab3Grid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create play_ControlsTab3Label
-            app.play_ControlsTab3Label = uilabel(app.play_ControlsTab3Grid);
-            app.play_ControlsTab3Label.FontSize = 11;
-            app.play_ControlsTab3Label.Layout.Row = 1;
-            app.play_ControlsTab3Label.Layout.Column = 2;
-            app.play_ControlsTab3Label.Text = 'EMISSÕES';
-
-            % Create play_ControlsTab3Image
-            app.play_ControlsTab3Image = uiimage(app.play_ControlsTab3Grid);
-            app.play_ControlsTab3Image.ImageClickedFcn = createCallbackFcn(app, @play_TabGroupVisibility, true);
-            app.play_ControlsTab3Image.Layout.Row = 1;
-            app.play_ControlsTab3Image.Layout.Column = [1 2];
-            app.play_ControlsTab3Image.HorizontalAlignment = 'left';
-            app.play_ControlsTab3Image.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Detection_32.png');
-
             % Create play_ControlsTab3Info
             app.play_ControlsTab3Info = uigridlayout(app.play_ControlsGrid);
             app.play_ControlsTab3Info.ColumnWidth = {'1x', 100, 89, 16};
@@ -7432,7 +7194,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_ControlsTab3Info.ColumnSpacing = 5;
             app.play_ControlsTab3Info.RowSpacing = 5;
             app.play_ControlsTab3Info.Padding = [0 0 0 0];
-            app.play_ControlsTab3Info.Layout.Row = 6;
+            app.play_ControlsTab3Info.Layout.Row = 4;
             app.play_ControlsTab3Info.Layout.Column = 1;
             app.play_ControlsTab3Info.BackgroundColor = [1 1 1];
 
@@ -7857,42 +7619,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_FindPeaks_FileTemplate.Layout.Column = 1;
             app.play_FindPeaks_FileTemplate.Text = 'Download modelo do arquivo';
 
-            % Create report_ControlsTab1Grid
-            app.report_ControlsTab1Grid = uigridlayout(app.play_ControlsGrid);
-            app.report_ControlsTab1Grid.ColumnWidth = {18, '1x', 16};
-            app.report_ControlsTab1Grid.RowHeight = {'1x'};
-            app.report_ControlsTab1Grid.ColumnSpacing = 5;
-            app.report_ControlsTab1Grid.RowSpacing = 5;
-            app.report_ControlsTab1Grid.Padding = [2 2 2 2];
-            app.report_ControlsTab1Grid.Tag = 'COLORLOCKED';
-            app.report_ControlsTab1Grid.Layout.Row = 7;
-            app.report_ControlsTab1Grid.Layout.Column = 1;
-            app.report_ControlsTab1Grid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create report_ControlsTab1Label
-            app.report_ControlsTab1Label = uilabel(app.report_ControlsTab1Grid);
-            app.report_ControlsTab1Label.FontSize = 11;
-            app.report_ControlsTab1Label.Layout.Row = 1;
-            app.report_ControlsTab1Label.Layout.Column = 2;
-            app.report_ControlsTab1Label.Text = 'PROJETO';
-
-            % Create report_ProjectWarnIcon
-            app.report_ProjectWarnIcon = uiimage(app.report_ControlsTab1Grid);
-            app.report_ProjectWarnIcon.Visible = 'off';
-            app.report_ProjectWarnIcon.Tooltip = {'Pendente salvar projeto'};
-            app.report_ProjectWarnIcon.Layout.Row = 1;
-            app.report_ProjectWarnIcon.Layout.Column = 3;
-            app.report_ProjectWarnIcon.VerticalAlignment = 'bottom';
-            app.report_ProjectWarnIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Warn_18.png');
-
-            % Create report_ControlsTab1Image
-            app.report_ControlsTab1Image = uiimage(app.report_ControlsTab1Grid);
-            app.report_ControlsTab1Image.ImageClickedFcn = createCallbackFcn(app, @play_TabGroupVisibility, true);
-            app.report_ControlsTab1Image.Layout.Row = 1;
-            app.report_ControlsTab1Image.Layout.Column = [1 3];
-            app.report_ControlsTab1Image.HorizontalAlignment = 'left';
-            app.report_ControlsTab1Image.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Report_32.png');
-
             % Create report_ControlsTab1Info
             app.report_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
             app.report_ControlsTab1Info.ColumnWidth = {110, '1x', 16, 16};
@@ -7900,17 +7626,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ControlsTab1Info.ColumnSpacing = 5;
             app.report_ControlsTab1Info.RowSpacing = 5;
             app.report_ControlsTab1Info.Padding = [0 0 0 0];
-            app.report_ControlsTab1Info.Layout.Row = 8;
+            app.report_ControlsTab1Info.Layout.Row = 5;
             app.report_ControlsTab1Info.Layout.Column = 1;
             app.report_ControlsTab1Info.BackgroundColor = [1 1 1];
-
-            % Create report_ThreadAlgorithmsLabel
-            app.report_ThreadAlgorithmsLabel = uilabel(app.report_ControlsTab1Info);
-            app.report_ThreadAlgorithmsLabel.VerticalAlignment = 'bottom';
-            app.report_ThreadAlgorithmsLabel.FontSize = 10;
-            app.report_ThreadAlgorithmsLabel.Layout.Row = [5 6];
-            app.report_ThreadAlgorithmsLabel.Layout.Column = [1 2];
-            app.report_ThreadAlgorithmsLabel.Text = 'FLUXOS A PROCESSAR';
 
             % Create report_ProjectNameLabel
             app.report_ProjectNameLabel = uilabel(app.report_ControlsTab1Info);
@@ -7919,14 +7637,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ProjectNameLabel.Layout.Row = 1;
             app.report_ProjectNameLabel.Layout.Column = 1;
             app.report_ProjectNameLabel.Text = 'ARQUIVO';
-
-            % Create report_ProjectName
-            app.report_ProjectName = uitextarea(app.report_ControlsTab1Info);
-            app.report_ProjectName.Tag = 'file';
-            app.report_ProjectName.Editable = 'off';
-            app.report_ProjectName.FontSize = 11;
-            app.report_ProjectName.Layout.Row = 2;
-            app.report_ProjectName.Layout.Column = [1 4];
 
             % Create report_ProjectNew
             app.report_ProjectNew = uiimage(app.report_ControlsTab1Info);
@@ -7945,6 +7655,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ProjectSave.Layout.Column = 4;
             app.report_ProjectSave.VerticalAlignment = 'bottom';
             app.report_ProjectSave.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'saveFile_32.png');
+
+            % Create report_ProjectName
+            app.report_ProjectName = uitextarea(app.report_ControlsTab1Info);
+            app.report_ProjectName.Tag = 'file';
+            app.report_ProjectName.Editable = 'off';
+            app.report_ProjectName.FontSize = 11;
+            app.report_ProjectName.Layout.Row = 2;
+            app.report_ProjectName.Layout.Column = [1 4];
 
             % Create report_DocumentPanelLabel
             app.report_DocumentPanelLabel = uilabel(app.report_ControlsTab1Info);
@@ -7968,6 +7686,29 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.GridLayout4.Padding = [10 10 10 5];
             app.GridLayout4.BackgroundColor = [1 1 1];
 
+            % Create report_Issue
+            app.report_Issue = uieditfield(app.GridLayout4, 'numeric');
+            app.report_Issue.Limits = [-1 Inf];
+            app.report_Issue.RoundFractionalValues = 'on';
+            app.report_Issue.ValueDisplayFormat = '%d';
+            app.report_Issue.ValueChangedFcn = createCallbackFcn(app, @report_SaveWarn, true);
+            app.report_Issue.Tag = 'issue';
+            app.report_Issue.FontSize = 11;
+            app.report_Issue.FontColor = [0.149 0.149 0.149];
+            app.report_Issue.Layout.Row = 2;
+            app.report_Issue.Layout.Column = 1;
+            app.report_Issue.Value = -1;
+
+            % Create report_IssueLabel
+            app.report_IssueLabel = uilabel(app.GridLayout4);
+            app.report_IssueLabel.VerticalAlignment = 'bottom';
+            app.report_IssueLabel.WordWrap = 'on';
+            app.report_IssueLabel.FontSize = 10;
+            app.report_IssueLabel.FontColor = [0.149 0.149 0.149];
+            app.report_IssueLabel.Layout.Row = 1;
+            app.report_IssueLabel.Layout.Column = 1;
+            app.report_IssueLabel.Text = 'Inspeção:';
+
             % Create report_ModelNameLabel
             app.report_ModelNameLabel = uilabel(app.GridLayout4);
             app.report_ModelNameLabel.VerticalAlignment = 'bottom';
@@ -7975,6 +7716,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ModelNameLabel.Layout.Row = 3;
             app.report_ModelNameLabel.Layout.Column = 1;
             app.report_ModelNameLabel.Text = 'Modelo do relatório:';
+
+            % Create report_AddProjectAttachment
+            app.report_AddProjectAttachment = uiimage(app.GridLayout4);
+            app.report_AddProjectAttachment.ImageClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
+            app.report_AddProjectAttachment.Tooltip = {'Edita lista de arquivos externos '; 'relacionados ao projeto'};
+            app.report_AddProjectAttachment.Layout.Row = 3;
+            app.report_AddProjectAttachment.Layout.Column = 3;
+            app.report_AddProjectAttachment.VerticalAlignment = 'bottom';
+            app.report_AddProjectAttachment.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'attach_32.png');
 
             % Create report_ModelName
             app.report_ModelName = uidropdown(app.GridLayout4);
@@ -8005,37 +7755,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Version.Layout.Column = [4 5];
             app.report_Version.Value = 'Preliminar';
 
-            % Create report_Issue
-            app.report_Issue = uieditfield(app.GridLayout4, 'numeric');
-            app.report_Issue.Limits = [-1 Inf];
-            app.report_Issue.RoundFractionalValues = 'on';
-            app.report_Issue.ValueDisplayFormat = '%d';
-            app.report_Issue.ValueChangedFcn = createCallbackFcn(app, @report_SaveWarn, true);
-            app.report_Issue.Tag = 'issue';
-            app.report_Issue.FontSize = 11;
-            app.report_Issue.FontColor = [0.149 0.149 0.149];
-            app.report_Issue.Layout.Row = 2;
-            app.report_Issue.Layout.Column = 1;
-            app.report_Issue.Value = -1;
-
-            % Create report_IssueLabel
-            app.report_IssueLabel = uilabel(app.GridLayout4);
-            app.report_IssueLabel.VerticalAlignment = 'bottom';
-            app.report_IssueLabel.WordWrap = 'on';
-            app.report_IssueLabel.FontSize = 10;
-            app.report_IssueLabel.FontColor = [0.149 0.149 0.149];
-            app.report_IssueLabel.Layout.Row = 1;
-            app.report_IssueLabel.Layout.Column = 1;
-            app.report_IssueLabel.Text = 'Inspeção:';
-
-            % Create report_AddProjectAttachment
-            app.report_AddProjectAttachment = uiimage(app.GridLayout4);
-            app.report_AddProjectAttachment.ImageClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
-            app.report_AddProjectAttachment.Tooltip = {'Edita lista de arquivos externos '; 'relacionados ao projeto'};
-            app.report_AddProjectAttachment.Layout.Row = 3;
-            app.report_AddProjectAttachment.Layout.Column = 3;
-            app.report_AddProjectAttachment.VerticalAlignment = 'bottom';
-            app.report_AddProjectAttachment.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'attach_32.png');
+            % Create report_TreeLabel
+            app.report_TreeLabel = uilabel(app.report_ControlsTab1Info);
+            app.report_TreeLabel.VerticalAlignment = 'bottom';
+            app.report_TreeLabel.FontSize = 10;
+            app.report_TreeLabel.Layout.Row = [5 6];
+            app.report_TreeLabel.Layout.Column = [1 2];
+            app.report_TreeLabel.Text = 'FLUXOS A PROCESSAR';
 
             % Create report_TreeAddImage
             app.report_TreeAddImage = uiimage(app.report_ControlsTab1Info);
@@ -8047,37 +7773,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_TreeAddImage.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'addSymbol_32.png');
 
             % Create report_Tree
-            app.report_Tree = uitree(app.report_ControlsTab1Info, 'checkbox');
+            app.report_Tree = uitree(app.report_ControlsTab1Info);
             app.report_Tree.FontSize = 10;
             app.report_Tree.Layout.Row = [7 8];
             app.report_Tree.Layout.Column = [1 4];
-
-            % Create report_ControlsTab2Grid
-            app.report_ControlsTab2Grid = uigridlayout(app.play_ControlsGrid);
-            app.report_ControlsTab2Grid.ColumnWidth = {18, '1x'};
-            app.report_ControlsTab2Grid.RowHeight = {'1x'};
-            app.report_ControlsTab2Grid.ColumnSpacing = 5;
-            app.report_ControlsTab2Grid.RowSpacing = 5;
-            app.report_ControlsTab2Grid.Padding = [2 2 2 2];
-            app.report_ControlsTab2Grid.Tag = 'COLORLOCKED';
-            app.report_ControlsTab2Grid.Layout.Row = 9;
-            app.report_ControlsTab2Grid.Layout.Column = 1;
-            app.report_ControlsTab2Grid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create report_ControlsTab2Label
-            app.report_ControlsTab2Label = uilabel(app.report_ControlsTab2Grid);
-            app.report_ControlsTab2Label.FontSize = 11;
-            app.report_ControlsTab2Label.Layout.Row = 1;
-            app.report_ControlsTab2Label.Layout.Column = 2;
-            app.report_ControlsTab2Label.Text = 'API FISCALIZA';
-
-            % Create report_ControlsTab2Image
-            app.report_ControlsTab2Image = uiimage(app.report_ControlsTab2Grid);
-            app.report_ControlsTab2Image.ImageClickedFcn = createCallbackFcn(app, @play_TabGroupVisibility, true);
-            app.report_ControlsTab2Image.Layout.Row = 1;
-            app.report_ControlsTab2Image.Layout.Column = [1 2];
-            app.report_ControlsTab2Image.HorizontalAlignment = 'left';
-            app.report_ControlsTab2Image.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Redmine_18.png');
 
             % Create report_ControlsTab2Info
             app.report_ControlsTab2Info = uigridlayout(app.play_ControlsGrid);
@@ -8086,7 +7785,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ControlsTab2Info.ColumnSpacing = 5;
             app.report_ControlsTab2Info.RowSpacing = 5;
             app.report_ControlsTab2Info.Padding = [0 0 0 0];
-            app.report_ControlsTab2Info.Layout.Row = 10;
+            app.report_ControlsTab2Info.Layout.Row = 6;
             app.report_ControlsTab2Info.Layout.Column = 1;
             app.report_ControlsTab2Info.BackgroundColor = [1 1 1];
 
@@ -8127,32 +7826,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_FiscalizaIcon.Layout.Column = 1;
             app.report_FiscalizaIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Redmine_512.png');
 
-            % Create misc_ControlsTab1Grid
-            app.misc_ControlsTab1Grid = uigridlayout(app.play_ControlsGrid);
-            app.misc_ControlsTab1Grid.ColumnWidth = {18, '1x'};
-            app.misc_ControlsTab1Grid.RowHeight = {'1x'};
-            app.misc_ControlsTab1Grid.ColumnSpacing = 5;
-            app.misc_ControlsTab1Grid.RowSpacing = 5;
-            app.misc_ControlsTab1Grid.Padding = [2 2 2 2];
-            app.misc_ControlsTab1Grid.Tag = 'COLORLOCKED';
-            app.misc_ControlsTab1Grid.Layout.Row = 11;
-            app.misc_ControlsTab1Grid.Layout.Column = 1;
-            app.misc_ControlsTab1Grid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create misc_ControlsTab1Label
-            app.misc_ControlsTab1Label = uilabel(app.misc_ControlsTab1Grid);
-            app.misc_ControlsTab1Label.FontSize = 11;
-            app.misc_ControlsTab1Label.Layout.Row = 1;
-            app.misc_ControlsTab1Label.Layout.Column = 2;
-            app.misc_ControlsTab1Label.Text = 'MISCELÂNEAS';
-
-            % Create misc_ControlsTab1Image
-            app.misc_ControlsTab1Image = uiimage(app.misc_ControlsTab1Grid);
-            app.misc_ControlsTab1Image.Layout.Row = 1;
-            app.misc_ControlsTab1Image.Layout.Column = [1 2];
-            app.misc_ControlsTab1Image.HorizontalAlignment = 'left';
-            app.misc_ControlsTab1Image.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Misc_32.png');
-
             % Create misc_ControlsTab1Info
             app.misc_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
             app.misc_ControlsTab1Info.ColumnWidth = {'1x'};
@@ -8160,7 +7833,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.misc_ControlsTab1Info.ColumnSpacing = 5;
             app.misc_ControlsTab1Info.RowSpacing = 5;
             app.misc_ControlsTab1Info.Padding = [0 0 0 0];
-            app.misc_ControlsTab1Info.Layout.Row = 12;
+            app.misc_ControlsTab1Info.Layout.Row = 7;
             app.misc_ControlsTab1Info.Layout.Column = 1;
             app.misc_ControlsTab1Info.BackgroundColor = [1 1 1];
 
@@ -8397,9 +8070,176 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.misc_DeleteAllLabel.Layout.Column = [1 3];
             app.misc_DeleteAllLabel.Text = 'Reiniciar análise';
 
+            % Create submenu_Grid
+            app.submenu_Grid = uigridlayout(app.play_ControlsGrid);
+            app.submenu_Grid.ColumnWidth = {'1x', 22, 22, 0, 0, 0};
+            app.submenu_Grid.RowHeight = {'1x', 3};
+            app.submenu_Grid.ColumnSpacing = 1;
+            app.submenu_Grid.RowSpacing = 0;
+            app.submenu_Grid.Padding = [0 0 0 0];
+            app.submenu_Grid.Layout.Row = 1;
+            app.submenu_Grid.Layout.Column = 1;
+            app.submenu_Grid.BackgroundColor = [1 1 1];
+
+            % Create submenuUnderline
+            app.submenuUnderline = uiimage(app.submenu_Grid);
+            app.submenuUnderline.ScaleMethod = 'scaleup';
+            app.submenuUnderline.Layout.Row = 2;
+            app.submenuUnderline.Layout.Column = 1;
+            app.submenuUnderline.ImageSource = 'LineH.png';
+
+            % Create submenu_Button1Grid
+            app.submenu_Button1Grid = uigridlayout(app.submenu_Grid);
+            app.submenu_Button1Grid.ColumnWidth = {18, '1x'};
+            app.submenu_Button1Grid.RowHeight = {'1x'};
+            app.submenu_Button1Grid.Padding = [2 0 0 0];
+            app.submenu_Button1Grid.Layout.Row = 1;
+            app.submenu_Button1Grid.Layout.Column = 1;
+            app.submenu_Button1Grid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create submenu_Button1Label
+            app.submenu_Button1Label = uilabel(app.submenu_Button1Grid);
+            app.submenu_Button1Label.FontSize = 11;
+            app.submenu_Button1Label.Layout.Row = 1;
+            app.submenu_Button1Label.Layout.Column = 2;
+            app.submenu_Button1Label.Text = 'PLAYBACK';
+
+            % Create submenu_Button1Icon
+            app.submenu_Button1Icon = uiimage(app.submenu_Button1Grid);
+            app.submenu_Button1Icon.ImageClickedFcn = createCallbackFcn(app, @play_submenuButtonPushed, true);
+            app.submenu_Button1Icon.Tag = 'PLAYBACK:GENERAL';
+            app.submenu_Button1Icon.Layout.Row = 1;
+            app.submenu_Button1Icon.Layout.Column = [1 2];
+            app.submenu_Button1Icon.HorizontalAlignment = 'left';
+            app.submenu_Button1Icon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Playback_32.png');
+
+            % Create submenu_Button2Grid
+            app.submenu_Button2Grid = uigridlayout(app.submenu_Grid);
+            app.submenu_Button2Grid.ColumnWidth = {18, 0};
+            app.submenu_Button2Grid.RowHeight = {'1x'};
+            app.submenu_Button2Grid.Padding = [2 0 0 0];
+            app.submenu_Button2Grid.Layout.Row = 1;
+            app.submenu_Button2Grid.Layout.Column = 2;
+            app.submenu_Button2Grid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create submenu_Button2Label
+            app.submenu_Button2Label = uilabel(app.submenu_Button2Grid);
+            app.submenu_Button2Label.FontSize = 11;
+            app.submenu_Button2Label.Layout.Row = 1;
+            app.submenu_Button2Label.Layout.Column = 2;
+            app.submenu_Button2Label.Text = 'CANAIS';
+
+            % Create submenu_Button2Icon
+            app.submenu_Button2Icon = uiimage(app.submenu_Button2Grid);
+            app.submenu_Button2Icon.ImageClickedFcn = createCallbackFcn(app, @play_submenuButtonPushed, true);
+            app.submenu_Button2Icon.Tag = 'PLAYBACK:CHANNEL';
+            app.submenu_Button2Icon.Layout.Row = 1;
+            app.submenu_Button2Icon.Layout.Column = [1 2];
+            app.submenu_Button2Icon.HorizontalAlignment = 'left';
+            app.submenu_Button2Icon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Channel_32.png');
+
+            % Create submenu_Button3Grid
+            app.submenu_Button3Grid = uigridlayout(app.submenu_Grid);
+            app.submenu_Button3Grid.ColumnWidth = {18, 0};
+            app.submenu_Button3Grid.RowHeight = {'1x'};
+            app.submenu_Button3Grid.Padding = [2 0 0 0];
+            app.submenu_Button3Grid.Layout.Row = 1;
+            app.submenu_Button3Grid.Layout.Column = 3;
+            app.submenu_Button3Grid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create submenu_Button3Label
+            app.submenu_Button3Label = uilabel(app.submenu_Button3Grid);
+            app.submenu_Button3Label.FontSize = 11;
+            app.submenu_Button3Label.Layout.Row = 1;
+            app.submenu_Button3Label.Layout.Column = 2;
+            app.submenu_Button3Label.Text = 'EMISSÕES';
+
+            % Create submenu_Button3Icon
+            app.submenu_Button3Icon = uiimage(app.submenu_Button3Grid);
+            app.submenu_Button3Icon.ImageClickedFcn = createCallbackFcn(app, @play_submenuButtonPushed, true);
+            app.submenu_Button3Icon.Tag = 'PLAYBACK:EMISSION';
+            app.submenu_Button3Icon.Layout.Row = 1;
+            app.submenu_Button3Icon.Layout.Column = [1 2];
+            app.submenu_Button3Icon.HorizontalAlignment = 'left';
+            app.submenu_Button3Icon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Detection_32.png');
+
+            % Create submenu_Button4Grid
+            app.submenu_Button4Grid = uigridlayout(app.submenu_Grid);
+            app.submenu_Button4Grid.ColumnWidth = {18, 0};
+            app.submenu_Button4Grid.RowHeight = {'1x'};
+            app.submenu_Button4Grid.Padding = [2 0 0 0];
+            app.submenu_Button4Grid.Layout.Row = 1;
+            app.submenu_Button4Grid.Layout.Column = 4;
+            app.submenu_Button4Grid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create submenu_Button4Label
+            app.submenu_Button4Label = uilabel(app.submenu_Button4Grid);
+            app.submenu_Button4Label.FontSize = 11;
+            app.submenu_Button4Label.Layout.Row = 1;
+            app.submenu_Button4Label.Layout.Column = 2;
+            app.submenu_Button4Label.Text = 'PROJETO';
+
+            % Create submenu_Button4Icon
+            app.submenu_Button4Icon = uiimage(app.submenu_Button4Grid);
+            app.submenu_Button4Icon.ImageClickedFcn = createCallbackFcn(app, @play_submenuButtonPushed, true);
+            app.submenu_Button4Icon.Tag = 'REPORT:GENERAL';
+            app.submenu_Button4Icon.Layout.Row = 1;
+            app.submenu_Button4Icon.Layout.Column = [1 2];
+            app.submenu_Button4Icon.HorizontalAlignment = 'left';
+            app.submenu_Button4Icon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Report_32.png');
+
+            % Create submenu_Button5Grid
+            app.submenu_Button5Grid = uigridlayout(app.submenu_Grid);
+            app.submenu_Button5Grid.ColumnWidth = {18, 0};
+            app.submenu_Button5Grid.RowHeight = {'1x'};
+            app.submenu_Button5Grid.Padding = [2 0 0 0];
+            app.submenu_Button5Grid.Layout.Row = 1;
+            app.submenu_Button5Grid.Layout.Column = 5;
+            app.submenu_Button5Grid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create submenu_Button5Label
+            app.submenu_Button5Label = uilabel(app.submenu_Button5Grid);
+            app.submenu_Button5Label.FontSize = 11;
+            app.submenu_Button5Label.Layout.Row = 1;
+            app.submenu_Button5Label.Layout.Column = 2;
+            app.submenu_Button5Label.Text = 'API FISCALIZA';
+
+            % Create submenu_Button5Icon
+            app.submenu_Button5Icon = uiimage(app.submenu_Button5Grid);
+            app.submenu_Button5Icon.ImageClickedFcn = createCallbackFcn(app, @play_submenuButtonPushed, true);
+            app.submenu_Button5Icon.Tag = 'REPORT:FISCALIZA';
+            app.submenu_Button5Icon.Layout.Row = 1;
+            app.submenu_Button5Icon.Layout.Column = [1 2];
+            app.submenu_Button5Icon.HorizontalAlignment = 'left';
+            app.submenu_Button5Icon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Redmine_18.png');
+
+            % Create submenu_Button6Grid
+            app.submenu_Button6Grid = uigridlayout(app.submenu_Grid);
+            app.submenu_Button6Grid.ColumnWidth = {18, '1x'};
+            app.submenu_Button6Grid.RowHeight = {'1x'};
+            app.submenu_Button6Grid.Padding = [2 0 0 0];
+            app.submenu_Button6Grid.Layout.Row = 1;
+            app.submenu_Button6Grid.Layout.Column = 6;
+            app.submenu_Button6Grid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create submenu_Button6Label
+            app.submenu_Button6Label = uilabel(app.submenu_Button6Grid);
+            app.submenu_Button6Label.FontSize = 11;
+            app.submenu_Button6Label.Layout.Row = 1;
+            app.submenu_Button6Label.Layout.Column = 2;
+            app.submenu_Button6Label.Text = 'MISCELÂNEAS';
+
+            % Create submenu_Button6Icon
+            app.submenu_Button6Icon = uiimage(app.submenu_Button6Grid);
+            app.submenu_Button6Icon.Tag = 'MISC:GENERAL';
+            app.submenu_Button6Icon.Layout.Row = 1;
+            app.submenu_Button6Icon.Layout.Column = [1 2];
+            app.submenu_Button6Icon.HorizontalAlignment = 'left';
+            app.submenu_Button6Icon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Misc_32.png');
+
             % Create play_toolGrid
             app.play_toolGrid = uigridlayout(app.play_Grid);
-            app.play_toolGrid.ColumnWidth = {22, 22, 22, 248, '1x', 24, 24, 24, 24, 24, 24, '1x', 167, 22, 22, 22, 22, 22, 22};
+            app.play_toolGrid.ColumnWidth = {22, 22, 22, 248, '1x', 24, 24, 24, 24, 24, 24, '1x', 167, 22, 22, 22, 22, 22};
             app.play_toolGrid.RowHeight = {4, 17, '1x'};
             app.play_toolGrid.ColumnSpacing = 5;
             app.play_toolGrid.RowSpacing = 0;
@@ -8449,47 +8289,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_TimestampLabel.Layout.Column = 5;
             app.tool_TimestampLabel.Text = {'22 de 328 '; '22/02/2022 08:00:00 '};
 
-            % Create tool_RFDataHub
-            app.tool_RFDataHub = uiimage(app.play_toolGrid);
-            app.tool_RFDataHub.ImageClickedFcn = createCallbackFcn(app, @play_RFDataHubButtonPushed, true);
-            app.tool_RFDataHub.Tag = 'PLAYBACK';
-            app.tool_RFDataHub.Enable = 'off';
-            app.tool_RFDataHub.Tooltip = {'Consulta frequência na base do RFDataHub'};
-            app.tool_RFDataHub.Layout.Row = 2;
-            app.tool_RFDataHub.Layout.Column = 17;
-            app.tool_RFDataHub.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'mosaic_32.png');
-
-            % Create tool_DriveTest
-            app.tool_DriveTest = uiimage(app.play_toolGrid);
-            app.tool_DriveTest.ImageClickedFcn = createCallbackFcn(app, @play_DriveTestButtonPushed, true);
-            app.tool_DriveTest.Tag = 'PLAYBACK';
-            app.tool_DriveTest.Enable = 'off';
-            app.tool_DriveTest.Tooltip = {'Abre módulo Drive-test'};
-            app.tool_DriveTest.Layout.Row = 2;
-            app.tool_DriveTest.Layout.Column = 18;
-            app.tool_DriveTest.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'DriveTestDensity_32.png');
-
-            % Create tool_ExceptionList
-            app.tool_ExceptionList = uiimage(app.play_toolGrid);
-            app.tool_ExceptionList.ImageClickedFcn = createCallbackFcn(app, @report_OpenSignalAnalysis, true);
-            app.tool_ExceptionList.Tag = 'REPORT';
-            app.tool_ExceptionList.Visible = 'off';
-            app.tool_ExceptionList.Tooltip = {'Abre módulo Análise de sinais'};
-            app.tool_ExceptionList.Layout.Row = 2;
-            app.tool_ExceptionList.Layout.Column = 14;
-            app.tool_ExceptionList.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'exceptionList_32.png');
-
-            % Create tool_ReportAnalysis
-            app.tool_ReportAnalysis = uiimage(app.play_toolGrid);
-            app.tool_ReportAnalysis.ImageClickedFcn = createCallbackFcn(app, @report_playButtonPushed, true);
-            app.tool_ReportAnalysis.Tag = 'REPORT';
-            app.tool_ReportAnalysis.Enable = 'off';
-            app.tool_ReportAnalysis.Visible = 'off';
-            app.tool_ReportAnalysis.Tooltip = {'Identifica emissões do(s) fluxo(s) selecionado(s)'};
-            app.tool_ReportAnalysis.Layout.Row = 2;
-            app.tool_ReportAnalysis.Layout.Column = 15;
-            app.tool_ReportAnalysis.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Zoom_32.png');
-
             % Create tool_ReportGenerator
             app.tool_ReportGenerator = uiimage(app.play_toolGrid);
             app.tool_ReportGenerator.ImageClickedFcn = createCallbackFcn(app, @report_playButtonPushed, true);
@@ -8498,7 +8297,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_ReportGenerator.Visible = 'off';
             app.tool_ReportGenerator.Tooltip = {'Gera relatório'};
             app.tool_ReportGenerator.Layout.Row = 2;
-            app.tool_ReportGenerator.Layout.Column = 16;
+            app.tool_ReportGenerator.Layout.Column = 15;
             app.tool_ReportGenerator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Publish_HTML_16.png');
 
             % Create tool_FiscalizaUpdate
@@ -8509,14 +8308,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_FiscalizaUpdate.Visible = 'off';
             app.tool_FiscalizaUpdate.Tooltip = {'Atualiza inspeção no FISCALIZA'};
             app.tool_FiscalizaUpdate.Layout.Row = 2;
-            app.tool_FiscalizaUpdate.Layout.Column = 18;
+            app.tool_FiscalizaUpdate.Layout.Column = 17;
             app.tool_FiscalizaUpdate.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Up_24.png');
 
             % Create tool_LayoutRight
             app.tool_LayoutRight = uiimage(app.play_toolGrid);
             app.tool_LayoutRight.ImageClickedFcn = createCallbackFcn(app, @play_PanelsVisibility, true);
             app.tool_LayoutRight.Layout.Row = 2;
-            app.tool_LayoutRight.Layout.Column = 19;
+            app.tool_LayoutRight.Layout.Column = 18;
             app.tool_LayoutRight.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'ArrowRight_32.png');
 
             % Create tool_FiscalizaAutoFill
@@ -8527,7 +8326,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_FiscalizaAutoFill.Visible = 'off';
             app.tool_FiscalizaAutoFill.Tooltip = {'Preenche campos automaticamente'};
             app.tool_FiscalizaAutoFill.Layout.Row = 2;
-            app.tool_FiscalizaAutoFill.Layout.Column = 17;
+            app.tool_FiscalizaAutoFill.Layout.Column = 16;
             app.tool_FiscalizaAutoFill.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'AutoFill_36Blue.png');
 
             % Create Tab3_DriveTest
@@ -8660,7 +8459,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create menu_Button7
             app.menu_Button7 = uibutton(app.menu_Grid, 'state');
-            app.menu_Button7.ValueChangedFcn = createCallbackFcn(app, @menu_OpenRFDataHubModule, true);
+            app.menu_Button7.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button7.Tag = 'RFDATAHUB';
             app.menu_Button7.Tooltip = {'RFDataHub'};
             app.menu_Button7.Icon = 'mosaic_32White.png';
@@ -8673,7 +8472,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create menu_Button8
             app.menu_Button8 = uibutton(app.menu_Grid, 'state');
-            app.menu_Button8.ValueChangedFcn = createCallbackFcn(app, @menu_Button8ValueChanged, true);
+            app.menu_Button8.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button8.Tag = 'CONFIG';
             app.menu_Button8.Tooltip = {'Configurações gerais'};
             app.menu_Button8.Icon = 'Settings_36White.png';
@@ -8750,12 +8549,21 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.SplashScreen.Layout.Column = 2;
             app.SplashScreen.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'SplashScreen.gif');
 
+            % Create report_ProjectWarnIcon
+            app.report_ProjectWarnIcon = uiimage(app.UIFigure);
+            app.report_ProjectWarnIcon.Visible = 'off';
+            app.report_ProjectWarnIcon.Tooltip = {'Pendente salvar projeto'};
+            app.report_ProjectWarnIcon.VerticalAlignment = 'bottom';
+            app.report_ProjectWarnIcon.Position = [1256 959 16 18];
+            app.report_ProjectWarnIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Warn_18.png');
+
             % Create file_ContextMenu_Tree1
             app.file_ContextMenu_Tree1 = uicontextmenu(app.UIFigure);
 
             % Create file_ContextMenu_delTree1Node
             app.file_ContextMenu_delTree1Node = uimenu(app.file_ContextMenu_Tree1);
             app.file_ContextMenu_delTree1Node.MenuSelectedFcn = createCallbackFcn(app, @file_ContextMenu_delTree1NodeSelected, true);
+            app.file_ContextMenu_delTree1Node.ForegroundColor = [1 0 0];
             app.file_ContextMenu_delTree1Node.Text = 'Excluir';
 
             % Create file_ContextMenu_Tree2
@@ -8764,10 +8572,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create file_ContextMenu_delTree2Node
             app.file_ContextMenu_delTree2Node = uimenu(app.file_ContextMenu_Tree2);
             app.file_ContextMenu_delTree2Node.MenuSelectedFcn = createCallbackFcn(app, @file_ContextMenu_delTree2NodeSelected, true);
+            app.file_ContextMenu_delTree2Node.ForegroundColor = [1 0 0];
             app.file_ContextMenu_delTree2Node.Text = 'Excluir';
 
             % Create play_FindPeaks_ContextMenu
             app.play_FindPeaks_ContextMenu = uicontextmenu(app.UIFigure);
+
+            % Create ConsultarMenu
+            app.ConsultarMenu = uimenu(app.play_FindPeaks_ContextMenu);
+            app.ConsultarMenu.MenuSelectedFcn = createCallbackFcn(app, @play_RFDataHubButtonPushed, true);
+            app.ConsultarMenu.Text = 'Consultar';
 
             % Create play_FindPeaks_ContextMenu_edit
             app.play_FindPeaks_ContextMenu_edit = uimenu(app.play_FindPeaks_ContextMenu);
@@ -8786,20 +8600,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_FindPeaks_ContextMenu_del
             app.play_FindPeaks_ContextMenu_del = uimenu(app.play_FindPeaks_ContextMenu);
             app.play_FindPeaks_ContextMenu_del.MenuSelectedFcn = createCallbackFcn(app, @play_FindPeaks_delEmission, true);
+            app.play_FindPeaks_ContextMenu_del.ForegroundColor = [1 0 0];
+            app.play_FindPeaks_ContextMenu_del.Separator = 'on';
             app.play_FindPeaks_ContextMenu_del.Text = 'Excluir';
 
             % Create play_Channel_ContextMenu
             app.play_Channel_ContextMenu = uicontextmenu(app.UIFigure);
 
-            % Create play_Channel_ContextMenu_del
-            app.play_Channel_ContextMenu_del = uimenu(app.play_Channel_ContextMenu);
-            app.play_Channel_ContextMenu_del.MenuSelectedFcn = createCallbackFcn(app, @play_Channel_ContextMenu_delChannelSelected, true);
-            app.play_Channel_ContextMenu_del.Text = 'Excluir';
-
             % Create play_Channel_ContextMenu_addBandLimit
             app.play_Channel_ContextMenu_addBandLimit = uimenu(app.play_Channel_ContextMenu);
             app.play_Channel_ContextMenu_addBandLimit.MenuSelectedFcn = createCallbackFcn(app, @play_Channel_ContextMenu_addBandLimitSelected, true);
-            app.play_Channel_ContextMenu_addBandLimit.Separator = 'on';
             app.play_Channel_ContextMenu_addBandLimit.Text = 'Adicionar limites à detecção';
 
             % Create play_Channel_ContextMenu_addEmission
@@ -8807,12 +8617,20 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_Channel_ContextMenu_addEmission.MenuSelectedFcn = createCallbackFcn(app, @play_Channel_ContextMenu_addEmissionSelected, true);
             app.play_Channel_ContextMenu_addEmission.Text = 'Adicionar canais como emissões';
 
+            % Create play_Channel_ContextMenu_del
+            app.play_Channel_ContextMenu_del = uimenu(app.play_Channel_ContextMenu);
+            app.play_Channel_ContextMenu_del.MenuSelectedFcn = createCallbackFcn(app, @play_Channel_ContextMenu_delChannelSelected, true);
+            app.play_Channel_ContextMenu_del.ForegroundColor = [1 0 0];
+            app.play_Channel_ContextMenu_del.Separator = 'on';
+            app.play_Channel_ContextMenu_del.Text = 'Excluir';
+
             % Create report_ContextMenu
             app.report_ContextMenu = uicontextmenu(app.UIFigure);
 
             % Create report_ContextMenu_del
             app.report_ContextMenu_del = uimenu(app.report_ContextMenu);
             app.report_ContextMenu_del.MenuSelectedFcn = createCallbackFcn(app, @report_ContextMenu_delSelected, true);
+            app.report_ContextMenu_del.ForegroundColor = [1 0 0];
             app.report_ContextMenu_del.Separator = 'on';
             app.report_ContextMenu_del.Text = 'Excluir';
 
@@ -8822,6 +8640,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_BandLimits_ContextMenu_del
             app.play_BandLimits_ContextMenu_del = uimenu(app.play_BandLimits_ContextMenu);
             app.play_BandLimits_ContextMenu_del.MenuSelectedFcn = createCallbackFcn(app, @play_BandLimits_ContextMenu_delSelected, true);
+            app.play_BandLimits_ContextMenu_del.ForegroundColor = [1 0 0];
             app.play_BandLimits_ContextMenu_del.Text = 'Excluir';
 
             % Show the figure after all components are created

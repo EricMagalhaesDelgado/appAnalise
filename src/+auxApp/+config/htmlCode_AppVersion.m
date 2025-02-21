@@ -19,13 +19,13 @@ function htmlContent = htmlCode_AppVersion(appGeneral, executionMode)
             end
     end
 
-    dataStruct    = struct('group', 'COMPUTADOR',   'value', struct('Machine', appVersion.Machine, 'Mode', sprintf('%s - %s', executionMode, appMode)));
+    dataStruct    = struct('group', 'COMPUTADOR',   'value', struct('Machine', appVersion.machine, 'Mode', sprintf('%s - %s', executionMode, appMode)));
     dataStruct(2) = struct('group', appName,        'value', appVersion.(appName));
     dataStruct(3) = struct('group', 'RFDataHub',    'value', struct('releasedDate', RFDataHub_info.ReleaseDate, 'numberOfRows', height(RFDataHub), 'numberOfUniqueStations', numel(unique(RFDataHub.("Station")))));
-    dataStruct(4) = struct('group', 'MATLAB',       'value', appVersion.Matlab);
+    dataStruct(4) = struct('group', 'MATLAB',       'value', appVersion.matlab);
 
-    if ~isempty(appVersion.Python)
-        dataStruct(end+1) = struct('group', 'PYTHON', 'value', appVersion.Python);
+    if ~isempty(appVersion.python)
+        dataStruct(end+1) = struct('group', 'PYTHON', 'value', appVersion.python);
     end
 
     if ~isempty(appVersion.fiscaliza)

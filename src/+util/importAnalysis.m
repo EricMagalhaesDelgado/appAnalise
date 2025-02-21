@@ -35,8 +35,8 @@ function emissionsAddedFlag = importAnalysis(app, specData, fileName)
             [aCoef, ...
              bCoef]   = idxFrequencyMap(FreqStart, FreqStop, DataPoints);
 
-            newIndex  = round((newFreq*1e+6 - bCoef) / aCoef);
             newFreq   = emissionsTable.Frequency(idxNewEmissions);
+            newIndex  = round((newFreq*1e+6 - bCoef) / aCoef);
             newBW_kHz = emissionsTable.BW_kHz(idxNewEmissions);
             Method    = repmat(emissionsDetection, numel(idxNewEmissions), 1);
 

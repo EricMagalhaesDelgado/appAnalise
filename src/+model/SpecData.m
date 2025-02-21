@@ -174,8 +174,7 @@ classdef SpecData < model.SpecDataBase
         
                         case 'Edit'
                             parameter   = varargin{1};
-                            idxEmission = varargin{2};        
-                            Algorithm   = jsondecode(obj.UserData.Emissions.Algorithm(idxEmission).Detection);
+                            idxEmission = varargin{2};
         
                             % Ao alterar as características de frequência e BW de uma emissão, 
                             % a emissão alterada é considerada como uma NOVA emissão. Logo,
@@ -183,17 +182,20 @@ classdef SpecData < model.SpecDataBase
                             % "Drive-Test" e "SignalAnalysis" são perdidas.
         
                             switch parameter
-                                case 'Frequency'                            
-                                    Algorithm.Algorithm = 'Manual';        
+                                case {'Frequency', 'Frequency|BandWidth'}
                                     obj.UserData.Emissions.idxFrequency(idxEmission)        = varargin{3};
                                     obj.UserData.Emissions.Frequency(idxEmission)           = varargin{4};
-                                    obj.UserData.Emissions.Algorithm(idxEmission).Detection = jsonencode(Algorithm, 'ConvertInfAndNaN', false);                            
+                                    
+                                    if numel(varargin) == 5
+                                        obj.UserData.Emissions.BW_kHz(idxEmission)          = varargin{5};
+                                    end
+
+                                    obj.UserData.Emissions.Algorithm(idxEmission).Detection = '{"Algorithm":"Manual"}';                            
                                     obj.UserData.Emissions.auxAppData(idxEmission)          = structfun(@(x) [], obj.UserData.Emissions.auxAppData(idxEmission), "UniformOutput", false);
         
                                 case 'BandWidth'
-                                    Algorithm.Algorithm = 'Manual';
                                     obj.UserData.Emissions.BW_kHz(idxEmission)              = varargin{3};
-                                    obj.UserData.Emissions.Algorithm(idxEmission).Detection = jsonencode(Algorithm, 'ConvertInfAndNaN', false);
+                                    obj.UserData.Emissions.Algorithm(idxEmission).Detection = '{"Algorithm":"Manual"}';
                                     obj.UserData.Emissions.auxAppData(idxEmission)          = structfun(@(x) [], obj.UserData.Emissions.auxAppData(idxEmission), "UniformOutput", false);
                                 
                                 case 'Description'
@@ -369,10 +371,9 @@ classdef SpecData < model.SpecDataBase
             for ii = 1:numel(obj)
                 bandLimitsStatus = obj(ii).UserData.bandLimitsStatus;
                 bandLimitsTable  = obj(ii).UserData.bandLimitsTable;
+                emissionsTable   = obj(ii).UserData.Emissions;
             
                 if bandLimitsStatus && ~isempty(bandLimitsTable)
-                    emissionsTable = obj(ii).UserData.Emissions;
-
                     for jj = height(emissionsTable):-1:1
                         emissionsInSearchableBand = any((emissionsTable.Frequency(jj) >= bandLimitsTable.FreqStart) & (emissionsTable.Frequency(jj) <= bandLimitsTable.FreqStop));
 
@@ -380,16 +381,16 @@ classdef SpecData < model.SpecDataBase
                             emissionsTable(jj, :) = [];
                         end
                     end
-
-                    % Insere a coluna "Base64", que retorna um Hash do tag da emissão, no
-                    % formato "100.300 MHz ⌂ 256.0 kHz", por exemplo. Esse Hash é usado p/
-                    % identificar as emissões únicas.
-                    emissionsBase64Hash = cellfun(@(x) Base64Hash.encode(x), arrayfun(@(x, y) sprintf('%.3f MHz ⌂ %.1f kHz', x, y), emissionsTable.Frequency, emissionsTable.BW_kHz, "UniformOutput", false), 'UniformOutput', false);
-                    [~, uniqueIndex]    = unique(emissionsBase64Hash);
-                    emissionsTable      = sortrows(emissionsTable(uniqueIndex, :), {'idxFrequency', 'BW_kHz'});
-
-                    obj(ii).UserData.Emissions = emissionsTable;
                 end
+
+                % Insere a coluna "Base64", que retorna um Hash do tag da emissão, no
+                % formato "100.300 MHz ⌂ 256.0 kHz", por exemplo. Esse Hash é usado p/
+                % identificar as emissões únicas.
+                emissionsBase64Hash = cellfun(@(x) Base64Hash.encode(x), arrayfun(@(x, y) sprintf('%.3f MHz ⌂ %.1f kHz', x, y), emissionsTable.Frequency, emissionsTable.BW_kHz, "UniformOutput", false), 'UniformOutput', false);
+                [~, uniqueIndex]    = unique(emissionsBase64Hash);
+                emissionsTable      = sortrows(emissionsTable(uniqueIndex, :), {'idxFrequency', 'BW_kHz'});
+
+                obj(ii).UserData.Emissions = emissionsTable;
             end
         end
 

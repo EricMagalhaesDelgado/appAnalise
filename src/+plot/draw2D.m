@@ -252,51 +252,48 @@ classdef (Abstract) draw2D
         end        
         
         %-------------------------------------------------------------------------%
-        function mkrLineROI_old(evt, app, idx1)
-        
+        function mkrLineROI_old(evt, app, idxThread)
+
+            idxEmission = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
+
             switch(evt.EventName)
                 case 'MovingROI'
                     plot.axes.Interactivity.DefaultDisable([app.UIAxes1, app.UIAxes2, app.UIAxes3])
         
                     FreqCenter = app.hSelectedEmission.Position(1) + app.hSelectedEmission.Position(3)/2;
-                    if (FreqCenter*1e+6 < app.specData(idx1).MetaData.FreqStart) || ...
-                       (FreqCenter*1e+6 > app.specData(idx1).MetaData.FreqStop)
+                    if (FreqCenter*1e+6 < app.specData(idxThread).MetaData.FreqStart) || ...
+                       (FreqCenter*1e+6 > app.specData(idxThread).MetaData.FreqStop)
                     
                        return
                     end
         
                     app.play_FindPeaks_PeakCF.Value = round(FreqCenter, 3);
-                    app.play_FindPeaks_PeakBW.Value = round(app.hSelectedEmission.Position(3) * 1000, 3);
-        
-                    idx2 = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;
-                    app.hClearWrite.MarkerIndices(idx2) = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
+                    app.play_FindPeaks_PeakBW.Value = round(app.hSelectedEmission.Position(3) * 1000, 3);        
+                    
+                    app.hClearWrite.MarkerIndices(idxEmission) = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
                     
                     % Se tiver apenas um marcador, então a string fica como
                     % cell. Caso tenha mais de um marcador, então a string
                     % fica como char.
-                    markerTag = findobj('Type', 'Text', 'String', sprintf('  %d', idx2));
+                    markerTag = findobj('Type', 'Text', 'String', sprintf('  %d', idxEmission));
                     if isempty(markerTag)
-                        markerTag = findobj('Type', 'Text', 'String', {sprintf('  %d', idx2)});
+                        markerTag = findobj('Type', 'Text', 'String', {sprintf('  %d', idxEmission)});
                     end
-                    markerTag.Position(1:2) = [app.play_FindPeaks_PeakCF.Value, app.hClearWrite.YData(app.hClearWrite.MarkerIndices(idx2))];
+                    markerTag.Position(1:2) = [app.play_FindPeaks_PeakCF.Value, app.hClearWrite.YData(app.hClearWrite.MarkerIndices(idxEmission))];
                     
-                    set(app.play_FindPeaks_Tree.Children(idx2), 'Text', sprintf("%d: %.3f MHz ⌂ %.3f kHz", idx2, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value), ...
-                                                                'NodeData', idx2)
+                    set(app.play_FindPeaks_Tree.Children(idxEmission), 'Text', sprintf("%d: %.3f MHz ⌂ %.3f kHz", idxEmission, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value), ...
+                                                                       'NodeData', idxEmission)
                     
                 case 'ROIMoved'
                     plot.axes.Interactivity.DefaultEnable([app.UIAxes1, app.UIAxes2, app.UIAxes3])
-        
-                    idx2 = app.play_FindPeaks_Tree.SelectedNodes(1).NodeData;            
-                    newIndex = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
-        
-                    emissionInfo = jsondecode(app.specData(idx1).UserData.Emissions.Algorithm(idx2).Detection);
-                    emissionInfo.Algorithm = 'Manual';
-                    
-                    app.specData(idx1).UserData.Emissions(idx2, 1:3) = {newIndex, app.play_FindPeaks_PeakCF.Value, app.play_FindPeaks_PeakBW.Value};
-                    app.specData(idx1).UserData.Emissions.Algorithm(idx2).Detection = jsonencode(emissionInfo, 'ConvertInfAndNaN', false);
 
-                    play_BandLimits_updateEmissions(app, idx1, newIndex)
-                    play_UpdatePeaksTable(app, idx1, 'playback.AddEditOrDeleteEmission')
+                    idxFrequency = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
+                    FreqCenter   = app.play_FindPeaks_PeakCF.Value;
+                    BW_kHz       = app.play_FindPeaks_PeakBW.Value;
+                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'Frequency|BandWidth', idxEmission, idxFrequency, FreqCenter, BW_kHz)
+
+                    plot_updateSelectedEmission(app, idxThread, idxFrequency)
+                    play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')
             end
         end
     end

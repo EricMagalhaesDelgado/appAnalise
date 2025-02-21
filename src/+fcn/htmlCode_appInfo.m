@@ -20,10 +20,10 @@ function appInfo = htmlCode_appInfo(appGeneral, rootFolder, executionMode)
             end
     end
 
-    dataStruct    = struct('group', 'COMPUTADOR',   'value', struct('Machine', appVersion.Machine, 'Mode', sprintf('%s - %s', executionMode, appMode)));
+    dataStruct    = struct('group', 'COMPUTADOR',   'value', struct('Machine', appVersion.machine, 'Mode', sprintf('%s - %s', executionMode, appMode)));
     dataStruct(2) = struct('group', appName,        'value', appVersion.(appName));
     dataStruct(3) = struct('group', 'RFDataHub',    'value', struct('releasedDate', RFDataHub_info.ReleaseDate, 'numberOfRows', height(RFDataHub), 'numberOfUniqueStations', numel(unique(RFDataHub.("Station")))));
-    dataStruct(4) = struct('group', 'MATLAB',       'value', appVersion.Matlab);
+    dataStruct(4) = struct('group', 'MATLAB',       'value', appVersion.matlab);
 
     appInfo = sprintf(['<p style="font-size: 12px; text-align:justify;">O repositório das '   ...
                        'ferramentas desenvolvidas no Escritório de inovação da SFI pode ser ' ...

@@ -70,7 +70,7 @@ classdef (Abstract) Plot
                             reportLibConnection.Plot.ThresholdPlot(hAxes, tempBandObj, idxThread, reportInfo)
 
                         case 'OccupancyPerBin'
-                            reportLibConnection.Plot.cartesianAxes__type3(hAxes, tempBandObj, idxThread, reportInfo)
+                            reportLibConnection.Plot.OccupancyPerBin(hAxes, tempBandObj, idxThread, reportInfo)
                             hAxes.YLim = [0,100];
 
                         case 'EmissionROI'
@@ -151,7 +151,7 @@ classdef (Abstract) Plot
         end
 
         %-----------------------------------------------------------------%
-        function cartesianAxes__type3(hAxes, bandObj, idx, reportInfo)
+        function OccupancyPerBin(hAxes, bandObj, idx, reportInfo)
             defaultProperties = bandObj.callingApp.General_I;
 
             specData  = bandObj.callingApp.specData(idx);

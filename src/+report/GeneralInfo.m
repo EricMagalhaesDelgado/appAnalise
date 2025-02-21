@@ -10,10 +10,6 @@ function [idxThreads, reportInfo] = GeneralInfo(app, Mode, reportTemplateIndex)
                      detectionMode = 'Automatic+Manual';
              end
 
-        case 'Preview'
-            idxThreads    = unique([app.report_Tree.CheckedNodes.NodeData]);
-            detectionMode = 'Automatic+Manual';
-
         case 'playback.AddEditOrDeleteEmission'
             idxThreads    = app.play_PlotPanel.UserData.NodeData;
             detectionMode = 'Manual';
@@ -33,7 +29,7 @@ function [idxThreads, reportInfo] = GeneralInfo(app, Mode, reportTemplateIndex)
                                               'version',    class.Constants.appVersion, ...
                                               'rootFolder', app.rootFolder), ...
                          'RFDataHub',  struct('name',       'RFDataHub', ...
-                                              'release',    app.General.AppVersion.RFDataHub.ReleaseDate));
+                                              'release',    app.General.AppVersion.rfDataHub.ReleaseDate));
 
     reportInfo = struct('Version',       versionInfo,                                    ...
                         'Issue',         app.report_Issue.Value,                         ...
@@ -47,11 +43,20 @@ function [idxThreads, reportInfo] = GeneralInfo(app, Mode, reportTemplateIndex)
                         'Filename',      '');
 
     if reportTemplateIndex >= 1
+        [projectFolder, ...
+         programDataFolder]  = appUtil.Path(class.Constants.appName, app.rootFolder);
+
+        if isfile(fullfile(programDataFolder, 'ReportTemplates', app.General.Models.Template{reportTemplateIndex}))
+            reportTemplateScript = fileread(fullfile(programDataFolder, 'ReportTemplates', app.General.Models.Template{reportTemplateIndex}));
+        else
+            reportTemplateScript = fileread(fullfile(projectFolder,     'ReportTemplates', app.General.Models.Template{reportTemplateIndex}));
+        end
+
         reportInfo.Model = struct('Name',         app.report_ModelName.Value,                ...
                                   'DocumentType', 'Relatório de Atividades',                 ...
                                   'idx',          reportTemplateIndex,                       ...
                                   'Type',         app.General.Models(reportTemplateIndex,:), ...
                                   'Version',      app.report_Version.Value,                  ...
-                                  'Script',       fileread(fullfile(app.rootFolder, 'Template', app.General.Models.Template{reportTemplateIndex})));
+                                  'Script',       reportTemplateScript);
     end
 end
