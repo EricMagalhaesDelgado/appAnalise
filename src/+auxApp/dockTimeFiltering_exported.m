@@ -45,7 +45,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
         Container
         isDocked      = true
 
-        CallingApp
+        mainApp
         specData
 
         filterSummary = table('Size',          [0, 4],                                 ...
@@ -56,6 +56,23 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
                               'VariableTypes', {'cell', 'cell'}, ...
                               'VariableNames', {'Type', 'Value'})
     end
+
+
+    methods
+        function ipcSecundaryJSEventsHandler(app, event)
+            try
+                switch event.HTMLEventName
+                    case 'auxApp.dockTimeFiltering.filterTree'
+                        btnDeleteSelected(app)
+                    otherwise
+                        error('UnexpectedEvent')
+                end
+
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+            end
+        end
+    end
     
     
     methods (Access = private)
@@ -63,25 +80,19 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
         % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource           = ccTools.fcn.jsBackDoorHTMLSource();
-            app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)jsBackDoor_Listener(app, evt);
-        end
-
-        %-----------------------------------------------------------------%
-        function jsBackDoor_Listener(app, event)
-            switch event.HTMLEventName
-                case 'app.filterTree'
-                    btnDeleteSelected(app)
-                otherwise
-                    error('UnexpectedCall')
-            end
-            drawnow
+            if app.isDocked
+                delete(app.jsBackDoor)
+                app.jsBackDoor = app.mainApp.jsBackDoor;
+            else
+                app.jsBackDoor.HTMLSource = appUtil.jsBackDoorHTMLSource();
+                app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcSecundaryJSEventsHandler(app, evt);
+            end            
         end
 
         %-----------------------------------------------------------------%
         function jsBackDoor_Customizations(app)
             app.filterTree.UserData = struct(app.filterTree).Controller.ViewModel.Id;
-            sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'app.filterTree', 'componentDataTag', app.filterTree.UserData, 'keyEvents', "Delete"))
+            sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'auxApp.dockTimeFiltering.filterTree', 'componentDataTag', app.filterTree.UserData, 'keyEvents', "Delete"))
         end
     end
 
@@ -202,8 +213,8 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function CallingMainApp(app, updateFlag, returnFlag)
-            appBackDoor(app.CallingApp, app, 'MISCELLANEOUS', updateFlag, returnFlag)
+        function callingMainApp(app, updateFlag, returnFlag)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'MISCELLANEOUS', updateFlag, returnFlag)
         end
     end
     
@@ -214,8 +225,8 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp, idxThreads)
             
-            app.CallingApp = mainapp;
-            app.specData   = mainapp.specData;
+            app.mainApp  = mainapp;
+            app.specData = mainapp.specData;
 
             jsBackDoor_Initialization(app)
             initialValues(app, idxThreads)
@@ -287,11 +298,11 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
     
                     for ii = 1:height(app.filterSummary)
                         idxThread = app.filterSummary.idxThread(ii);
-                        app.CallingApp.specData(idxThread) = filter(app.CallingApp.specData(idxThread), app.filterTable, app.filterSummary.FilterLogicalArray{ii});
+                        app.mainApp.specData(idxThread) = filter(app.mainApp.specData(idxThread), app.filterTable, app.filterSummary.FilterLogicalArray{ii});
                     end
                     
-                    sortType = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.CallingApp.play_TreeSort.UserData));
-                    app.CallingApp.specData = sort(app.CallingApp.specData, sortType);
+                    sortType = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.mainApp.play_TreeSort.UserData));
+                    app.mainApp.specData = sort(app.mainApp.specData, sortType);
 
                     updateFlag = true;
 
@@ -299,7 +310,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
                     updateFlag = false;
             end
 
-            CallingMainApp(app, updateFlag, false)
+            callingMainApp(app, updateFlag, false)
             closeFcn(app)
 
         end
@@ -400,6 +411,10 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 

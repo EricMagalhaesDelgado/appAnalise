@@ -28,7 +28,7 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
         Container
         isDocked = true
 
-        CallingApp
+        mainApp
         specData
         referenceData
     end
@@ -87,8 +87,8 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function CallingMainApp(app, updateFlag, returnFlag)
-            appBackDoor(app.CallingApp, app, 'MISCELLANEOUS', updateFlag, returnFlag)
+        function callingMainApp(app, updateFlag, returnFlag)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'MISCELLANEOUS', updateFlag, returnFlag)
         end
     end
     
@@ -99,8 +99,8 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp, idxThreads)
             
-            app.CallingApp = mainapp;
-            app.specData   = mainapp.specData;
+            app.mainApp  = mainapp;
+            app.specData = mainapp.specData;
 
             initialValues(app, idxThreads)
             
@@ -134,9 +134,9 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
                     refPoint = struct('Latitude',  app.rxLatitude.Value, ...
                                       'Longitude', app.rxLongitude.Value);
                     
-                    app.CallingApp.progressDialog.Visible = 'visible';
+                    app.mainApp.progressDialog.Visible = 'visible';
                     [cityName, cityDistance, cityInfo] = gpsLib.findNearestCity(refPoint);
-                    app.CallingApp.progressDialog.Visible = 'hidden';
+                    app.mainApp.progressDialog.Visible = 'hidden';
 
                     if ~strcmp(cityName, app.rxCity.Value)        
                         msgQuestion   = sprintf(['%s retornou o município "%s" como a localidade mais próxima das '  ...
@@ -192,7 +192,7 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
                         end
     
                         initialValues(app, idxThreads)
-                        CallingMainApp(app, true, true)
+                        callingMainApp(app, true, true)
                     end
             end
 
@@ -238,7 +238,7 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
                     updateFlag = false;
             end
 
-            CallingMainApp(app, updateFlag, false)
+            callingMainApp(app, updateFlag, false)
             closeFcn(app)
 
         end
@@ -271,6 +271,10 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 

@@ -161,7 +161,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         Container
         isDocked = false
 
-        CallingApp
+        mainApp
         General
         General_I
         rootFolder
@@ -226,84 +226,19 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
 
     methods
-        %-----------------------------------------------------------------%
-        % ÍNDICES DO FLUXO ESPECTRAL E DA EMISSÃO
-        %-----------------------------------------------------------------%
-        function [idxThread, idxEmission] = specDataIndex(app, operationType)
-            arguments
-                app 
-                operationType char {mustBeMember(operationType, {'EmissionShowed',              ...
-                                                                 'RefreshPlotParameters',       ...
-                                                                 'ChannelParameterChanged',     ...
-                                                                 'ChannelDefault',              ...
-                                                                 'PlotDataSourceChanged',       ...
-                                                                 'DataBinningParameterChanged', ...
-                                                                 'EmissionSelectionChanged'})} = 'EmissionShowed'
-            end
-
-            % É salva na propriedade "UserData" de app.general_emissionInfo a
-            % informação relacionada ao fluxo espectral e a emissão sob análise.
-
-            % emissionID = struct('Thread',   struct('Index',     idx,                                                     ...
-            %                                        'UUID',      {specData(idx).RelatedFiles.uuid}),                      ...
-            %                     'Emission', struct('Index',     idxEmission,                                             ...
-            %                                        'Frequency', specData(idx).UserData.Emissions.Frequency(idxEmission), ...
-            %                                        'BW',        specData(idx).UserData.Emissions.BW(idxEmission),        ...
-            %                                        'Tag',       emissionTag));
-
-            emissionID  = app.general_emissionInfo.UserData;
-
-            % Inicialmente, busca-se o fluxo espectral (referenciado 
-            % unicamente pela lista UUID dos arquivos brutos).
-            threadUUID  = emissionID.Thread.UUID;
-            listOfAllThreadsUUID = arrayfun(@(x) x.RelatedFiles.uuid, app.specData, 'UniformOutput', false);
-            
-            idxThread   = find(cellfun(@(x) isequal(x, threadUUID), listOfAllThreadsUUID), 1);
-            idxEmission = [];
-
-            % Caso seja identificado o fluxo espectral, busca a emissão 
-            % sob análise na lista de emissões.
-            if ~isempty(idxThread)
-                switch operationType
-                    case 'EmissionSelectionChanged'
-                        newEmissionTag = app.general_emissionList.Value;
-                        emissionTable  = app.specData(idxThread).UserData.Emissions;
-
-                        for ii = 1:height(emissionTable)
-                            if strcmp(newEmissionTag, sprintf('%.3f MHz ⌂ %.1f kHz', emissionTable.Frequency(ii), emissionTable.BW(ii)))
-                                idxEmission = ii;
-                                break
-                            end
-                        end
-
+        function ipcSecundaryJSEventsHandler(app, event)
+            try
+                switch event.HTMLEventName
+                    case 'auxApp.winDriveTest.filter_Tree'
+                        filter_delFilter(app, struct('Source', app.filter_delButton))
+                    case 'auxApp.winDriveTest.points_Tree'
+                        points_delButtonMenuSelected(app)
                     otherwise
-                        emissionFrequency = emissionID.Emission.Frequency;
-                        emissionBW        = emissionID.Emission.BW;
-        
-                        idxEmission = find(abs(app.specData(idxThread).UserData.Emissions.Frequency - emissionFrequency) <= class.Constants.floatDiffTolerance & ...
-                                           abs(app.specData(idxThread).UserData.Emissions.BW        - emissionBW)        <= class.Constants.floatDiffTolerance, 1);
+                        error('UnexpectedEvent')
                 end
-            end
-        end
 
-        %-----------------------------------------------------------------%
-        % ATUALIZAÇÃO DE LISTA DE EMISSÕES NO APPANALISE
-        %-----------------------------------------------------------------%
-        function EmissionListUpdated(app)
-            [idxThread, idxEmission] = specDataIndex(app, 'EmissionShowed');
-
-            if isempty(idxThread) || isempty(app.specData(idxThread).UserData.Emissions)
-                closeFcn(app)
-                return
-            end
-
-            preSelection = app.general_emissionList.Value;
-            updateListOfEmissions(app, idxThread, idxEmission)
-
-            if ismember(preSelection, app.general_emissionList.Items)
-                app.general_emissionList.Value = preSelection;
-            else                
-                general_EmissionSelectionChanged(app, struct('Source', app.general_emissionList))
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
             end
         end
     end
@@ -314,19 +249,13 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource           = ccTools.fcn.jsBackDoorHTMLSource();
-            app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)jsBackDoor_Listener(app, evt);
-        end
-
-        %-----------------------------------------------------------------%
-        function jsBackDoor_Listener(app, event)
-            switch event.HTMLEventName
-                case 'app.filter_Tree'
-                    filter_delFilter(app, struct('Source', app.filter_delButton))
-                case 'app.points_Tree'
-                    points_delButtonMenuSelected(app)
-            end
-            drawnow
+            if app.isDocked
+                delete(app.jsBackDoor)
+                app.jsBackDoor = app.mainApp.jsBackDoor;
+            else
+                app.jsBackDoor.HTMLSource = appUtil.jsBackDoorHTMLSource();
+                app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcSecundaryJSEventsHandler(app, evt);
+            end            
         end
 
         %-------------------------------------------------------------------------%
@@ -341,18 +270,18 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             switch tabIndex
                 case 0 % STARTUP
                     if app.isDocked
-                        app.progressDialog = app.CallingApp.progressDialog;
+                        app.progressDialog = app.mainApp.progressDialog;
                     else
                         app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
-                    end
 
-                    sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
-                                                                                           'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
-                                                                                                               '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
-                                                                                                               '--mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);']));
-        
-                    sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
-                                                                                           'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
+                        sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
+                                                                                               'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
+                                                                                                                   '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
+                                                                                                                   '--mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);']));
+            
+                        sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
+                                                                                               'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
+                    end
 
                     ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')                    
                     ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
@@ -368,11 +297,11 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                             
                             case 2 % FILTRO
                                 filterTreeUUID = struct(app.filter_Tree).Controller.ViewModel.Id;
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'app.filter_Tree', 'componentDataTag', filterTreeUUID, 'keyEvents', "Delete"))
+                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'auxApp.winDriveTest.filter_Tree', 'componentDataTag', filterTreeUUID, 'keyEvents', "Delete"))
                             
                             case 3 % PONTOS DE INTERESSE
                                 pointsTreeUUID = struct(app.points_Tree).Controller.ViewModel.Id;
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'app.points_Tree', 'componentDataTag', pointsTreeUUID, 'keyEvents', "Delete"))
+                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'auxApp.winDriveTest.points_Tree', 'componentDataTag', pointsTreeUUID, 'keyEvents', "Delete"))
                             
                             case 4 % LAYOUT
                                 % ...
@@ -418,7 +347,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             jsBackDoor_Customizations(app, 0)
 
             % Define tamanho mínimo do app (não aplicável à versão webapp).
-            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
+            if ~strcmp(app.mainApp.executionMode, 'webApp') && ~app.isDocked
                 appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
             end
 
@@ -1054,7 +983,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
                 % O pause a seguir assegura que exista responsividade no
                 % app...
-                pause(max(app.CallingApp.play_MinPlotTime.Value/1000-toc(sweepTic), .001))
+                pause(max(app.mainApp.play_MinPlotTime.Value/1000-toc(sweepTic), .001))
 
                 if app.idxTime == nSweeps
                     if strcmp(app.tool_LoopControl.Tag, 'direct')
@@ -1435,6 +1364,90 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             end
         end
     end
+
+
+    methods
+        %-----------------------------------------------------------------%
+        % ÍNDICES DO FLUXO ESPECTRAL E DA EMISSÃO
+        %-----------------------------------------------------------------%
+        function [idxThread, idxEmission] = specDataIndex(app, operationType)
+            arguments
+                app 
+                operationType char {mustBeMember(operationType, {'EmissionShowed',              ...
+                                                                 'RefreshPlotParameters',       ...
+                                                                 'ChannelParameterChanged',     ...
+                                                                 'ChannelDefault',              ...
+                                                                 'PlotDataSourceChanged',       ...
+                                                                 'DataBinningParameterChanged', ...
+                                                                 'EmissionSelectionChanged'})} = 'EmissionShowed'
+            end
+
+            % É salva na propriedade "UserData" de app.general_emissionInfo a
+            % informação relacionada ao fluxo espectral e a emissão sob análise.
+
+            % emissionID = struct('Thread',   struct('Index',     idx,                                                     ...
+            %                                        'UUID',      {specData(idx).RelatedFiles.uuid}),                      ...
+            %                     'Emission', struct('Index',     idxEmission,                                             ...
+            %                                        'Frequency', specData(idx).UserData.Emissions.Frequency(idxEmission), ...
+            %                                        'BW',        specData(idx).UserData.Emissions.BW(idxEmission),        ...
+            %                                        'Tag',       emissionTag));
+
+            emissionID  = app.general_emissionInfo.UserData;
+
+            % Inicialmente, busca-se o fluxo espectral (referenciado 
+            % unicamente pela lista UUID dos arquivos brutos).
+            threadUUID  = emissionID.Thread.UUID;
+            listOfAllThreadsUUID = arrayfun(@(x) x.RelatedFiles.uuid, app.specData, 'UniformOutput', false);
+            
+            idxThread   = find(cellfun(@(x) isequal(x, threadUUID), listOfAllThreadsUUID), 1);
+            idxEmission = [];
+
+            % Caso seja identificado o fluxo espectral, busca a emissão 
+            % sob análise na lista de emissões.
+            if ~isempty(idxThread)
+                switch operationType
+                    case 'EmissionSelectionChanged'
+                        newEmissionTag = app.general_emissionList.Value;
+                        emissionTable  = app.specData(idxThread).UserData.Emissions;
+
+                        for ii = 1:height(emissionTable)
+                            if strcmp(newEmissionTag, sprintf('%.3f MHz ⌂ %.1f kHz', emissionTable.Frequency(ii), emissionTable.BW(ii)))
+                                idxEmission = ii;
+                                break
+                            end
+                        end
+
+                    otherwise
+                        emissionFrequency = emissionID.Emission.Frequency;
+                        emissionBW        = emissionID.Emission.BW;
+        
+                        idxEmission = find(abs(app.specData(idxThread).UserData.Emissions.Frequency - emissionFrequency) <= class.Constants.floatDiffTolerance & ...
+                                           abs(app.specData(idxThread).UserData.Emissions.BW        - emissionBW)        <= class.Constants.floatDiffTolerance, 1);
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        % ATUALIZAÇÃO DE LISTA DE EMISSÕES NO APPANALISE
+        %-----------------------------------------------------------------%
+        function EmissionListUpdated(app)
+            [idxThread, idxEmission] = specDataIndex(app, 'EmissionShowed');
+
+            if isempty(idxThread) || isempty(app.specData(idxThread).UserData.Emissions)
+                closeFcn(app)
+                return
+            end
+
+            preSelection = app.general_emissionList.Value;
+            updateListOfEmissions(app, idxThread, idxEmission)
+
+            if ismember(preSelection, app.general_emissionList.Items)
+                app.general_emissionList.Value = preSelection;
+            else                
+                general_EmissionSelectionChanged(app, struct('Source', app.general_emissionList))
+            end
+        end
+    end
     
 
     % Callbacks that handle component events
@@ -1445,7 +1458,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             
             global RFDataHub
 
-            app.CallingApp  = mainapp;
+            app.mainApp     = mainapp;
             app.General     = mainapp.General;
             app.General_I   = mainapp.General_I;
             app.rootFolder  = mainapp.rootFolder;
@@ -1474,7 +1487,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
             
-            appBackDoor(app.CallingApp, app, 'closeFcn')
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn')
             delete(app)
             
         end
@@ -1651,9 +1664,9 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                   % idxEmission = app.general_emissionInfo.UserData.Emission.Index;
         
                     if idxThread && ~app.plotFlag
-                        if app.CallingApp.plotFlag
-                            app.CallingApp.plotFlag = 0;
-                            app.CallingApp.tool_Play.ImageSource = 'play_32.png';
+                        if app.mainApp.plotFlag
+                            app.mainApp.plotFlag = 0;
+                            app.mainApp.tool_Play.ImageSource = 'play_32.png';
                             drawnow
                         end
 
@@ -1704,7 +1717,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         function tool_ExportFileButtonPushed(app, event)
             
             nameFormatMap = {'*.zip', 'appAnalise (*.zip)'};
-            Basename      = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'DriveTest', app.CallingApp.report_Issue.Value);
+            Basename      = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'DriveTest', app.mainApp.report_Issue.Value);
             fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, Basename);
             if isempty(fileFullPath)
                 return
@@ -2011,7 +2024,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             
             % Trava função do Waterfall em "image" para que seja possível
             % sincronizar os eixos app.UIAxes3.YAxes e app.UIAxes4.XAxis.
-            app.General = app.CallingApp.General;
+            app.General = app.mainApp.General;
             app.General.Plot.Waterfall.Fcn           = 'image';
 
             % % Eixo geográfico - app.UIAxes1
@@ -2129,7 +2142,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             if ~isequal(fileName, 0)
                 app.progressDialog.Visible = 'visible';
 
-                misc_updateLastVisitedFolder(app.CallingApp, filePath)
+                misc_updateLastVisitedFolder(app.mainApp, filePath)
                 app.General.fileFolder.lastVisited = filePath;
 
                 try
@@ -2493,6 +2506,10 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 

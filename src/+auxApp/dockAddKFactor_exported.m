@@ -29,10 +29,27 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
         Container
         isDocked = true
 
-        CallingApp
+        mainApp
         rootFolder
         specData
         referenceData
+    end
+
+
+    methods
+        function ipcSecundaryJSEventsHandler(app, event)
+            try
+                switch event.HTMLEventName
+                    case 'auxApp.dockAddKFactor.kFactorTree'
+                        FieldValueChanged(app, struct('Source', app.ContextMenu_del))
+                    otherwise
+                        error('UnexpectedEvent')
+                end
+
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+            end
+        end
     end
 
 
@@ -41,25 +58,19 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
         % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource           = ccTools.fcn.jsBackDoorHTMLSource();
-            app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)jsBackDoor_Listener(app, evt);
-        end
-
-        %-----------------------------------------------------------------%
-        function jsBackDoor_Listener(app, event)
-            switch event.HTMLEventName
-                case 'app.kFactorTree'
-                    FieldValueChanged(app, struct('Source', app.ContextMenu_del))
-                otherwise
-                    error('UnexpectedCall')
-            end
-            drawnow
+            if app.isDocked
+                delete(app.jsBackDoor)
+                app.jsBackDoor = app.mainApp.jsBackDoor;
+            else
+                app.jsBackDoor.HTMLSource = appUtil.jsBackDoorHTMLSource();
+                app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcSecundaryJSEventsHandler(app, evt);
+            end            
         end
 
         %-----------------------------------------------------------------%
         function jsBackDoor_Customizations(app)
             app.kFactorTree.UserData = struct(app.kFactorTree).Controller.ViewModel.Id;
-            sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'app.kFactorTree', 'componentDataTag', app.kFactorTree.UserData, 'keyEvents', "Delete"))
+            sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'auxApp.dockAddKFactor.kFactorTree', 'componentDataTag', app.kFactorTree.UserData, 'keyEvents', "Delete"))
         end
     end
 
@@ -71,9 +82,17 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
             % efeito.
             drawnow
 
+            [projectFolder, ...
+             programDataFolder] = appUtil.Path(class.Constants.appName, app.rootFolder);
+            try
+                kFactorTable = jsondecode(fileread(fullfile(programDataFolder, 'Calibration.json')));
+            catch
+                kFactorTable = jsondecode(fileread(fullfile(projectFolder,     'Calibration.json')));
+            end
+
             app.referenceData = struct('idxThread',    idxThread,                                        ...
                                        'Calibration',  app.specData(idxThread).UserData.measCalibration, ...
-                                       'kFactorTable', jsondecode(fileread(fullfile(app.rootFolder, 'Settings', 'measCalibration.json'))));
+                                       'kFactorTable', kFactorTable);
             app.kFactor.Items = [{''}; {app.referenceData.kFactorTable.Name}'];
 
             Layout(app)
@@ -139,8 +158,8 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function CallingMainApp(app, updateFlag, returnFlag)
-            appBackDoor(app.CallingApp, app, 'MISCELLANEOUS', updateFlag, returnFlag)
+        function callingMainApp(app, updateFlag, returnFlag)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'MISCELLANEOUS', updateFlag, returnFlag)
         end
     end
     
@@ -151,7 +170,7 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp, idxThreads)
             
-            app.CallingApp = mainapp;
+            app.mainApp    = mainapp;
             app.rootFolder = mainapp.rootFolder;
             app.specData   = mainapp.specData;
 
@@ -196,7 +215,7 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
             msgError = Correction(app, operationType, idxThread, idxCalibration, kFactorName);
             if isempty(msgError)
                 Layout(app)
-                CallingMainApp(app, true, true)
+                callingMainApp(app, true, true)
             end
 
             if checkEdition(app)
@@ -210,7 +229,7 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
         % Callback function: btnClose, btnOK
         function ButtonPushed(app, event)
             
-            CallingMainApp(app, false, false)
+            callingMainApp(app, false, false)
             closeFcn(app)
 
         end
@@ -257,6 +276,10 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 

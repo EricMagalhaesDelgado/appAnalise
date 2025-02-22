@@ -153,7 +153,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         Container
         isDocked = false
 
-        CallingApp
+        mainApp
         General
         rootFolder
 
@@ -205,25 +205,36 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                                'VariableNames', {'Order', 'ID', 'RelatedID', 'Type', 'Operation', 'Column', 'Value', 'Enable', 'uuid'})
     end
 
+
+    methods
+        function ipcSecundaryJSEventsHandler(app, event)
+            try
+                switch event.HTMLEventName
+                    case 'auxApp.winRFDataHub.filter_Tree'
+                        filter_delFilter(app, struct('Source', app.filter_delButton))
+                    otherwise
+                        error('UnexpectedEvent')
+                end
+
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+            end
+        end
+    end
+
     
     methods (Access = private)
         %-----------------------------------------------------------------%
         % INICIALIZAÇÃO
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource           = ccTools.fcn.jsBackDoorHTMLSource();
-            app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)jsBackDoor_Listener(app, evt);
-        end
-
-        %-----------------------------------------------------------------%
-        function jsBackDoor_Listener(app, event)
-            switch event.HTMLEventName
-                case 'app.filter_Tree'
-                    filter_delFilter(app, struct('Source', app.filter_delButton))
-                otherwise
-                    % ...
-            end
-            drawnow
+            if app.isDocked
+                delete(app.jsBackDoor)
+                app.jsBackDoor = app.mainApp.jsBackDoor;
+            else
+                app.jsBackDoor.HTMLSource = appUtil.jsBackDoorHTMLSource();
+                app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcSecundaryJSEventsHandler(app, evt);
+            end            
         end
 
         %-------------------------------------------------------------------------%
@@ -237,29 +248,19 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             switch tabIndex
                 case 0 % STARTUP
-                    if app.isDocked && ~isempty(app.CallingApp) && isprop(app.CallingApp, 'progressDialog')
-                        app.progressDialog = app.CallingApp.progressDialog;
+                    if app.isDocked
+                        app.progressDialog = app.mainApp.progressDialog;
                     else
                         app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
+
+                        sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
+                                                                                               'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
+                                                                                                                   '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
+                                                                                                                   '--mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);']));
+            
+                        sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
+                                                                                               'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
                     end
-
-                    sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
-                                                                                           'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
-                                                                                                               '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
-                                                                                                               '--mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);']));
-        
-                    sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
-                                                                                           'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
-
-                    % uialert, uiprogressdialog, uiconfirm
-                    % sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mwDialog', ...
-                    %                                                                        'classAttributes',  'background-color: white;'));
-                    % 
-                    % sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mwDialog .mwDialogTitleBar', ...
-                    %                                                                        'classAttributes',  'background-color: #f0f0f0;'));
-                    % 
-                    % sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mwDialog .mwDialogTitleBar .mwCloseNode', ...
-                    %                                                                        'classAttributes',  'background-color: #f0f0f0;'));
 
                 otherwise
                     if any(app.jsBackDoorFlag{tabIndex})
@@ -273,7 +274,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                             case 2 % FILTRAGEM
                                 ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
                                 app.filter_Tree.UserData = struct(app.filter_Tree).Controller.ViewModel.Id;
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'app.filter_Tree', 'componentDataTag', app.filter_Tree.UserData, 'keyEvents', "Delete"))
+                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'auxApp.winRFDataHub.filter_Tree', 'componentDataTag', app.filter_Tree.UserData, 'keyEvents', "Delete"))
                                 
                             case 3 % CONFIGURAÇÕES GERAIS
                                 % ...
@@ -1347,33 +1348,28 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp, filterTable)
             
-            try    
-                app.CallingApp    = mainapp;
-                app.General       = mainapp.General;
-                app.rootFolder    = mainapp.rootFolder;
-                app.executionMode = mainapp.executionMode;
-                app.specData      = mainapp.specData;
+            app.mainApp       = mainapp;
+            app.General       = mainapp.General;
+            app.rootFolder    = mainapp.rootFolder;
+            app.executionMode = mainapp.executionMode;
+            app.specData      = mainapp.specData;
     
-                if nargin == 3
-                    app.filterTable = filterTable;
-                end
+            if nargin == 3
+                app.filterTable = filterTable;
+            end
     
-                app.GridLayout.ColumnWidth(7:10) = {0,0,0,0};
-                jsBackDoor_Initialization(app)
+            app.GridLayout.ColumnWidth(7:10) = {0,0,0,0};
+            jsBackDoor_Initialization(app)
     
-                % Em sendo executado como módulo do appAnalise, o app pode
-                % estar em modo DOCK ou UNDOCK, o que é definido em configuração
-                % no próprio appAnalise.
-                if app.isDocked
-                    app.GridLayout.Padding(4) = 19;
-                    startup_Controller(app)
-                else
-                    appUtil.winPosition(app.UIFigure)
-                    startup_timerCreation(app)
-                end
-
-            catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
+            % Em sendo executado como módulo do appAnalise, o app pode
+            % estar em modo DOCK ou UNDOCK, o que é definido em configuração
+            % no próprio appAnalise.
+            if app.isDocked
+                app.GridLayout.Padding(4) = 19;
+                startup_Controller(app)
+            else
+                appUtil.winPosition(app.UIFigure)
+                startup_timerCreation(app)
             end
 
         end
@@ -1381,9 +1377,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            if ~isempty(app.CallingApp) && ismethod(app.CallingApp, 'appBackDoor')
-                appBackDoor(app.CallingApp, app, 'closeFcn')
-            end
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn')
             delete(app)
             
         end
@@ -2011,7 +2005,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % os callbacks de cada parâmetro. O botão ficará invisível até 
             % ajuste desses pontos.
 
-            app.General = app.CallingApp.General;
+            app.General = app.mainApp.General;
 
             app.misc_ElevationAPISource.Value = app.General.Elevation.Server;
             app.misc_ElevationNPoints.Value      = num2str(app.General.Elevation.Points);
@@ -2062,6 +2056,10 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 

@@ -20,7 +20,8 @@ classdef dockWelcomePage_exported < matlab.apps.AppBase
     properties (Access = private)
         Container
         isDocked = true
-        CallingApp
+
+        mainApp
     end
 
 
@@ -30,10 +31,10 @@ classdef dockWelcomePage_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp)
             
-            app.CallingApp = mainapp;
+            app.mainApp = mainapp;
             app.appTitle.Text = sprintf(['<p style="margin-right: 10px;"><font style="font-size: 18px; ' ...
                                          'color: #262626;"><b>appAnalise</b></font><br>%s (v. %s)</p>'], class.Constants.appRelease, class.Constants.appVersion);
-            app.releaseNotes.HTMLSource = auxApp.welcomepage.htmlCode_ReleaseNotes(app.CallingApp.rootFolder);
+            app.releaseNotes.HTMLSource = auxApp.welcomepage.htmlCode_ReleaseNotes(app.mainApp.rootFolder);
 
         end
 
@@ -48,8 +49,9 @@ classdef dockWelcomePage_exported < matlab.apps.AppBase
         function ButtonPushed(app, event)
             
             pushedButtonTag = event.Source.Tag;
-            simulationFlag  = app.SimulationMode.Value;
-            appBackDoor(app.CallingApp, app, 'ButtonPushed', pushedButtonTag, simulationFlag)
+            simulationFlag  = app.SimulationMode.Value;            
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'ButtonPushed', pushedButtonTag, simulationFlag)
+            
             closeFcn(app)
 
         end
@@ -82,6 +84,10 @@ classdef dockWelcomePage_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 

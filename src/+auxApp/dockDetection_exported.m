@@ -45,7 +45,7 @@ classdef dockDetection_exported < matlab.apps.AppBase
         Container
         isDocked = true
 
-        CallingApp
+        mainApp
         specData
         channelObj
     end
@@ -54,7 +54,7 @@ classdef dockDetection_exported < matlab.apps.AppBase
     methods (Access = private)
         %-----------------------------------------------------------------%
         function initivalValues(app)
-            idxThread = app.CallingApp.play_PlotPanel.UserData.NodeData;
+            idxThread = app.mainApp.play_PlotPanel.UserData.NodeData;
             
             app.Algorithm.Value  = app.specData(idxThread).UserData.reportDetection.Algorithm;
             Layout(app)
@@ -104,7 +104,7 @@ classdef dockDetection_exported < matlab.apps.AppBase
         function editionFlag = checkEdition(app)
             editionFlag = false;
 
-            idxThread = app.CallingApp.play_PlotPanel.UserData.NodeData;
+            idxThread = app.mainApp.play_PlotPanel.UserData.NodeData;
             if ~isequal(app.Algorithm.Value, app.specData(idxThread).UserData.reportDetection.Algorithm)
                 editionFlag = true;
 
@@ -136,8 +136,8 @@ classdef dockDetection_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function CallingMainApp(app, updateFlag, returnFlag, idxThread)
-            appBackDoor(app.CallingApp, app, 'REPORT:DETECTION', updateFlag, returnFlag, idxThread)
+        function callingMainApp(app, updateFlag, returnFlag, idxThread)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'REPORT:DETECTION', updateFlag, returnFlag, idxThread)
         end
     end
     
@@ -148,7 +148,7 @@ classdef dockDetection_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp)
             
-            app.CallingApp = mainapp;
+            app.mainApp    = mainapp;
             app.specData   = mainapp.specData;
             app.channelObj = mainapp.channelObj;
 
@@ -223,7 +223,7 @@ classdef dockDetection_exported < matlab.apps.AppBase
         % Callback function: btnClose, btnOK
         function ButtonPushed(app, event)
             
-            idxThread = app.CallingApp.play_PlotPanel.UserData.NodeData;
+            idxThread = app.mainApp.play_PlotPanel.UserData.NodeData;
             
             pushedButtonTag = event.Source.Tag;
             switch pushedButtonTag
@@ -252,7 +252,7 @@ classdef dockDetection_exported < matlab.apps.AppBase
                     updateFlag = false;
             end
 
-            CallingMainApp(app, updateFlag, false, idxThread)
+            callingMainApp(app, updateFlag, false, idxThread)
             closeFcn(app)
 
         end
@@ -285,6 +285,10 @@ classdef dockDetection_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 

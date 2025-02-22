@@ -63,7 +63,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         Container
         isDocked = false
 
-        CallingApp
+        mainApp
         General
         General_I
         rootFolder
@@ -99,24 +99,29 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource = ccTools.fcn.jsBackDoorHTMLSource();
+            if app.isDocked
+                delete(app.jsBackDoor)
+                app.jsBackDoor = app.mainApp.jsBackDoor;
+            else
+                app.jsBackDoor.HTMLSource = appUtil.jsBackDoorHTMLSource();
+            end            
         end
 
         %-----------------------------------------------------------------%
         function jsBackDoor_Customizations(app)
             if app.isDocked
-                app.progressDialog = app.CallingApp.progressDialog;
+                app.progressDialog = app.mainApp.progressDialog;
             else
                 app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
+
+                sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
+                                                                                       'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
+                                                                                                           '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
+                                                                                                           '--mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);']));
+    
+                sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
+                                                                                       'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
             end
-
-            sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
-                                                                                   'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
-                                                                                                       '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
-                                                                                                       '--mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);']));
-
-            sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
-                                                                                   'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
 
             ccTools.compCustomizationV2(app.jsBackDoor, app.AdditionalDescription, 'textAlign', 'justify')
             ccTools.compCustomizationV2(app.jsBackDoor, app.TXGrid,    'backgroundColor', 'transparent')
@@ -159,7 +164,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             jsBackDoor_Customizations(app)
 
             % Define tamanho mínimo do app (não aplicável à versão webapp).
-            if ~strcmp(app.CallingApp.executionMode, 'webApp') && ~app.isDocked
+            if ~strcmp(app.mainApp.executionMode, 'webApp') && ~app.isDocked
                 appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
             end
 
@@ -511,7 +516,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                         if ~isempty(idxThread) && ~isempty(idxEmission)
                             if ~strcmp(userDescription, app.AdditionalDescription.UserData)                                
                                 app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description = userDescription;
-                                appBackDoor(app.CallingApp, app, 'PeakDescriptionChanged')
+                                ipcMainMatlabCallsHandler(app.mainApp, app, 'PeakDescriptionChanged')
                             end
                         end
 
@@ -641,7 +646,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             
             global RFDataHub
 
-            app.CallingApp  = mainapp;
+            app.mainApp     = mainapp;
             app.General     = mainapp.General;
             app.General_I   = mainapp.General_I;
             app.rootFolder  = mainapp.rootFolder;
@@ -664,7 +669,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
             
-            appBackDoor(app.CallingApp, app, 'closeFcn')
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn')
             delete(app)
             
         end
@@ -678,7 +683,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             switch event.Source
                 %---------------------------------------------------------%
                 case app.tool_ShowGlobalExceptionList
-                    exceptionGlobalList = app.CallingApp.channelObj.Exception;        
+                    exceptionGlobalList = app.mainApp.channelObj.Exception;        
                     if isempty(exceptionGlobalList)
                         msgWarning = 'Não identificada emissão na lista global de exceções contida no arquivo "ChannelLib.json".';        
                     else
@@ -784,7 +789,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                         app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission) = 0;
                 end
                 
-                appBackDoor(app.CallingApp, app, operationType, idxThread, idxEmission)
+                ipcMainMatlabCallsHandler(app.mainApp, app, operationType, idxThread, idxEmission)
 
                 % Ao excluir emissões diretamente deste módulo, chegando ao
                 % limite de não ter emissões, o módulo será fechado. A validação 
@@ -957,6 +962,10 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 

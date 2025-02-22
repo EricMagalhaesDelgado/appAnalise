@@ -29,7 +29,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
         Container
         isDocked = true
 
-        CallingApp
+        mainApp
         General
         specData
         projectData
@@ -148,7 +148,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp, treeSortedType, TAGs)
 
-            app.CallingApp  = mainapp;
+            app.mainApp     = mainapp;
             app.General     = mainapp.General;
             app.specData    = mainapp.specData;
             app.projectData = mainapp.projectData;
@@ -224,7 +224,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             updateFlag = app.editionFlag;
             returnFlag = false;
 
-            appBackDoor(app.CallingApp, app, 'REPORT:EXTERNALFILES', updateFlag, returnFlag)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'REPORT:EXTERNALFILES', updateFlag, returnFlag)
             closeFcn(app)
 
         end
@@ -320,6 +320,10 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 

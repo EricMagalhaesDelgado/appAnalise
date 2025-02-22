@@ -126,7 +126,7 @@ classdef SpecData < model.SpecDataBase
                         case 'Edit'
                             customPlayback = varargin{1};
 
-                            obj.UserData.customPlayback.Parameters.Type          = 'manual';
+                            obj.UserData.customPlayback.Type                     = 'manual';
                             obj.UserData.customPlayback.Parameters.Controls      = customPlayback.Controls;
                             obj.UserData.customPlayback.Parameters.Persistance   = customPlayback.Persistance;
                             obj.UserData.customPlayback.Parameters.Waterfall     = customPlayback.Waterfall;

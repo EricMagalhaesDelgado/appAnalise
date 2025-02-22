@@ -71,7 +71,14 @@ end
 
 %-------------------------------------------------------------------------%
 function kFactorTable = FactorTable(RootFolder, Name)
-    kFactorTable = jsondecode(fileread(fullfile(RootFolder, 'Settings', 'measCalibration.json')));
+    [projectFolder, ...
+     programDataFolder] = appUtil.Path(class.Constants.appName, RootFolder);
+    try
+        kFactorTable = jsondecode(fileread(fullfile(programDataFolder, 'Calibration.json')));
+    catch
+        kFactorTable = jsondecode(fileread(fullfile(projectFolder,     'Calibration.json')));
+    end
+    
     kFactorTable(~strcmp({kFactorTable.Name}, Name)) = [];
 end
 

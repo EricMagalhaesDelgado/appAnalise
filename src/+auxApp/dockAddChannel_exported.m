@@ -24,7 +24,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
         Container
         isDocked = false
 
-        CallingApp
+        mainApp
         specData
         idxThread
 
@@ -46,8 +46,8 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function CallingMainApp(app, updateFlag, returnFlag, varargin)
-            appBackDoor(app.CallingApp, app, 'PLAYBACK:CHANNEL', updateFlag, returnFlag, varargin{:})
+        function callingMainApp(app, updateFlag, returnFlag, varargin)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'PLAYBACK:CHANNEL', updateFlag, returnFlag, varargin{:})
         end
     end
     
@@ -58,7 +58,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp, idxThread, channelTable)
             
-            app.CallingApp   = mainapp;
+            app.mainApp      = mainapp;
             app.specData     = mainapp.specData;
 
             app.idxThread    = idxThread;
@@ -108,7 +108,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
                     updateFlag = false;
             end
 
-            CallingMainApp(app, updateFlag, false, inputArguments{:})
+            callingMainApp(app, updateFlag, false, inputArguments{:})
             closeFcn(app)
 
         end
@@ -122,7 +122,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
                 app.PolarizationList.Value = app.PolarizationList.Items(1);
                 
             else
-                app.FeixeDownList.Items        = {};
+                app.FeixeDownList.Items    = {};
                 app.PolarizationList.Items = {};
             end
 
@@ -187,6 +187,10 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
 
                 app.UIFigure  = ancestor(Container, 'figure');
                 app.Container = Container;
+                if ~isprop(Container, 'RunningAppInstance')
+                    addprop(app.Container, 'RunningAppInstance');
+                end
+                app.Container.RunningAppInstance = app;
                 app.isDocked  = true;
             end
 
