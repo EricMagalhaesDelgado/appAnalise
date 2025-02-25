@@ -341,7 +341,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         play_Metadata                   matlab.ui.control.HTML
         play_MetadataLabel              matlab.ui.control.Label
         play_Tree                       matlab.ui.container.Tree
-        play_TreeSort                   matlab.ui.control.Image
         play_TreePanelVisibility        matlab.ui.control.Image
         play_TreeLabel                  matlab.ui.control.Label
         play_TreeTitleGrid              matlab.ui.container.GridLayout
@@ -914,8 +913,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             addComponent(app.tabGroupController, "External", "auxApp.winConfig",         app.menu_Button8, "AlwaysOn", struct('On', 'Settings_36Yellow.png',         'Off', 'Settings_36White.png'),         app.menu_Button1,                    6)
 
             % Salva na propriedade "UserData" as opções de ícone e o índice 
-            % da aba, simplificando os ajustes decorrentes de uma alteração...                        
-            app.play_TreeSort.UserData                = 'Receiver+Frequency';
+            % da aba, simplificando os ajustes decorrentes de uma alteração...
             app.file_Tree.UserData                    = struct('previousSelectedFileIndex', []);
             app.play_TreePanelVisibility.UserData     = struct('Mode', 'PLAYBACK', 'Visible', true);
             app.play_Channel_ShowPlot.UserData        = false;
@@ -1068,23 +1066,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             switch auxAppName
                 case 'DRIVETEST'
                     if auxAppIsOpen
-                        compatibilityMode = auxAppHandle.compatibilityMode;
                         [idxThread, idxEmission] = specDataIndex(auxAppHandle, 'EmissionShowed');
-
                     else
                         idxThread   = app.play_PlotPanel.UserData.NodeData;
-                        idxEmission = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
-    
-                        compatibilityMode = false;
-                        if ~ismember(app.specData(idxThread).MetaData.DataType, [1, 2])                || ...
-                           app.specData(idxThread).GPS.Count ~= numel(app.specData(idxThread).Data{1}) || ...
-                           ~ismember(app.specData(idxThread).MetaData.LevelUnit, {'dBm', 'dBµV'})
-    
-                            compatibilityMode = true;
+                        idxEmission = [];
+                        if ~isempty(app.play_FindPeaks_Tree.SelectedNodes)
+                            idxEmission = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
                         end
                     end
 
-                    inputArguments = {app, compatibilityMode, idxThread, idxEmission};
+                    inputArguments = {app, idxThread, idxEmission};
 
                 case 'SIGNALANALYSIS'                    
                     if auxAppIsOpen
@@ -2232,7 +2223,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             hDriveTest = auxAppHandle(app, 'DRIVETEST');
             if ~isempty(hDriveTest) && isvalid(hDriveTest)
-                EmissionListUpdated(hDriveTest)
+                ipcSecundaryMatlabCallsHandler(hDriveTest, app)
             end
         end
 
@@ -2894,16 +2885,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % MISCELÂNEAS
         %-----------------------------------------------------------------%
         function nodeText = misc_nodeTreeText(app, idx)
-            ThreadID  = app.specData(idx).RelatedFiles.ID(1);
             FreqStart = app.specData(idx).MetaData.FreqStart / 1e+6;
             FreqStop  = app.specData(idx).MetaData.FreqStop  / 1e+6;
 
-            switch app.play_TreeSort.UserData
-                case 'Receiver+ID'
-                    nodeText = sprintf('ID %d: %.3f - %.3f MHz', ThreadID, FreqStart, FreqStop);
-                case 'Receiver+Frequency'
-                    nodeText = sprintf('%.3f - %.3f MHz (ID %d)', FreqStart, FreqStop, ThreadID);
-            end
+            nodeText = sprintf('%.3f - %.3f MHz', FreqStart, FreqStop);
         end
 
         %-----------------------------------------------------------------%
@@ -3114,47 +3099,47 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             
             switch auxAppName
                 case 'DRIVETEST'
-                    hAuxiliarApp = auxAppHandle(app, auxAppName);
-
-                    if isempty(hAuxiliarApp) || ~isvalid(hAuxiliarApp)
-                        idx = app.play_PlotPanel.UserData.NodeData;
-        
-                        if ~app.specData(idx).GPS.Status
-                            msgError = ['Monitoração não registrou coordenadas geográficas válidas. Neste caso, para abrir o módulo ' ...
-                                        '"DRIVE-TEST" em modo de compatibilidade, deve-se editar manualmente as coordenadas '         ...
-                                        'geográficas do local da monitoração.'];
-                            appUtil.modalWindow(app.UIFigure, 'error', msgError);
-                            
-                            clickedButton.Value = 0;
-                            return
-                        end
-
-                        msgWarning = {};
-                        if ~ismember(app.specData(idxThread).MetaData.DataType, [1, 2])
-                            msgWarning{end+1} = 'Monitoração não conduzida pelo appColeta.';
-                        end
-        
-                        if app.specData(idxThread).GPS.Count ~= numel(app.specData(idxThread).Data{1})
-                            msgWarning{end+1} = 'Número de coordenadas geográficas registradas diferente do número de varreduras.';
-                        end
-        
-                        if ~ismember(app.specData(idxThread).MetaData.LevelUnit, {'dBm', 'dBµV'})
-                            msgWarning{end+1} = 'Monitoração não apresenta uma das unidades esperadas ("dBm" ou "dBµV") para que a potência do canal seja expressa em "dBm".';
-                        end
-        
-                        if ~isempty(msgWarning)
-                            msgQuestion   = sprintf(['O módulo "DRIVE-TEST" foi construído para possibilitar a visualização em '      ...
-                                                     'mapa de dados obtidos em monitorações móveis conduzidas pelo appColeta.\n\nA '  ...
-                                                     'emissão selecionada, contudo, está relacionada ao(s) seguinte(s) aspecto(s):\n' ...
-                                                     '%s\n\nDeseja continuar, abrindo o módulo em modo de compatibilidade?'], textFormatGUI.cellstr2Bullets(msgWarning));
-                            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-
-                            if strcmp(userSelection, 'Não')
-                                clickedButton.Value = 0;
-                                return
-                            end
-                        end
-                    end
+                    % hAuxiliarApp = auxAppHandle(app, auxAppName);
+                    % 
+                    % if isempty(hAuxiliarApp) || ~isvalid(hAuxiliarApp)
+                    %     idx = app.play_PlotPanel.UserData.NodeData;
+                    % 
+                    %     if ~app.specData(idx).GPS.Status
+                    %         msgError = ['Monitoração não registrou coordenadas geográficas válidas. Neste caso, para abrir o módulo ' ...
+                    %                     '"DRIVE-TEST" em modo de compatibilidade, deve-se editar manualmente as coordenadas '         ...
+                    %                     'geográficas do local da monitoração.'];
+                    %         appUtil.modalWindow(app.UIFigure, 'error', msgError);
+                    % 
+                    %         clickedButton.Value = 0;
+                    %         return
+                    %     end
+                    % 
+                    %     msgWarning = {};
+                    %     if ~ismember(app.specData(idx).MetaData.DataType, [1, 2])
+                    %         msgWarning{end+1} = 'Monitoração não conduzida pelo appColeta.';
+                    %     end
+                    % 
+                    %     if app.specData(idx).GPS.Count ~= numel(app.specData(idx).Data{1})
+                    %         msgWarning{end+1} = 'Número de coordenadas geográficas registradas diferente do número de varreduras.';
+                    %     end
+                    % 
+                    %     if ~ismember(app.specData(idx).MetaData.LevelUnit, {'dBm', 'dBµV'})
+                    %         msgWarning{end+1} = 'Monitoração não apresenta uma das unidades esperadas ("dBm" ou "dBµV") para que a potência do canal seja expressa em "dBm".';
+                    %     end
+                    % 
+                    %     if ~isempty(msgWarning)
+                    %         msgQuestion   = sprintf(['O módulo "DRIVE-TEST" foi construído para possibilitar a visualização em '      ...
+                    %                                  'mapa de dados obtidos em monitorações móveis conduzidas pelo appColeta.\n\nA '  ...
+                    %                                  'emissão selecionada, contudo, está relacionada ao(s) seguinte(s) aspecto(s):\n' ...
+                    %                                  '%s\n\nDeseja continuar, abrindo o módulo em modo de compatibilidade?'], textFormatGUI.cellstr2Bullets(msgWarning));
+                    %         userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+                    % 
+                    %         if strcmp(userSelection, 'Não')
+                    %             clickedButton.Value = 0;
+                    %             return
+                    %         end
+                    %     end
+                    % end
 
                 case 'RFDATAHUB'
                     hAuxiliarApp = auxAppHandle(app, auxAppName);
@@ -3540,7 +3525,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: play_TreePanelVisibility, play_TreeSort, 
+        % Image clicked function: play_TreePanelVisibility, 
         % ...and 2 other components
         function play_PanelsVisibility(app, event)
             
@@ -3549,33 +3534,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case app.play_TreePanelVisibility
                     app.play_TreePanelVisibility.UserData.Visible = ~app.play_TreePanelVisibility.UserData.Visible;
                     play_TreeSecundaryPanelVisibility(app)
-
-                %---------------------------------------------------------%
-                case app.play_TreeSort
-                    if app.plotFlag
-                        msgWarning = 'Necessário interromper o playback antes de reordernar os fluxos espectrais...';
-                        appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-                        return
-                    end
-
-                    presentValue   = strcmp({'Receiver+ID', 'Receiver+Frequency'}, app.play_TreeSort.UserData);
-                    possibleValue  = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.play_TreeSort.UserData));
-                    tempDictionary = dictionary([true false], ["(ATUAL)", ""]);
-
-                    msgQuestion    = sprintf(['Os fluxos espectrais podem ser ordenadas das formas:\n' ...
-                                              '&thinsp;&thinsp;(a) Receiver+ID %s\n'                   ...
-                                              '&thinsp;&thinsp;(b) Receiver+Frequency %s\n\n'          ...
-                                              'Confirma a troca, ordenando os fluxos por "<b>%s</b>"?!?'], tempDictionary(presentValue(1)), tempDictionary(presentValue(2)), possibleValue);
-                    userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                    if userSelection == "Não"
-                        return
-                    end
-                    app.play_TreeSort.UserData = possibleValue;
-                    app.specData = sort(app.specData, possibleValue);
-
-                    play_TreeBuilding(app)
-                    app.play_Tree.SelectedNodes = app.play_Tree.Children(1).Children(1);
-                    report_TreeBuilding(app)
 
                 %---------------------------------------------------------%
                 case app.tool_LayoutLeft
@@ -5353,7 +5311,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         TAGs = jsonencode(app.General.Models.ExternalFilesTags{idxTemplate});
                     end
 
-                    menu_LayoutPopupApp(app, 'AddFiles', app.play_TreeSort.UserData, TAGs)
+                    menu_LayoutPopupApp(app, 'AddFiles', TAGs)
             end
 
         end
@@ -5423,9 +5381,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         for ii = 1:numel(idxThreads)
                             app.specData(end+1) = copy(app.specData(idxThreads(ii)), {});
                         end
-                        
-                        sortType     = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.play_TreeSort.UserData));
-                        app.specData = sort(app.specData, sortType);
+
+                        app.specData = sort(app.specData);
                     
                     %-----------------------------------------------------%
                     case app.misc_Merge
@@ -5846,18 +5803,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_TreePanelVisibility.ImageClickedFcn = createCallbackFcn(app, @play_PanelsVisibility, true);
             app.play_TreePanelVisibility.Tooltip = {'Mostra metadados'};
             app.play_TreePanelVisibility.Layout.Row = 2;
-            app.play_TreePanelVisibility.Layout.Column = 4;
+            app.play_TreePanelVisibility.Layout.Column = 5;
             app.play_TreePanelVisibility.VerticalAlignment = 'bottom';
             app.play_TreePanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'layout3_32px.png');
-
-            % Create play_TreeSort
-            app.play_TreeSort = uiimage(app.play_TreeGrid);
-            app.play_TreeSort.ImageClickedFcn = createCallbackFcn(app, @play_PanelsVisibility, true);
-            app.play_TreeSort.Tooltip = {'Reordena fluxos'};
-            app.play_TreeSort.Layout.Row = 2;
-            app.play_TreeSort.Layout.Column = 5;
-            app.play_TreeSort.VerticalAlignment = 'bottom';
-            app.play_TreeSort.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Sort_32.png');
 
             % Create play_Tree
             app.play_Tree = uitree(app.play_TreeGrid);
@@ -6067,7 +6015,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_ControlsTab1Info
             app.play_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
             app.play_ControlsTab1Info.ColumnWidth = {'1x'};
-            app.play_ControlsTab1Info.RowHeight = {22, 174, 22, 32, 112, '1x', 200, 15};
+            app.play_ControlsTab1Info.RowHeight = {22, 174, 22, 32, 112, '1x', 200, 1, 14};
             app.play_ControlsTab1Info.ColumnSpacing = 5;
             app.play_ControlsTab1Info.RowSpacing = 5;
             app.play_ControlsTab1Info.Padding = [0 0 0 0];
@@ -6906,7 +6854,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_Customization.Text = 'Customizar controles do plot.';
             app.play_Customization.WordWrap = 'on';
             app.play_Customization.FontSize = 11;
-            app.play_Customization.Layout.Row = 8;
+            app.play_Customization.Layout.Row = 9;
             app.play_Customization.Layout.Column = 1;
 
             % Create play_ControlsTab2Info
@@ -8159,7 +8107,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.submenu_Grid = uigridlayout(app.play_ControlsGrid);
             app.submenu_Grid.ColumnWidth = {'1x', 22, 22, 0, 0, 0};
             app.submenu_Grid.RowHeight = {'1x', 3};
-            app.submenu_Grid.ColumnSpacing = 1;
+            app.submenu_Grid.ColumnSpacing = 2;
             app.submenu_Grid.RowSpacing = 0;
             app.submenu_Grid.Padding = [0 0 0 0];
             app.submenu_Grid.Layout.Row = 1;

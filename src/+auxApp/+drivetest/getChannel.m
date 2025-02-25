@@ -10,8 +10,13 @@ function chAssigned = getChannel(specData, idxThread, idxEmission, channelObj)
     % E, em posse dessa informação, busca-se no RFDataHub todos os registros 
     % com essa frequência, retornando a largura mais comum.
 
-    chFrequency = getChannelFrequency(specData, idxThread, idxEmission, channelObj);
-    chBW        = getChannelBW(specData, idxThread, idxEmission, chFrequency);
+    if isempty(idxEmission)
+        chFrequency = (specData(idxThread).MetaData.FreqStart + specData(idxThread).MetaData.FreqStop) / 2e6; % MHz
+        chBW        = (specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / 1e3; % kHz
+    else
+        chFrequency = getChannelFrequency(specData, idxThread, idxEmission, channelObj);
+        chBW        = getChannelBW(specData, idxThread, idxEmission, chFrequency);
+    end
 
     chAssigned  = struct('Frequency', round(double(chFrequency), 6), ...
                          'ChannelBW', round(double(chBW), 6));
@@ -34,6 +39,6 @@ function chBW = getChannelBW(specData, idxThread, idxEmission, chFrequency)
     chBW = mode(RFDataHub.BW(idx));
     
     if isempty(chBW) || ~isnumeric(chBW) || isnan(chBW) || (chBW <= 0)
-        chBW = specData(idxThread).UserData.Emissions.BW(idxEmission);
+        chBW = specData(idxThread).UserData.Emissions.BW_kHz(idxEmission);
     end
 end

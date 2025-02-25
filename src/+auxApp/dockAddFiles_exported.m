@@ -33,7 +33,6 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
         General
         specData
         projectData
-        treeSortedType
 
         emptyTable  = table('Size',          [0, 4],                           ...
                             'VariableTypes', {'cell', 'cell', 'cell', 'int8'}, ...
@@ -86,16 +85,10 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function nodeText = misc_nodeTreeText(app, idx)
-            threadID  = app.specData(idx).RelatedFiles.ID(1);
             FreqStart = app.specData(idx).MetaData.FreqStart / 1e+6;
             FreqStop  = app.specData(idx).MetaData.FreqStop  / 1e+6;
 
-            switch app.treeSortedType
-                case 'Receiver+ID'
-                    nodeText = sprintf('ID %d: %.3f - %.3f MHz',  threadID, FreqStart, FreqStop);
-                case 'Receiver+Frequency'
-                    nodeText = sprintf('%.3f - %.3f MHz (ID %d)', FreqStart, FreqStop, threadID);
-            end
+            nodeText = sprintf('%.3f - %.3f MHz', FreqStart, FreqStop);
         end
 
         %-----------------------------------------------------------------%
@@ -146,13 +139,12 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp, treeSortedType, TAGs)
+        function startupFcn(app, mainapp, TAGs)
 
             app.mainApp     = mainapp;
             app.General     = mainapp.General;
             app.specData    = mainapp.specData;
             app.projectData = mainapp.projectData;
-            app.treeSortedType = treeSortedType;
 
             initialValues(app, TAGs)
             

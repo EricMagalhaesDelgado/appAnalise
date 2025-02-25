@@ -19,7 +19,7 @@ function mlapp2m(MLAPPFiles, showDiffApp)
     %   A versão .M  traz manipulações que possibilitam que esses módulos do 
     %   appAnalise possam ser renderizados na figura de "winAppAnalise".
      
-    fileFolder = fileparts(mfilename('fullpath'));    
+    fileFolder = fileparts(fileparts(mfilename('fullpath')));
     
     for ii = 1:numel(MLAPPFiles)
         try

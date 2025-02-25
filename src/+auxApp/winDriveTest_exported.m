@@ -4,7 +4,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                        matlab.ui.Figure
         GridLayout                      matlab.ui.container.GridLayout
-        plotFootnote                    matlab.ui.control.Label
         toolGrid                        matlab.ui.container.GridLayout
         filter_DataBinningExport        matlab.ui.control.Image
         filter_Summary                  matlab.ui.control.Image
@@ -14,10 +13,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         tool_LoopControl                matlab.ui.control.Image
         tool_Play                       matlab.ui.control.Image
         tool_ControlPanelVisibility     matlab.ui.control.Image
-        plotSource                      matlab.ui.container.ButtonGroup
-        plotSource_specBinTable         matlab.ui.control.RadioButton
-        plotSource_specFilteredTable    matlab.ui.control.RadioButton
         axesToolbarGrid                 matlab.ui.container.GridLayout
+        DropDown                        matlab.ui.control.DropDown
         axesTool_PlotSize               matlab.ui.control.Slider
         axesTool_DensityPlot            matlab.ui.control.Image
         axesTool_DistortionPlot         matlab.ui.control.Image
@@ -42,21 +39,33 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         ControlTabGroup                 matlab.ui.container.TabGroup
         Tab1_Emission                   matlab.ui.container.Tab
         Tab1_Grid                       matlab.ui.container.GridLayout
-        general_ReportFlag              matlab.ui.control.CheckBox
-        general_chPanel                 matlab.ui.container.Panel
-        general_chGrid                  matlab.ui.container.GridLayout
-        general_chBW                    matlab.ui.control.NumericEditField
-        general_chBWLabel               matlab.ui.control.Label
-        general_chFrequency             matlab.ui.control.NumericEditField
-        general_chFrequencyLabel        matlab.ui.control.Label
-        general_chEdit                  matlab.ui.control.Image
-        general_chRefresh               matlab.ui.control.Image
-        general_chLabel                 matlab.ui.control.Label
-        general_emissionInfoPanel       matlab.ui.container.Panel
-        general_emissionInfoGrid        matlab.ui.container.GridLayout
-        general_emissionInfo            matlab.ui.control.HTML
-        general_emissionList            matlab.ui.control.DropDown
-        general_emissionListLabel       matlab.ui.control.Label
+        reportFlag                      matlab.ui.control.CheckBox
+        channelPanel                    matlab.ui.container.Panel
+        channelGrid                     matlab.ui.container.GridLayout
+        channelBandWidth                matlab.ui.control.NumericEditField
+        channelBandWidthLabel           matlab.ui.control.Label
+        channelFrequency                matlab.ui.control.NumericEditField
+        channelFrequencyLabel           matlab.ui.control.Label
+        channelEditGrid                 matlab.ui.container.GridLayout
+        emissionChannelEditCancel       matlab.ui.control.Image
+        emissionChannelEditConfirm      matlab.ui.control.Image
+        emissionChannelEdit             matlab.ui.control.Image
+        emissionChannelRefresh          matlab.ui.control.Image
+        channelLabel                    matlab.ui.control.Label
+        emissionInfoPanel               matlab.ui.container.Panel
+        emissionInfoGrid                matlab.ui.container.GridLayout
+        emissionInfo                    matlab.ui.control.HTML
+        emissionList                    matlab.ui.control.DropDown
+        emissionListLabel               matlab.ui.control.Label
+        spectralThreadTree              matlab.ui.container.Tree
+        spectralThreadPanel             matlab.ui.container.Panel
+        spectralThreadGrid              matlab.ui.container.GridLayout
+        spectralThread                  matlab.ui.control.Label
+        spectralThreadEditGrid          matlab.ui.container.GridLayout
+        spectralThreadEditCancel        matlab.ui.control.Image
+        spectralThreadEditConfirm       matlab.ui.control.Image
+        spectralThreadEdit              matlab.ui.control.Image
+        spectralThreadLabel             matlab.ui.control.Label
         Tab2_Filter                     matlab.ui.container.Tab
         Tab2_Grid                       matlab.ui.container.GridLayout
         filter_DataBinningPanel         matlab.ui.container.Panel
@@ -165,6 +174,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         General
         General_I
         rootFolder
+        specData
 
         % A função do timer é executada uma única vez após a renderização
         % da figura, lendo arquivos de configuração, iniciando modo de operação
@@ -185,23 +195,17 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % Janela de progresso já criada no DOM. Dessa forma, controla-se 
         % apenas a sua visibilidade - e tornando desnecessário criá-la a
         % cada chamada (usando uiprogressdlg, por exemplo).
-        progressDialog
-
-        % Propriedades do app, além de handle para RFDataHub (variável
-        % global)
-        specData
-        projectData
-        channelObj
-        rfDataHub
+        progressDialog        
 
         %-----------------------------------------------------------------%
         % ESPECIFICIDADES AUXAPP.WINDRIVETEST
         %-----------------------------------------------------------------%
-        compatibilityMode
         tempBandObj
         KMLObj
 
-        % (b) POTÊNCIA DE CANAL, FILTRAGEM, DATA-BINNING
+        % POTÊNCIA DE CANAL, FILTRAGEM, DATA-BINNING
+        selectedEmission
+
         specRawTable
         specFilteredTable
         specBinTable
@@ -209,7 +213,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         filterTable = table({}, {}, struct('handle', {}, 'specification', {}),               'VariableNames', {'type', 'subtype', 'roi'})
         pointsTable = table({}, struct('Source', {}, 'idxData', {}, 'Data', {}), true(0, 1), 'VariableNames', {'type', 'value', 'visible'})
 
-        % (c) PLOT+PLAYBACK
+        % PLOT+PLAYBACK
         UIAxes1
         UIAxes2
         UIAxes3
@@ -226,6 +230,9 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
 
     methods
+        %-----------------------------------------------------------------%
+        % IPC: COMUNICAÇÃO ENTRE PROCESSOS
+        %-----------------------------------------------------------------%
         function ipcSecundaryJSEventsHandler(app, event)
             try
                 switch event.HTMLEventName
@@ -241,12 +248,41 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 appUtil.modalWindow(app.UIFigure, 'error', ME.message);
             end
         end
+
+        %-----------------------------------------------------------------%
+        function ipcSecundaryMatlabCallsHandler(app, callingApp, varargin)
+            try
+                switch class(callingApp)
+                    case {'winAppAnalise', 'winAppAnalise_exported'}
+                        [idxThread, idxEmission] = specDataIndex(app, 'EmissionShowed');
+            
+                        if isempty(idxThread) || isempty(app.specData(idxThread).UserData.Emissions)
+                            closeFcn(app)
+                            return
+                        end
+            
+                        preSelection = app.emissionList.Value;
+                        updateListOfEmissions(app, idxThread, idxEmission)
+            
+                        if ismember(preSelection, app.emissionList.Items)
+                            app.emissionList.Value = preSelection;
+                        else                
+                            general_EmissionSelectionChanged(app, struct('Source', app.emissionList))
+                        end
+                    otherwise
+                        error('UnexpectedCall')
+                end
+            
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+            end
+        end
     end
 
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        % JSBACKDOOR
+        % JSBACKDOOR: CUSTOMIZAÇÃO GUI (ESTÉTICA/COMPORTAMENTAL)
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
             if app.isDocked
@@ -319,8 +355,12 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         function startup_timerCreation(app, idxThread, idxEmission)
             % A criação desse timer tem como objetivo garantir uma renderização 
             % mais rápida dos componentes principais da GUI, possibilitando a 
-            % visualização da sua tela inicialpelo usuário. Trata-se de aspecto 
+            % visualização da sua tela inicial pelo usuário. Trata-se de aspecto 
             % essencial quando o app é compilado como webapp.
+
+            % Dessa forma, outras operações, como a leitura de um arquivo
+            % de configuração, por exemplo, são realizadas apenas após a
+            % renderização da página.
 
             app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
                                  "StartDelay",    1.5,            ...
@@ -334,6 +374,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
                 stop(app.timerObj)
                 delete(app.timerObj)
+
                 startup_Controller(app, idxThread, idxEmission)
             end
         end
@@ -357,7 +398,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             startup_AppProperties(app)
             startup_AxesCreation(app)
             startup_GUIComponents(app, idxThread, idxEmission)
-            prePlot_Startup(app, idxThread, idxEmission, 'AppStartup')
+            emissionListValueChanged(app, struct('updateType', 'AppStartup'))
 
             app.progressDialog.Visible = 'hidden';
 
@@ -370,50 +411,25 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function startup_AppProperties(app)
             app.tempBandObj = class.Band('appAnalise:DRIVETEST', app);
+
             app.General_I.Plot.Waterfall.Fcn = 'image';
             app.General.Plot.Waterfall.Fcn   = 'image';
-        end
 
-        %-----------------------------------------------------------------%
-        function startup_GUIComponents(app, idxThread, idxEmission)
-            % Inicialização de edição das características do canal:
-            app.general_chEdit.UserData = false;
-
-            % Lista as emissões:
-            updateListOfEmissions(app, idxThread, idxEmission)
-            
-            % Painel de pontos de interesse:
-            app.Tab3_Grid.RowHeight{3} = 118;
-            points_RadioGroupSelectionChanged(app)
-
-            % Configurações:
-            app.config_chROIColor.Value     = app.General.Plot.ChannelROI.Color;
-            app.config_chROIEdgeAlpha.Value = app.General.Plot.ChannelROI.EdgeAlpha;
-            app.config_chROIFaceAlpha.Value = app.General.Plot.ChannelROI.FaceAlpha;
-        end
-
-        %-----------------------------------------------------------------%
-        function updateListOfEmissions(app, idxThread, idxEmission)
-            emissionTable = app.specData(idxThread).UserData.Emissions;
-            app.general_emissionList.Items = {};
-            for ii = 1:height(emissionTable)
-                app.general_emissionList.Items{end+1} = sprintf('%.3f MHz ⌂ %.1f kHz', emissionTable.Frequency(ii), emissionTable.BW(ii));
-            end
-
-            if ~isempty(idxEmission)
-                app.general_emissionList.Value = app.general_emissionList.Items{idxEmission};
+            if strcmp(app.mainApp.executionMode, 'webApp')
+                app.config_Basemap.Value = 'none';
             end
         end
 
         %-----------------------------------------------------------------%
         function startup_AxesCreation(app)
-            hParent     = tiledlayout(app.plotPanel, 16, 16, "Padding", "none", "TileSpacing", "none");
+            hParent     = tiledlayout(app.plotPanel, 24, 16, "Padding", "none", "TileSpacing", "none");
 
             % Eixo geográfico: MAPA
-            app.UIAxes1 = plot.axes.Creation(hParent, 'Geographic', {'Basemap', app.config_Basemap.Value, ...
+            app.UIAxes1 = plot.axes.Creation(hParent, 'Geographic', {'Basemap', app.config_Basemap.Value,                 ...
+                                                                     'Color',    [.2, .2, .2], 'GridColor', [.5, .5, .5], ...
                                                                      'UserData', struct('CLimMode', 'auto', 'Colormap', '', 'PlotMode', 'distortion')});
             app.UIAxes1.Layout.Tile = 1;
-            app.UIAxes1.Layout.TileSpan = [16, 12];
+            app.UIAxes1.Layout.TileSpan = [24, 12];
 
             set(app.UIAxes1.LatitudeAxis,  'TickLabels', {}, 'Color', 'none')
             set(app.UIAxes1.LongitudeAxis, 'TickLabels', {}, 'Color', 'none')
@@ -426,22 +442,22 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                                                     'Layer', 'top', 'GridLineStyle', '-.', 'TickDir', 'none',                      ...
                                                                     'UserData', struct('CLimMode', 'auto', 'Colormap', '')});
             app.UIAxes2.Layout.Tile = 13;
-            app.UIAxes2.Layout.TileSpan = [4, 4];
+            app.UIAxes2.Layout.TileSpan = [6, 4];
 
             % Eixo cartesiano: WATERFALL
             app.UIAxes3 = plot.axes.Creation(hParent, 'Cartesian', {'XColor', 'white', 'XGrid', 1, 'XMinorGrid', 0, 'XTick', {}, 'XTickLabel', {}, ...
                                                                     'YColor', 'white', 'YGrid', 1, 'YMinorGrid', 0, 'YTick', {}, 'YTickLabel', {}, ...
                                                                     'Layer', 'top', 'GridLineStyle', '-.', 'TickDir', 'in',                        ...
                                                                     'UserData', struct('CLimMode', 'auto', 'Colormap', '')});
-            app.UIAxes3.Layout.Tile = 77;
-            app.UIAxes3.Layout.TileSpan = [12, 4];
+            app.UIAxes3.Layout.Tile = 109;
+            app.UIAxes3.Layout.TileSpan = [18, 4];
 
             % Eixo cartesiano: POTÊNCIA DO CANAL
             app.UIAxes4 = plot.axes.Creation(hParent, 'Cartesian', {'XColor', 'white', 'XGrid', 1, 'XMinorGrid', 0,              ...
                                                                     'YColor', 'white', 'YGrid', 0, 'YMinorGrid', 0, 'YTick', {}, ...
                                                                     'GridLineStyle', '-.', 'TickDir', 'both', 'Color', 'none', 'UserData', struct('YLimUnit', 'dBm')});
-            app.UIAxes4.Layout.Tile = 80;
-            app.UIAxes4.Layout.TileSpan = [12, 1];
+            app.UIAxes4.Layout.Tile = 112;
+            app.UIAxes4.Layout.TileSpan = [18, 1];
             app.UIAxes4.View = [270, 90];
             app.UIAxes4.YAxis.Direction = "reverse";
 
@@ -450,8 +466,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Colorbar
             colorBar = colorbar(app.UIAxes1, "Location", "layout", "TickDirection", "none", "HitTest", "off", "PickableParts", "none", "FontSize", 7, "Color", "white", 'AxisLocation', 'in', 'Box', 'off');
-            colorBar.Layout.Tile = 220;
-            colorBar.Layout.TileSpan = [2,1];
+            colorBar.Layout.Tile = 284;
+            colorBar.Layout.TileSpan = [6,1];
 
             % Interações:
             linkaxes([app.UIAxes2, app.UIAxes3], 'x')
@@ -461,31 +477,185 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function checkChannelAssigned(app, idxThread, idxEmission)
-            chAssigned = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).ChannelAssigned;
-            if isempty(chAssigned)
-                chAssigned = auxApp.drivetest.getChannel(app.specData, idxThread, idxEmission, app.channelObj);
-                app.general_chRefresh.Visible = 0;
-            else
-                app.general_chRefresh.Visible = 1;
+        function startup_GUIComponents(app, idxThread, idxEmission)
+            % Lista as emissões:
+            app.spectralThread.Text = sprintf('%s\n%.3f - %.3f MHz', app.specData(idxThread).Receiver,                 ...
+                                                                     app.specData(idxThread).MetaData.FreqStart / 1e6, ...
+                                                                     app.specData(idxThread).MetaData.FreqStop  / 1e6);
+            spectralThreadTreeBuilding(app, idxThread, idxEmission)
+            
+            % Painel de pontos de interesse:
+            app.Tab3_Grid.RowHeight{3} = 118;
+            points_RadioGroupSelectionChanged(app)
+
+            % Configurações:
+            app.config_chROIColor.Value     = app.General.Plot.ChannelROI.Color;
+            app.config_chROIEdgeAlpha.Value = app.General.Plot.ChannelROI.EdgeAlpha;
+            app.config_chROIFaceAlpha.Value = app.General.Plot.ChannelROI.FaceAlpha;
+        end
+
+        %-----------------------------------------------------------------%
+        function spectralThreadTreeBuilding(app, idxThread, idxEmission)
+            if ~isempty(app.spectralThreadTree.Children)
+                delete(app.spectralThreadTree.Children)
             end
 
-            app.general_chFrequency.Value = chAssigned.Frequency;
-            app.general_chBW.Value        = chAssigned.ChannelBW;
+            % Cria árvore:
+            receiverRawList = {app.specData.Receiver};
+            [receiverList, ~, receiverIndex] = unique(receiverRawList);
+
+            for ii = 1:numel(receiverList)
+                idx1 = find(receiverIndex == ii)';
+
+                receiverNode = uitreenode(app.spectralThreadTree, 'Text',  fcn.treeReceiverName(receiverList{ii}, 'play_TreeBuilding'), ...
+                                                                  'NodeData', idx1, 'Icon', fcn.treeNodeIcon('Receiver', receiverList{ii}), 'Tag', 'RECEIVER');
+                                
+                for jj = idx1
+                    uitreenode(receiverNode, 'Text', sprintf('%.3f - %.3f MHz', app.specData(jj).MetaData.FreqStart / 1e6, ...
+                                                                                app.specData(jj).MetaData.FreqStop  / 1e6), ...
+                                             'NodeData', jj, 'Tag', 'BAND');
+                end
+            end
+
+            % Expande árvore:
+            expand(app.spectralThreadTree, 'all')
+
+            % Ajusta seleção programaticamente e aplica estilo:
+            layout_changingSpectralThreadTreeStyle(app, idxThread)
+
+            % Cria lista de emissões:
+            createEmissionList(app, idxThread, idxEmission)
+        end
+
+        %-----------------------------------------------------------------%
+        function createEmissionList(app, idxThread, idxEmission)
+            emissionsTable = app.specData(idxThread).UserData.Emissions;
+
+            % Cria lista de emissões:
+            app.emissionList.Items = {};
+            for kk = 0:height(emissionsTable)
+                additionalNote = '';
+    
+                if kk == 0
+                    FreqCenter     = (app.specData(idxThread).MetaData.FreqStart + app.specData(idxThread).MetaData.FreqStop) / 2e6; % MHz
+                    BW_kHz         = (app.specData(idxThread).MetaData.FreqStop - app.specData(idxThread).MetaData.FreqStart) / 1e3; % kHz
+                    additionalNote = ' (Emissão virtual)';
+                else
+                    FreqCenter     = emissionsTable.Frequency(kk); % MHz
+                    BW_kHz         = emissionsTable.BW_kHz(kk);    % kHz
+                    if ~isempty(emissionsTable.auxAppData(kk).DriveTest)
+                        additionalNote = ' (DT)';
+                    end
+                end
+
+                app.emissionList.Items{end+1} = sprintf('%d: %.3f MHz ⌂ %.1f kHz%s', kk, FreqCenter, BW_kHz, additionalNote);
+            end
+
+            % Ajusta seleção programaticamente:
+            if ~isempty(idxEmission)
+                app.emissionList.Value = app.emissionList.Items{idxEmission+1};
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function layout_editSpectralThread(app, editionStatus)
+            arguments
+                app 
+                editionStatus char {mustBeMember(editionStatus, {'on', 'off'})}
+            end            
+
+            switch editionStatus
+                case 'on'
+                    set(app.spectralThreadEdit, 'ImageSource', 'Edit_32Filled.png', 'Tooltip', 'Desabilita edição do fluxo espectral', 'UserData', true)
+                    app.Tab1_Grid.RowHeight{3} = '1x';
+                    app.spectralThreadEditGrid.ColumnWidth(end-1:end) = {16,16};
+                    app.spectralThreadEditConfirm.Enable = 1;
+                    app.spectralThreadEditCancel.Enable  = 1;
+
+                case 'off'
+                    set(app.spectralThreadEdit, 'ImageSource', 'Edit_32.png',       'Tooltip', 'Habilita edição do fluxo espectral',   'UserData', false)
+                    app.Tab1_Grid.RowHeight{3} = 0;
+                    app.spectralThreadEditGrid.ColumnWidth(end-1:end) = {0,0};
+                    app.spectralThreadEditConfirm.Enable = 0;
+                    app.spectralThreadEditCancel.Enable  = 0;
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function layout_editChannelAssigned(app, editionStatus)
+            arguments
+                app 
+                editionStatus char {mustBeMember(editionStatus, {'on', 'off'})}
+            end            
+
+            switch editionStatus
+                case 'on'
+                    set(app.emissionChannelEdit, 'ImageSource', 'Edit_32Filled.png', 'Tooltip', 'Desabilita edição do canal', 'UserData', true)
+                    app.channelEditGrid.ColumnWidth(end-1:end) = {16,16};
+                    app.emissionChannelEditConfirm.Enable = 1;
+                    app.emissionChannelEditCancel.Enable  = 1;
+
+                case 'off'
+                    set(app.emissionChannelEdit, 'ImageSource', 'Edit_32.png',       'Tooltip', 'Habilita edição do canal',   'UserData', false)
+                    app.channelEditGrid.ColumnWidth(end-1:end) = {0,0};
+                    app.emissionChannelEditConfirm.Enable = 0;
+                    app.emissionChannelEditCancel.Enable  = 0;
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function layout_changingSpectralThreadTreeStyle(app, idxThread)
+            removeStyle(app.spectralThreadTree)
+
+            nodeTreeList      = findobj(app.spectralThreadTree, 'Tag', 'BAND');
+            [~, idxSelection] = ismember(idxThread, [nodeTreeList.NodeData]);
+
+            if idxSelection
+                app.spectralThreadTree.SelectedNodes = nodeTreeList(idxSelection);
+                addStyle(app.spectralThreadTree, uistyle('FontColor', [0,0,0]), 'node', [nodeTreeList(idxSelection); nodeTreeList(idxSelection).Parent])
+
+                expand(nodeTreeList(idxSelection))
+                scroll(app.spectralThreadTree, nodeTreeList(idxSelection))
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function checkChannelAssigned(app, idxThread, idxEmission)
+            chAssigned = [];
+            if ~isempty(idxEmission)
+                chAssigned = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned;
+            end
+            
+            if isempty(chAssigned)
+                chAssigned = auxApp.drivetest.getChannel(app.specData, idxThread, idxEmission, app.mainApp.channelObj);
+                app.emissionChannelRefresh.Visible = 0;
+            else
+                app.emissionChannelRefresh.Visible = 1;
+            end
+
+            app.channelFrequency.Value = chAssigned.Frequency;
+            app.channelBandWidth.Value = chAssigned.ChannelBW;
+
+            if isempty(idxEmission)
+                app.config_BandGuardBWRelatedValue.Limits = [1 1.1];
+            else
+                app.config_BandGuardBWRelatedValue.Limits = [2 10];
+            end
 
             checkFixedScreenSpanLimits(app)
         end
 
         %-----------------------------------------------------------------%
         function dataSource = checkDataSource(app)
-            switch app.plotSource.SelectedObject
-                case app.plotSource_specFilteredTable
+            switch app.DropDown.Value
+                case 'Dados brutos'
                     if isempty(app.filterTable)
                         dataSource = 'Raw';
                     else
                         dataSource = 'Filtered';
                     end
-                case app.plotSource_specBinTable
+                
+                otherwise
                     dataSource = 'Data-Binning';
             end
         end
@@ -493,7 +663,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function checkFixedScreenSpanLimits(app)
             if strcmp(app.config_BandGuardType.Value, 'Fixed')
-                chBW        = app.general_chBW.Value; % kHz
+                chBW        = app.channelBandWidth.Value; % kHz
                 chBWLimits = chBW * app.config_BandGuardBWRelatedValue.Limits;
     
                 if app.config_BandGuardFixedValue.Value < chBWLimits(1)
@@ -505,14 +675,19 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
+        function checkCompatibilityMode(app)
+
+        end
+
+        %-----------------------------------------------------------------%
         function screenSpanValue = getFrequencyScreenSpanInMHz(app, requiredData)
             arguments
                 app
                 requiredData char {mustBeMember(requiredData, {'Screen', 'ScreenLimits', 'ScreenMaxLimits'})}
             end
 
-            chFrequency = app.general_chFrequency.Value; % MHz
-            chBW        = app.general_chBW.Value / 1000; % kHz >> MHz
+            chFrequency = app.channelFrequency.Value; % MHz
+            chBW        = app.channelBandWidth.Value / 1000; % kHz >> MHz
             maxFactor   = app.config_BandGuardBWRelatedValue.Limits(2);
 
             switch app.config_BandGuardType.Value
@@ -548,33 +723,37 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                                            'ChannelDefault'})} = 'DriveTest'
             end
 
+            if isempty(idxEmission)
+                return
+            end
+
             switch updateType
                 case 'DriveTest'
-                    if app.general_ReportFlag.Value
-                        app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest = createPlotParameters(app);
+                    if app.reportFlag.Value
+                        app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest = createPlotParameters(app);
                     else
-                        app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest = [];
+                        app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest = [];
                     end
 
                 case 'DriveTest:JustTables'
-                    if ~isempty(app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest)
-                        app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.specRawTable      = app.specRawTable;
-                        app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.specFilteredTable = app.specFilteredTable;
-                        app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.specBinTable      = app.specBinTable;
+                    if ~isempty(app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest)
+                        app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.specRawTable      = app.specRawTable;
+                        app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.specFilteredTable = app.specFilteredTable;
+                        app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.specBinTable      = app.specBinTable;
                     end
 
                 case 'DriveTest:JustPoints'
-                    if ~isempty(app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest)
-                        app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.pointsTable = app.pointsTable;
+                    if ~isempty(app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest)
+                        app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.pointsTable = app.pointsTable;
                     end
                 
                 case 'ChannelParameterChanged'
-                    chAssigned = struct('Frequency', app.general_chFrequency.Value, ...
-                                        'ChannelBW', app.general_chBW.Value);
-                    app.specData(idxThread).UserData.Emissions.UserData(idxEmission).ChannelAssigned = chAssigned;
+                    chAssigned = struct('Frequency', app.channelFrequency.Value, ...
+                                        'ChannelBW', app.channelBandWidth.Value);
+                    app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).ChannelAssigned = chAssigned;
                 
                 case 'ChannelDefault'
-                    app.specData(idxThread).UserData.Emissions.UserData(idxEmission).ChannelAssigned = [];
+                    app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).ChannelAssigned = [];
             end
         end
 
@@ -586,8 +765,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                         % Afere-se, então, a potência do canal para cada uma das varreduras, 
                         % criando a tabela app.specTable com as colunas "Timestamp", "Latitude", 
                         % "Longitude" e "emissionPower".
-                        chAssigned = struct('Frequency', app.general_chFrequency.Value, ...
-                                            'ChannelBW', app.general_chBW.Value);
+                        chAssigned = struct('Frequency', app.channelFrequency.Value, ...
+                                            'ChannelBW', app.channelBandWidth.Value);
                         [app.specRawTable, ...
                          app.UIAxes4.UserData.YLimUnit] = RF.DataBinning.RawTableCreation(app.specData, idxThread, chAssigned);
 
@@ -640,20 +819,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % PLOT
         %-----------------------------------------------------------------%
         function prePlot_Startup(app, idxThread, idxEmission, operationType)
-            % Inicialmente, a informação acerca do fluxo espectral e da emissão 
-            % sob análise são salvas na propriedade "UserData" de app.general_emissionInfo.
-            [htmlContent, emissionID] = auxApp.drivetest.htmlCode_EmissionInfo(app.specData, idxThread, idxEmission);
-            set(app.general_emissionInfo, 'HTMLSource', htmlContent, 'UserData', emissionID)
-
-            % Atualiza canal, bloqueando edição de informação do canal.
-            checkChannelAssigned(app, idxThread, idxEmission)
-            if app.general_chEdit.UserData
-                general_chEditImageClicked(app)
-            end
-            
-            channelTag = sprintf('%.3f MHz ⌂ %.1f kHz', app.general_chFrequency.Value, app.general_chBW.Value);
-            app.plotFootnote.Text{2} = channelTag;
-
             try
                 % Afere as tabelas que suportarão os plots e aplica os valores 
                 % dos parâmetros, customizando o plot, caso aplicável. 
@@ -673,6 +838,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 plot_CreatePlot(app, idxThread, operationType)
 
             catch ME
+                struct2table(ME.stack)
                 % O erro aqui é controlado, e esperado apenas se após a aplicação
                 % do filtro aos dados, restar no máximo uma amostra. Neste caso,
                 % exclui-se o filtro, redesenhando-se a árvore.
@@ -701,8 +867,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             updateFlag = false;
             switch operationType
-                case {'AppStartup', 'EmissionSelectionChanged'}
-                    if isempty(app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest)
+                case {'AppStartup', 'ThreadSelectionChanged', 'EmissionSelectionChanged'}
+                    if isempty(idxEmission) || isempty(app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest)
                         processingSpecRawTable(app, idxThread, {'specRawTable', 'specRawTable+specFilteredTable+specBinTable'})
                         updateFlag = true;
                     end
@@ -738,8 +904,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             % Atualiza as tabelas no conjunto de propriedades customizadas,
             % caso habilitado o flag do relatório. 
             
-            % Neste ponto, não deve ser validado o app.general_ReportFlag.Value 
-            % porque, no caso de mudança de emissão, o app.general_ReportFlag.Value 
+            % Neste ponto, não deve ser validado o app.reportFlag.Value 
+            % porque, no caso de mudança de emissão, o app.reportFlag.Value 
             % se referirá ao flag do relatório da emissão anteriormente selecionada.
             if updateFlag
                 updateCustomProperty(app, idxThread, idxEmission, 'DriveTest:JustTables')
@@ -749,8 +915,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function prePlot_customProperties(app, idxThread, idxEmission, operationType)
             % Customiza-se o plot, caso o flag do relatório estiver desativado...
-            if ~isempty(app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest)
-                app.general_ReportFlag.Value = 1;
+            if ~isempty(idxEmission) && ~isempty(app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest)
+                app.reportFlag.Value = 1;
 
                 % Essa "gambi" evita que os ROIs dos filtros sejam redesenhados...
                 if ismember(operationType, {'AddEditOrDeleteFilter'})
@@ -758,7 +924,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 end
 
                 % Source
-                switch app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.Source
+                switch app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.Source
                     case {'Raw', 'Filtered'}
                         app.plotSource_specFilteredTable.Value = 1;
                         app.axesTool_DensityPlot.Enable        = 0;
@@ -768,53 +934,53 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 end
 
                 % specRawTable, specFilteredTable e specBinTable
-                app.specRawTable                   = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.specRawTable;
-                app.specFilteredTable              = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.specFilteredTable;
-                app.specBinTable                   = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.specBinTable;
+                app.specRawTable                   = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.specRawTable;
+                app.specFilteredTable              = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.specFilteredTable;
+                app.specBinTable                   = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.specBinTable;
 
                 % filterTable
-                app.filterTable                    = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.filterTable;
+                app.filterTable                    = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.filterTable;
                 filter_TreeBuilding(app)
                 plot_FiltersController(app)
 
                 % pointsTable
-                app.pointsTable                    = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.pointsTable;
+                app.pointsTable                    = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.pointsTable;
                 points_TreeBuilding(app)
                 plot_PointsController(app)
 
                 % potType e plotSize
-                app.UIAxes1.UserData.PlotMode      = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.plotType;
-                app.axesTool_PlotSize.Value        = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.plotSize;
+                app.UIAxes1.UserData.PlotMode      = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.plotType;
+                app.axesTool_PlotSize.Value        = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.plotSize;
 
                 % binningValue e binningFcn
-                app.filter_DataBinningLength.Value = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.binning_Value;
-                app.filter_DataBinningFcn.Value    = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.binning_Fcn;
+                app.filter_DataBinningLength.Value = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.binning_Value;
+                app.filter_DataBinningFcn.Value    = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.binning_Fcn;
 
                 % route...                
-                app.config_route_LineStyle.Value   = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.route_LineStyle;
-                app.config_route_OutColor.Value    = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.route_OutColor;
-                app.config_route_InColor.Value     = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.route_InColor;
-                app.config_route_Size.Value        = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.route_MarkerSize;
+                app.config_route_LineStyle.Value   = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.route_LineStyle;
+                app.config_route_OutColor.Value    = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.route_OutColor;
+                app.config_route_InColor.Value     = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.route_InColor;
+                app.config_route_Size.Value        = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.route_MarkerSize;
 
                 % Colormap
-                if ~strcmp(app.UIAxes1.UserData.Colormap, app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.Colormap)
-                    app.config_Colormap.Value      = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.Colormap;
+                if ~strcmp(app.UIAxes1.UserData.Colormap, app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.Colormap)
+                    app.config_Colormap.Value      = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.Colormap;
                     plot.axes.Colormap(app.UIAxes1, app.config_Colormap.Value)
                 end
 
                 % points...                
-                app.config_points_LineStyle.Value  = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.points_Marker;
-                app.config_points_Color.Value      = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.points_Color;
-                app.config_points_Size.Value       = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.points_Size;
+                app.config_points_LineStyle.Value  = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.points_Marker;
+                app.config_points_Color.Value      = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.points_Color;
+                app.config_points_Size.Value       = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.points_Size;
 
                 % Basemap
-                if ~strcmp(app.UIAxes1.Basemap, app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.Basemap)
-                    app.config_Basemap.Value       = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.Basemap;
-                    app.UIAxes1.Basemap            = app.specData(idxThread).UserData.Emissions.UserData(idxEmission).DriveTest.Basemap;
+                if ~strcmp(app.UIAxes1.Basemap, app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.Basemap)
+                    app.config_Basemap.Value       = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.Basemap;
+                    app.UIAxes1.Basemap            = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).DriveTest.Basemap;
                 end
 
             else
-                app.general_ReportFlag.Value = 0;
+                app.reportFlag.Value = 0;
             end
         end
 
@@ -875,7 +1041,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function plot_CreatePlot(app, idxThread, operationType)
             % prePLOT
-            chFrequency = app.general_chFrequency.Value;
+            chFrequency = app.channelFrequency.Value;
             
             set(app.UIAxes2, 'XLim', app.restoreView(2).xLim, 'YLim', app.restoreView(2).yLim, 'XTick', chFrequency)
             set(app.UIAxes3, 'XTick', chFrequency, 'CLim', app.restoreView(3).cLim)
@@ -1200,8 +1366,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function plot_ChannelROI(app, operationType)
-            chFrequency = app.general_chFrequency.Value;
-            chBW        = app.general_chBW.Value;
+            chFrequency = app.channelFrequency.Value;
+            chBW        = app.channelBandWidth.Value;
 
             switch operationType
                 case 'Creation'
@@ -1294,7 +1460,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             end
             app.points_Tree.CheckedNodes = checkedTreeNodes;
 
-            if app.general_ReportFlag.Value
+            if app.reportFlag.Value
                 [idxThread, idxEmission] = specDataIndex(app);
                 updateCustomProperty(app, idxThread, idxEmission, 'DriveTest:JustPoints')
             end
@@ -1379,6 +1545,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                                                  'ChannelDefault',              ...
                                                                  'PlotDataSourceChanged',       ...
                                                                  'DataBinningParameterChanged', ...
+                                                                 'ThreadSelectionChanged',      ...
                                                                  'EmissionSelectionChanged'})} = 'EmissionShowed'
             end
 
@@ -1389,10 +1556,10 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             %                                        'UUID',      {specData(idx).RelatedFiles.uuid}),                      ...
             %                     'Emission', struct('Index',     idxEmission,                                             ...
             %                                        'Frequency', specData(idx).UserData.Emissions.Frequency(idxEmission), ...
-            %                                        'BW',        specData(idx).UserData.Emissions.BW(idxEmission),        ...
+            %                                        'BW',        specData(idx).UserData.Emissions.BW_kHz(idxEmission),    ...
             %                                        'Tag',       emissionTag));
 
-            emissionID  = app.general_emissionInfo.UserData;
+            emissionID  = app.selectedEmission;
 
             % Inicialmente, busca-se o fluxo espectral (referenciado 
             % unicamente pela lista UUID dos arquivos brutos).
@@ -1407,11 +1574,11 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             if ~isempty(idxThread)
                 switch operationType
                     case 'EmissionSelectionChanged'
-                        newEmissionTag = app.general_emissionList.Value;
+                        newEmissionTag = app.emissionList.Value;
                         emissionTable  = app.specData(idxThread).UserData.Emissions;
 
                         for ii = 1:height(emissionTable)
-                            if strcmp(newEmissionTag, sprintf('%.3f MHz ⌂ %.1f kHz', emissionTable.Frequency(ii), emissionTable.BW(ii)))
+                            if strcmp(newEmissionTag, sprintf('%.3f MHz ⌂ %.1f kHz', emissionTable.Frequency(ii), emissionTable.BW_kHz(ii)))
                                 idxEmission = ii;
                                 break
                             end
@@ -1419,32 +1586,11 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
                     otherwise
                         emissionFrequency = emissionID.Emission.Frequency;
-                        emissionBW        = emissionID.Emission.BW;
+                        emissionBW        = emissionID.Emission.BW_kHz;
         
                         idxEmission = find(abs(app.specData(idxThread).UserData.Emissions.Frequency - emissionFrequency) <= class.Constants.floatDiffTolerance & ...
-                                           abs(app.specData(idxThread).UserData.Emissions.BW        - emissionBW)        <= class.Constants.floatDiffTolerance, 1);
+                                           abs(app.specData(idxThread).UserData.Emissions.BW_kHz    - emissionBW)        <= class.Constants.floatDiffTolerance, 1);
                 end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        % ATUALIZAÇÃO DE LISTA DE EMISSÕES NO APPANALISE
-        %-----------------------------------------------------------------%
-        function EmissionListUpdated(app)
-            [idxThread, idxEmission] = specDataIndex(app, 'EmissionShowed');
-
-            if isempty(idxThread) || isempty(app.specData(idxThread).UserData.Emissions)
-                closeFcn(app)
-                return
-            end
-
-            preSelection = app.general_emissionList.Value;
-            updateListOfEmissions(app, idxThread, idxEmission)
-
-            if ismember(preSelection, app.general_emissionList.Items)
-                app.general_emissionList.Value = preSelection;
-            else                
-                general_EmissionSelectionChanged(app, struct('Source', app.general_emissionList))
             end
         end
     end
@@ -1454,25 +1600,20 @@ classdef winDriveTest_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp, compatibilityMode, idxThread, idxEmission)
-            
-            global RFDataHub
+        function startupFcn(app, mainapp, idxThread, idxEmission)
 
             app.mainApp     = mainapp;
             app.General     = mainapp.General;
             app.General_I   = mainapp.General_I;
             app.rootFolder  = mainapp.rootFolder;
-            app.rfDataHub   = RFDataHub;
             app.specData    = mainapp.specData;
-            app.projectData = mainapp.projectData;
-            app.channelObj  = mainapp.channelObj;
             
-            jsBackDoor_Initialization(app)
+            % <GUI>
+            layout_editSpectralThread(app,  'off')
+            layout_editChannelAssigned(app, 'off')
+            % </GUI>
 
-            app.compatibilityMode = compatibilityMode;
-            if compatibilityMode
-                app.config_Car_LineStyle.Value = 'none';
-            end
+            jsBackDoor_Initialization(app)
 
             if app.isDocked
                 app.GridLayout.Padding(4) = 19;
@@ -1520,8 +1661,17 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: general_chBW, general_chFrequency, 
-        % ...and 2 other components
+        % Callback function
+        function general_BandSelectionChanged(app, event)
+            
+            operationType = 'ThreadSelectionChanged';
+            [idxThread, idxEmission] = specDataIndex(app, operationType);
+            prePlot_Startup(app, idxThread, idxEmission, operationType)
+
+        end
+
+        % Callback function: channelBandWidth, channelFrequency, 
+        % ...and 1 other component
         function general_EmissionSelectionChanged(app, event)
 
             % Essa função é o TRIGGER principal para atualização do plot
@@ -1536,18 +1686,18 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             % (c) Os parâmetros do canal são retornados à configuração inicial.
 
             switch event.Source
-                case app.general_emissionList
+                case app.emissionList
                     operationType = 'EmissionSelectionChanged';
                     [idxThread, idxEmission] = specDataIndex(app, operationType);
 
-                case {app.general_chFrequency, app.general_chBW}
+                case {app.channelFrequency, app.channelBandWidth}
                     operationType = 'ChannelParameterChanged';
                     [idxThread, idxEmission] = specDataIndex(app, operationType);
                     updateCustomProperty(app, idxThread, idxEmission, operationType)
 
-                    app.general_chRefresh.Visible = 1;
+                    app.emissionChannelRefresh.Visible = 1;
 
-                case app.general_chRefresh
+                case app.emissionChannelRefresh
                     operationType = 'ChannelDefault';
                     [idxThread, idxEmission] = specDataIndex(app, operationType);
                     updateCustomProperty(app, idxThread, idxEmission, operationType)
@@ -1555,6 +1705,14 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                     checkChannelAssigned(app, idxThread, idxEmission)
             end
 
+            if ~isempty(idxEmission)
+                app.reportFlag.Enable = 1;
+            else
+                set(app.reportFlag, 'Enable', 0, 'Value', 0)
+            end
+
+            checkCompatibilityMode(app)
+            
             if strcmp(operationType, 'EmissionSelectionChanged') && app.plotFlag
                 app.plotFlag = -1;
             else
@@ -1568,24 +1726,56 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             
         end
 
-        % Callback function: filter_DataBinningFcn, 
-        % ...and 2 other components
+        % Value changed function: emissionList
+        function emissionListValueChanged(app, event)
+            
+            idxThread   = app.spectralThreadTree.SelectedNodes.NodeData;
+            idxEmission = find(strcmp(app.emissionList.Items, app.emissionList.Value), 1) - 1;
+            if ~idxEmission
+                idxEmission = [];
+            end
+            
+            if ~isempty(app.selectedEmission) && isequal(idxThread, app.selectedEmission.Thread.Index) && isequal(idxEmission, app.selectedEmission.Emission.Index)
+                return
+            end
+
+            % Inicialmente, a informação acerca do fluxo espectral e da emissão 
+            % sob análise são salvas na propriedade "selectedEmission" do app.
+            [app.emissionInfo.HTMLSource, ...
+             app.selectedEmission] = auxApp.drivetest.htmlCode_EmissionInfo(app.specData, idxThread, idxEmission);
+
+            % Atualiza canal, bloqueando edição de informação do canal.
+            checkChannelAssigned(app, idxThread, idxEmission)
+            if app.emissionChannelEdit.UserData
+                general_chEditImageClicked(app)
+            end
+
+            % if isfield(event, 'updateType')
+            %     prePlot_Startup(app, idxThread, idxEmission, event.updateType)
+            % else
+            %     prePlot_Startup(app, idxThread, idxEmission, 'EmissionSelectionChanged')
+            % end
+
+        end
+
+        % Value changed function: DropDown, filter_DataBinningFcn, 
+        % ...and 1 other component
         function general_PlotSourceOrDataBinningParameterChanged(app, event)
 
             [idxThread, idxEmission] = specDataIndex(app);
 
             switch event.Source
-                case app.plotSource
+                case app.DropDown
                     operationType = 'PlotDataSourceChanged';
             
-                    switch app.plotSource.SelectedObject
-                        case app.plotSource_specFilteredTable
+                    switch app.DropDown.Value
+                        case 'Dados brutos'
                             app.axesTool_DensityPlot.Enable = 0;
                             if strcmp(app.UIAxes1.UserData.PlotMode, 'density')
                                 app.UIAxes1.UserData.PlotMode = 'distortion';
                             end
 
-                        case app.plotSource_specBinTable
+                        otherwise
                             app.axesTool_DensityPlot.Enable = 1;
                     end
                     updateCustomProperty(app, idxThread, idxEmission)
@@ -1606,30 +1796,15 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: general_chEdit
+        % Callback function
         function general_chEditImageClicked(app, event)
             
-            app.general_chEdit.UserData = ~app.general_chEdit.UserData;
 
-            if app.general_chEdit.UserData
-                app.general_chEdit.ImageSource   = 'Edit_32Filled.png';
-                app.general_chFrequency.Editable = 1;
-                app.general_chBW.Editable        = 1;
-
-                focus(app.general_chBW)
-
-            else
-                app.general_chEdit.ImageSource   = 'Edit_32.png';
-                app.general_chFrequency.Editable = 0;
-                app.general_chBW.Editable        = 0;
-
-                focus(app.jsBackDoor)
-            end
 
         end
 
-        % Value changed function: general_ReportFlag
-        function general_ReportFlagCheckBoxClicked(app, event)
+        % Value changed function: reportFlag
+        function reportFlagCheckBoxClicked(app, event)
 
             [idxThread, idxEmission] = specDataIndex(app);
             updateCustomProperty(app, idxThread, idxEmission)
@@ -1660,8 +1835,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             
             switch event.Source
                 case app.tool_Play
-                    idxThread   = app.general_emissionInfo.UserData.Thread.Index;
-                  % idxEmission = app.general_emissionInfo.UserData.Emission.Index;
+                    idxThread   = app.selectedEmission.Thread.Index;
         
                     if idxThread && ~app.plotFlag
                         if app.mainApp.plotFlag
@@ -1697,7 +1871,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % Value changing function: tool_TimestampSlider
         function tool_TimelineSliderValueChanging(app, event)
             
-            idxThread = app.general_emissionInfo.UserData.Thread.Index;
+            idxThread = app.selectedEmission.Thread.Index;
             nSweeps   = app.tempBandObj.nSweeps;
             
             app.idxTime = round(event.Value/100 * nSweeps);
@@ -1727,7 +1901,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             dataSource = checkDataSource(app);
             hPlot      = findobj(app.UIAxes1.Children, 'Tag', 'Distortion');
-            channelTag = sprintf('%.3f MHz ⌂ %.1f kHz', app.general_chFrequency.Value, app.general_chBW.Value);
+            channelTag = sprintf('%.3f MHz ⌂ %.1f kHz', app.channelFrequency.Value, app.channelBandWidth.Value);
 
             try
                 msgWarning = auxApp.drivetest.exportFiles(app.specRawTable, app.specFilteredTable, app.specBinTable, Basename, fileFullPath, dataSource, hPlot, channelTag);
@@ -1747,7 +1921,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: axesTool_RegionZoom, axesTool_RestoreView
+        % Callback function
         function axesTool_InteractionImageClicked(app, event)
             
             switch event.Source
@@ -1760,8 +1934,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: axesTool_DensityPlot, 
-        % ...and 1 other component
+        % Callback function
         function axesTool_PlotTypeValueChanged(app, event)
 
             hDistortion = findobj(app.UIAxes1.Children, 'Tag', 'Distortion');
@@ -1809,7 +1982,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: axesTool_PlotSize
+        % Callback function
         function axesTool_PlotSizeValueChanged(app, event)
 
             % Como exposto em axesTool_PlotSizeValueChanging(app, event),
@@ -1829,7 +2002,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             
         end
 
-        % Value changing function: axesTool_PlotSize
+        % Callback function
         function axesTool_PlotSizeValueChanging(app, event)
             
             % Ao interagir com o slider, não soltando o mouse, o MATLAB dispara 
@@ -1889,21 +2062,14 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             
             switch event.Source
                 case app.config_Basemap
-                    if ~strcmp(app.UIAxes1.Basemap, event.Value)
-                        hColorbar = findobj(app.UIAxes1.Parent.Children, 'Type', 'colorbar');
-                        switch event.Value
-                            case 'none'
-                                set(app.UIAxes1, 'Basemap', event.Value, 'Box', 'on', 'AxisColor', [.8,.8,.8])
-                                hColorbar.Color = [.8,.8,.8];
-                                app.GridLayout.ColumnWidth{4} = 0;
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'backgroundColor', 'transparent')
-                            otherwise
-                                set(app.UIAxes1, 'Basemap', event.Value, 'Box', 'off', 'AxisColor', 'white')
-                                hColorbar.Color = 'white';
-                                app.GridLayout.ColumnWidth{4} = 5;
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'backgroundColor', '#ffffff')
-                        end
+                    app.UIAxes1.Basemap = app.config_Basemap.Value;
+                    switch app.config_Basemap.Value
+                        case {'darkwater', 'none'}
+                            app.UIAxes1.Grid = 'on';
+                        otherwise
+                            app.UIAxes1.Grid = 'off';
                     end
+                    return
 
                 case app.config_Colormap
                     if strcmp(app.UIAxes1.UserData.Colormap, event.Value)
@@ -1989,7 +2155,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % ...and 2 other components
         function config_BandGuardValueChanged(app, event)
 
-            chBW = app.general_chBW.Value;
+            chBW = app.channelBandWidth.Value;
 
             switch event.Source
                 case app.config_BandGuardType
@@ -2350,6 +2516,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                         if isempty(app.points_Subtype1Value.Value)
                             return
                         end
+                        global RFDataHub
+
                         entryText = app.points_Subtype1Value.Value;
 
                         % Inicialmente, identificam-se os valores da lista
@@ -2383,7 +2551,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                     end
                                     filterTempTable(ii,:) = {Order, ii, RelatedID, 'Frequência', '=', 1, {freqList(ii)}, true, ''};
                                 end            
-                                idxRawPoints = find(fcn.TableFiltering(app.rfDataHub, filterTempTable));
+                                idxRawPoints = find(fcn.TableFiltering(RFDataHub, filterTempTable));
                         end
 
                         % Posteriormente, avalia-se quais desses registros 
@@ -2392,7 +2560,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                             nRawPoints = numel(idxRawPoints);
 
                             idxThread = specDataIndex(app, 'EmissionShowed');
-                            distanceArray = deg2km(distance(app.rfDataHub.Latitude(idxRawPoints),   app.rfDataHub.Longitude(idxRawPoints),  ...
+                            distanceArray = deg2km(distance(RFDataHub.Latitude(idxRawPoints),   RFDataHub.Longitude(idxRawPoints),  ...
                                                             app.specData(idxThread).GPS.Latitude, app.specData(idxThread).GPS.Longitude));
 
                             idxNewPoints = idxRawPoints(distanceArray <= app.points_Subtype1Distance.Value);
@@ -2404,7 +2572,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                             end
                             
                             newRow = {'RFDataHub',                                                                                                            ...
-                                      struct('Source', app.points_Subtype1DropDown.Value, 'idxData', idxNewPoints, 'Data', app.rfDataHub(idxNewPoints,:)), ...
+                                      struct('Source', app.points_Subtype1DropDown.Value, 'idxData', idxNewPoints, 'Data', RFDataHub(idxNewPoints,:)), ...
                                       true};
                             points_AddNewPoint2Table(app, newRow)
         
@@ -2477,6 +2645,110 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             end
 
         end
+
+        % Selection changed function: spectralThreadTree
+        function spectralThreadTreeSelectionChanged(app, event)
+            
+            % De forma geral, espera-se que exista ao menos um nó da árvore
+            % selecionado. Caso ocorra um BUG, a condição abaixo assegura 
+            % que o app volte a operar como é esperado.
+            if isempty(app.spectralThreadTree.SelectedNodes)
+                app.spectralThreadTree.SelectedNodes = app.spectralThreadTree.Children(1).Children(1).Children(1);
+            end
+
+            % PENDENTE
+
+            idxThread = 1; % unique([app.play_Tree.SelectedNodes.NodeData]);
+            idxEmission = 1;
+
+        end
+
+        % Image clicked function: spectralThreadEdit, 
+        % ...and 2 other components
+        function general_chEdit_2ImageClicked(app, event)
+            
+            switch event.Source
+                case app.spectralThreadEdit
+                    app.spectralThreadEdit.UserData = ~app.spectralThreadEdit.UserData;
+                    
+                    if app.spectralThreadEdit.UserData
+                        layout_editSpectralThread(app, 'on')
+                    else
+                        layout_editSpectralThread(app, 'off')
+                    end
+
+                case app.spectralThreadEditConfirm
+                    % VALIDAÇÃO
+                    if isempty(app.NewPointType.Value) || ((app.NewPointLatitude.Value == -1) && (app.NewPointLongitude.Value == -1))
+                        msgWarning = 'Um novo ponto crítico somente poderá ser incluído se definido o seu tipo e coordenadas geográficas diferentes de (-1, -1).';
+                        appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                        return
+                    end
+        
+                    % CRIA ID DO NOVO PONTO
+                    switch app.NewPointType.Value
+                        case 'Estação'
+                            ID = sprintf('Estação nº %d', app.NewPointStation.Value);
+                        otherwise
+                            ID = app.NewPointType.Value;
+                    end
+                    ID = sprintf('%s @ (%.6f, %.6f)', ID, app.NewPointLatitude.Value, app.NewPointLongitude.Value);
+        
+                    % VERIFICA SE ESSE ID JÁ TINHA SIDO INCLUÍDO
+                    if any(strcmp(app.mainApp.pointsTable.ID, ID))
+                        appUtil.modalWindow(app.UIFigure, 'warning', 'Registro já consta na lista de pontos sob análise.');
+                        return
+                    end
+
+                    columsn2Fill = {'ID', 'Type', 'Station', 'Latitude', 'Longitude', 'Description', 'Justificativa', 'AnalysisFlag'};        
+                    app.mainApp.pointsTable(end+1, columsn2Fill) = {ID,                            ...
+                                                                    app.NewPointType.Value,        ...
+                                                                    app.NewPointStation.Value,     ...
+                                                                    app.NewPointLatitude.Value,    ...
+                                                                    app.NewPointLongitude.Value,   ...
+                                                                    app.NewPointDescription.Value, ...
+                                                                    categorical("-1"),             ...
+                                                                    false};
+        
+        
+                    % ATUALIZA ÁRVORE DE PONTOS CRÍTICOS
+                    layout_TreePointsBuilding(app)
+        
+                    % ANÁLISA DOS PONTOS CRÍTICOS, ATUALIZANDO TABELA E PLOT
+                    Analysis(app)
+
+                    % DESABILITA MODO DE INCLUSÃO DE PONTO
+                    layout_editSpectralThread(app, 'off')
+
+                case app.spectralThreadEditCancel
+                    layout_editSpectralThread(app, 'off')
+            end
+
+        end
+
+        % Image clicked function: emissionChannelEdit, 
+        % ...and 2 other components
+        function AddNewPointConfirmImageClicked(app, event)
+            
+            switch event.Source
+                case app.emissionChannelEdit
+                    app.emissionChannelEdit.UserData = ~app.emissionChannelEdit.UserData;
+        
+                    if app.emissionChannelEdit.UserData
+                        layout_editChannelAssigned(app, 'on')
+                        focus(app.channelFrequency)        
+                    else
+                        layout_editChannelAssigned(app, 'off')
+                    end
+
+                case app.emissionChannelEditConfirm
+                    % pendente
+
+                case app.emissionChannelEditCancel
+                    layout_editChannelAssigned(app, 'off')
+            end
+
+        end
     end
 
     % Component initialization
@@ -2515,8 +2787,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {5, 320, 10, 5, 212, 212, '1x', 5};
-            app.GridLayout.RowHeight = {5, 22, '1x', 25, 5, 34};
+            app.GridLayout.ColumnWidth = {5, 320, 10, 5, 366, '1x', 212, 5, 5};
+            app.GridLayout.RowHeight = {5, 24, '1x', 5, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
@@ -2529,7 +2801,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.ControlTabGrid.ColumnSpacing = 5;
             app.ControlTabGrid.RowSpacing = 0;
             app.ControlTabGrid.Padding = [0 0 0 0];
-            app.ControlTabGrid.Layout.Row = [2 4];
+            app.ControlTabGrid.Layout.Row = [2 3];
             app.ControlTabGrid.Layout.Column = 2;
             app.ControlTabGrid.BackgroundColor = [1 1 1];
 
@@ -2545,130 +2817,233 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create Tab1_Grid
             app.Tab1_Grid = uigridlayout(app.Tab1_Emission);
-            app.Tab1_Grid.ColumnWidth = {'1x', 16, 16};
-            app.Tab1_Grid.RowHeight = {22, 22, '1x', 22, 69, 1, 14};
+            app.Tab1_Grid.ColumnWidth = {'1x', 88};
+            app.Tab1_Grid.RowHeight = {22, 44, '1x', 22, 22, '1x', 22, 69, 1, 14};
             app.Tab1_Grid.ColumnSpacing = 5;
             app.Tab1_Grid.RowSpacing = 5;
-            app.Tab1_Grid.Padding = [0 0 0 0];
+            app.Tab1_Grid.Padding = [0 0 0 6];
             app.Tab1_Grid.BackgroundColor = [1 1 1];
 
-            % Create general_emissionListLabel
-            app.general_emissionListLabel = uilabel(app.Tab1_Grid);
-            app.general_emissionListLabel.VerticalAlignment = 'bottom';
-            app.general_emissionListLabel.FontSize = 10;
-            app.general_emissionListLabel.Layout.Row = 1;
-            app.general_emissionListLabel.Layout.Column = 1;
-            app.general_emissionListLabel.Text = 'EMISSÃO';
+            % Create spectralThreadLabel
+            app.spectralThreadLabel = uilabel(app.Tab1_Grid);
+            app.spectralThreadLabel.VerticalAlignment = 'bottom';
+            app.spectralThreadLabel.FontSize = 10;
+            app.spectralThreadLabel.Layout.Row = 1;
+            app.spectralThreadLabel.Layout.Column = 1;
+            app.spectralThreadLabel.Text = 'FLUXO ESPECTRAL';
 
-            % Create general_emissionList
-            app.general_emissionList = uidropdown(app.Tab1_Grid);
-            app.general_emissionList.Items = {''};
-            app.general_emissionList.ValueChangedFcn = createCallbackFcn(app, @general_EmissionSelectionChanged, true);
-            app.general_emissionList.FontSize = 10;
-            app.general_emissionList.BackgroundColor = [1 1 1];
-            app.general_emissionList.Layout.Row = 2;
-            app.general_emissionList.Layout.Column = [1 3];
-            app.general_emissionList.Value = '';
+            % Create spectralThreadEditGrid
+            app.spectralThreadEditGrid = uigridlayout(app.Tab1_Grid);
+            app.spectralThreadEditGrid.ColumnWidth = {'1x', 16, 16, 16};
+            app.spectralThreadEditGrid.RowHeight = {'1x'};
+            app.spectralThreadEditGrid.ColumnSpacing = 5;
+            app.spectralThreadEditGrid.Padding = [0 0 0 0];
+            app.spectralThreadEditGrid.Layout.Row = 1;
+            app.spectralThreadEditGrid.Layout.Column = 2;
+            app.spectralThreadEditGrid.BackgroundColor = [1 1 1];
 
-            % Create general_emissionInfoPanel
-            app.general_emissionInfoPanel = uipanel(app.Tab1_Grid);
-            app.general_emissionInfoPanel.AutoResizeChildren = 'off';
-            app.general_emissionInfoPanel.Layout.Row = 3;
-            app.general_emissionInfoPanel.Layout.Column = [1 3];
+            % Create spectralThreadEdit
+            app.spectralThreadEdit = uiimage(app.spectralThreadEditGrid);
+            app.spectralThreadEdit.ImageClickedFcn = createCallbackFcn(app, @general_chEdit_2ImageClicked, true);
+            app.spectralThreadEdit.Tooltip = {'Possibilita edição dos parâmetros do canal'};
+            app.spectralThreadEdit.Layout.Row = 1;
+            app.spectralThreadEdit.Layout.Column = 2;
+            app.spectralThreadEdit.VerticalAlignment = 'bottom';
+            app.spectralThreadEdit.ImageSource = 'Edit_32.png';
 
-            % Create general_emissionInfoGrid
-            app.general_emissionInfoGrid = uigridlayout(app.general_emissionInfoPanel);
-            app.general_emissionInfoGrid.ColumnWidth = {'1x'};
-            app.general_emissionInfoGrid.RowHeight = {'1x'};
-            app.general_emissionInfoGrid.Padding = [0 0 0 0];
-            app.general_emissionInfoGrid.BackgroundColor = [1 1 1];
+            % Create spectralThreadEditConfirm
+            app.spectralThreadEditConfirm = uiimage(app.spectralThreadEditGrid);
+            app.spectralThreadEditConfirm.ImageClickedFcn = createCallbackFcn(app, @general_chEdit_2ImageClicked, true);
+            app.spectralThreadEditConfirm.Enable = 'off';
+            app.spectralThreadEditConfirm.Tooltip = {'Confirma edição'};
+            app.spectralThreadEditConfirm.Layout.Row = 1;
+            app.spectralThreadEditConfirm.Layout.Column = 3;
+            app.spectralThreadEditConfirm.VerticalAlignment = 'bottom';
+            app.spectralThreadEditConfirm.ImageSource = 'Ok_32Green.png';
 
-            % Create general_emissionInfo
-            app.general_emissionInfo = uihtml(app.general_emissionInfoGrid);
-            app.general_emissionInfo.HTMLSource = ' ';
-            app.general_emissionInfo.Layout.Row = 1;
-            app.general_emissionInfo.Layout.Column = 1;
+            % Create spectralThreadEditCancel
+            app.spectralThreadEditCancel = uiimage(app.spectralThreadEditGrid);
+            app.spectralThreadEditCancel.ImageClickedFcn = createCallbackFcn(app, @general_chEdit_2ImageClicked, true);
+            app.spectralThreadEditCancel.Enable = 'off';
+            app.spectralThreadEditCancel.Tooltip = {'Cancela edição'};
+            app.spectralThreadEditCancel.Layout.Row = 1;
+            app.spectralThreadEditCancel.Layout.Column = 4;
+            app.spectralThreadEditCancel.VerticalAlignment = 'bottom';
+            app.spectralThreadEditCancel.ImageSource = 'Delete_32Red.png';
 
-            % Create general_chLabel
-            app.general_chLabel = uilabel(app.Tab1_Grid);
-            app.general_chLabel.VerticalAlignment = 'bottom';
-            app.general_chLabel.FontSize = 10;
-            app.general_chLabel.Layout.Row = 4;
-            app.general_chLabel.Layout.Column = 1;
-            app.general_chLabel.Text = 'CANAL SOB ANÁLISE';
+            % Create spectralThreadPanel
+            app.spectralThreadPanel = uipanel(app.Tab1_Grid);
+            app.spectralThreadPanel.Layout.Row = 2;
+            app.spectralThreadPanel.Layout.Column = [1 2];
 
-            % Create general_chRefresh
-            app.general_chRefresh = uiimage(app.Tab1_Grid);
-            app.general_chRefresh.ImageClickedFcn = createCallbackFcn(app, @general_EmissionSelectionChanged, true);
-            app.general_chRefresh.Visible = 'off';
-            app.general_chRefresh.Tooltip = {'Volta à configuração inicial'};
-            app.general_chRefresh.Layout.Row = 4;
-            app.general_chRefresh.Layout.Column = 2;
-            app.general_chRefresh.VerticalAlignment = 'bottom';
-            app.general_chRefresh.ImageSource = 'Refresh_18.png';
+            % Create spectralThreadGrid
+            app.spectralThreadGrid = uigridlayout(app.spectralThreadPanel);
+            app.spectralThreadGrid.ColumnWidth = {'1x'};
+            app.spectralThreadGrid.RowHeight = {'1x'};
+            app.spectralThreadGrid.Padding = [5 2 2 2];
+            app.spectralThreadGrid.BackgroundColor = [1 1 1];
 
-            % Create general_chEdit
-            app.general_chEdit = uiimage(app.Tab1_Grid);
-            app.general_chEdit.ImageClickedFcn = createCallbackFcn(app, @general_chEditImageClicked, true);
-            app.general_chEdit.Tooltip = {'Possibilita edição dos parâmetros do canal'};
-            app.general_chEdit.Layout.Row = 4;
-            app.general_chEdit.Layout.Column = 3;
-            app.general_chEdit.VerticalAlignment = 'bottom';
-            app.general_chEdit.ImageSource = 'Edit_32.png';
+            % Create spectralThread
+            app.spectralThread = uilabel(app.spectralThreadGrid);
+            app.spectralThread.FontSize = 11;
+            app.spectralThread.Layout.Row = 1;
+            app.spectralThread.Layout.Column = 1;
+            app.spectralThread.Text = {'RFEye002928'; '87.000 - 109.000 MHz'};
 
-            % Create general_chPanel
-            app.general_chPanel = uipanel(app.Tab1_Grid);
-            app.general_chPanel.AutoResizeChildren = 'off';
-            app.general_chPanel.Layout.Row = 5;
-            app.general_chPanel.Layout.Column = [1 3];
+            % Create spectralThreadTree
+            app.spectralThreadTree = uitree(app.Tab1_Grid);
+            app.spectralThreadTree.SelectionChangedFcn = createCallbackFcn(app, @spectralThreadTreeSelectionChanged, true);
+            app.spectralThreadTree.FontSize = 10;
+            app.spectralThreadTree.FontColor = [0.651 0.651 0.651];
+            app.spectralThreadTree.Layout.Row = 3;
+            app.spectralThreadTree.Layout.Column = [1 2];
 
-            % Create general_chGrid
-            app.general_chGrid = uigridlayout(app.general_chPanel);
-            app.general_chGrid.ColumnWidth = {'1x', 110};
-            app.general_chGrid.RowHeight = {22, 22};
-            app.general_chGrid.RowSpacing = 5;
-            app.general_chGrid.BackgroundColor = [1 1 1];
+            % Create emissionListLabel
+            app.emissionListLabel = uilabel(app.Tab1_Grid);
+            app.emissionListLabel.VerticalAlignment = 'bottom';
+            app.emissionListLabel.FontSize = 10;
+            app.emissionListLabel.Layout.Row = 4;
+            app.emissionListLabel.Layout.Column = 1;
+            app.emissionListLabel.Text = 'EMISSÃO';
 
-            % Create general_chFrequencyLabel
-            app.general_chFrequencyLabel = uilabel(app.general_chGrid);
-            app.general_chFrequencyLabel.FontSize = 11;
-            app.general_chFrequencyLabel.Layout.Row = 1;
-            app.general_chFrequencyLabel.Layout.Column = 1;
-            app.general_chFrequencyLabel.Text = 'Frequência central (MHz):';
+            % Create emissionList
+            app.emissionList = uidropdown(app.Tab1_Grid);
+            app.emissionList.Items = {};
+            app.emissionList.ValueChangedFcn = createCallbackFcn(app, @emissionListValueChanged, true);
+            app.emissionList.FontSize = 11;
+            app.emissionList.BackgroundColor = [1 1 1];
+            app.emissionList.Layout.Row = 5;
+            app.emissionList.Layout.Column = [1 2];
+            app.emissionList.Value = {};
 
-            % Create general_chFrequency
-            app.general_chFrequency = uieditfield(app.general_chGrid, 'numeric');
-            app.general_chFrequency.ValueDisplayFormat = '%.3f';
-            app.general_chFrequency.ValueChangedFcn = createCallbackFcn(app, @general_EmissionSelectionChanged, true);
-            app.general_chFrequency.Editable = 'off';
-            app.general_chFrequency.FontSize = 11;
-            app.general_chFrequency.Layout.Row = 1;
-            app.general_chFrequency.Layout.Column = 2;
+            % Create emissionInfoPanel
+            app.emissionInfoPanel = uipanel(app.Tab1_Grid);
+            app.emissionInfoPanel.Layout.Row = 6;
+            app.emissionInfoPanel.Layout.Column = [1 2];
 
-            % Create general_chBWLabel
-            app.general_chBWLabel = uilabel(app.general_chGrid);
-            app.general_chBWLabel.FontSize = 11;
-            app.general_chBWLabel.Layout.Row = 2;
-            app.general_chBWLabel.Layout.Column = 1;
-            app.general_chBWLabel.Text = 'Largura (kHz):';
+            % Create emissionInfoGrid
+            app.emissionInfoGrid = uigridlayout(app.emissionInfoPanel);
+            app.emissionInfoGrid.ColumnWidth = {'1x'};
+            app.emissionInfoGrid.RowHeight = {'1x'};
+            app.emissionInfoGrid.Padding = [0 0 0 0];
+            app.emissionInfoGrid.BackgroundColor = [1 1 1];
 
-            % Create general_chBW
-            app.general_chBW = uieditfield(app.general_chGrid, 'numeric');
-            app.general_chBW.ValueDisplayFormat = '%.1f';
-            app.general_chBW.ValueChangedFcn = createCallbackFcn(app, @general_EmissionSelectionChanged, true);
-            app.general_chBW.Editable = 'off';
-            app.general_chBW.FontSize = 11;
-            app.general_chBW.Layout.Row = 2;
-            app.general_chBW.Layout.Column = 2;
+            % Create emissionInfo
+            app.emissionInfo = uihtml(app.emissionInfoGrid);
+            app.emissionInfo.HTMLSource = ' ';
+            app.emissionInfo.Layout.Row = 1;
+            app.emissionInfo.Layout.Column = 1;
 
-            % Create general_ReportFlag
-            app.general_ReportFlag = uicheckbox(app.Tab1_Grid);
-            app.general_ReportFlag.ValueChangedFcn = createCallbackFcn(app, @general_ReportFlagCheckBoxClicked, true);
-            app.general_ReportFlag.Text = 'Customizar plot, habilitando-o para inclusão em relatório.';
-            app.general_ReportFlag.WordWrap = 'on';
-            app.general_ReportFlag.FontSize = 11;
-            app.general_ReportFlag.Layout.Row = 7;
-            app.general_ReportFlag.Layout.Column = [1 3];
+            % Create channelLabel
+            app.channelLabel = uilabel(app.Tab1_Grid);
+            app.channelLabel.VerticalAlignment = 'bottom';
+            app.channelLabel.FontSize = 10;
+            app.channelLabel.Layout.Row = 7;
+            app.channelLabel.Layout.Column = 1;
+            app.channelLabel.Text = 'CANAL SOB ANÁLISE';
+
+            % Create channelEditGrid
+            app.channelEditGrid = uigridlayout(app.Tab1_Grid);
+            app.channelEditGrid.ColumnWidth = {'1x', 16, 16, 16, 16};
+            app.channelEditGrid.RowHeight = {'1x'};
+            app.channelEditGrid.ColumnSpacing = 5;
+            app.channelEditGrid.Padding = [0 0 0 0];
+            app.channelEditGrid.Layout.Row = 7;
+            app.channelEditGrid.Layout.Column = 2;
+            app.channelEditGrid.BackgroundColor = [1 1 1];
+
+            % Create emissionChannelRefresh
+            app.emissionChannelRefresh = uiimage(app.channelEditGrid);
+            app.emissionChannelRefresh.ImageClickedFcn = createCallbackFcn(app, @general_EmissionSelectionChanged, true);
+            app.emissionChannelRefresh.Visible = 'off';
+            app.emissionChannelRefresh.Tooltip = {'Volta à configuração inicial'};
+            app.emissionChannelRefresh.Layout.Row = 1;
+            app.emissionChannelRefresh.Layout.Column = 2;
+            app.emissionChannelRefresh.VerticalAlignment = 'bottom';
+            app.emissionChannelRefresh.ImageSource = 'Refresh_18.png';
+
+            % Create emissionChannelEdit
+            app.emissionChannelEdit = uiimage(app.channelEditGrid);
+            app.emissionChannelEdit.ImageClickedFcn = createCallbackFcn(app, @AddNewPointConfirmImageClicked, true);
+            app.emissionChannelEdit.Tooltip = {'Possibilita edição dos parâmetros do canal'};
+            app.emissionChannelEdit.Layout.Row = 1;
+            app.emissionChannelEdit.Layout.Column = 3;
+            app.emissionChannelEdit.VerticalAlignment = 'bottom';
+            app.emissionChannelEdit.ImageSource = 'Edit_32.png';
+
+            % Create emissionChannelEditConfirm
+            app.emissionChannelEditConfirm = uiimage(app.channelEditGrid);
+            app.emissionChannelEditConfirm.ImageClickedFcn = createCallbackFcn(app, @AddNewPointConfirmImageClicked, true);
+            app.emissionChannelEditConfirm.Enable = 'off';
+            app.emissionChannelEditConfirm.Tooltip = {'Confirma edição'};
+            app.emissionChannelEditConfirm.Layout.Row = 1;
+            app.emissionChannelEditConfirm.Layout.Column = 4;
+            app.emissionChannelEditConfirm.VerticalAlignment = 'bottom';
+            app.emissionChannelEditConfirm.ImageSource = 'Ok_32Green.png';
+
+            % Create emissionChannelEditCancel
+            app.emissionChannelEditCancel = uiimage(app.channelEditGrid);
+            app.emissionChannelEditCancel.ImageClickedFcn = createCallbackFcn(app, @AddNewPointConfirmImageClicked, true);
+            app.emissionChannelEditCancel.Enable = 'off';
+            app.emissionChannelEditCancel.Tooltip = {'Cancela edição'};
+            app.emissionChannelEditCancel.Layout.Row = 1;
+            app.emissionChannelEditCancel.Layout.Column = 5;
+            app.emissionChannelEditCancel.VerticalAlignment = 'bottom';
+            app.emissionChannelEditCancel.ImageSource = 'Delete_32Red.png';
+
+            % Create channelPanel
+            app.channelPanel = uipanel(app.Tab1_Grid);
+            app.channelPanel.AutoResizeChildren = 'off';
+            app.channelPanel.Layout.Row = 8;
+            app.channelPanel.Layout.Column = [1 2];
+
+            % Create channelGrid
+            app.channelGrid = uigridlayout(app.channelPanel);
+            app.channelGrid.ColumnWidth = {'1x', 110};
+            app.channelGrid.RowHeight = {22, 22};
+            app.channelGrid.RowSpacing = 5;
+            app.channelGrid.BackgroundColor = [1 1 1];
+
+            % Create channelFrequencyLabel
+            app.channelFrequencyLabel = uilabel(app.channelGrid);
+            app.channelFrequencyLabel.FontSize = 11;
+            app.channelFrequencyLabel.Layout.Row = 1;
+            app.channelFrequencyLabel.Layout.Column = 1;
+            app.channelFrequencyLabel.Text = 'Frequência central (MHz):';
+
+            % Create channelFrequency
+            app.channelFrequency = uieditfield(app.channelGrid, 'numeric');
+            app.channelFrequency.ValueDisplayFormat = '%.3f';
+            app.channelFrequency.ValueChangedFcn = createCallbackFcn(app, @general_EmissionSelectionChanged, true);
+            app.channelFrequency.Editable = 'off';
+            app.channelFrequency.FontSize = 11;
+            app.channelFrequency.Layout.Row = 1;
+            app.channelFrequency.Layout.Column = 2;
+
+            % Create channelBandWidthLabel
+            app.channelBandWidthLabel = uilabel(app.channelGrid);
+            app.channelBandWidthLabel.FontSize = 11;
+            app.channelBandWidthLabel.Layout.Row = 2;
+            app.channelBandWidthLabel.Layout.Column = 1;
+            app.channelBandWidthLabel.Text = 'Largura (kHz):';
+
+            % Create channelBandWidth
+            app.channelBandWidth = uieditfield(app.channelGrid, 'numeric');
+            app.channelBandWidth.ValueDisplayFormat = '%.1f';
+            app.channelBandWidth.ValueChangedFcn = createCallbackFcn(app, @general_EmissionSelectionChanged, true);
+            app.channelBandWidth.Editable = 'off';
+            app.channelBandWidth.FontSize = 11;
+            app.channelBandWidth.Layout.Row = 2;
+            app.channelBandWidth.Layout.Column = 2;
+
+            % Create reportFlag
+            app.reportFlag = uicheckbox(app.Tab1_Grid);
+            app.reportFlag.ValueChangedFcn = createCallbackFcn(app, @reportFlagCheckBoxClicked, true);
+            app.reportFlag.Text = 'Customizar plot, habilitando-o para inclusão em relatório.';
+            app.reportFlag.WordWrap = 'on';
+            app.reportFlag.FontSize = 11;
+            app.reportFlag.Layout.Row = 10;
+            app.reportFlag.Layout.Column = [1 2];
 
             % Create Tab2_Filter
             app.Tab2_Filter = uitab(app.ControlTabGroup);
@@ -2680,7 +3055,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.Tab2_Grid.RowHeight = {22, 96, 8, '1x', 54, 74};
             app.Tab2_Grid.ColumnSpacing = 5;
             app.Tab2_Grid.RowSpacing = 5;
-            app.Tab2_Grid.Padding = [0 0 0 0];
+            app.Tab2_Grid.Padding = [0 0 0 6];
             app.Tab2_Grid.BackgroundColor = [1 1 1];
 
             % Create filter_TreeLabel
@@ -2864,7 +3239,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.Tab3_Grid.RowHeight = {22, 92, 220, 8, '1x'};
             app.Tab3_Grid.ColumnSpacing = 5;
             app.Tab3_Grid.RowSpacing = 5;
-            app.Tab3_Grid.Padding = [0 0 0 0];
+            app.Tab3_Grid.Padding = [0 0 0 6];
             app.Tab3_Grid.BackgroundColor = [1 1 1];
 
             % Create points_TreeLabel
@@ -3040,7 +3415,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.Tab4_Grid.RowHeight = {27, 18, 184, 38, '1x'};
             app.Tab4_Grid.ColumnSpacing = 5;
             app.Tab4_Grid.RowSpacing = 5;
-            app.Tab4_Grid.Padding = [0 0 0 0];
+            app.Tab4_Grid.Padding = [0 0 0 6];
             app.Tab4_Grid.BackgroundColor = [1 1 1];
 
             % Create config_geoAxesLabel
@@ -3473,7 +3848,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.menu_MainGrid = uigridlayout(app.ControlTabGrid);
             app.menu_MainGrid.ColumnWidth = {'1x', 22, 22, 22};
             app.menu_MainGrid.RowHeight = {'1x', 3};
-            app.menu_MainGrid.ColumnSpacing = 1;
+            app.menu_MainGrid.ColumnSpacing = 2;
             app.menu_MainGrid.RowSpacing = 0;
             app.menu_MainGrid.Padding = [0 0 0 0];
             app.menu_MainGrid.Layout.Row = [1 2];
@@ -3601,49 +3976,46 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.plotPanel.BorderType = 'none';
             app.plotPanel.BackgroundColor = [1 1 1];
             app.plotPanel.Layout.Row = [2 3];
-            app.plotPanel.Layout.Column = [4 7];
+            app.plotPanel.Layout.Column = [4 8];
 
             % Create axesToolbarGrid
             app.axesToolbarGrid = uigridlayout(app.GridLayout);
-            app.axesToolbarGrid.ColumnWidth = {22, 22, 22, 22, '1x'};
-            app.axesToolbarGrid.RowHeight = {'1x'};
+            app.axesToolbarGrid.ColumnWidth = {22, 22, 5, '1x', 5, 22, 22, 5, '1x'};
+            app.axesToolbarGrid.RowHeight = {2, '1x'};
             app.axesToolbarGrid.ColumnSpacing = 0;
-            app.axesToolbarGrid.Padding = [2 2 2 7];
+            app.axesToolbarGrid.RowSpacing = 0;
+            app.axesToolbarGrid.Padding = [2 3 2 6];
             app.axesToolbarGrid.Layout.Row = [1 2];
             app.axesToolbarGrid.Layout.Column = 5;
             app.axesToolbarGrid.BackgroundColor = [1 1 1];
 
             % Create axesTool_RestoreView
             app.axesTool_RestoreView = uiimage(app.axesToolbarGrid);
-            app.axesTool_RestoreView.ImageClickedFcn = createCallbackFcn(app, @axesTool_InteractionImageClicked, true);
             app.axesTool_RestoreView.Tooltip = {'RestoreView'};
-            app.axesTool_RestoreView.Layout.Row = 1;
+            app.axesTool_RestoreView.Layout.Row = 2;
             app.axesTool_RestoreView.Layout.Column = 1;
             app.axesTool_RestoreView.ImageSource = 'Home_18.png';
 
             % Create axesTool_RegionZoom
             app.axesTool_RegionZoom = uiimage(app.axesToolbarGrid);
-            app.axesTool_RegionZoom.ImageClickedFcn = createCallbackFcn(app, @axesTool_InteractionImageClicked, true);
             app.axesTool_RegionZoom.Tooltip = {'RegionZoom'};
-            app.axesTool_RegionZoom.Layout.Row = 1;
+            app.axesTool_RegionZoom.Layout.Row = 2;
             app.axesTool_RegionZoom.Layout.Column = 2;
             app.axesTool_RegionZoom.ImageSource = 'ZoomRegion_20.png';
 
             % Create axesTool_DistortionPlot
             app.axesTool_DistortionPlot = uiimage(app.axesToolbarGrid);
-            app.axesTool_DistortionPlot.ImageClickedFcn = createCallbackFcn(app, @axesTool_PlotTypeValueChanged, true);
             app.axesTool_DistortionPlot.Tooltip = {'Distortion'};
-            app.axesTool_DistortionPlot.Layout.Row = 1;
-            app.axesTool_DistortionPlot.Layout.Column = 3;
+            app.axesTool_DistortionPlot.Layout.Row = 2;
+            app.axesTool_DistortionPlot.Layout.Column = 6;
             app.axesTool_DistortionPlot.ImageSource = 'DriveTestDistortion_32.png';
 
             % Create axesTool_DensityPlot
             app.axesTool_DensityPlot = uiimage(app.axesToolbarGrid);
-            app.axesTool_DensityPlot.ImageClickedFcn = createCallbackFcn(app, @axesTool_PlotTypeValueChanged, true);
             app.axesTool_DensityPlot.Enable = 'off';
             app.axesTool_DensityPlot.Tooltip = {'Heatmap'};
-            app.axesTool_DensityPlot.Layout.Row = 1;
-            app.axesTool_DensityPlot.Layout.Column = 4;
+            app.axesTool_DensityPlot.Layout.Row = 2;
+            app.axesTool_DensityPlot.Layout.Column = 7;
             app.axesTool_DensityPlot.ImageSource = 'DriveTestDensity_32.png';
 
             % Create axesTool_PlotSize
@@ -3651,37 +4023,19 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.axesTool_PlotSize.Limits = [1 19];
             app.axesTool_PlotSize.MajorTicks = [1 10 19];
             app.axesTool_PlotSize.MajorTickLabels = {''};
-            app.axesTool_PlotSize.ValueChangedFcn = createCallbackFcn(app, @axesTool_PlotSizeValueChanged, true);
-            app.axesTool_PlotSize.ValueChangingFcn = createCallbackFcn(app, @axesTool_PlotSizeValueChanging, true);
-            app.axesTool_PlotSize.Layout.Row = 1;
-            app.axesTool_PlotSize.Layout.Column = 5;
+            app.axesTool_PlotSize.Layout.Row = 2;
+            app.axesTool_PlotSize.Layout.Column = 9;
             app.axesTool_PlotSize.Value = 1;
 
-            % Create plotSource
-            app.plotSource = uibuttongroup(app.GridLayout);
-            app.plotSource.AutoResizeChildren = 'off';
-            app.plotSource.SelectionChangedFcn = createCallbackFcn(app, @general_PlotSourceOrDataBinningParameterChanged, true);
-            app.plotSource.BorderType = 'none';
-            app.plotSource.BackgroundColor = [1 1 1];
-            app.plotSource.Layout.Row = [4 5];
-            app.plotSource.Layout.Column = [4 7];
-
-            % Create plotSource_specFilteredTable
-            app.plotSource_specFilteredTable = uiradiobutton(app.plotSource);
-            app.plotSource_specFilteredTable.Text = 'Dados brutos';
-            app.plotSource_specFilteredTable.WordWrap = 'on';
-            app.plotSource_specFilteredTable.FontSize = 11;
-            app.plotSource_specFilteredTable.Interpreter = 'html';
-            app.plotSource_specFilteredTable.Position = [1 4 122 22];
-            app.plotSource_specFilteredTable.Value = true;
-
-            % Create plotSource_specBinTable
-            app.plotSource_specBinTable = uiradiobutton(app.plotSource);
-            app.plotSource_specBinTable.Text = 'Dados processados (Data-Binning)';
-            app.plotSource_specBinTable.WordWrap = 'on';
-            app.plotSource_specBinTable.FontSize = 11;
-            app.plotSource_specBinTable.Interpreter = 'html';
-            app.plotSource_specBinTable.Position = [96 4 257 22];
+            % Create DropDown
+            app.DropDown = uidropdown(app.axesToolbarGrid);
+            app.DropDown.Items = {'Dados brutos', 'Dados processados'};
+            app.DropDown.ValueChangedFcn = createCallbackFcn(app, @general_PlotSourceOrDataBinningParameterChanged, true);
+            app.DropDown.FontSize = 11;
+            app.DropDown.BackgroundColor = [1 1 1];
+            app.DropDown.Layout.Row = [1 2];
+            app.DropDown.Layout.Column = 4;
+            app.DropDown.Value = 'Dados brutos';
 
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
@@ -3690,8 +4044,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
             app.toolGrid.Padding = [0 5 0 5];
-            app.toolGrid.Layout.Row = 6;
-            app.toolGrid.Layout.Column = [1 8];
+            app.toolGrid.Layout.Row = 5;
+            app.toolGrid.Layout.Column = [1 9];
             app.toolGrid.BackgroundColor = [0.9412 0.9412 0.9412];
 
             % Create tool_ControlPanelVisibility
@@ -3758,14 +4112,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.filter_DataBinningExport.Layout.Row = 2;
             app.filter_DataBinningExport.Layout.Column = 8;
             app.filter_DataBinningExport.ImageSource = 'Export_16.png';
-
-            % Create plotFootnote
-            app.plotFootnote = uilabel(app.GridLayout);
-            app.plotFootnote.HorizontalAlignment = 'right';
-            app.plotFootnote.FontSize = 10;
-            app.plotFootnote.Layout.Row = [4 5];
-            app.plotFootnote.Layout.Column = 7;
-            app.plotFootnote.Text = {'Canal'; '0.000 MHz ⌂ 0.0 kHz'};
 
             % Create filter_ContextMenu
             app.filter_ContextMenu = uicontextmenu(app.UIFigure);

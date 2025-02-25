@@ -274,8 +274,8 @@ classdef Band < handle
                      xIndexUp] = XEmissionLimits(obj, emissionFreqCenter, emissionBW, GuardBand);
 
                 case 'appAnalise:DRIVETEST'
-                    chFrequency = obj.callingApp.general_chFrequency.Value; % MHz
-                    chBW        = obj.callingApp.general_chBW.Value / 1000; % kHz >> MHz
+                    chFrequency = obj.callingApp.channelFrequency.Value; % MHz
+                    chBW        = obj.callingApp.channelBandWidth.Value / 1000; % kHz >> MHz
 
                     [xLimits,    ...
                      xIndexDown, ...

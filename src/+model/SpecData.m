@@ -4,7 +4,7 @@ classdef SpecData < model.SpecDataBase
         %-----------------------------------------------------------------%
         UserData = model.UserData.empty
         callingApp
-        sortType
+        sortType = 'Receiver+Frequency'
     end
     
 
@@ -168,6 +168,8 @@ classdef SpecData < model.SpecDataBase
         
                                 obj.UserData.Emissions.Description(idxEmission) = userDescription;
                                 obj.UserData.Emissions.Algorithm(idxEmission).Detection = Algorithm{ii};
+
+                                obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis = model.UserData.getFieldTemplate('auxAppData:SignalAnalysis');
         
                                 RF.Measures(obj, idxEmission)
                             end
@@ -399,8 +401,7 @@ classdef SpecData < model.SpecDataBase
         %-----------------------------------------------------------------%
         function obj = spectrumRead(obj, metaData, callingApp, d)
             obj = fileMapping(obj, metaData, callingApp.General);
-            arrayfun(@(x) setProperty(x, 'callingApp', callingApp),                        obj)
-            arrayfun(@(x) setProperty(x, 'sortType',   callingApp.play_TreeSort.UserData), obj)
+            arrayfun(@(x) setProperty(x, 'callingApp', callingApp), obj)
 
             nFiles2Read    = numel(metaData);
             prjInfoFlag    = true;
@@ -483,7 +484,7 @@ classdef SpecData < model.SpecDataBase
         function sortedObj = sort(obj, sortType)
             arguments 
                 obj
-                sortType char {mustBeMember(sortType, {'Receiver+ID', 'Receiver+Frequency'})}
+                sortType char {mustBeMember(sortType, {'Receiver+ID', 'Receiver+Frequency'})} = 'Receiver+Frequency'
             end
 
             idx = 1:numel(obj);
