@@ -109,12 +109,19 @@ classdef Band < handle
                         axesLimits = XYCLimits(obj, idx);
                     end
 
-                case {'appAnalise:REPORT:CHANNEL', 'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS', 'appAnalise:DRIVETEST'}
+                case {'appAnalise:REPORT:CHANNEL', 'appAnalise:REPORT:EMISSION', 'appAnalise:SIGNALANALYSIS'}
                     if isempty(varargin)
                         error('Band:Limits:UnexpectedNumberOfInputArguments', 'Unexpected number of input arguments')
                     end
 
                     axesLimits = XYCLimits(obj, idx, struct('Mode', 'manual', 'Parameters', struct('Type', 'BWRelated', 'Value', 5)), varargin{:});
+
+                case 'appAnalise:DRIVETEST'
+                    if isempty(varargin)
+                        error('Band:Limits:UnexpectedNumberOfInputArguments', 'Unexpected number of input arguments')
+                    end
+
+                    axesLimits = XYCLimits(obj, idx, varargin{:});
             end
 
             obj.xLim         = axesLimits.xLim;
@@ -264,7 +271,7 @@ classdef Band < handle
                     idxEmission = varargin{1};
 
                     emissionFreqCenter = specData.UserData.Emissions.Frequency(idxEmission); % MHz
-                    emissionBW         = specData.UserData.Emissions.BW(idxEmission) / 1000; % kHz >> MHz
+                    emissionBW         = specData.UserData.Emissions.BW_kHz(idxEmission) / 1000; % kHz >> MHz
 
                     if emissionBW <= 0
                         GuardBand = struct('Mode', 'manual', 'Parameters', struct('Type', 'Fixed', 'Value', 1));
@@ -274,12 +281,19 @@ classdef Band < handle
                      xIndexUp] = XEmissionLimits(obj, emissionFreqCenter, emissionBW, GuardBand);
 
                 case 'appAnalise:DRIVETEST'
-                    chFrequency = obj.callingApp.channelFrequency.Value; % MHz
-                    chBW        = obj.callingApp.channelBandWidth.Value / 1000; % kHz >> MHz
+                    idxEmission = varargin{1};
+
+                    if isempty(idxEmission)
+                        chFreqCenter = (specData.MetaData.FreqStart + specData.MetaData.FreqStop) / 2e6; % MHz
+                        chBandWidth  = (specData.MetaData.FreqStop - specData.MetaData.FreqStart) / 1e6; % MHz
+                    else
+                        chFreqCenter = specData.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Frequency; % MHz
+                        chBandWidth  = specData.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.ChannelBW / 1000; % kHz >> MHz
+                    end
 
                     [xLimits,    ...
                      xIndexDown, ...
-                     xIndexUp] = XEmissionLimits(obj, chFrequency, chBW, GuardBand);
+                     xIndexUp] = XEmissionLimits(obj, chFreqCenter, chBandWidth, GuardBand);
             end
         
             % yLevelLimits

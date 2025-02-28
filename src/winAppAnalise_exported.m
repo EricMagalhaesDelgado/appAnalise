@@ -1322,6 +1322,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 try
                     app.metaData(idx).Data    = read(app.metaData(idx).Data, fileFullPath, 'MetaData');
                     app.metaData(idx).Samples = sweepsPerThread(app.metaData(idx).Data);
+                    if isempty(app.metaData(idx).Samples)
+                        error('Empty file')
+                    end
                     app.metaData(idx).Memory  = estimateMemory(app.metaData(idx).Data);
 
                 catch ME
