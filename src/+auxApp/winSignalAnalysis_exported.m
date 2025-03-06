@@ -67,6 +67,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         General
         General_I
         rootFolder
+        specData
+        projectData
 
         % A função do timer é executada uma única vez após a renderização
         % da figura, lendo arquivos de configuração, iniciando modo de operação
@@ -80,14 +82,12 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         % cada chamada (usando uiprogressdlg, por exemplo).
         progressDialog
 
-        % Objetos
-        rfDataHub
-        specData
-        projectData
+        %-----------------------------------------------------------------%
+        % ESPECIFICIDADES AUXAPP.WINSIGNALANALYSIS
+        %-----------------------------------------------------------------%
         tempBandObj
         elevationObj = RF.Elevation
 
-        % Eixos
         UIAxes1
         UIAxes2
         restoreView = struct('ID', {}, 'xLim', {}, 'yLim', {}, 'cLim', {})
@@ -96,7 +96,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        % JSBACKDOOR
+        % JSBACKDOOR: CUSTOMIZAÇÃO GUI (ESTÉTICA/COMPORTAMENTAL)
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
             if app.isDocked
@@ -132,6 +132,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
     
 
     methods (Access = private)
+        %-----------------------------------------------------------------%
+        % INICIALIZAÇÃO
         %-----------------------------------------------------------------%
         function startup_timerCreation(app, idxPrjPeaks)            
             % A criação desse timer tem como objetivo garantir uma renderização 
@@ -177,7 +179,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             drawnow
 
             pause(.100)
-            renderProjectDataOnScreen(app, idxPrjPeaks)
+            % renderProjectDataOnScreen(app, idxPrjPeaks)
             focus(app.UITable)
 
             app.progressDialog.Visible = 'hidden';
@@ -190,7 +192,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_GUIComponents(app)
-            app.axesTool_Pan.UserData = false;
+            app.axesTool_Pan.UserData    = false;
             app.axesTool_Config.UserData = false;
         end
 
@@ -292,7 +294,9 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         end
         
         %-----------------------------------------------------------------%
-        function FillComponents(app)   
+        function FillComponents(app)
+            global RFDataHub
+
             idxPrjPeaks     = app.UITable.Selection;
             idxPrjException = exceptionListIndex(app);
             [idxThread, ...
@@ -342,26 +346,26 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             if ~isempty(stationInfo.ID)
                 idx = stationInfo.ID;
 
-                if app.rfDataHub.Fistel(idx)  == stationInfo.Fistel  && ...
-                   app.rfDataHub.Service(idx) == stationInfo.Service && ...
-                   app.rfDataHub.Station(idx) == stationInfo.Station
+                if RFDataHub.Fistel(idx)  == stationInfo.Fistel  && ...
+                   RFDataHub.Service(idx) == stationInfo.Service && ...
+                   RFDataHub.Station(idx) == stationInfo.Station
                     idxStation = idx;
                 
                 else
-                    idxStation = find((app.rfDataHub.Fistel(idx)  == stationInfo.Fistel                                                 && ...
-                                       app.rfDataHub.Service(idx) == stationInfo.Service                                                && ...
-                                       app.rfDataHub.Station(idx) == stationInfo.Station                                                && ...
-                                       abs(app.rfDataHub.Latitude(idx)  - stationInfo.Latitude)  <=  class.Constants.floatDiffTolerance && ...
-                                       abs(app.rfDataHub.Longitude(idx) - stationInfo.Longitude) <=  class.Constants.floatDiffTolerance), 1);
+                    idxStation = find((RFDataHub.Fistel(idx)  == stationInfo.Fistel                                                 && ...
+                                       RFDataHub.Service(idx) == stationInfo.Service                                                && ...
+                                       RFDataHub.Station(idx) == stationInfo.Station                                                && ...
+                                       abs(RFDataHub.Latitude(idx)  - stationInfo.Latitude)  <=  class.Constants.floatDiffTolerance && ...
+                                       abs(RFDataHub.Longitude(idx) - stationInfo.Longitude) <=  class.Constants.floatDiffTolerance), 1);
                 end
             end
             app.axesTool_redrawPlot.UserData = idxStation;
 
             if ~isempty(idxStation)                
-                app.TXLatitude.Value  = round(double(app.rfDataHub.Latitude(idxStation)),  6);
-                app.TXLongitude.Value = round(double(app.rfDataHub.Longitude(idxStation)), 6);
+                app.TXLatitude.Value  = round(double(RFDataHub.Latitude(idxStation)),  6);
+                app.TXLongitude.Value = round(double(RFDataHub.Longitude(idxStation)), 6);
 
-                txAntennaHeight = str2double(char(app.rfDataHub.AntennaHeight(idxStation)));
+                txAntennaHeight = str2double(char(RFDataHub.AntennaHeight(idxStation)));
                 if txAntennaHeight < 0
                     txAntennaHeight = app.General.RFDataHub.DefaultTX.Height;
                 end
@@ -642,17 +646,14 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp, idxPrjPeaks)
+        function startupFcn(app, mainApp, idxPrjPeaks)
             
-            global RFDataHub
-
-            app.mainApp     = mainapp;
-            app.General     = mainapp.General;
-            app.General_I   = mainapp.General_I;
-            app.rootFolder  = mainapp.rootFolder;
-            app.rfDataHub   = RFDataHub;
-            app.specData    = mainapp.specData;
-            app.projectData = mainapp.projectData;
+            app.mainApp     = mainApp;
+            app.General     = mainApp.General;
+            app.General_I   = mainApp.General_I;
+            app.rootFolder  = mainApp.rootFolder;
+            app.specData    = mainApp.specData;
+            app.projectData = mainApp.projectData;
 
             jsBackDoor_Initialization(app)
 
@@ -805,6 +806,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         % Value changed function: StationID
         function StationIDValueChanged(app, event)
             
+            global RFDataHub
+
             try
                 app.StationID.Value = strtrim(app.StationID.Value);
                 if isempty(regexp(app.StationID.Value, '^\#?\d+$', 'once'))
@@ -816,7 +819,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 idxPrjPeaks   = app.UITable.Selection;
                 latitudeNode  = app.projectData.peaksTable.Latitude(idxPrjPeaks);
                 longitudeNode = app.projectData.peaksTable.Longitude(idxPrjPeaks);
-                stationInfo   = class.RFDataHub.query(app.rfDataHub, app.StationID.Value, latitudeNode, longitudeNode);
+                stationInfo   = class.RFDataHub.query(RFDataHub, app.StationID.Value, latitudeNode, longitudeNode);
 
                 dataStruct(1) = struct('group', 'INDICAÇÃO AUTOMÁTICA',                                                                          ...
                                         'value', struct('Regulatory',  app.projectData.peaksTable.Regulatory{idxPrjPeaks},                     ...

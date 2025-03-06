@@ -290,7 +290,7 @@ classdef (Abstract) draw2D
                     idxFrequency = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
                     FreqCenter   = app.play_FindPeaks_PeakCF.Value;
                     BW_kHz       = app.play_FindPeaks_PeakBW.Value;
-                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'Frequency|BandWidth', idxEmission, idxFrequency, FreqCenter, BW_kHz)
+                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'Frequency|BandWidth', idxEmission, idxFrequency, FreqCenter, BW_kHz, app.channelObj)
 
                     plot_updateSelectedEmission(app, idxThread, idxFrequency)
                     play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')

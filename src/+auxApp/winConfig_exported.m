@@ -459,15 +459,18 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             d = appUtil.modalWindow(app.UIFigure, "progressdlg", 'Em andamento... esse processo pode demorar alguns minutos!');
 
+            % ToDo
+            % Migrar update p/ classe RFDataHub.
+
             try
-                [~, ~, rfdatahubLink] = fcn.PublicLinks(app.rootFolder);
+                rfDataHubLink = util.publicLink(appName, app.rootFolder, 'RFDataHub');
 
                 tempDir = tempname;
                 mkdir(tempDir)
 
-                websave(fullfile(tempDir, 'estacoes.parquet.gzip'), rfdatahubLink.Table);
-                websave(fullfile(tempDir, 'log.parquet.gzip'),      rfdatahubLink.Log);
-                websave(fullfile(tempDir, 'Release.json'),          rfdatahubLink.Release);
+                websave(fullfile(tempDir, 'estacoes.parquet.gzip'), rfDataHubLink.Table);
+                websave(fullfile(tempDir, 'log.parquet.gzip'),      rfDataHubLink.Log);
+                websave(fullfile(tempDir, 'Release.json'),          rfDataHubLink.Release);
 
                 if isfile(fullfile(app.rootFolder, 'DataBase', 'RFDataHub_old.mat'))
                     delete(fullfile(app.rootFolder, 'DataBase', 'RFDataHub_old.mat'))

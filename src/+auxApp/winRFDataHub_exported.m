@@ -2098,7 +2098,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.Tab1_Grid.RowHeight = {36, 59, '1x'};
             app.Tab1_Grid.ColumnSpacing = 5;
             app.Tab1_Grid.RowSpacing = 5;
-            app.Tab1_Grid.Padding = [0 0 0 0];
+            app.Tab1_Grid.Padding = [0 0 0 6];
             app.Tab1_Grid.BackgroundColor = [1 1 1];
 
             % Create referenceTX_Icon
@@ -2256,7 +2256,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.Tab2_Grid.RowHeight = {36, 59, 22, 116, 134, 8, '1x'};
             app.Tab2_Grid.ColumnSpacing = 5;
             app.Tab2_Grid.RowSpacing = 5;
-            app.Tab2_Grid.Padding = [0 0 0 0];
+            app.Tab2_Grid.Padding = [0 0 0 6];
             app.Tab2_Grid.BackgroundColor = [1 1 1];
 
             % Create referenceRX_Icon
@@ -2704,7 +2704,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.Tab3_Grid.RowHeight = {22, 186, 22, '1x'};
             app.Tab3_Grid.ColumnSpacing = 5;
             app.Tab3_Grid.RowSpacing = 5;
-            app.Tab3_Grid.Padding = [0 0 0 0];
+            app.Tab3_Grid.Padding = [0 0 0 6];
             app.Tab3_Grid.BackgroundColor = [1 1 1];
 
             % Create config_geoAxesLabel
@@ -2959,7 +2959,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.menu_MainGrid = uigridlayout(app.ControlTabGrid);
             app.menu_MainGrid.ColumnWidth = {'1x', 22, 22};
             app.menu_MainGrid.RowHeight = {'1x', 3};
-            app.menu_MainGrid.ColumnSpacing = 1;
+            app.menu_MainGrid.ColumnSpacing = 2;
             app.menu_MainGrid.RowSpacing = 0;
             app.menu_MainGrid.Padding = [0 0 0 0];
             app.menu_MainGrid.Layout.Row = [1 2];

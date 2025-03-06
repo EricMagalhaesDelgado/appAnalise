@@ -595,7 +595,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         switch pushedButtonTag
                             case 'Open'
                                 file_ButtonPushed_OpenFile(app)
-                            case 'RFDataHub'
+                            case 'RFDATAHUB'
+                                app.menu_Button7.Value = true;
                                 menu_mainButtonPushed(app, struct('Source', app.menu_Button7, 'PreviousValue', false)) 
                         end
 
@@ -2198,7 +2199,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function play_AddEmission2List(app, idxThread, newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm)
-            update(app.specData(idxThread), 'UserData:Emissions', 'Add', newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm)            
+            update(app.specData(idxThread), 'UserData:Emissions', 'Add', newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm, app.channelObj)            
             
             idx = app.play_PlotPanel.UserData.NodeData;
             plot_updateSelectedEmission(app, idxThread, newEmissionIndex, idx == idxThread)            
@@ -2364,7 +2365,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function prePlot_HTMLPanels(app, idxThread)
-            app.play_Metadata.HTMLSource = fcn.htmlCode_ThreadInfo(app.specData, idxThread);
+            app.play_Metadata.HTMLSource = util.HtmlTextGenerator.Thread(app.specData, idxThread);
             app.tool_TimestampLabel.Text = sprintf('1 de %d\n%s', app.bandObj.nSweeps, app.specData(idxThread).Data{1}(1));
             ysecondarylabel(app.UIAxes1, sprintf('%s\n%.3f - %.3f MHz\n', app.specData(idxThread).Receiver, app.bandObj.FreqStart, app.bandObj.FreqStop))
         end
@@ -2853,7 +2854,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function report_Algorithms(app, idx)
             if isscalar(idx) && app.specData(idx).UserData.reportFlag
                 if isempty(app.report_ThreadAlgorithms.UserData) || ~isequal(app.report_ThreadAlgorithms.UserData, app.play_PlotPanel.UserData)
-                    set(app.report_ThreadAlgorithms, 'HTMLSource', fcn.htmlCode_ReportAlgorithms(app.specData(idx)), ...
+                    set(app.report_ThreadAlgorithms, 'HTMLSource', util.HtmlTextGenerator.ReportAlgorithms(app.specData(idx)), ...
                                                      'UserData',   app.play_PlotPanel.UserData)
     
                     app.report_EditDetection.Enable      = ~app.specData(idx).UserData.reportDetection.ManualMode;
@@ -3097,76 +3098,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % ...and 6 other components
         function menu_mainButtonPushed(app, event)
 
-            clickedButton = event.Source;
-            auxAppName    = clickedButton.Tag;
-            
-            switch auxAppName
-                case 'DRIVETEST'
-                    % hAuxiliarApp = auxAppHandle(app, auxAppName);
-                    % 
-                    % if isempty(hAuxiliarApp) || ~isvalid(hAuxiliarApp)
-                    %     idx = app.play_PlotPanel.UserData.NodeData;
-                    % 
-                    %     if ~app.specData(idx).GPS.Status
-                    %         msgError = ['Monitoração não registrou coordenadas geográficas válidas. Neste caso, para abrir o módulo ' ...
-                    %                     '"DRIVE-TEST" em modo de compatibilidade, deve-se editar manualmente as coordenadas '         ...
-                    %                     'geográficas do local da monitoração.'];
-                    %         appUtil.modalWindow(app.UIFigure, 'error', msgError);
-                    % 
-                    %         clickedButton.Value = 0;
-                    %         return
-                    %     end
-                    % 
-                    %     msgWarning = {};
-                    %     if ~ismember(app.specData(idx).MetaData.DataType, [1, 2])
-                    %         msgWarning{end+1} = 'Monitoração não conduzida pelo appColeta.';
-                    %     end
-                    % 
-                    %     if app.specData(idx).GPS.Count ~= numel(app.specData(idx).Data{1})
-                    %         msgWarning{end+1} = 'Número de coordenadas geográficas registradas diferente do número de varreduras.';
-                    %     end
-                    % 
-                    %     if ~ismember(app.specData(idx).MetaData.LevelUnit, {'dBm', 'dBµV'})
-                    %         msgWarning{end+1} = 'Monitoração não apresenta uma das unidades esperadas ("dBm" ou "dBµV") para que a potência do canal seja expressa em "dBm".';
-                    %     end
-                    % 
-                    %     if ~isempty(msgWarning)
-                    %         msgQuestion   = sprintf(['O módulo "DRIVE-TEST" foi construído para possibilitar a visualização em '      ...
-                    %                                  'mapa de dados obtidos em monitorações móveis conduzidas pelo appColeta.\n\nA '  ...
-                    %                                  'emissão selecionada, contudo, está relacionada ao(s) seguinte(s) aspecto(s):\n' ...
-                    %                                  '%s\n\nDeseja continuar, abrindo o módulo em modo de compatibilidade?'], textFormatGUI.cellstr2Bullets(msgWarning));
-                    %         userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                    % 
-                    %         if strcmp(userSelection, 'Não')
-                    %             clickedButton.Value = 0;
-                    %             return
-                    %         end
-                    %     end
-                    % end
-
-                case 'RFDATAHUB'
-                    hAuxiliarApp = auxAppHandle(app, auxAppName);
-
-                    if isempty(hAuxiliarApp) || ~isvalid(hAuxiliarApp)
-                        msgQuestion   = ['O RFDataHub é uma ETL de dados de estações de telecomunicações composta por '       ...
-                                         'registros extraídos de bases de dados do MOSAICO, STEL, SRD, ICAO, AISWEB, GEOAIS ' ...
-                                         'e REDEMET.<br><br>Deseja abrir o módulo de consulta ao RFDataHub?'];
-                        userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-
-                        if userSelection == "Não"
-                            clickedButton.Value = 0;
-                            return
-                        end
-                    end
-
-                case 'SIGNALANALYSIS'
-                    if isempty(app.projectData.peaksTable)
-                        msgWarning = 'Funcionalidade acessível apenas quando detectada ao menos uma emissão nos fluxos espectrais a processar.';
-                        appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-                        return
-                    end
-            end
-
+            clickedButton  = event.Source;
+            auxAppName     = clickedButton.Tag;
             inputArguments = auxAppInputArguments(app, auxAppName);
             openModule(app.tabGroupController, event.Source, event.PreviousValue, app.General, inputArguments{:})
             
@@ -3206,7 +3139,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case app.AppInfo
                     if isempty(app.AppInfo.Tag)
                         app.progressDialog.Visible = 'visible';
-                        app.AppInfo.Tag = fcn.htmlCode_appInfo(app.General, app.rootFolder, app.executionMode);
+                        app.AppInfo.Tag = util.HtmlTextGenerator.AppInfo(app.General, app.rootFolder, app.executionMode);
                         app.progressDialog.Visible = 'hidden';
                     end
 
@@ -3348,7 +3281,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         scroll(app.file_Tree, app.file_Tree.SelectedNodes)
                     end
 
-                    app.file_Metadata.HTMLSource = fcn.htmlCode_ThreadInfo(app.metaData, idxFile, idxThread);
+                    app.file_Metadata.HTMLSource = util.HtmlTextGenerator.Thread(app.metaData, idxFile, idxThread);
                 else
                     app.file_Metadata.HTMLSource = ' ';
                 end
@@ -4743,7 +4676,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     idxNewFrequency = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
                     newFrequency    = app.bandObj.xArray(idxNewFrequency);
 
-                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'Frequency',   idxEmission, idxNewFrequency, newFrequency)
+                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'Frequency',   idxEmission, idxNewFrequency, newFrequency, app.channelObj)
                     app.play_FindPeaks_PeakCF.Value = newFrequency;
                     plot_updateSelectedEmission(app, idxThread, idxNewFrequency)
 
@@ -4751,7 +4684,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     idxFrequency = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
                     newBandWidth = app.play_FindPeaks_PeakBW.Value;
 
-                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'BandWidth',   idxEmission, newBandWidth)
+                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'BandWidth',   idxEmission, newBandWidth, app.channelObj)
                     plot_updateSelectedEmission(app, idxThread, idxFrequency)
 
                 case app.play_FindPeaks_Description

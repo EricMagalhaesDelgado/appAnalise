@@ -1834,6 +1834,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             [idxThread, idxEmission] = specDataIndex(app);
             updateCustomProperty(app, idxThread, idxEmission)
+            layout_EmissionListCreation(app, idxThread, idxEmission)
 
         end
 
@@ -3185,7 +3186,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.filter_DataBinningFcn.BackgroundColor = [1 1 1];
             app.filter_DataBinningFcn.Layout.Row = 2;
             app.filter_DataBinningFcn.Layout.Column = 2;
-            app.filter_DataBinningFcn.Value = 'min';
+            app.filter_DataBinningFcn.Value = 'rms';
 
             % Create Tab3_Points
             app.Tab3_Points = uitab(app.ControlTabGroup);

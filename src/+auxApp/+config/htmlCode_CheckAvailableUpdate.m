@@ -8,9 +8,11 @@ function [htmlContent, stableVersion, updatedModule] = htmlCode_CheckAvailableUp
                                   'RFDataHub', appGeneral.AppVersion.RFDataHub); 
         
         % Versão estável, indicada nos arquivos de referência (na nuvem):
-        [GeneralURL, ~, rfdatahubURL] = fcn.PublicLinks(rootFolder);
-        generalVersions  = webread(GeneralURL,           weboptions("ContentType", "json"));
-        rfdatahubVersion = webread(rfdatahubURL.Release, weboptions("ContentType", "json"));
+        [versionFileURL, rfDataHubURL] = util.publicLink(appName, rootFolder, 'VersionFile+RFDataHub');
+
+
+        generalVersions  = webread(versionFileURL,       weboptions("ContentType", "json"));
+        rfdatahubVersion = webread(rfDataHubURL.Release, weboptions("ContentType", "json"));
 
         stableVersion    = struct(appName,     generalVersions.(appName).Version, ...
                                   'fiscaliza', generalVersions.fiscaliza.Version, ...

@@ -87,7 +87,7 @@ classdef UserData
                                            'Channel_Max',         {});
 
                 case 'auxAppData:SignalAnalysis'
-                    fieldTemplate = struct('ChannelAssigned', struct('Frequency', {}, 'ChannelBW', {}));
+                    fieldTemplate = struct('ChannelAssigned', struct('Frequency', {}, 'ChannelBW', {}, 'Edited', {}));
 
                 case 'DefaultAlgorithm: Occupancy'
                     fieldTemplate = struct('Method',              'Linear adaptativo', ...

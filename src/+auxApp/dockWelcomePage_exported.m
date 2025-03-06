@@ -130,7 +130,7 @@ classdef dockWelcomePage_exported < matlab.apps.AppBase
             % Create btnRFDataHub
             app.btnRFDataHub = uibutton(app.GridLayout, 'push');
             app.btnRFDataHub.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
-            app.btnRFDataHub.Tag = 'RFDataHub';
+            app.btnRFDataHub.Tag = 'RFDATAHUB';
             app.btnRFDataHub.Icon = 'mosaic_32.png';
             app.btnRFDataHub.BackgroundColor = [1 1 1];
             app.btnRFDataHub.Layout.Row = 5;

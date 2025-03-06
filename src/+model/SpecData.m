@@ -153,6 +153,7 @@ classdef SpecData < model.SpecDataBase
                             FreqCenter = varargin{2};
                             BandWidth  = varargin{3};
                             Algorithm  = varargin{4};
+                            channelObj = varargin{end};
         
                             for ii = 1:numel(idxFreq)
                                 idxEmission = height(obj.UserData.Emissions) + 1;
@@ -169,9 +170,11 @@ classdef SpecData < model.SpecDataBase
                                 obj.UserData.Emissions.Description(idxEmission) = userDescription;
                                 obj.UserData.Emissions.Algorithm(idxEmission).Detection = Algorithm{ii};
 
-                                obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis = model.UserData.getFieldTemplate('auxAppData:SignalAnalysis');
+                                if isempty(obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis)
+                                    obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = auxApp.drivetest.getChannel(obj, 1, idxEmission, channelObj);
+                                end
         
-                                RF.Measures(obj, idxEmission)
+                                RF.Measures(obj, 1, idxEmission, 'Emission')
                             end
         
                         case 'Edit'
@@ -192,13 +195,25 @@ classdef SpecData < model.SpecDataBase
                                         obj.UserData.Emissions.BW_kHz(idxEmission)          = varargin{5};
                                     end
 
-                                    obj.UserData.Emissions.Algorithm(idxEmission).Detection = '{"Algorithm":"Manual"}';                            
-                                    obj.UserData.Emissions.auxAppData(idxEmission)          = structfun(@(x) [], obj.UserData.Emissions.auxAppData(idxEmission), "UniformOutput", false);
+                                    obj.UserData.Emissions.Algorithm(idxEmission).Detection = '{"Algorithm":"Manual"}';
+
+                                    if ~obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Edited
+                                        channelObj = varargin{end};
+                                        obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = auxApp.drivetest.getChannel(obj, 1, idxEmission, channelObj);
+                                    end
+
+                                    obj.UserData.Emissions.auxAppData(idxEmission).DriveTest = [];
         
                                 case 'BandWidth'
                                     obj.UserData.Emissions.BW_kHz(idxEmission)              = varargin{3};
                                     obj.UserData.Emissions.Algorithm(idxEmission).Detection = '{"Algorithm":"Manual"}';
-                                    obj.UserData.Emissions.auxAppData(idxEmission)          = structfun(@(x) [], obj.UserData.Emissions.auxAppData(idxEmission), "UniformOutput", false);
+
+                                    if ~obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Edited
+                                        channelObj = varargin{end};
+                                        obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = auxApp.drivetest.getChannel(obj, 1, idxEmission, channelObj);
+                                    end
+
+                                    obj.UserData.Emissions.auxAppData(idxEmission).DriveTest = [];
                                 
                                 case 'Description'
                                     obj.UserData.Emissions.Description(idxEmission)         = varargin{3};
@@ -206,10 +221,9 @@ classdef SpecData < model.SpecDataBase
 
                                 case 'IsTruncated'
                                     obj.UserData.Emissions.isTruncated(idxEmission)         = varargin{3};
-                                    return
                             end
         
-                            RF.Measures(obj, idxEmission)
+                            RF.Measures(obj, 1, idxEmission, 'Emission')
         
                         case 'Delete'
                             idxEmissions = varargin{1};
