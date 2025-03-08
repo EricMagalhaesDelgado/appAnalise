@@ -1,5 +1,6 @@
 function fLogical = TableFiltering(hTable, filterTable)
 
+    % ToDo:
     % Essa função foi a base da filtragem implantada no webapp SCH, que
     % acabou sendo modularizada na classe de "SupportPackages" chamada
     % "tableFiltering".

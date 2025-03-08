@@ -1379,9 +1379,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     for jj = 1:numel(receiverList)
                         idx = find(receiverIndex == jj)';
 
-                        receiverNode = uitreenode(fileNode, 'Text',        fcn.treeReceiverName(receiverList{jj}, 'file_TreeBuilding'), ...
-                                                            'NodeData',    struct('level', 2, 'idx1', ii, 'idx2', idx),                 ...
-                                                            'Icon',        fcn.treeNodeIcon('Receiver', receiverList{jj}),              ...
+                        receiverNode = uitreenode(fileNode, 'Text',        util.layoutTreeNodeText(receiverList{jj}, 'file_TreeBuilding'), ...
+                                                            'NodeData',    struct('level', 2, 'idx1', ii, 'idx2', idx),                    ...
+                                                            'Icon',        util.layoutTreeNodeIcon(receiverList{jj}),                      ...
                                                             'ContextMenu', app.file_ContextMenu_Tree1);                        
                         for kk = idx
                             nodeTextNote = '';
@@ -1541,9 +1541,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             for ii = 1:numel(receiverList)
                 idx1 = find(receiverIndex == ii)';
 
-                receiverNode = uitreenode(app.play_Tree, 'Text',     fcn.treeReceiverName(receiverList{ii}, 'play_TreeBuilding'), ...
-                                                         'NodeData', idx1,                                                        ...
-                                                         'Icon',     fcn.treeNodeIcon('Receiver', receiverList{ii}));
+                receiverNode = uitreenode(app.play_Tree, 'Text',     util.layoutTreeNodeText(receiverList{ii}, 'play_TreeBuilding'), ...
+                                                         'NodeData', idx1,                                                           ...
+                                                         'Icon',     util.layoutTreeNodeIcon(receiverList{ii}));
                                 
                 for jj = idx1
                     specNodeText = misc_nodeTreeText(app, jj);
@@ -1704,23 +1704,18 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % PLAYBACK >> ASPECTOS GERAIS >> OCUPAÇÃO
         %-----------------------------------------------------------------%
-        function occInfo = play_OCCInfo(app)
-            occInfo = struct('Method',                  app.play_OCC_Method.Value,                      ...
-                             'IntegrationTime',         str2double(app.play_OCC_IntegrationTime.Value), ...
-                             'IntegrationTimeCaptured', app.play_OCC_IntegrationTimeCaptured.Value,     ...
-                             'THR',                     app.play_OCC_THR.Value,                         ...
-                             'THRCaptured',             str2double(app.play_OCC_THRCaptured.Value),     ...
-                             'Offset',                  app.play_OCC_Offset.Value,                      ...
-                             'ceilFactor',              app.play_OCC_ceilFactor.Value,                  ...
-                             'noiseFcn',                app.play_OCC_noiseFcn.Value,                    ...
-                             'noiseTrashSamples',       app.play_OCC_noiseTrashSamples.Value/100,       ...
-                             'noiseUsefulSamples',      app.play_OCC_noiseUsefulSamples.Value/100);
+        function occParameters = play_OCCParameters(app)
+            Method = app.play_OCC_Method.Value;
 
-            switch occInfo.Method
-                case 'Linear fixo (COLETA)'; occInfo = rmfield(occInfo, {'IntegrationTime',         'THR',         'Offset', 'ceilFactor', 'noiseFcn', 'noiseTrashSamples', 'noiseUsefulSamples'});
-                case 'Linear fixo';          occInfo = rmfield(occInfo, {'IntegrationTimeCaptured', 'THRCaptured', 'Offset', 'ceilFactor', 'noiseFcn', 'noiseTrashSamples', 'noiseUsefulSamples'});
-                case 'Linear adaptativo';    occInfo = rmfield(occInfo, {'IntegrationTimeCaptured', 'THR', 'THRCaptured', 'ceilFactor'});
-                case 'Envoltória do ruído';  occInfo = rmfield(occInfo, {'IntegrationTimeCaptured', 'THR', 'THRCaptured'});
+            switch Method
+                case 'Linear fixo (COLETA)'
+                    occParameters = RF.Occupancy.Parameters(Method, app.play_OCC_IntegrationTimeCaptured.Value, str2double(app.play_OCC_THRCaptured.Value));
+
+                case 'Linear fixo'
+                    occParameters = RF.Occupancy.Parameters(Method, str2double(app.play_OCC_IntegrationTime.Value), app.play_OCC_THR.Value);
+
+                case {'Linear adaptativo', 'Envoltória do ruído'}
+                    occParameters = RF.Occupancy.Parameters(Method, str2double(app.play_OCC_IntegrationTime.Value), app.play_OCC_Offset.Value, app.play_OCC_noiseFcn.Value, app.play_OCC_noiseTrashSamples.Value/100, app.play_OCC_noiseUsefulSamples.Value/100, app.play_OCC_ceilFactor.Value);
             end
         end
 
@@ -1735,35 +1730,35 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             switch srcFcn
                 case 'PLAYBACK/REPORT'
                     if isempty(app.specData(idx).UserData.reportOCC)
-                        occInfo = play_OCCInfo(app);
+                        occParameters = play_OCCParameters(app);
                     else
-                        occInfo = app.specData(idx).UserData.reportOCC;
+                        occParameters = app.specData(idx).UserData.reportOCC;
                     end
                     play_OCCLayoutStartup(app, idx)
 
                 case 'PLAYBACK'
-                    occInfo = play_OCCInfo(app);
+                    occParameters = play_OCCParameters(app);
 
                 case 'REPORT'
-                    occInfo = app.specData(idx).UserData.reportOCC;
+                    occParameters = app.specData(idx).UserData.reportOCC;
             end
             
-            occIndex = find(cellfun(@(x) isequal(x, occInfo), {app.specData(idx).UserData.occCache.Info}));
+            occIndex = find(cellfun(@(x) isequal(x, occParameters), {app.specData(idx).UserData.occCache.Info}));
             
             if isempty(occIndex)
                 occIndex = numel(app.specData(idx).UserData.occCache)+1;
-                occTHR   = RF.Occupancy.Threshold(occInfo.Method, occInfo, app.specData(idx), app.play_OCC_Orientation.Value);
+                occTHR   = RF.Occupancy.Threshold(occParameters.Method, occParameters, app.specData(idx), app.play_OCC_Orientation.Value);
 
-                switch occInfo.Method
+                switch occParameters.Method
                     case 'Linear fixo (COLETA)'
                         occData = app.specData(app.specData(idx).UserData.occMethod.SelectedIndex).Data;
 
                     otherwise
                         update(app.specData(idx), 'UserData:OccupancyFields', 'SelectedIndex:Refresh')
-                        occData = RF.Occupancy.Analysis(app.specData(idx).Data{1}, app.specData(idx).Data{2}, occInfo, occTHR);
+                        occData = RF.Occupancy.run(app.specData(idx).Data{1}, app.specData(idx).Data{2}, occParameters, occTHR);
                 end
 
-                update(app.specData(idx), 'UserData:OccupancyFields', 'Cache:Add', occIndex, occInfo, occTHR, occData)
+                update(app.specData(idx), 'UserData:OccupancyFields', 'Cache:Add', occIndex, occParameters, occTHR, occData)
             end
 
             update(app.specData(idx), 'UserData:OccupancyFields', 'CacheIndex:Edit', occIndex)
@@ -2827,9 +2822,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 [receiverList, ~, ic] = unique({app.specData(idxThreads).Receiver});                
                 for ii = 1:numel(receiverList)
                     idx2 = find(ic == ii)';
-                    Category = uitreenode(app.report_Tree, 'Text', receiverList{ii},                               ...
-                                                           'NodeData', idxThreads(idx2),                           ...
-                                                           'Icon', fcn.treeNodeIcon('Receiver', receiverList{ii}), ...
+                    Category = uitreenode(app.report_Tree, 'Text', receiverList{ii},                          ...
+                                                           'NodeData', idxThreads(idx2),                      ...
+                                                           'Icon', util.layoutTreeNodeIcon(receiverList{ii}), ...
                                                            'ContextMenu', app.report_ContextMenu);
                     
                     for jj = idx2
@@ -5421,7 +5416,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.UIFigure.AutoResizeChildren = 'off';
             app.UIFigure.Color = [0.9412 0.9412 0.9412];
             app.UIFigure.Position = [100 100 1244 3200];
-            app.UIFigure.Name = 'appAnalise R2024b';
+            app.UIFigure.Name = 'appAnalise';
             app.UIFigure.Icon = 'icon_48.png';
             app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
             app.UIFigure.HandleVisibility = 'on';

@@ -73,7 +73,10 @@ classdef (Abstract) HtmlTextGenerator
                 end
         
                 % Metadados:
-                dataStruct(end+1) = struct('group', 'METADADOS', 'value', rmfield(specData.MetaData, {'DataType'}));        
+                dataStruct(end+1) = struct('group', 'METADADOS', 'value', rmfield(specData.MetaData, {'DataType'}));
+                dataStruct(end).value.FreqStart = sprintf('%d Hz', dataStruct(end).value.FreqStart);
+                dataStruct(end).value.FreqStop  = sprintf('%d Hz', dataStruct(end).value.FreqStop);
+
                 if specData.MetaData.Resolution ~= -1
                     dataStruct(end).value.Resolution = sprintf('%.1f kHz', dataStruct(end).value.Resolution/1000);
                 end

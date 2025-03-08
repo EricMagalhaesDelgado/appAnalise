@@ -189,7 +189,7 @@ classdef (Abstract) RFDataHub
                                                                                          RFDataHub.Location(idx),     ...
                                                                                          RFDataHub.State(idx));
             if addAuxiliarInfo
-                stdDescription = sprintf('%s @ (ID=#%d, Latitude=%.6fº, Longitude=%.6fº)', stdDescription, idx, RFDataHub.Latitude(idx), RFDataHub.Longitude(idx));
+                stdDescription = sprintf('%s @ (Latitude=%.6fº, Longitude=%.6fº)', stdDescription, RFDataHub.Latitude(idx), RFDataHub.Longitude(idx));
             end
         end
 

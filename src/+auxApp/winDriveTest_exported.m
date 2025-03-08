@@ -517,8 +517,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             for ii = 1:numel(receiverList)
                 idx1 = find(receiverIndex == ii)';
 
-                receiverNode = uitreenode(app.spectralThreadTree, 'Text',  fcn.treeReceiverName(receiverList{ii}, 'play_TreeBuilding'), ...
-                                                                  'NodeData', idx1, 'Icon', fcn.treeNodeIcon('Receiver', receiverList{ii}), 'Tag', 'RECEIVER');
+                receiverNode = uitreenode(app.spectralThreadTree, 'Text',  util.layoutTreeNodeText(receiverList{ii}, 'play_TreeBuilding'), ...
+                                                                  'NodeData', idx1, 'Icon', util.layoutTreeNodeIcon(receiverList{ii}), 'Tag', 'RECEIVER');
                                 
                 for jj = idx1
                     uitreenode(receiverNode, 'Text', sprintf('%.3f - %.3f MHz', app.specData(jj).MetaData.FreqStart / 1e6, ...
@@ -1724,6 +1724,23 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 return
             end
 
+            % Inicialmente, a informação acerca do fluxo espectral e da emissão 
+            % sob análise são salvas na propriedade "selectedEmission" do app.
+            [app.emissionInfo.HTMLSource, ...
+             app.selectedEmission] = auxApp.drivetest.htmlCode_EmissionInfo(app.specData, idxThread, idxEmission);
+
+            % Atualiza canal, bloqueando edição de informação do canal.
+            checkChannelAssigned(app, idxThread, idxEmission)
+            if app.channelEditMode.UserData
+                general_chEditImageClicked(app)
+            end
+
+            if ~isempty(idxEmission) && app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Edited
+                app.channelRefresh.Visible = 1;
+            else
+                app.channelRefresh.Visible = 0;
+            end
+
             % Verifica se os limites do plot estão adequados ao tipo de emissão (a
             % emissão virtual, que corresponde à toda faixa espectral tem particularidades).
             if ~isempty(idxEmission)
@@ -1758,23 +1775,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                         config_BandGuardValueChanged(app, struct('Source', app.config_BandGuardBWRelatedValue))
                     end
                 end
-            end
-
-            % Inicialmente, a informação acerca do fluxo espectral e da emissão 
-            % sob análise são salvas na propriedade "selectedEmission" do app.
-            [app.emissionInfo.HTMLSource, ...
-             app.selectedEmission] = auxApp.drivetest.htmlCode_EmissionInfo(app.specData, idxThread, idxEmission);
-
-            % Atualiza canal, bloqueando edição de informação do canal.
-            checkChannelAssigned(app, idxThread, idxEmission)
-            if app.channelEditMode.UserData
-                general_chEditImageClicked(app)
-            end
-
-            if ~isempty(idxEmission) && app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Edited
-                app.channelRefresh.Visible = 1;
-            else
-                app.channelRefresh.Visible = 0;
             end
 
             if isfield(event, 'updateType')

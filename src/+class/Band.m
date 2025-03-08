@@ -42,7 +42,7 @@ classdef Band < handle
         function axesLimits = update(obj, idx, varargin)
             specData       = obj.callingApp.specData(idx);
 
-            obj.Receiver   = fcn.treeReceiverName(specData.Receiver, 'class.Band.update');
+            obj.Receiver   = util.layoutTreeNodeText(specData.Receiver, 'class.Band.update');
             obj.nSweeps    = numel(specData.Data{1});
             obj.DataPoints = specData.MetaData.DataPoints;
             obj.FreqStart  = specData.MetaData.FreqStart / 1e+6;

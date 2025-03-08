@@ -54,7 +54,7 @@ classdef SpecData < model.SpecDataBase
                     end
 
                 case 'UserData:BandLimits'
-                    if numel(obj) > 1
+                    if ~isscalar(obj)
                         error('Unexpected non scalar object')
                     end
 
@@ -93,7 +93,7 @@ classdef SpecData < model.SpecDataBase
                     end
 
                 case 'UserData:Channel'
-                    if numel(obj) > 1
+                    if ~isscalar(obj)
                         error('Unexpected non scalar object')
                     end
 
@@ -118,7 +118,7 @@ classdef SpecData < model.SpecDataBase
                     end
 
                 case 'UserData:CustomPlayback'
-                    if numel(obj) > 1
+                    if ~isscalar(obj)
                         error('Unexpected non scalar object')
                     end
 
@@ -143,7 +143,7 @@ classdef SpecData < model.SpecDataBase
                     end
 
                 case 'UserData:Emissions' % Origem: winAppAnalise
-                    if numel(obj) > 1
+                    if ~isscalar(obj)
                         error('Unexpected non scalar object')
                     end
 
@@ -152,34 +152,40 @@ classdef SpecData < model.SpecDataBase
                             idxFreq    = varargin{1};
                             FreqCenter = varargin{2};
                             BandWidth  = varargin{3};
-                            Algorithm  = varargin{4};
+                            Detection  = varargin{4};
                             channelObj = varargin{end};
+
+                            % Inicialmente, verifica se a ocupação por bin já foi aferida.
+                            % Caso não, afere-se com os parâmetros padrão.
+                            checkIfOccupancyPerBinExist(obj)
         
                             for ii = 1:numel(idxFreq)
                                 idxEmission = height(obj.UserData.Emissions) + 1;
                                 obj.UserData.Emissions(idxEmission, 1:4) = table(idxFreq(ii), FreqCenter(ii), BandWidth(ii), true);                        
         
-                                userDescription = '';
-                                parsedAlgorithm = jsondecode(Algorithm{ii});
-        
+                                userDescription = "";
+                                parsedAlgorithm = jsondecode(Detection{ii});        
                                 if isfield(parsedAlgorithm, 'Description')
                                     userDescription = parsedAlgorithm.Description;
-                                    Algorithm{ii}   = jsonencode(rmfield(parsedAlgorithm, 'Description'));
+                                    Detection{ii}   = jsonencode(rmfield(parsedAlgorithm, 'Description'));
                                 end
         
-                                obj.UserData.Emissions.Description(idxEmission) = userDescription;
-                                obj.UserData.Emissions.Algorithm(idxEmission).Detection = Algorithm{ii};
-
-                                if isempty(obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis)
-                                    obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = auxApp.drivetest.getChannel(obj, 1, idxEmission, channelObj);
-                                end
-        
-                                RF.Measures(obj, 1, idxEmission, 'Emission')
+                                obj.UserData.Emissions.Description(idxEmission)               = userDescription;
+                                
+                                obj.UserData.Emissions.Algorithms(idxEmission).Detection      = Detection{ii};
+                                obj.UserData.Emissions.Algorithms(idxEmission).Classification = jsonencode(obj.UserData.reportAlgorithms.Classification);
+                                obj.UserData.Emissions.Algorithms(idxEmission).Occupancy      = jsonencode(obj.UserData.reportAlgorithms.Occupancy);
+                                
+                                obj.UserData.Emissions.ChannelAssigned(idxEmission)           = model.UserData.getFieldTemplate('ChannelAssigned', obj, 1, idxEmission, channelObj);    
+                                obj.UserData.Emissions.Classification(idxEmission)            = model.UserData.getFieldTemplate('Classification',  obj, 1, idxEmission, channelObj);
+                                
+                                RF.Measures(obj, 1, idxEmission, 'Emission', channelObj)
                             end
         
                         case 'Edit'
                             parameter   = varargin{1};
                             idxEmission = varargin{2};
+                            channelObj  = varargin{end};
         
                             % Ao alterar as características de frequência e BW de uma emissão, 
                             % a emissão alterada é considerada como uma NOVA emissão. Logo,
@@ -198,7 +204,6 @@ classdef SpecData < model.SpecDataBase
                                     obj.UserData.Emissions.Algorithm(idxEmission).Detection = '{"Algorithm":"Manual"}';
 
                                     if ~obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Edited
-                                        channelObj = varargin{end};
                                         obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = auxApp.drivetest.getChannel(obj, 1, idxEmission, channelObj);
                                     end
 
@@ -209,7 +214,6 @@ classdef SpecData < model.SpecDataBase
                                     obj.UserData.Emissions.Algorithm(idxEmission).Detection = '{"Algorithm":"Manual"}';
 
                                     if ~obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Edited
-                                        channelObj = varargin{end};
                                         obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = auxApp.drivetest.getChannel(obj, 1, idxEmission, channelObj);
                                     end
 
@@ -223,7 +227,7 @@ classdef SpecData < model.SpecDataBase
                                     obj.UserData.Emissions.isTruncated(idxEmission)         = varargin{3};
                             end
         
-                            RF.Measures(obj, 1, idxEmission, 'Emission')
+                            RF.Measures(obj, 1, idxEmission, 'Emission', channelObj)
         
                         case 'Delete'
                             idxEmissions = varargin{1};
@@ -726,6 +730,25 @@ classdef SpecData < model.SpecDataBase
                      obj(idx1).MetaData.FreqStart  == obj(idx2).MetaData.FreqStart && ...
                      obj(idx1).MetaData.FreqStop   == obj(idx2).MetaData.FreqStop  && ...
                      obj(idx1).MetaData.DataPoints == obj(idx2).MetaData.DataPoints;
+        end
+
+        %-----------------------------------------------------------------%
+        function checkIfOccupancyPerBinExist(obj)
+            if isempty(obj.UserData.occMethod.CacheIndex)
+                occParameters = RF.Occupancy.ParametersDefault();
+                occTHR        = RF.Occupancy.Threshold(occParameters.Method, occParameters, obj, 'bin');
+                occData       = RF.Occupancy.run(obj.Data{2}, occParameters.Method, occTHR, occParameters.IntegrationTime, obj.Data{1});
+    
+                obj.UserData.occMethod.CacheIndex = 1;
+                obj.UserData.occCache             = struct('Info', occParameters, 'THR', occTHR, 'Data', {occData});
+                obj.UserData.occInfIntegration    = obj.Data{2} > occTHR;
+
+            else
+                occIndex      = obj.UserData.occMethod.CacheIndex;
+                occParameters = obj.UserData.occCache(occIndex).Info;
+
+                obj.UserData.reportAlgorithms.Occupancy = occParameters;
+            end
         end
 
         %-----------------------------------------------------------------%
