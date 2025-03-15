@@ -7,10 +7,6 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
     end
 
     internalFcn_counterCreation()
-    
-    exceptionList = app.projectData.exceptionList;
-    peaksTable    = report.Peaks(app, idxThreads, reportInfo.DetectionMode, exceptionList);
-
     tempBandObj   = class.Band('appAnalise:REPORT:BAND', app);
     
     % HTML header (style)

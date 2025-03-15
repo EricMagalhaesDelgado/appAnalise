@@ -484,9 +484,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.channelEditMode.UserData    = false;
 
             % Lista as emissões:
-            app.spectralThread.Text = sprintf('%s\n%.3f - %.3f MHz', app.specData(idxThread).Receiver,                 ...
-                                                                     app.specData(idxThread).MetaData.FreqStart / 1e6, ...
-                                                                     app.specData(idxThread).MetaData.FreqStop  / 1e6);
             layout_ThreadTreeBuilding(app, idxThread, idxEmission)
             
             % Painel de pontos de interesse:
@@ -509,6 +506,10 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             if ~isempty(app.spectralThreadTree.Children)
                 delete(app.spectralThreadTree.Children)
             end
+
+            app.spectralThread.Text = sprintf('%s\n%.3f - %.3f MHz', app.specData(idxThread).Receiver,                 ...
+                                                                     app.specData(idxThread).MetaData.FreqStart / 1e6, ...
+                                                                     app.specData(idxThread).MetaData.FreqStop  / 1e6);
 
             % Cria árvore:
             receiverRawList = {app.specData.Receiver};
@@ -642,27 +643,26 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                     app.channelBandWidth.Editable = 0;
 
                     [idxThread, idxEmission]      = specDataIndex(app, 'ChannelDefault');
-                    app.channelFrequency.Value    = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Frequency;
-                    app.channelBandWidth.Value    = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.ChannelBW;
+                    app.channelFrequency.Value    = app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).userModified.Frequency;
+                    app.channelBandWidth.Value    = app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).userModified.ChannelBW;
             end
         end
 
         %-----------------------------------------------------------------%
-        function checkChannelAssigned(app, idxThread, idxEmission)
-            chAssigned = [];
-            if ~isempty(idxEmission)
-                chAssigned = app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned;
-            end
-            
-            if isempty(chAssigned)
-                chAssigned = auxApp.drivetest.getChannel(app.specData, idxThread, idxEmission, app.mainApp.channelObj);
-                if ~isempty(idxEmission)
-                    app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = chAssigned;
-                end
-
+        function checkChannelAssigned(app, idxThread, idxEmission)            
+            if isempty(idxEmission)
+                chAssigned = util.emissionChannel(app.specData, idxThread, idxEmission, app.mainApp.channelObj);
                 app.channelRefresh.Visible = 0;
+
             else
-                app.channelRefresh.Visible = 1;
+                chAssigned = app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).userModified;
+                
+                if isequal(app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).autoSuggested, ...
+                           app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).userModified)
+                    app.channelRefresh.Visible = 0;
+                else
+                    app.channelRefresh.Visible = 1;
+                end
             end
 
             app.channelGrid.UserData   = chAssigned;
@@ -775,12 +775,13 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 
                 case 'ChannelParameterChanged'
                     chAssigned = struct('Frequency', app.channelFrequency.Value, ...
-                                        'ChannelBW', app.channelBandWidth.Value, ...
-                                        'Edited',    true);
-                    app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = chAssigned;
+                                        'ChannelBW', app.channelBandWidth.Value);
+                    app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).userModified = chAssigned;
+                    ipcMainMatlabCallsHandler(app.mainApp, app, updateType, idxThread, idxEmission)
                 
                 case 'ChannelDefault'
-                    app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = [];
+                    app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).userModified = app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).autoSuggested;
+                    ipcMainMatlabCallsHandler(app.mainApp, app, updateType, idxThread, idxEmission)
             end
         end
 
@@ -869,7 +870,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 plot_CreatePlot(app, idxThread, operationType)
 
             catch ME
-                struct2table(ME.stack)
                 % O erro aqui é controlado, e esperado apenas se após a aplicação
                 % do filtro aos dados, restar no máximo uma amostra. Neste caso,
                 % exclui-se o filtro, redesenhando-se a árvore.
@@ -1405,8 +1405,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             switch operationType
                 case 'Creation'
-                    srcROITable = table(chFrequency, chBW, 'VariableNames', {'Frequency', 'BW'});
-                    plot.draw2D.rectangularROI(app.UIAxes2, app.tempBandObj, srcROITable, 1, 'ChannelROI', {'InteractionsAllowed', 'none'})
+                    srcROITable = table(chFrequency, chBW, 'VariableNames', {'Frequency', 'BW_kHz'});
+                    plot.draw2D.rectangularROI(app.UIAxes2, app.tempBandObj, srcROITable, 1, 'ChannelROI', {'InteractionsAllowed', 'none'}, [-1000, 1000])
                     plot.draw2D.rectangularROI(app.UIAxes3, app.tempBandObj, srcROITable, 1, 'ChannelROI', {'InteractionsAllowed', 'none'})
 
                 case 'Relocate'
@@ -1689,7 +1689,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                     if app.spectralThreadEdit.UserData
                         layout_editSpectralThread(app, 'on')
                     else
-                        layout_editSpectralThread(app, 'off')
+                        general_ThreadChanged(app, struct('Source', app.spectralThreadEditCancel))
                     end
 
                 case app.spectralThreadEditConfirm
@@ -1698,6 +1698,15 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                     if (~isempty(app.selectedEmission) && isequal(idxSelectedThread, app.selectedEmission.Thread.Index)) || ~isscalar(idxSelectedThread)
                         layout_editSpectralThread(app, 'off')
                         return
+                    end
+
+                    % Se o fluxo espectral relacionado está relacionado a
+                    % outra coleta, em outro local, os filtros de nível e
+                    % geográficos são apagados...
+                    if ~isequal(app.specData(idxSelectedThread).GPS, app.specData(app.selectedEmission.Thread.Index).GPS)
+                        app.filterTable(:,:) = [];
+                        filter_TreeBuilding(app)
+                        delete(findobj([app.UIAxes1.Children; app.UIAxes4.Children], 'Tag', 'FilterROI'))
                     end
 
                     layout_ThreadTreeBuilding(app, idxSelectedThread, [])
@@ -1735,7 +1744,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 general_chEditImageClicked(app)
             end
 
-            if ~isempty(idxEmission) && app.specData(idxThread).UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Edited
+            if ~isempty(idxEmission) && ~isequal(app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).autoSuggested, ...
+                                                 app.specData(idxThread).UserData.Emissions.ChannelAssigned(idxEmission).userModified)
                 app.channelRefresh.Visible = 1;
             else
                 app.channelRefresh.Visible = 0;
@@ -2617,7 +2627,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                     end
                                     filterTempTable(ii,:) = {Order, ii, RelatedID, 'Frequência', '=', 1, {freqList(ii)}, true, ''};
                                 end            
-                                idxRawPoints = find(fcn.TableFiltering(RFDataHub, filterTempTable));
+                                idxRawPoints = find(util.TableFiltering(RFDataHub, filterTempTable));
                         end
 
                         % Posteriormente, avalia-se quais desses registros 
@@ -3976,7 +3986,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.axesTool_DensityPlot = uiimage(app.axesToolbarGrid);
             app.axesTool_DensityPlot.ImageClickedFcn = createCallbackFcn(app, @axesTool_PlotTypeValueChanged, true);
             app.axesTool_DensityPlot.Enable = 'off';
-            app.axesTool_DensityPlot.Tooltip = {'Heatmap'};
+            app.axesTool_DensityPlot.Tooltip = {'Heatmap'; '(aplicável apenas quando visualizados os dados processados)'};
             app.axesTool_DensityPlot.Layout.Row = 2;
             app.axesTool_DensityPlot.Layout.Column = 7;
             app.axesTool_DensityPlot.ImageSource = 'DriveTestDensity_32.png';

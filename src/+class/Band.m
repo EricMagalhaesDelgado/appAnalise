@@ -287,8 +287,8 @@ classdef Band < handle
                         chFreqCenter = (specData.MetaData.FreqStart + specData.MetaData.FreqStop) / 2e6; % MHz
                         chBandWidth  = (specData.MetaData.FreqStop - specData.MetaData.FreqStart) / 1e6; % MHz
                     else
-                        chFreqCenter = specData.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Frequency; % MHz
-                        chBandWidth  = specData.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.ChannelBW / 1000; % kHz >> MHz
+                        chFreqCenter = specData.UserData.Emissions.ChannelAssigned(idxEmission).userModified.Frequency; % MHz
+                        chBandWidth  = specData.UserData.Emissions.ChannelAssigned(idxEmission).userModified.ChannelBW / 1000; % kHz >> MHz
                     end
 
                     [xLimits,    ...

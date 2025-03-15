@@ -2,59 +2,60 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                      matlab.ui.Figure
-        GridLayout                    matlab.ui.container.GridLayout
-        toolGrid                      matlab.ui.container.GridLayout
-        tool_ControlPanelVisibility   matlab.ui.control.Image
-        jsBackDoor                    matlab.ui.control.HTML
-        tool_ExportJSONFile           matlab.ui.control.Image
-        tool_ShowGlobalExceptionList  matlab.ui.control.Image
-        ControlGrid                   matlab.ui.container.GridLayout
-        EditableParametersPanel       matlab.ui.container.Panel
-        EditableParametersGrid        matlab.ui.container.GridLayout
-        AdditionalDescription         matlab.ui.control.TextArea
-        AdditionalDescriptionLabel    matlab.ui.control.Label
-        RiskLevel                     matlab.ui.control.DropDown
-        RiskLevelLabel                matlab.ui.control.Label
-        Compliance                    matlab.ui.control.DropDown
-        ComplianceLabel               matlab.ui.control.Label
-        Type                          matlab.ui.control.DropDown
-        TypeLabel                     matlab.ui.control.Label
-        StationID                     matlab.ui.control.EditField
-        StationIDLabel                matlab.ui.control.Label
-        Regulatory                    matlab.ui.control.DropDown
-        RegulatoryLabel               matlab.ui.control.Label
-        DelAnnotation                 matlab.ui.control.Image
-        EditableParametersLabel       matlab.ui.control.Label
-        selectedEmissionPanel         matlab.ui.container.Panel
-        selectedEmissionGrid          matlab.ui.container.GridLayout
-        selectedEmissionInfo          matlab.ui.control.HTML
-        selectedEmissionLabel         matlab.ui.control.Label
-        Document                      matlab.ui.container.GridLayout
-        TXGrid                        matlab.ui.container.GridLayout
-        TXPanel                       matlab.ui.container.Panel
-        TXSubGrid                     matlab.ui.container.GridLayout
-        TXHeight                      matlab.ui.control.NumericEditField
-        TXHeightLabel                 matlab.ui.control.Label
-        TXLongitude                   matlab.ui.control.NumericEditField
-        TXLongitudeLabel              matlab.ui.control.Label
-        TXLatitude                    matlab.ui.control.NumericEditField
-        TXLatitudeLabel               matlab.ui.control.Label
-        plotPanel                     matlab.ui.container.Panel
-        axesToolSupport               matlab.ui.container.GridLayout
-        axesTool_redrawPlot           matlab.ui.control.Image
-        axesTool_Config               matlab.ui.control.Image
-        axesTool_Warning              matlab.ui.control.Image
-        axesTool_Pan                  matlab.ui.control.Image
-        axesTool_RestoreView          matlab.ui.control.Image
-        UITable                       matlab.ui.control.Table
-        tableInfoNRows                matlab.ui.control.Label
-        tableInfoMetadata             matlab.ui.control.Label
-        ContextMenu_UITable           matlab.ui.container.ContextMenu
-        ContextMenu_editEmission      matlab.ui.container.Menu
-        ContextMenu_analogEmission    matlab.ui.container.Menu
-        ContextMenu_digitalEmission   matlab.ui.container.Menu
-        ContextMenu_deleteEmission    matlab.ui.container.Menu
+        UIFigure                       matlab.ui.Figure
+        GridLayout                     matlab.ui.container.GridLayout
+        toolGrid                       matlab.ui.container.GridLayout
+        tool_ControlPanelVisibility    matlab.ui.control.Image
+        jsBackDoor                     matlab.ui.control.HTML
+        tool_ExportJSONFile            matlab.ui.control.Image
+        tool_ShowGlobalExceptionList   matlab.ui.control.Image
+        ControlGrid                    matlab.ui.container.GridLayout
+        EditableParametersPanel        matlab.ui.container.Panel
+        EditableParametersGrid         matlab.ui.container.GridLayout
+        AdditionalDescriptionLabel     matlab.ui.control.Label
+        CaractersticasdeinstalaoLabel  matlab.ui.control.Label
+        axesToolSupport                matlab.ui.container.GridLayout
+        axesTool_EditCancel            matlab.ui.control.Image
+        axesTool_EditConfirm           matlab.ui.control.Image
+        axesTool_EditMode              matlab.ui.control.Image
+        AdditionalDescription          matlab.ui.control.EditField
+        Panel                          matlab.ui.container.Panel
+        TXSubGrid                      matlab.ui.container.GridLayout
+        TXAntennaHeight                matlab.ui.control.NumericEditField
+        TXAntennaHeightLabel           matlab.ui.control.Label
+        TXLongitude                    matlab.ui.control.NumericEditField
+        TXLongitudeLabel               matlab.ui.control.Label
+        TXLatitude                     matlab.ui.control.NumericEditField
+        TXLatitudeLabel                matlab.ui.control.Label
+        RiskLevel                      matlab.ui.control.DropDown
+        RiskLevelLabel                 matlab.ui.control.Label
+        Compliance                     matlab.ui.control.DropDown
+        ComplianceLabel                matlab.ui.control.Label
+        EmissionType                   matlab.ui.control.DropDown
+        EmissionTypeLabel              matlab.ui.control.Label
+        StationID                      matlab.ui.control.EditField
+        StationIDLabel                 matlab.ui.control.Label
+        Regulatory                     matlab.ui.control.DropDown
+        RegulatoryLabel                matlab.ui.control.Label
+        DelAnnotation                  matlab.ui.control.Image
+        EditableParametersLabel        matlab.ui.control.Label
+        selectedEmissionPanel          matlab.ui.container.Panel
+        selectedEmissionGrid           matlab.ui.container.GridLayout
+        selectedEmissionInfo           matlab.ui.control.HTML
+        selectedEmissionLabel          matlab.ui.control.Label
+        Document                       matlab.ui.container.GridLayout
+        axesTool_Warning               matlab.ui.control.Image
+        plotPanel                      matlab.ui.container.Panel
+        axesTool_Pan                   matlab.ui.control.Image
+        axesTool_RestoreView           matlab.ui.control.Image
+        UITable                        matlab.ui.control.Table
+        tableInfoNRows                 matlab.ui.control.Label
+        tableInfoMetadata              matlab.ui.control.Label
+        ContextMenu_UITable            matlab.ui.container.ContextMenu
+        ContextMenu_editEmission       matlab.ui.container.Menu
+        ContextMenu_analogEmission     matlab.ui.container.Menu
+        ContextMenu_digitalEmission    matlab.ui.container.Menu
+        ContextMenu_deleteEmission     matlab.ui.container.Menu
     end
 
     
@@ -87,10 +88,33 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         tempBandObj
         elevationObj = RF.Elevation
+        emissionsTable
 
         UIAxes1
         UIAxes2
         restoreView = struct('ID', {}, 'xLim', {}, 'yLim', {}, 'cLim', {})
+    end
+
+
+    methods
+        %-----------------------------------------------------------------%
+        % IPC: COMUNICAÇÃO ENTRE PROCESSOS
+        %-----------------------------------------------------------------%
+        function ipcSecundaryMatlabCallsHandler(app, callingApp, varargin)
+            try
+                switch class(callingApp)
+                    case {'winAppAnalise', 'winAppAnalise_exported'}
+                        selectedRow = app.UITable.Selection;
+                        startup_createEmissionsTable(app, selectedRow)
+
+                    otherwise
+                        error('UnexpectedCall')
+                end
+            
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+            end
+        end
     end
 
 
@@ -122,11 +146,6 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
                                                                                        'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
             end
-
-            ccTools.compCustomizationV2(app.jsBackDoor, app.AdditionalDescription, 'textAlign', 'justify')
-            ccTools.compCustomizationV2(app.jsBackDoor, app.TXGrid,    'backgroundColor', 'transparent')
-            ccTools.compCustomizationV2(app.jsBackDoor, app.TXPanel,   'backgroundColor', 'rgba(0,0,0,0.5)')
-            ccTools.compCustomizationV2(app.jsBackDoor, app.TXSubGrid, 'backgroundColor', 'transparent')
         end
     end
     
@@ -149,16 +168,17 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function startup_timerFcn(app, idxPrjPeaks)
+        function startup_timerFcn(app, selectedRow)
             if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
                 stop(app.timerObj)
-                delete(app.timerObj)                
-                startup_Controller(app, idxPrjPeaks)
+                delete(app.timerObj)     
+
+                startup_Controller(app, selectedRow)
             end
         end
 
         %-----------------------------------------------------------------%
-        function startup_Controller(app, idxPrjPeaks)
+        function startup_Controller(app, selectedRow)
             drawnow
 
             % Customiza as aspectos estéticos de alguns dos componentes da GUI 
@@ -179,7 +199,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             drawnow
 
             pause(.100)
-            % renderProjectDataOnScreen(app, idxPrjPeaks)
+            startup_createEmissionsTable(app, selectedRow)
             focus(app.UITable)
 
             app.progressDialog.Visible = 'hidden';
@@ -192,8 +212,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_GUIComponents(app)
-            app.axesTool_Pan.UserData    = false;
-            app.axesTool_Config.UserData = false;
+            app.axesTool_Pan.UserData      = false;
+            app.axesTool_EditMode.UserData = false;
         end
 
         %-----------------------------------------------------------------%
@@ -224,16 +244,87 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
+        function startup_createEmissionsTable(app, selectedRow)
+            app.emissionsTable = util.createEmissionsTable(app.specData, 'SIGNALANALYSIS: GUI');
+    
+            if isempty(app.emissionsTable)
+                selectedRow = [];
+            else
+                if isempty(selectedRow)
+                    selectedRow = 1;
+                elseif selectedRow > height(app.emissionsTable)
+                    selectedRow = height(app.emissionsTable);
+                end
+            end
+    
+            if app.progressDialog.Visible == "visible"
+                progressDialogAlreadyVisible = true;
+            else
+                progressDialogAlreadyVisible = false;
+                app.progressDialog.Visible = 'visible';
+            end
+    
+            columnNames = {'Frequency',                  ...
+                           'Truncated',                  ...
+                           'BW_kHz',                     ...
+                           'Level_FreqCenter_Min',       ...
+                           'Level_FreqCenter_Mean',      ...
+                           'Level_FreqCenter_Max',       ...
+                           'FCO_FreqCenter_Infinite',    ...
+                           'FCO_FreqCenter_Finite_Min',  ...
+                           'FCO_FreqCenter_Finite_Mean', ...
+                           'FCO_FreqCenter_Finite_Max',  ...
+                           'RFDataHubDescription'};
+
+            set(app.UITable, 'Data', app.emissionsTable(:, columnNames), 'Selection', selectedRow)
+            set(app.tableInfoNRows, 'Text', sprintf('# %d', height(app.emissionsTable)), 'Visible', 1)
+            layout_TableStyle(app)
+            FillComponents(app)
+    
+            if ~progressDialogAlreadyVisible
+                app.progressDialog.Visible = 'hidden';
+            end
+        end
+    end
+
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        function layout_editRFDataHubStation(app, editionStatus)
+            arguments
+                app 
+                editionStatus char {mustBeMember(editionStatus, {'on', 'off'})}
+            end            
+
+            switch editionStatus
+                case 'on'
+                    set(app.axesTool_EditMode, 'ImageSource', 'Edit_32Filled.png', 'Tooltip', 'Cancela edição dos parâmetros da estação transmissora', 'UserData', true)
+                    app.axesToolSupport.ColumnWidth(end-1:end) = {16,16};
+                    app.axesTool_EditConfirm.Enable = 1;
+                    app.axesTool_EditCancel.Enable  = 1;
+                    set(findobj(app.TXSubGrid.Children, 'Type', 'uinumericeditfield'), 'Editable', 1)
+
+                case 'off'
+                    set(app.axesTool_EditMode, 'ImageSource', 'Edit_32.png', 'Tooltip', sprintf('Possibilita edição dos parâmetros da estação transmissora\n(a nova informação não é salva no RFDataHub)'), 'UserData', false)
+                    app.axesToolSupport.ColumnWidth(end-1:end) = {0,0};
+                    app.axesTool_EditConfirm.Enable = 0;
+                    app.axesTool_EditCancel.Enable  = 0;
+                    set(findobj(app.TXSubGrid.Children, 'Type', 'uinumericeditfield'), 'Editable', 0)
+
+                    layout_updateCoordinatesPanel(app)
+            end
+        end
+
+        %-----------------------------------------------------------------%
         function layout_Regulatory(app)
             switch app.Regulatory.Value
                 case 'Licenciada'
-                    set(app.Type, 'Value', 'Fundamental', 'Enable', 0)
-                    app.TypeLabel.Enable   = 0;    
+                    set(app.EmissionType, 'Value', 'Fundamental', 'Enable', 0)
+                    app.EmissionTypeLabel.Enable   = 0;    
                     set(app.Compliance, 'Items', {'Não', 'Sim'}, 'Value', 'Não')
 
                 case {'Não licenciada', 'Não passível de licenciamento'}    
-                    app.Type.Enable      = 1;
-                    app.TypeLabel.Enable = 1;
+                    app.EmissionType.Enable      = 1;
+                    app.EmissionTypeLabel.Enable = 1;
                     app.StationID.Value  = '-1';
     
                     switch app.Regulatory.Value
@@ -243,6 +334,33 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                             set(app.Compliance, 'Items', {'Não', 'Sim'}, 'Value', 'Não')
                     end
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function layout_StationID(app)
+            if app.StationID.Value == "-1"
+                set(app.StationID, 'BackgroundColor', [1,0,0], 'FontColor', [1,1,1])
+            else
+                set(app.StationID, 'BackgroundColor', [1,1,1], 'FontColor', [0,0,0])
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function layout_EmissionType(app)
+            % Migrado do ordinário "set" p/ "addStyle" porque o "set" não
+            % renderiza a cor da fonte até que o mouse passe sobre o
+            % componente, mesmo inserindo drawnow ou pause(.100).
+            % set(app.EmissionType, 'BackgroundColor', [1,1,1], 'FontColor', [0,0,0])
+
+            removeStyle(app.EmissionType)
+            if contains(app.EmissionType.Value, 'Pendente', 'IgnoreCase', true)
+                backgroundColor = [1,0,0];
+                fontColor       = [1,1,1];
+            else
+                backgroundColor = [1,1,1];
+                fontColor       = [0,0,0];
+            end
+            addStyle(app.EmissionType, uistyle('BackgroundColor', backgroundColor, 'FontColor', fontColor))
         end
 
         %-----------------------------------------------------------------%
@@ -260,129 +378,105 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         function layout_TableStyle(app)
             removeStyle(app.UITable)
                 
-            idxEditedPeaks = [];
-            idxInvalidStationNumber = [];
-            if ~isempty(app.projectData.exceptionList)
-                for ii = 1:height(app.projectData.exceptionList)
-                    idxRelatedPeaks = find(strcmp(app.projectData.peaksTable.Tag, app.projectData.exceptionList.Tag(ii)) & (abs(app.projectData.peaksTable.Frequency - app.projectData.exceptionList.Frequency(ii)) <= class.Constants.floatDiffTolerance));
-                    idxEditedPeaks = [idxEditedPeaks; idxRelatedPeaks];
-
-                    if app.projectData.exceptionList.Station(ii) == -1
-                        idxInvalidStationNumber = [idxInvalidStationNumber; idxRelatedPeaks];
-                    end
-                end
-                
-                if ~isempty(idxEditedPeaks)
-                    listOfCells1 = [idxEditedPeaks, ones(numel(idxEditedPeaks), 1)];
-                    addStyle(app.UITable, uistyle('Icon', 'Edit_32.png',  'IconAlignment', 'leftmargin'), 'cell', listOfCells1) 
+            % Destaca registros que tiveram a sua classificação editada...
+            idxEditedPeaks = [];            
+            for ii = 1:height(app.emissionsTable)
+                if ~isequal(app.emissionsTable.Classification(ii).autoSuggested, ...
+                            app.emissionsTable.Classification(ii).userModified)
+                    idxEditedPeaks = [idxEditedPeaks; ii];
                 end
             end
+            
+            if ~isempty(idxEditedPeaks)
+                listOfCells1 = [idxEditedPeaks, ones(numel(idxEditedPeaks), 1)];
+                addStyle(app.UITable, uistyle('Icon', 'Edit_32.png',  'IconAlignment', 'leftmargin'), 'cell', listOfCells1) 
+            end
 
-            idxInvalidStationNumber = unique([idxInvalidStationNumber; find(app.projectData.peaksTable.Station == -1)]);
+            % Destaca registros que apresentam valores inválidos de estações...
+            % (usei o método dois por robustez na obtenção dos índices)
+            % idxInvalidStationNumber = find(arrayfun(@(x) x.userModified.Station, app.emissionsTable.Classification) == -1);
+            idxInvalidStationNumber = find(cellfun(@(x) isequal(x, -1), arrayfun(@(x) x.userModified.Station, app.emissionsTable.Classification, 'UniformOutput', false)));
             if ~isempty(idxInvalidStationNumber)
                 listOfCells2 = [idxInvalidStationNumber, repmat(2, numel(idxInvalidStationNumber), 1)];
                 addStyle(app.UITable, uistyle('Icon', 'Circle_18Red.png',  'IconAlignment', 'leftmargin'), 'cell', listOfCells2) 
             end
         end
-
-
-        %-----------------------------------------------------------------%
-        function userDescription = UserDescriptionParser(app)
-            userDescription = strtrim(app.AdditionalDescription.Value);
-            userDescription(cellfun(@(x) isempty(x), userDescription)) = [];
-            userDescription = strjoin(userDescription);
-        end
         
         %-----------------------------------------------------------------%
         function FillComponents(app)
-            global RFDataHub
-
-            idxPrjPeaks     = app.UITable.Selection;
-            idxPrjException = exceptionListIndex(app);
-            [idxThread, ...
-             idxEmission]   = specDataIndex(app, idxPrjPeaks);
-
-            [htmlContent,     ...
-             emissionTag,     ...
-             userDescription, ...
-             stationInfo]   = auxApp.signalanalysis.htmlCode_EmissionInfo(app.specData, idxThread, idxEmission, app.projectData, idxPrjPeaks, idxPrjException);
-
-            app.selectedEmissionInfo.HTMLSource = htmlContent;
-            set(app.AdditionalDescription, 'Value', userDescription, 'UserData', userDescription) 
-
-            % TABLE CONTEXT MENU
-            if app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
-                app.ContextMenu_analogEmission.Enable  = 1;
-                app.ContextMenu_digitalEmission.Enable = 0;
-            else
-                app.ContextMenu_analogEmission.Enable  = 0;
-                app.ContextMenu_digitalEmission.Enable = 1;
-            end
-
-            % CONTROL PANEL
-            if isempty(idxPrjException)
-                app.DelAnnotation.Visible = 0;
-                app.Regulatory.Value      = app.projectData.peaksTable.Regulatory{idxPrjPeaks};
-                layout_Regulatory(app)
-                app.StationID.Value       = num2str(app.projectData.peaksTable.Station(idxPrjPeaks));                
-                app.Type.Value            = app.projectData.peaksTable.Type{idxPrjPeaks};
-                app.Compliance.Value      = app.projectData.peaksTable.Irregular{idxPrjPeaks};
-                layout_Compliance(app)
-                app.RiskLevel.Value       = app.projectData.peaksTable.RiskLevel{idxPrjPeaks};
-                
-            else
-                app.DelAnnotation.Visible = 1;
-                app.Regulatory.Value      = app.projectData.exceptionList.Regulatory(idxPrjException);
-                layout_Regulatory(app)
-                app.StationID.Value       = num2str(app.projectData.exceptionList.Station(idxPrjException));
-                app.Type.Value            = app.projectData.exceptionList.Type(idxPrjException);
-                app.Compliance.Value      = app.projectData.exceptionList.Irregular(idxPrjException);
-                layout_Compliance(app)
-                app.RiskLevel.Value       = app.projectData.exceptionList.RiskLevel(idxPrjException);
-            end
-
-            % PLOT CONFIG PANEL
-            idxStation = [];
-            if ~isempty(stationInfo.ID)
-                idx = stationInfo.ID;
-
-                if RFDataHub.Fistel(idx)  == stationInfo.Fistel  && ...
-                   RFDataHub.Service(idx) == stationInfo.Service && ...
-                   RFDataHub.Station(idx) == stationInfo.Station
-                    idxStation = idx;
-                
+            if ~isempty(app.emissionsTable)
+                selectedRow = app.UITable.Selection;
+                [idxThread, idxEmission] = emissionIndex(app);
+    
+                [htmlContent,     ...
+                 emissionTag,     ...
+                 userDescription, ...
+                 stationInfo]   = util.HtmlTextGenerator.Emission(app.specData, idxThread, idxEmission);
+    
+                app.selectedEmissionInfo.HTMLSource = htmlContent;
+                set(app.AdditionalDescription, 'Value', userDescription, 'UserData', userDescription) 
+    
+                % TABLE CONTEXT MENU
+                if app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
+                    app.ContextMenu_analogEmission.Enable  = 1;
+                    app.ContextMenu_digitalEmission.Enable = 0;
                 else
-                    idxStation = find((RFDataHub.Fistel(idx)  == stationInfo.Fistel                                                 && ...
-                                       RFDataHub.Service(idx) == stationInfo.Service                                                && ...
-                                       RFDataHub.Station(idx) == stationInfo.Station                                                && ...
-                                       abs(RFDataHub.Latitude(idx)  - stationInfo.Latitude)  <=  class.Constants.floatDiffTolerance && ...
-                                       abs(RFDataHub.Longitude(idx) - stationInfo.Longitude) <=  class.Constants.floatDiffTolerance), 1);
+                    app.ContextMenu_analogEmission.Enable  = 0;
+                    app.ContextMenu_digitalEmission.Enable = 1;
                 end
-            end
-            app.axesTool_redrawPlot.UserData = idxStation;
+    
+                % CONTROL PANEL
+                app.DelAnnotation.Visible = ~isequal(app.specData(idxThread).UserData.Emissions.Classification(idxEmission).autoSuggested, ...
+                                                     app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified);
+                
+                app.Regulatory.Value      = app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Regulatory;
+                layout_Regulatory(app)
+                app.StationID.Value       = num2str(app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Station);
+                layout_StationID(app)
+                app.EmissionType.Value    = app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.EmissionType;
+                layout_EmissionType(app)            
+                app.Compliance.Value      = app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Irregular;
+                layout_Compliance(app)            
+                app.RiskLevel.Value       = app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.RiskLevel;
+    
+                % PLOT CONFIG PANEL
+                app.axesTool_EditConfirm.UserData = stationInfo;
+                layout_updateCoordinatesPanel(app)
+    
+                % PLOT
+                plot_createSpectrumPlot(app, idxThread, idxEmission, emissionTag)
+                plot_createRFLinkPlot(app, selectedRow, idxThread)
+                
+                app.EditableParametersGrid.Visible = 1;
+                app.tool_ExportJSONFile.Enable = 1;
 
-            if ~isempty(idxStation)                
-                app.TXLatitude.Value  = round(double(RFDataHub.Latitude(idxStation)),  6);
-                app.TXLongitude.Value = round(double(RFDataHub.Longitude(idxStation)), 6);
-
-                txAntennaHeight = str2double(char(RFDataHub.AntennaHeight(idxStation)));
-                if txAntennaHeight < 0
-                    txAntennaHeight = app.General.RFDataHub.DefaultTX.Height;
-                end
-                app.TXHeight.Value = txAntennaHeight;
             else
-                app.TXLatitude.Value  = -1;
-                app.TXLongitude.Value = -1;
-                app.TXHeight.Value    = app.General.RFDataHub.DefaultTX.Height;
+                app.selectedEmissionInfo.HTMLSource = ' ';
+                cla(app.UIAxes1)
+                ysecondarylabel(app.UIAxes1, newline)
+                cla(app.UIAxes2)
+                app.DelAnnotation.Visible = 0;
+                app.EditableParametersGrid.Visible = 0;
+                app.tool_ExportJSONFile.Enable = 0;
             end
-
-            % PLOT
-            plot_createSpectrumPlot(app, idxPrjPeaks, idxThread, idxEmission, emissionTag)
-            plot_createRFLinkPlot(app, idxPrjPeaks, idxThread, idxStation)
         end
 
         %-----------------------------------------------------------------%
-        function plot_createSpectrumPlot(app, idxPrjPeaks, idxThread, idxEmission, emissionTag)
+        function layout_updateCoordinatesPanel(app)
+            stationInfo           = app.axesTool_EditConfirm.UserData;
+
+            app.TXLatitude.Value  = round(double(stationInfo.Latitude),  6);
+            app.TXLongitude.Value = round(double(stationInfo.Longitude), 6);
+
+            if stationInfo.AntennaHeight > 0
+                app.TXAntennaHeight.Value = stationInfo.AntennaHeight;
+            else
+                app.TXAntennaHeight.Value = app.General.RFDataHub.DefaultTX.Height;
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function plot_createSpectrumPlot(app, idxThread, idxEmission, emissionTag)
             cla(app.UIAxes1)
             if ~isempty(idxThread) && ~isempty(idxEmission)
                 % pre-Plot (XLim, YLim, YLabel)
@@ -391,7 +485,10 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 set(app.UIAxes1, 'XLim', app.restoreView(1).xLim, 'YLim', app.restoreView(1).yLim)
 
                 ylabel(app.UIAxes1, sprintf('Nível (%s)', app.tempBandObj.LevelUnit))
-                ysecondarylabel(app.UIAxes1, [app.projectData.peaksTable.Tag{idxPrjPeaks} ' @ ' emissionTag])
+                ysecondarylabel(app.UIAxes1, sprintf('%s\n%.3f - %.3f MHz @ %s\n', app.specData(idxThread).Receiver,               ...
+                                                                                   app.specData(idxThread).MetaData.FreqStart/1e6, ...
+                                                                                   app.specData(idxThread).MetaData.FreqStop/1e6,  ...
+                                                                                   emissionTag))
 
                 % Plot "MinHold", "Average" e "MaxHold"
                 for plotTag = ["MinHold", "Average", "MaxHold"]
@@ -409,10 +506,10 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function plot_createRFLinkPlot(app, idxPrjPeaks, idxThread, idxStation)
+        function plot_createRFLinkPlot(app, selectedRow, idxThread)
             try
                 % OBJETOS TX e RX
-                [txObj, rxObj] = RFLinkObjects(app, idxPrjPeaks, idxThread, idxStation);
+                [txObj, rxObj] = RFLinkObjects(app, selectedRow, idxThread);
     
                 % ELEVAÇÃO DO LINK TX-RX
                 [wayPoints3D, msgWarning] = Get(app.elevationObj, txObj, rxObj, app.General.Elevation.Points, app.General.Elevation.ForceSearch, app.General.Elevation.Server);
@@ -431,7 +528,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                     app.axesTool_Warning.Visible = 1;
                 end
                 
-            catch
+            catch ME
                 cla(app.UIAxes2)
                 app.UIAxes2.PickableParts = "none";
                 msgWarning = text(app.UIAxes2, mean(app.UIAxes2.XLim), mean(app.UIAxes2.YLim), {'PERFIL DE TERRENO ENTRE RECEPTOR';  ...
@@ -442,12 +539,12 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 msgWarning.Units = 'normalized';
                 app.axesTool_Warning.Visible = 0;
             end
-            app.axesTool_redrawPlot.Enable = 0;
+            app.axesTool_EditConfirm.Enable = 0;
         end
 
         %-----------------------------------------------------------------%
-        function [txSite, rxSite] = RFLinkObjects(app, idxPrjPeaks, idxThread, idxStation)
-            if isempty(idxStation)
+        function [txSite, rxSite] = RFLinkObjects(app, selectedRow, idxThread)
+            if (app.TXLatitude.Value == -1) && (app.TXLongitude.Value == -1)
                 error('winSignalAnalysis:RFLinkObjects:UnexpectedEmptyIndex', 'Unexpected empty index')
             end
 
@@ -456,11 +553,11 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             % campos da estrutura são idênticos às propriedades dos objetos.
 
             % TX
-            txSite = struct('Name',                 'TX',                                                             ...
-                            'TransmitterFrequency', double(app.projectData.peaksTable.Truncated(idxPrjPeaks) * 1e+6), ...
-                            'Latitude',             app.TXLatitude.Value,                                             ...
-                            'Longitude',            app.TXLongitude.Value,                                            ...
-                            'AntennaHeight',        app.TXHeight.Value);
+            txSite = struct('Name',                 'TX',                                                   ...
+                            'TransmitterFrequency', double(app.UITable.Data.Truncated(selectedRow) * 1e+6), ...
+                            'Latitude',             app.TXLatitude.Value,                                   ...
+                            'Longitude',            app.TXLongitude.Value,                                  ...
+                            'AntennaHeight',        app.TXAntennaHeight.Value);
 
             % RX
             rxSite = struct('Name',                 'RX',                                  ...
@@ -470,199 +567,115 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function AddException(app, stationInfo, triggeredComponent)
-            idxPrjPeaks     = app.UITable.Selection;
-            idxPrjException = exceptionListIndex(app);
-            [idxThread, ...
-             idxEmission]   = specDataIndex(app, idxPrjPeaks);
-            userDescription = UserDescriptionParser(app);
+        function AddException(app, triggeredComponent, varargin)
 
-            if ~strcmp(app.projectData.peaksTable.Regulatory{idxPrjPeaks}, app.Regulatory.Value)  || ...
-               app.projectData.peaksTable.Station(idxPrjPeaks) ~= str2double(app.StationID.Value) || ...
-               ~strcmp(app.projectData.peaksTable.Type{idxPrjPeaks},      app.Type.Value)         || ...
-               ~strcmp(app.projectData.peaksTable.Irregular{idxPrjPeaks}, app.Compliance.Value)   || ...
-               ~strcmp(app.projectData.peaksTable.RiskLevel{idxPrjPeaks}, app.RiskLevel.Value)    || ...
-               ~strcmp(userDescription, app.AdditionalDescription.UserData)
-    
-                % Modificação direta de app.StationID.Value ocasionará num 
-                % registro relacionado a uma estação "Licenciada" ou "Não 
-                % licenciada" (extraída de base aeronáutica). Neste caso, 
-                % "stationInfo" é uma estrutura não vazia.
+            selectedRow = app.UITable.Selection;
+            [idxThread, idxEmission] = emissionIndex(app);
 
-                % Caso a modificação tenha sido em outro campo, a alteração
-                % somente terá efeito se o campo "Informações complementares"
-                % estiver preenchido!          
-                switch triggeredComponent
-                    case app.StationID
-                        switch stationInfo.Service 
-                            case -1
-                                newRegulatory = 'Não licenciada';
-                                newCompliance = 'Sim';
-                                newRiskLevel  = 'Baixo';
-                            otherwise
-                                newRegulatory = 'Licenciada';
-                                newCompliance = 'Não';
-                                newRiskLevel  = '-';
-                        end    
-                        exceptionValue = {app.projectData.peaksTable.Tag{idxPrjPeaks},       ...
-                                          app.projectData.peaksTable.Frequency(idxPrjPeaks), ...
-                                          'Fundamental',                                     ...
-                                          newRegulatory,                                     ...
-                                          stationInfo.Service,                               ...
-                                          stationInfo.Station,                               ...
-                                          stationInfo.Description,                           ...
-                                          sprintf('%.1f', stationInfo.Distance),             ...
-                                          newCompliance,                                     ...
-                                          newRiskLevel};
-                        AddExceptionValue2Table(app, idxPrjException, exceptionValue)
+            switch triggeredComponent
+                case app.DelAnnotation
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified = app.specData(idxThread).UserData.Emissions.Classification(idxEmission).autoSuggested;
 
-                    case app.AdditionalDescription
-                        if ~isempty(idxThread) && ~isempty(idxEmission)
-                            if ~strcmp(userDescription, app.AdditionalDescription.UserData)                                
-                                app.specData(idxThread).UserData.Emissions.UserData(idxEmission).Description = userDescription;
-                                ipcMainMatlabCallsHandler(app.mainApp, app, 'PeakDescriptionChanged')
-                            end
+                case app.StationID
+                    stationInfo = varargin{1};
+
+                    switch stationInfo.Service 
+                        case -1
+                            newRegulatory = 'Não licenciada';
+                            newCompliance = 'Sim';
+                            newRiskLevel  = 'Baixo';
+                        otherwise
+                            newRegulatory = 'Licenciada';
+                            newCompliance = 'Não';
+                            newRiskLevel  = '-';
+                    end
+
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Service       = stationInfo.Service;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Station       = stationInfo.Station;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Latitude      = stationInfo.Latitude;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Longitude     = stationInfo.Longitude;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.AntennaHeight = stationInfo.AntennaHeight;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Description   = stationInfo.Description;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Details       = stationInfo.Details;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Distance      = stationInfo.Distance;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Regulatory    = newRegulatory;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.EmissionType  = 'Fundamental';                        
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Irregular     = newCompliance;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.RiskLevel     = newRiskLevel;
+
+                case app.AdditionalDescription
+                    userDescription = app.AdditionalDescription.Value;
+
+                    if strcmp(userDescription, app.specData(idxThread).UserData.Emissions.Description(idxEmission))
+                        return
+                    end
+
+                    app.specData(idxThread).UserData.Emissions.Description(idxEmission) = userDescription;
+                    ipcMainMatlabCallsHandler(app.mainApp, app, 'PeakDescriptionChanged')
+                    
+                case app.axesTool_EditConfirm % Latitude | Longitude | AntennaHeight
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Latitude      = single(app.TXLatitude.Value);
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Longitude     = single(app.TXLongitude.Value);
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.AntennaHeight = app.TXAntennaHeight.Value;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Distance      = deg2km(distance(app.specData(idxThread).GPS.Latitude, app.specData(idxThread).GPS.Longitude, ...
+                                                                                                                                        single(app.TXLatitude.Value), single(app.TXLongitude.Value)));
+
+                otherwise
+                    oldRegulatory = app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Regulatory;
+                    newRegulatory = app.Regulatory.Value;
+
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Regulatory    = app.Regulatory.Value;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.EmissionType  = app.EmissionType.Value;                        
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Irregular     = app.Compliance.Value;
+                    app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.RiskLevel     = app.RiskLevel.Value;
+
+                    if newRegulatory ~= "Licenciada"
+                        app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Service   = int16(-1);
+                        app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Station   = int32(-1);
+                        app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Description = '[EXC]';
+                        app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Details   = '';
+
+                        if oldRegulatory == "Licenciada"
+                            app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Latitude      = single(-1);
+                            app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Longitude     = single(-1);
+                            app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.AntennaHeight = 0;
+                            app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Distance      = single(-1);
                         end
-
-                    otherwise
-                        exceptionValue = {app.projectData.peaksTable.Tag{idxPrjPeaks},       ...
-                                          app.projectData.peaksTable.Frequency(idxPrjPeaks), ...
-                                          app.Type.Value,                                    ...
-                                          app.Regulatory.Value,                              ...
-                                          [], [], [], [],                                    ...
-                                          app.Compliance.Value,                              ...
-                                          app.RiskLevel.Value};
-        
-                        switch app.Regulatory.Value
-                            case 'Licenciada'
-                                if isempty(idxPrjException)
-                                    exceptionValue(5:8) = {app.projectData.peaksTable.Service(idxPrjPeaks),     ...
-                                                           app.projectData.peaksTable.Station(idxPrjPeaks),     ...
-                                                           app.projectData.peaksTable.Description{idxPrjPeaks}, ...
-                                                           app.projectData.peaksTable.Distance{idxPrjPeaks}};
-                                else
-                                    exceptionValue(5:8) = {app.projectData.exceptionList.Service(idxPrjException),     ...
-                                                           app.projectData.exceptionList.Station(idxPrjException),     ...
-                                                           app.projectData.exceptionList.Description{idxPrjException}, ...
-                                                           app.projectData.exceptionList.Distance{idxPrjException}};
-                                end
-    
-                            otherwise
-                                exceptionValue(5:8) = {-1, -1, '[EXC]', '-'};
-                        end
-                        AddExceptionValue2Table(app, idxPrjException, exceptionValue)
-                end
-
-                layout_TableStyle(app)            
-                FillComponents(app)
+                    end
             end
+
+            startup_createEmissionsTable(app, selectedRow)
         end
 
         %-----------------------------------------------------------------%
-        function AddExceptionValue2Table(app, idxPrjException, exceptionValue)
-            if isempty(idxPrjException)
-                app.projectData.exceptionList(end+1,:)           = exceptionValue;
-            else
-                app.projectData.exceptionList(idxPrjException,:) = exceptionValue;
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function [idxThread, idxEmission] = specDataIndex(app, idxPrjPeaks)
-            idxThread   = [];
-            idxEmission = [];
-
-            for ii = 1:numel(app.specData)
-                Tag = sprintf('%s\n%.3f - %.3f MHz', app.specData(ii).Receiver,                  ...
-                                                     app.specData(ii).MetaData.FreqStart / 1e+6, ...
-                                                     app.specData(ii).MetaData.FreqStop  / 1e+6);
-                if strcmp(Tag, app.projectData.peaksTable.Tag{idxPrjPeaks})
-                    idxThread   = ii;
-                    idxEmission = find(app.specData(idxThread).UserData.Emissions.Index == app.projectData.peaksTable.Index(idxPrjPeaks), 1);
-                    break
-                end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function idxPrjException = exceptionListIndex(app)
-            idxPrjPeaks     = app.UITable.Selection;
-            idxPrjException = intersect(find(strcmp(app.projectData.exceptionList.Tag,  app.projectData.peaksTable.Tag(idxPrjPeaks))), ...
-                                        find(abs(app.projectData.exceptionList.Frequency - app.projectData.peaksTable.Frequency(idxPrjPeaks)) <= class.Constants.floatDiffTolerance));
-
-            if ~isempty(idxPrjException)
-                idxPrjException = idxPrjException(1);
-            end
+        function [idxThread, idxEmission] = emissionIndex(app)
+            selectedRow = app.UITable.Selection;
+            idxThread   = app.emissionsTable.idxThread(selectedRow);
+            idxEmission = app.emissionsTable.idxEmission(selectedRow);
         end
     end
 
-
-    methods (Access = public)
-        %-----------------------------------------------------------------%
-        function renderProjectDataOnScreen(app, idxPrjPeaks)
-            if isempty(app.projectData.peaksTable)
-                closeFcn(app)
-                return
-            end
-
-            if idxPrjPeaks > height(app.projectData.peaksTable)
-                idxPrjPeaks = height(app.projectData.peaksTable);
-            end
-
-            if app.progressDialog.Visible == "visible"
-                progressDialogAlreadyVisible = true;
-            else
-                progressDialogAlreadyVisible = false;
-                app.progressDialog.Visible = 'visible';
-            end
-
-            % !! PONTO DE EVOLUÇÃO !!
-            % Converter para string, controlando o número de casas decimais, 
-            % apenas na geração do relatório. De resto, manter como numérico 
-            % para garantir coerência nas operações com a tabela (como a 
-            % filtragem).
-            tempData           = app.projectData.peaksTable(:, {'Frequency', 'Truncated', 'BW', 'minLevel', 'meanLevel', 'maxLevel', 'meanOCC', 'maxOCC', 'Tag'});
-            tempData.BW        = int32(tempData.BW);
-            tempData.minLevel  = str2double(tempData.minLevel);
-            tempData.meanLevel = str2double(tempData.meanLevel);
-            tempData.maxLevel  = str2double(tempData.maxLevel);
-            tempData.meanOCC   = str2double(tempData.meanOCC);
-            tempData.maxOCC    = str2double(tempData.maxOCC);
-            % !! PONTO DE EVOLUÇÃO !!
-
-            set(app.tableInfoNRows, 'Text', sprintf('# %d', height(tempData)), 'Visible', 1)
-            set(app.UITable, 'Data', tempData, 'Selection', idxPrjPeaks)
-            layout_TableStyle(app)
-            FillComponents(app)
-
-            if ~progressDialogAlreadyVisible
-                app.progressDialog.Visible = 'hidden';
-            end
-        end
-    end
-    
 
     % Callbacks that handle component events
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainApp, idxPrjPeaks)
+        function startupFcn(app, mainApp, selectedRow)
             
             app.mainApp     = mainApp;
             app.General     = mainApp.General;
             app.General_I   = mainApp.General_I;
             app.rootFolder  = mainApp.rootFolder;
             app.specData    = mainApp.specData;
-            app.projectData = mainApp.projectData;
 
             jsBackDoor_Initialization(app)
 
             if app.isDocked
                 app.GridLayout.Padding(4) = 19;
-                startup_Controller(app, idxPrjPeaks)
+                startup_Controller(app, selectedRow)
             else
                 appUtil.winPosition(app.UIFigure)
-                startup_timerCreation(app, idxPrjPeaks)
+                startup_timerCreation(app, selectedRow)
             end
             
         end
@@ -697,7 +710,19 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
                 %---------------------------------------------------------%
                 case app.tool_ExportJSONFile
-                    report.Controller(app, 'signalAnalysis.externalJSON')
+                    idxThreads = 1:numel(app.specData);
+
+                    emissionSummaryTable   = reportLibConnection.table.Summary(app.specData, 'SIGNALANALYSIS', 'EditedEmissionsTable');
+                    emissionFiscalizaTable = reportLibConnection.table.fiscalizaJsonFile(app.specData, idxThreads, emissionSummaryTable);
+    
+                    nameFormatMap   = {'*.json', 'appAnalise (*.json)'};
+                    defaultFilename = class.Constants.DefaultFileName(app.mainApp.General.fileFolder.userPath, 'preReport', app.mainApp.report_Issue.Value);
+                    JSONFullPath    = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultFilename);
+                    if isempty(JSONFullPath)
+                        return
+                    end
+                    
+                    writematrix(emissionFiscalizaTable, JSONFullPath, "FileType", "text", "QuoteStrings", "none")
 
                 %---------------------------------------------------------%
                 case app.tool_ControlPanelVisibility
@@ -712,8 +737,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: axesTool_Config, axesTool_Pan, 
-        % ...and 2 other components
+        % Callback function: TXLatitude, TXLongitude, axesTool_EditCancel, 
+        % ...and 4 other components
         function axesToolbarCallbacks(app, event)
             
             switch event.Source
@@ -730,25 +755,28 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
                     plot.axes.Interactivity.CustomPanFcn(struct('Value', app.axesTool_Pan.UserData), app.UIAxes1, app.UIAxes2);
 
-                case app.axesTool_redrawPlot
-                    idxPrjPeaks = app.UITable.Selection;
-                    idxThread   = specDataIndex(app, idxPrjPeaks);
-                    idxStation  = app.axesTool_redrawPlot.UserData;
-                    if isempty(idxStation)
-                        idxStation = -1;
-                    end
-
-                    plot_createRFLinkPlot(app, idxPrjPeaks, idxThread, idxStation)
-
-                case app.axesTool_Config
-                    app.axesTool_Config.UserData = ~app.axesTool_Config.UserData;
-                    if app.axesTool_Config.UserData
-                        app.TXGrid.Visible = 1;
-                        %app.Document.ColumnWidth{4} = 260;
+                case app.axesTool_EditMode
+                    app.axesTool_EditMode.UserData = ~app.axesTool_EditMode.UserData;
+        
+                    if app.axesTool_EditMode.UserData
+                        layout_editRFDataHubStation(app, 'on')
+                        focus(app.TXLatitude)        
                     else
-                        app.TXGrid.Visible = 0;
-                        %app.Document.ColumnWidth{4} = 0;
+                        layout_editRFDataHubStation(app, 'off')
                     end
+
+                case app.axesTool_EditConfirm
+                    AddException(app, event.Source)
+                    layout_editRFDataHubStation(app, 'off')
+
+                case app.axesTool_EditCancel
+                    layout_editRFDataHubStation(app, 'off')
+
+                case app.TXLatitude
+                    focus(app.TXLongitude)
+
+                case app.TXLongitude
+                    focus(app.TXAntennaHeight)
             end
 
         end
@@ -771,9 +799,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             if ~isempty(app.UITable.Selection)
                 app.progressDialog.Visible = 'visible';
 
-                idxPrjPeaks   = app.UITable.Selection;
-                [idxThread, ...
-                 idxEmission] = specDataIndex(app, idxPrjPeaks);
+                [idxThread, idxEmission] = emissionIndex(app);
 
                 switch event.Source
                     case app.ContextMenu_deleteEmission
@@ -782,11 +808,11 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                         idxEmission = 1;
 
                     case app.ContextMenu_digitalEmission
-                        operationType = 'PeakValueChanged';
+                        operationType = 'IsTruncatedValueChanged';
                         app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission) = 1;
 
                     case app.ContextMenu_analogEmission
-                        operationType = 'PeakValueChanged';
+                        operationType = 'IsTruncatedValueChanged';
                         app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission) = 0;
                 end
                 
@@ -816,18 +842,21 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                            'deve ser colocado o caractere "#" à frente do número. Por exemplo: 123456 ou #123456.'])
                 end
                 
-                idxPrjPeaks   = app.UITable.Selection;
-                latitudeNode  = app.projectData.peaksTable.Latitude(idxPrjPeaks);
-                longitudeNode = app.projectData.peaksTable.Longitude(idxPrjPeaks);
-                stationInfo   = class.RFDataHub.query(RFDataHub, app.StationID.Value, latitudeNode, longitudeNode);
+                [idxThread, idxEmission] = emissionIndex(app);
+                receiverLatitude  = app.specData(idxThread).GPS.Latitude;
+                receiverLongitude = app.specData(idxThread).GPS.Longitude;
+                stationInfo       = class.RFDataHub.query(RFDataHub, app.StationID.Value, receiverLatitude, receiverLongitude);
 
-                dataStruct(1) = struct('group', 'INDICAÇÃO AUTOMÁTICA',                                                                          ...
-                                        'value', struct('Regulatory',  app.projectData.peaksTable.Regulatory{idxPrjPeaks},                     ...
-                                                        'Frequency',   sprintf('%.3f MHz', app.projectData.peaksTable.Frequency(idxPrjPeaks))));
+                % Caso a estação não conste em RFDataHub, o método query
+                % chamado anteriormente retornará um erro. Mas caso
+                % encontre, confirma-se com o usuário a edição.
+                dataStruct(1)     = struct('group', 'INDICAÇÃO AUTOMÁTICA',                                                                                               ...
+                                           'value', struct('Regulatory', app.specData(idxThread).UserData.Emissions.Classification(idxEmission).autoSuggested.Regulatory, ...
+                                                           'Frequency',  sprintf('%.3f MHz', app.specData(idxThread).UserData.Emissions.Frequency(idxEmission))));
                 
-                if app.projectData.peaksTable.Regulatory{idxPrjPeaks} == "Licenciada"
-                    dataStruct(1).value.Description = app.projectData.peaksTable.Description{idxPrjPeaks};
-                    dataStruct(1).value.Distance    = sprintf('%s km', app.projectData.peaksTable.Distance{idxPrjPeaks});
+                if app.specData(idxThread).UserData.Emissions.Classification(idxEmission).autoSuggested.Regulatory == "Licenciada"
+                    dataStruct(1).value.Description = app.specData(idxThread).UserData.Emissions.Classification(idxEmission).autoSuggested.Description;
+                    dataStruct(1).value.Distance    = sprintf('%s km', app.specData(idxThread).UserData.Emissions.Classification(idxEmission).autoSuggested.Distance);
                 end
 
                 switch stationInfo.Service
@@ -846,13 +875,13 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 userSelection  = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
                 switch userSelection
                     case 'Sim'
-                        AddException(app, stationInfo, app.StationID)
+                        AddException(app, app.StationID, stationInfo)
                     case 'Não'
-                        app.StationID.Value = num2str(app.projectData.peaksTable.Station(idxPrjPeaks));
+                        app.StationID.Value = num2str(app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Station);
                 end
 
             catch ME
-                app.StationID.Value = num2str(app.projectData.peaksTable.Station(idxPrjPeaks));                
+                app.StationID.Value = num2str(app.specData(idxThread).UserData.Emissions.Classification(idxEmission).userModified.Station);
                 appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
             end
             
@@ -873,7 +902,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                     return
 
                 otherwise % case {'Não licenciada', 'Não passível de licenciamento'}
-                    userDescription = UserDescriptionParser(app);
+                    userDescription = strtrim(app.AdditionalDescription.Value);
                     if isempty(userDescription)
                         app.Regulatory.Value = event.PreviousValue;
     
@@ -889,20 +918,19 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             
         end
 
-        % Value changed function: AdditionalDescription, Compliance, 
-        % ...and 2 other components
+        % Callback function: AdditionalDescription, Compliance, 
+        % ...and 3 other components
         function OthersParametersValueChanged(app, event)
             
             switch event.Source
                 case app.Compliance
                     layout_Compliance(app)
 
-                case {app.Type, app.RiskLevel}
-                    % Algo?! Acho que não. Apenas atualização do registro
-                    % da exceção...
+                case app.EmissionType
+                    layout_EmissionType(app)
 
                 case app.AdditionalDescription
-                    userDescription = UserDescriptionParser(app);
+                    userDescription = strtrim(app.AdditionalDescription.Value);
                     if isempty(userDescription) && ~strcmp(app.Regulatory.Value, 'Licenciada')
                         app.AdditionalDescription.Value = event.PreviousValue;
     
@@ -915,26 +943,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                     app.AdditionalDescription.Value = userDescription;
             end
 
-            AddException(app, [], event.Source)
+            AddException(app, event.Source)
 
-        end
-
-        % Image clicked function: DelAnnotation
-        function DeleteException(app, event)
-            
-            idxPrjException = exceptionListIndex(app);
-            app.projectData.exceptionList(idxPrjException,:) = [];
-
-            layout_TableStyle(app)            
-            FillComponents(app)
-
-        end
-
-        % Value changed function: TXHeight, TXLatitude, TXLongitude
-        function TXParameterValueChanged(app, event)
-            
-            app.axesTool_redrawPlot.Enable = 1;
-            
         end
     end
 
@@ -983,8 +993,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {22, 22, '1x', 240};
-            app.Document.RowHeight = {63, '1x', 14, 18, 16, 72, 100};
+            app.Document.ColumnWidth = {22, 22, '1x', '1x', 22};
+            app.Document.RowHeight = {63, '1x', 14, 18, 253};
             app.Document.ColumnSpacing = 0;
             app.Document.RowSpacing = 0;
             app.Document.Padding = [0 0 0 0];
@@ -998,9 +1008,9 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.tableInfoMetadata.WordWrap = 'on';
             app.tableInfoMetadata.FontSize = 14;
             app.tableInfoMetadata.Layout.Row = 1;
-            app.tableInfoMetadata.Layout.Column = [1 4];
+            app.tableInfoMetadata.Layout.Column = [1 5];
             app.tableInfoMetadata.Interpreter = 'html';
-            app.tableInfoMetadata.Text = {'Exibindo emissões relacionadas aos fluxos espectrais a processar'; '<p style="color: #808080; font-size:10px; text-align: justify; margin-right: 2px;">A célula "Frequência (MHz)" apresentará <font style="color: red;">ÍCONE DE EDIÇÃO</font> toda vez que alterada a classificação da emissão. Além disso, a célula "Frequência canal (MHz)" apresentará <font style="color: red;">ÍCONE VERMELHO</font> toda vez que o nº da estação for igual a -1, o que ocorre quando a situação da emissão é "Não licenciada" ou "Não passível de licenciamento", ou quando essa informação não consta na base de dados.</p>'};
+            app.tableInfoMetadata.Text = {'Exibindo emissões relacionadas aos fluxos espectrais'; '<p style="color: #808080; font-size:10px; text-align: justify; margin-right: 2px;">A célula "Frequência (MHz)" apresentará <font style="color: red;">ÍCONE DE EDIÇÃO</font> toda vez que alterada a classificação da emissão. Além disso, a célula "Frequência canal (MHz)" apresentará <font style="color: red;">ÍCONE VERMELHO</font> toda vez que o nº da estação for igual a -1, o que ocorre quando a situação da emissão é "Não licenciada" ou "Não passível de licenciamento", ou quando essa informação não consta na base de dados.</p>'};
 
             % Create tableInfoNRows
             app.tableInfoNRows = uilabel(app.Document);
@@ -1009,20 +1019,20 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.tableInfoNRows.FontSize = 10;
             app.tableInfoNRows.Visible = 'off';
             app.tableInfoNRows.Layout.Row = 1;
-            app.tableInfoNRows.Layout.Column = [3 4];
+            app.tableInfoNRows.Layout.Column = [3 5];
             app.tableInfoNRows.Text = '# 0 ';
 
             % Create UITable
             app.UITable = uitable(app.Document);
-            app.UITable.ColumnName = {'FREQUÊNCIA (MHz)'; 'FREQUÊNCIA CANAL (MHz)'; 'LARGURA OCUPADA (kHz)'; 'NÍVEL MÍNIMO (dB)'; 'NÍVEL MÉDIO (dB)'; 'NÍVEL MÁXIMO (dB)'; 'OCUPAÇÃO MÉDIA (%)'; 'OCUPAÇÃO MÁXIMA (%)'; 'TAG'};
-            app.UITable.ColumnWidth = {110, 110, 110, 110, 110, 110, 110, 110, 'auto'};
+            app.UITable.ColumnName = {'FREQUÊNCIA|(MHz)'; 'FREQUÊNCIA|CANAL (MHz)'; 'LARGURA|(kHz)'; 'NÍVEL|MÍNIMO (dB)'; 'NÍVEL|MÉDIO (dB)'; 'NÍVEL|MÁXIMO (dB)'; 'OCUPAÇÃO|TOTAL (%)'; 'OCUPAÇÃO|MÍNIMA (%)'; 'OCUPAÇÃO|MÉDIA (%)'; 'OCUPAÇÃO|MÁXIMA (%)'; 'PROVÁVEL EMISSOR|(Entidade+Fistel+Serviço+Estação+Localidade)'};
+            app.UITable.ColumnWidth = {95, 95, 95, 95, 95, 95, 95, 95, 95, 95, 'auto'};
             app.UITable.RowName = {};
             app.UITable.ColumnSortable = true;
             app.UITable.SelectionType = 'row';
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @UITableSelectionValueChanged, true);
             app.UITable.Multiselect = 'off';
             app.UITable.Layout.Row = 2;
-            app.UITable.Layout.Column = [1 4];
+            app.UITable.Layout.Column = [1 5];
             app.UITable.FontSize = 10;
 
             % Create axesTool_RestoreView
@@ -1041,135 +1051,28 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.axesTool_Pan.Layout.Column = 2;
             app.axesTool_Pan.ImageSource = 'Pan_32.png';
 
-            % Create axesToolSupport
-            app.axesToolSupport = uigridlayout(app.Document);
-            app.axesToolSupport.ColumnWidth = {'1x', 16, 16, 16};
-            app.axesToolSupport.RowHeight = {'1x'};
-            app.axesToolSupport.ColumnSpacing = 5;
-            app.axesToolSupport.Padding = [0 0 0 0];
-            app.axesToolSupport.Layout.Row = 4;
-            app.axesToolSupport.Layout.Column = [3 4];
-            app.axesToolSupport.BackgroundColor = [1 1 1];
-
-            % Create axesTool_Warning
-            app.axesTool_Warning = uiimage(app.axesToolSupport);
-            app.axesTool_Warning.Visible = 'off';
-            app.axesTool_Warning.Tooltip = {'Evidenciada obstrução total da 1ª Zona de Fresnel'};
-            app.axesTool_Warning.Layout.Row = 1;
-            app.axesTool_Warning.Layout.Column = 2;
-            app.axesTool_Warning.VerticalAlignment = 'bottom';
-            app.axesTool_Warning.ImageSource = 'Warn_18.png';
-
-            % Create axesTool_Config
-            app.axesTool_Config = uiimage(app.axesToolSupport);
-            app.axesTool_Config.ImageClickedFcn = createCallbackFcn(app, @axesToolbarCallbacks, true);
-            app.axesTool_Config.Tooltip = {'Edita parâmetros da estação transmissora'; '(a nova informação não é salva no RFDataHub)'};
-            app.axesTool_Config.Layout.Row = 1;
-            app.axesTool_Config.Layout.Column = 4;
-            app.axesTool_Config.ImageSource = 'Settings_18.png';
-
-            % Create axesTool_redrawPlot
-            app.axesTool_redrawPlot = uiimage(app.axesToolSupport);
-            app.axesTool_redrawPlot.ImageClickedFcn = createCallbackFcn(app, @axesToolbarCallbacks, true);
-            app.axesTool_redrawPlot.Enable = 'off';
-            app.axesTool_redrawPlot.Tooltip = {'Recria perfil de terreno para estação transmissora editada'; '(a nova informação não fica atrelada à emissão)'};
-            app.axesTool_redrawPlot.Layout.Row = 1;
-            app.axesTool_redrawPlot.Layout.Column = 3;
-            app.axesTool_redrawPlot.ImageSource = 'Refresh_18.png';
-
             % Create plotPanel
             app.plotPanel = uipanel(app.Document);
             app.plotPanel.AutoResizeChildren = 'off';
             app.plotPanel.BorderType = 'none';
             app.plotPanel.BackgroundColor = [0 0 0];
-            app.plotPanel.Layout.Row = [5 7];
-            app.plotPanel.Layout.Column = [1 4];
+            app.plotPanel.Layout.Row = 5;
+            app.plotPanel.Layout.Column = [1 5];
 
-            % Create TXGrid
-            app.TXGrid = uigridlayout(app.Document);
-            app.TXGrid.ColumnWidth = {'1x'};
-            app.TXGrid.RowHeight = {'1x'};
-            app.TXGrid.Padding = [5 5 5 5];
-            app.TXGrid.Visible = 'off';
-            app.TXGrid.Layout.Row = [5 6];
-            app.TXGrid.Layout.Column = 4;
-            app.TXGrid.BackgroundColor = [0 0 0];
-
-            % Create TXPanel
-            app.TXPanel = uipanel(app.TXGrid);
-            app.TXPanel.AutoResizeChildren = 'off';
-            app.TXPanel.ForegroundColor = [0.9412 0.9412 0.9412];
-            app.TXPanel.Title = 'TX';
-            app.TXPanel.BackgroundColor = [0 0 0];
-            app.TXPanel.Layout.Row = 1;
-            app.TXPanel.Layout.Column = 1;
-            app.TXPanel.FontSize = 10;
-
-            % Create TXSubGrid
-            app.TXSubGrid = uigridlayout(app.TXPanel);
-            app.TXSubGrid.ColumnWidth = {70, 70, '1x'};
-            app.TXSubGrid.RowHeight = {17, 22};
-            app.TXSubGrid.RowSpacing = 5;
-            app.TXSubGrid.Padding = [10 10 10 5];
-            app.TXSubGrid.BackgroundColor = [0 0 0];
-
-            % Create TXLatitudeLabel
-            app.TXLatitudeLabel = uilabel(app.TXSubGrid);
-            app.TXLatitudeLabel.VerticalAlignment = 'bottom';
-            app.TXLatitudeLabel.FontSize = 10;
-            app.TXLatitudeLabel.FontColor = [0.9412 0.9412 0.9412];
-            app.TXLatitudeLabel.Layout.Row = 1;
-            app.TXLatitudeLabel.Layout.Column = 1;
-            app.TXLatitudeLabel.Text = 'Latitude:';
-
-            % Create TXLatitude
-            app.TXLatitude = uieditfield(app.TXSubGrid, 'numeric');
-            app.TXLatitude.ValueDisplayFormat = '%.6f';
-            app.TXLatitude.ValueChangedFcn = createCallbackFcn(app, @TXParameterValueChanged, true);
-            app.TXLatitude.FontSize = 11;
-            app.TXLatitude.Layout.Row = 2;
-            app.TXLatitude.Layout.Column = 1;
-
-            % Create TXLongitudeLabel
-            app.TXLongitudeLabel = uilabel(app.TXSubGrid);
-            app.TXLongitudeLabel.VerticalAlignment = 'bottom';
-            app.TXLongitudeLabel.FontSize = 10;
-            app.TXLongitudeLabel.FontColor = [0.9412 0.9412 0.9412];
-            app.TXLongitudeLabel.Layout.Row = 1;
-            app.TXLongitudeLabel.Layout.Column = 2;
-            app.TXLongitudeLabel.Text = 'Longitude:';
-
-            % Create TXLongitude
-            app.TXLongitude = uieditfield(app.TXSubGrid, 'numeric');
-            app.TXLongitude.ValueDisplayFormat = '%.6f';
-            app.TXLongitude.ValueChangedFcn = createCallbackFcn(app, @TXParameterValueChanged, true);
-            app.TXLongitude.FontSize = 11;
-            app.TXLongitude.Layout.Row = 2;
-            app.TXLongitude.Layout.Column = 2;
-
-            % Create TXHeightLabel
-            app.TXHeightLabel = uilabel(app.TXSubGrid);
-            app.TXHeightLabel.VerticalAlignment = 'bottom';
-            app.TXHeightLabel.FontSize = 10;
-            app.TXHeightLabel.FontColor = [0.9412 0.9412 0.9412];
-            app.TXHeightLabel.Layout.Row = 1;
-            app.TXHeightLabel.Layout.Column = 3;
-            app.TXHeightLabel.Text = 'Altura (m):';
-
-            % Create TXHeight
-            app.TXHeight = uieditfield(app.TXSubGrid, 'numeric');
-            app.TXHeight.Limits = [0 1000];
-            app.TXHeight.ValueDisplayFormat = '%.1f';
-            app.TXHeight.ValueChangedFcn = createCallbackFcn(app, @TXParameterValueChanged, true);
-            app.TXHeight.FontSize = 11;
-            app.TXHeight.Layout.Row = 2;
-            app.TXHeight.Layout.Column = 3;
+            % Create axesTool_Warning
+            app.axesTool_Warning = uiimage(app.Document);
+            app.axesTool_Warning.Visible = 'off';
+            app.axesTool_Warning.Tooltip = {'Evidenciada obstrução total da 1ª Zona de Fresnel'};
+            app.axesTool_Warning.Layout.Row = 4;
+            app.axesTool_Warning.Layout.Column = 5;
+            app.axesTool_Warning.VerticalAlignment = 'bottom';
+            app.axesTool_Warning.ImageSource = 'Warn_18.png';
 
             % Create ControlGrid
             app.ControlGrid = uigridlayout(app.GridLayout);
             app.ControlGrid.ColumnWidth = {'1x', 16};
-            app.ControlGrid.RowHeight = {58, 5, '1x', 5, 9, 13, 5, 188};
-            app.ControlGrid.RowSpacing = 0;
+            app.ControlGrid.RowHeight = {58, '1x', 22, 253};
+            app.ControlGrid.RowSpacing = 5;
             app.ControlGrid.Padding = [0 0 0 0];
             app.ControlGrid.Layout.Row = 2;
             app.ControlGrid.Layout.Column = 4;
@@ -1186,7 +1089,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             % Create selectedEmissionPanel
             app.selectedEmissionPanel = uipanel(app.ControlGrid);
             app.selectedEmissionPanel.AutoResizeChildren = 'off';
-            app.selectedEmissionPanel.Layout.Row = 3;
+            app.selectedEmissionPanel.Layout.Row = 2;
             app.selectedEmissionPanel.Layout.Column = [1 2];
 
             % Create selectedEmissionGrid
@@ -1206,15 +1109,15 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.EditableParametersLabel = uilabel(app.ControlGrid);
             app.EditableParametersLabel.VerticalAlignment = 'bottom';
             app.EditableParametersLabel.FontSize = 10;
-            app.EditableParametersLabel.Layout.Row = [5 6];
+            app.EditableParametersLabel.Layout.Row = 3;
             app.EditableParametersLabel.Layout.Column = 1;
-            app.EditableParametersLabel.Text = 'PARÂMETROS EDITÁVEIS';
+            app.EditableParametersLabel.Text = 'PROVÁVEL EMISSOR';
 
             % Create DelAnnotation
             app.DelAnnotation = uiimage(app.ControlGrid);
-            app.DelAnnotation.ImageClickedFcn = createCallbackFcn(app, @DeleteException, true);
+            app.DelAnnotation.ImageClickedFcn = createCallbackFcn(app, @OthersParametersValueChanged, true);
             app.DelAnnotation.Tooltip = {'Retorna à classificação automática'};
-            app.DelAnnotation.Layout.Row = [6 7];
+            app.DelAnnotation.Layout.Row = 3;
             app.DelAnnotation.Layout.Column = 2;
             app.DelAnnotation.VerticalAlignment = 'bottom';
             app.DelAnnotation.ImageSource = 'Refresh_18.png';
@@ -1222,13 +1125,14 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             % Create EditableParametersPanel
             app.EditableParametersPanel = uipanel(app.ControlGrid);
             app.EditableParametersPanel.AutoResizeChildren = 'off';
-            app.EditableParametersPanel.Layout.Row = 8;
+            app.EditableParametersPanel.BackgroundColor = [1 1 1];
+            app.EditableParametersPanel.Layout.Row = 4;
             app.EditableParametersPanel.Layout.Column = [1 2];
 
             % Create EditableParametersGrid
             app.EditableParametersGrid = uigridlayout(app.EditableParametersPanel);
-            app.EditableParametersGrid.ColumnWidth = {'1x', '1x', 70, 28, 16, 16};
-            app.EditableParametersGrid.RowHeight = {17, 22, 25, 22, 17, 44};
+            app.EditableParametersGrid.ColumnWidth = {'1x', '1x', 70, '1x'};
+            app.EditableParametersGrid.RowHeight = {17, 22, 25, 22, 17, 59, 17, '1x'};
             app.EditableParametersGrid.ColumnSpacing = 5;
             app.EditableParametersGrid.RowSpacing = 5;
             app.EditableParametersGrid.Padding = [10 10 10 5];
@@ -1260,7 +1164,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.StationIDLabel.VerticalAlignment = 'bottom';
             app.StationIDLabel.FontSize = 10;
             app.StationIDLabel.Layout.Row = 1;
-            app.StationIDLabel.Layout.Column = [4 6];
+            app.StationIDLabel.Layout.Column = 4;
             app.StationIDLabel.Text = 'Estação / ID:';
 
             % Create StationID
@@ -1269,27 +1173,27 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.StationID.HorizontalAlignment = 'right';
             app.StationID.FontSize = 11;
             app.StationID.Layout.Row = 2;
-            app.StationID.Layout.Column = [4 6];
+            app.StationID.Layout.Column = 4;
 
-            % Create TypeLabel
-            app.TypeLabel = uilabel(app.EditableParametersGrid);
-            app.TypeLabel.VerticalAlignment = 'bottom';
-            app.TypeLabel.WordWrap = 'on';
-            app.TypeLabel.FontSize = 10;
-            app.TypeLabel.FontColor = [0.149 0.149 0.149];
-            app.TypeLabel.Layout.Row = 3;
-            app.TypeLabel.Layout.Column = [1 2];
-            app.TypeLabel.Text = {'Tipo de '; 'emissão:'};
+            % Create EmissionTypeLabel
+            app.EmissionTypeLabel = uilabel(app.EditableParametersGrid);
+            app.EmissionTypeLabel.VerticalAlignment = 'bottom';
+            app.EmissionTypeLabel.WordWrap = 'on';
+            app.EmissionTypeLabel.FontSize = 10;
+            app.EmissionTypeLabel.FontColor = [0.149 0.149 0.149];
+            app.EmissionTypeLabel.Layout.Row = 3;
+            app.EmissionTypeLabel.Layout.Column = [1 2];
+            app.EmissionTypeLabel.Text = {'Tipo de '; 'emissão:'};
 
-            % Create Type
-            app.Type = uidropdown(app.EditableParametersGrid);
-            app.Type.Items = {'Fundamental', 'Harmônico de fundamental', 'Produto de intermodulação', 'Espúrio', 'Não identificado', 'Não se manifestou', 'Pendente identificação'};
-            app.Type.ValueChangedFcn = createCallbackFcn(app, @OthersParametersValueChanged, true);
-            app.Type.FontSize = 11;
-            app.Type.BackgroundColor = [1 1 1];
-            app.Type.Layout.Row = 4;
-            app.Type.Layout.Column = [1 2];
-            app.Type.Value = 'Pendente identificação';
+            % Create EmissionType
+            app.EmissionType = uidropdown(app.EditableParametersGrid);
+            app.EmissionType.Items = {'Fundamental', 'Harmônico de fundamental', 'Produto de intermodulação', 'Espúrio', 'Não identificado', 'Não se manifestou', 'Pendente identificação'};
+            app.EmissionType.ValueChangedFcn = createCallbackFcn(app, @OthersParametersValueChanged, true);
+            app.EmissionType.FontSize = 11;
+            app.EmissionType.BackgroundColor = [1 1 1];
+            app.EmissionType.Layout.Row = 4;
+            app.EmissionType.Layout.Column = [1 2];
+            app.EmissionType.Value = 'Pendente identificação';
 
             % Create ComplianceLabel
             app.ComplianceLabel = uilabel(app.EditableParametersGrid);
@@ -1298,7 +1202,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.ComplianceLabel.FontSize = 10;
             app.ComplianceLabel.FontColor = [0.149 0.149 0.149];
             app.ComplianceLabel.Layout.Row = 3;
-            app.ComplianceLabel.Layout.Column = [3 6];
+            app.ComplianceLabel.Layout.Column = [3 4];
             app.ComplianceLabel.Text = {'Indício de'; 'irregularidade?'};
 
             % Create Compliance
@@ -1319,7 +1223,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.RiskLevelLabel.FontSize = 10;
             app.RiskLevelLabel.FontColor = [0.149 0.149 0.149];
             app.RiskLevelLabel.Layout.Row = 3;
-            app.RiskLevelLabel.Layout.Column = [4 6];
+            app.RiskLevelLabel.Layout.Column = 4;
             app.RiskLevelLabel.Text = 'Potencial lesivo:';
 
             % Create RiskLevel
@@ -1330,24 +1234,145 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.RiskLevel.FontColor = [0.149 0.149 0.149];
             app.RiskLevel.BackgroundColor = [1 1 1];
             app.RiskLevel.Layout.Row = 4;
-            app.RiskLevel.Layout.Column = [4 6];
+            app.RiskLevel.Layout.Column = 4;
             app.RiskLevel.Value = '-';
+
+            % Create Panel
+            app.Panel = uipanel(app.EditableParametersGrid);
+            app.Panel.AutoResizeChildren = 'off';
+            app.Panel.ForegroundColor = [0.9412 0.9412 0.9412];
+            app.Panel.BackgroundColor = [1 1 1];
+            app.Panel.Layout.Row = 6;
+            app.Panel.Layout.Column = [1 4];
+            app.Panel.FontSize = 10;
+
+            % Create TXSubGrid
+            app.TXSubGrid = uigridlayout(app.Panel);
+            app.TXSubGrid.ColumnWidth = {'1x', '1x', '1x'};
+            app.TXSubGrid.RowHeight = {17, 22};
+            app.TXSubGrid.RowSpacing = 5;
+            app.TXSubGrid.Padding = [10 10 10 5];
+            app.TXSubGrid.BackgroundColor = [1 1 1];
+
+            % Create TXLatitudeLabel
+            app.TXLatitudeLabel = uilabel(app.TXSubGrid);
+            app.TXLatitudeLabel.VerticalAlignment = 'bottom';
+            app.TXLatitudeLabel.FontSize = 10;
+            app.TXLatitudeLabel.Layout.Row = 1;
+            app.TXLatitudeLabel.Layout.Column = 1;
+            app.TXLatitudeLabel.Text = 'Latitude:';
+
+            % Create TXLatitude
+            app.TXLatitude = uieditfield(app.TXSubGrid, 'numeric');
+            app.TXLatitude.Limits = [-90 90];
+            app.TXLatitude.ValueDisplayFormat = '%.6f';
+            app.TXLatitude.ValueChangedFcn = createCallbackFcn(app, @axesToolbarCallbacks, true);
+            app.TXLatitude.Editable = 'off';
+            app.TXLatitude.FontSize = 11;
+            app.TXLatitude.Layout.Row = 2;
+            app.TXLatitude.Layout.Column = 1;
+            app.TXLatitude.Value = -1;
+
+            % Create TXLongitudeLabel
+            app.TXLongitudeLabel = uilabel(app.TXSubGrid);
+            app.TXLongitudeLabel.VerticalAlignment = 'bottom';
+            app.TXLongitudeLabel.FontSize = 10;
+            app.TXLongitudeLabel.Layout.Row = 1;
+            app.TXLongitudeLabel.Layout.Column = 2;
+            app.TXLongitudeLabel.Text = 'Longitude:';
+
+            % Create TXLongitude
+            app.TXLongitude = uieditfield(app.TXSubGrid, 'numeric');
+            app.TXLongitude.Limits = [-180 180];
+            app.TXLongitude.ValueDisplayFormat = '%.6f';
+            app.TXLongitude.ValueChangedFcn = createCallbackFcn(app, @axesToolbarCallbacks, true);
+            app.TXLongitude.Editable = 'off';
+            app.TXLongitude.FontSize = 11;
+            app.TXLongitude.Layout.Row = 2;
+            app.TXLongitude.Layout.Column = 2;
+            app.TXLongitude.Value = -1;
+
+            % Create TXAntennaHeightLabel
+            app.TXAntennaHeightLabel = uilabel(app.TXSubGrid);
+            app.TXAntennaHeightLabel.VerticalAlignment = 'bottom';
+            app.TXAntennaHeightLabel.FontSize = 10;
+            app.TXAntennaHeightLabel.Layout.Row = 1;
+            app.TXAntennaHeightLabel.Layout.Column = 3;
+            app.TXAntennaHeightLabel.Text = 'Altura (m):';
+
+            % Create TXAntennaHeight
+            app.TXAntennaHeight = uieditfield(app.TXSubGrid, 'numeric');
+            app.TXAntennaHeight.Limits = [0 Inf];
+            app.TXAntennaHeight.ValueDisplayFormat = '%.1f';
+            app.TXAntennaHeight.Editable = 'off';
+            app.TXAntennaHeight.FontSize = 11;
+            app.TXAntennaHeight.Layout.Row = 2;
+            app.TXAntennaHeight.Layout.Column = 3;
+            app.TXAntennaHeight.Value = 10;
+
+            % Create AdditionalDescription
+            app.AdditionalDescription = uieditfield(app.EditableParametersGrid, 'text');
+            app.AdditionalDescription.ValueChangedFcn = createCallbackFcn(app, @OthersParametersValueChanged, true);
+            app.AdditionalDescription.FontSize = 11;
+            app.AdditionalDescription.FontColor = [0 0 1];
+            app.AdditionalDescription.Layout.Row = 8;
+            app.AdditionalDescription.Layout.Column = [1 4];
+
+            % Create axesToolSupport
+            app.axesToolSupport = uigridlayout(app.EditableParametersGrid);
+            app.axesToolSupport.ColumnWidth = {'1x', 16, 0, 0};
+            app.axesToolSupport.RowHeight = {'1x'};
+            app.axesToolSupport.ColumnSpacing = 5;
+            app.axesToolSupport.Padding = [0 0 0 0];
+            app.axesToolSupport.Layout.Row = 5;
+            app.axesToolSupport.Layout.Column = [3 4];
+            app.axesToolSupport.BackgroundColor = [1 1 1];
+
+            % Create axesTool_EditMode
+            app.axesTool_EditMode = uiimage(app.axesToolSupport);
+            app.axesTool_EditMode.ImageClickedFcn = createCallbackFcn(app, @axesToolbarCallbacks, true);
+            app.axesTool_EditMode.Tooltip = {'Possibilita edição dos parâmetros da estação transmissora'; '(a nova informação não é salva no RFDataHub)'};
+            app.axesTool_EditMode.Layout.Row = 1;
+            app.axesTool_EditMode.Layout.Column = 2;
+            app.axesTool_EditMode.VerticalAlignment = 'bottom';
+            app.axesTool_EditMode.ImageSource = 'Edit_32.png';
+
+            % Create axesTool_EditConfirm
+            app.axesTool_EditConfirm = uiimage(app.axesToolSupport);
+            app.axesTool_EditConfirm.ImageClickedFcn = createCallbackFcn(app, @axesToolbarCallbacks, true);
+            app.axesTool_EditConfirm.Enable = 'off';
+            app.axesTool_EditConfirm.Tooltip = {'Confirma edição, recriando perfil de terreno'};
+            app.axesTool_EditConfirm.Layout.Row = 1;
+            app.axesTool_EditConfirm.Layout.Column = 3;
+            app.axesTool_EditConfirm.VerticalAlignment = 'bottom';
+            app.axesTool_EditConfirm.ImageSource = 'Ok_32Green.png';
+
+            % Create axesTool_EditCancel
+            app.axesTool_EditCancel = uiimage(app.axesToolSupport);
+            app.axesTool_EditCancel.ImageClickedFcn = createCallbackFcn(app, @axesToolbarCallbacks, true);
+            app.axesTool_EditCancel.Enable = 'off';
+            app.axesTool_EditCancel.Tooltip = {'Cancela edição'};
+            app.axesTool_EditCancel.Layout.Row = 1;
+            app.axesTool_EditCancel.Layout.Column = 4;
+            app.axesTool_EditCancel.VerticalAlignment = 'bottom';
+            app.axesTool_EditCancel.ImageSource = 'Delete_32Red.png';
+
+            % Create CaractersticasdeinstalaoLabel
+            app.CaractersticasdeinstalaoLabel = uilabel(app.EditableParametersGrid);
+            app.CaractersticasdeinstalaoLabel.VerticalAlignment = 'bottom';
+            app.CaractersticasdeinstalaoLabel.FontSize = 10;
+            app.CaractersticasdeinstalaoLabel.Layout.Row = 5;
+            app.CaractersticasdeinstalaoLabel.Layout.Column = [1 2];
+            app.CaractersticasdeinstalaoLabel.Text = 'Características de instalação:';
 
             % Create AdditionalDescriptionLabel
             app.AdditionalDescriptionLabel = uilabel(app.EditableParametersGrid);
             app.AdditionalDescriptionLabel.VerticalAlignment = 'bottom';
             app.AdditionalDescriptionLabel.WordWrap = 'on';
             app.AdditionalDescriptionLabel.FontSize = 10;
-            app.AdditionalDescriptionLabel.Layout.Row = 5;
-            app.AdditionalDescriptionLabel.Layout.Column = [1 6];
+            app.AdditionalDescriptionLabel.Layout.Row = 7;
+            app.AdditionalDescriptionLabel.Layout.Column = [1 4];
             app.AdditionalDescriptionLabel.Text = 'Informações complementares:';
-
-            % Create AdditionalDescription
-            app.AdditionalDescription = uitextarea(app.EditableParametersGrid);
-            app.AdditionalDescription.ValueChangedFcn = createCallbackFcn(app, @OthersParametersValueChanged, true);
-            app.AdditionalDescription.FontSize = 11;
-            app.AdditionalDescription.Layout.Row = 6;
-            app.AdditionalDescription.Layout.Column = [1 6];
 
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
@@ -1410,6 +1435,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             % Create ContextMenu_deleteEmission
             app.ContextMenu_deleteEmission = uimenu(app.ContextMenu_UITable);
             app.ContextMenu_deleteEmission.MenuSelectedFcn = createCallbackFcn(app, @UITableContextMenuClicked, true);
+            app.ContextMenu_deleteEmission.ForegroundColor = [1 0 0];
+            app.ContextMenu_deleteEmission.Separator = 'on';
             app.ContextMenu_deleteEmission.Text = 'Excluir';
             
             % Assign app.ContextMenu_UITable

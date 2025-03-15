@@ -24,6 +24,7 @@ function RFLink(hAxes, txSite, rxSite, wayPoints3D, plotMode, rotateViewFlag, fo
     % (b) 1ª Zona de Fresnel, atenuação no espaço livre, análise de visada 
     %     entre TX e RX, distância e azimute.
     [Rn, distM, d1, Azimuth] = RF.Propagation.FresnelZone(txSite, rxSite, height(wayPoints3D));
+    d1  = double(d1); % força double porque fspl só aceita double
     vq  = interp1([0, distM], [txAntenna, rxAntenna], d1, 'linear');    
     PL  = fspl(d1, physconst('LightSpeed')/txSite.TransmitterFrequency);
     [~, xFirstObstruction] = RF.Propagation.LOS(wayPoints3D(:,3), vq, Rn);

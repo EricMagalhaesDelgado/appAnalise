@@ -150,7 +150,7 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
             msgError = '';
 
             try
-                fcn.measCalibration(app.specData, app.rootFolder, operationType, idxThread, idxCalibration, kFactorName)
+                util.measCalibration(app.specData, app.rootFolder, operationType, idxThread, idxCalibration, kFactorName)
             catch ME
                 msgError = ME.message;
                 appUtil.modalWindow(app.UIFigure, 'warning', ME.message);

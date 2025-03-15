@@ -122,7 +122,7 @@ classdef (Abstract) draw2D
         end
 
         %-----------------------------------------------------------------%
-        function rectangularROI(hAxes, bandObj, srcROITable, idxROI, plotTag, postPlotConfig)
+        function rectangularROI(hAxes, bandObj, srcROITable, idxROI, plotTag, postPlotConfig, yLimits)
             arguments
                 hAxes
                 bandObj
@@ -130,6 +130,7 @@ classdef (Abstract) draw2D
                 idxROI
                 plotTag
                 postPlotConfig = {}
+                yLimits = []
             end
 
             if isempty(idxROI)
@@ -145,9 +146,12 @@ classdef (Abstract) draw2D
                  LabelOffsetMode, ...
                  LabelOffset] = plot.Config(plotTag, defaultProp, customProp);
 
-                yLimits = double(hAxes.YLim);
+                if isempty(yLimits)
+                    yLimits = double(hAxes.YLim);
+                end
+                
                 for ii = idxROI
-                    hROI = drawrectangle(hAxes, 'Position', [srcROITable.Frequency(ii)-srcROITable.BW(ii)/2000, yLimits(1)+1, srcROITable.BW(ii)/1000, diff(yLimits)-2], plotConfigROI{:});
+                    hROI = drawrectangle(hAxes, 'Position', [srcROITable.Frequency(ii)-srcROITable.BW_kHz(ii)/2000, yLimits(1)+1, srcROITable.BW_kHz(ii)/1000, diff(yLimits)-2], plotConfigROI{:});
 
                     if ~isempty(postPlotConfig)
                         set(hROI, postPlotConfig{:})

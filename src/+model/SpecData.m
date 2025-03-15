@@ -149,11 +149,12 @@ classdef SpecData < model.SpecDataBase
 
                     switch updateType
                         case 'Add'
-                            idxFreq    = varargin{1};
-                            FreqCenter = varargin{2};
-                            BandWidth  = varargin{3};
-                            Detection  = varargin{4};
-                            channelObj = varargin{end};
+                            idxFreq     = varargin{1};
+                            FreqCenter  = varargin{2};
+                            BandWidth   = varargin{3};
+                            Detection   = varargin{4};
+                            Description = varargin{5};
+                            channelObj  = varargin{end};
 
                             % Inicialmente, verifica se a ocupação por bin já foi aferida.
                             % Caso não, afere-se com os parâmetros padrão.
@@ -164,19 +165,16 @@ classdef SpecData < model.SpecDataBase
                                 obj.UserData.Emissions(idxEmission, 1:4) = table(idxFreq(ii), FreqCenter(ii), BandWidth(ii), true);                        
         
                                 userDescription = "";
-                                parsedAlgorithm = jsondecode(Detection{ii});        
-                                if isfield(parsedAlgorithm, 'Description')
-                                    userDescription = parsedAlgorithm.Description;
-                                    Detection{ii}   = jsonencode(rmfield(parsedAlgorithm, 'Description'));
-                                end
-        
+                                if ~isempty(Description)
+                                    userDescription = string(Description{ii});
+                                end        
                                 obj.UserData.Emissions.Description(idxEmission)               = userDescription;
                                 
                                 obj.UserData.Emissions.Algorithms(idxEmission).Detection      = Detection{ii};
                                 obj.UserData.Emissions.Algorithms(idxEmission).Classification = jsonencode(obj.UserData.reportAlgorithms.Classification);
                                 obj.UserData.Emissions.Algorithms(idxEmission).Occupancy      = jsonencode(obj.UserData.reportAlgorithms.Occupancy);
                                 
-                                obj.UserData.Emissions.ChannelAssigned(idxEmission)           = model.UserData.getFieldTemplate('ChannelAssigned', obj, 1, idxEmission, channelObj);    
+                                obj.UserData.Emissions.ChannelAssigned(idxEmission)           = model.UserData.getFieldTemplate('ChannelAssigned', obj, 1, idxEmission, channelObj);
                                 obj.UserData.Emissions.Classification(idxEmission)            = model.UserData.getFieldTemplate('Classification',  obj, 1, idxEmission, channelObj);
                                 
                                 RF.Measures(obj, 1, idxEmission, 'Emission', channelObj)
@@ -187,47 +185,48 @@ classdef SpecData < model.SpecDataBase
                             idxEmission = varargin{2};
                             channelObj  = varargin{end};
         
-                            % Ao alterar as características de frequência e BW de uma emissão, 
-                            % a emissão alterada é considerada como uma NOVA emissão. Logo,
-                            % as informações eventualmente geradas em módulos auxiliares, como
-                            % "Drive-Test" e "SignalAnalysis" são perdidas.
+                            % A alteração das características de frequência e BW de uma emissão 
+                            % demanda o recálculo das medidas. Além disso, ajusta-se o canal e
+                            % a classificação, mas apenas quando tais valores não tinham sido 
+                            % editados anteriormente.
+                            
+                            % Os parâmetros "isTruncated" e "Description" não demandam recálculo
+                            % das medidas pois elas estão orientadas à frequência central da emissão
+                            % e sua BW.
         
                             switch parameter
-                                case {'Frequency', 'Frequency|BandWidth'}
-                                    obj.UserData.Emissions.idxFrequency(idxEmission)        = varargin{3};
-                                    obj.UserData.Emissions.Frequency(idxEmission)           = varargin{4};
-                                    
-                                    if numel(varargin) == 5
-                                        obj.UserData.Emissions.BW_kHz(idxEmission)          = varargin{5};
+                                case {'Frequency', 'BandWidth', 'Frequency|BandWidth'}
+                                    obj.UserData.Emissions.idxFrequency(idxEmission)         = varargin{3};
+                                    obj.UserData.Emissions.Frequency(idxEmission)            = varargin{4};
+                                    obj.UserData.Emissions.BW_kHz(idxEmission)               = varargin{5};
+
+                                    obj.UserData.Emissions.Algorithms(idxEmission).Detection = '{"Algorithm":"Manual"}';
+
+                                    if isequal(obj.UserData.Emissions.ChannelAssigned(idxEmission).autoSuggested, obj.UserData.Emissions.ChannelAssigned(idxEmission).userModified)
+                                        obj.UserData.Emissions.ChannelAssigned(idxEmission)  = model.UserData.getFieldTemplate('ChannelAssigned', obj, 1, idxEmission, channelObj);
                                     end
 
-                                    obj.UserData.Emissions.Algorithm(idxEmission).Detection = '{"Algorithm":"Manual"}';
-
-                                    if ~obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Edited
-                                        obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = auxApp.drivetest.getChannel(obj, 1, idxEmission, channelObj);
-                                    end
-
-                                    obj.UserData.Emissions.auxAppData(idxEmission).DriveTest = [];
-        
-                                case 'BandWidth'
-                                    obj.UserData.Emissions.BW_kHz(idxEmission)              = varargin{3};
-                                    obj.UserData.Emissions.Algorithm(idxEmission).Detection = '{"Algorithm":"Manual"}';
-
-                                    if ~obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned.Edited
-                                        obj.UserData.Emissions.auxAppData(idxEmission).SignalAnalysis.ChannelAssigned = auxApp.drivetest.getChannel(obj, 1, idxEmission, channelObj);
+                                    if isequal(obj.UserData.Emissions.Classification(idxEmission).autoSuggested, obj.UserData.Emissions.Classification(idxEmission).userModified)
+                                        obj.UserData.Emissions.Classification(idxEmission)   = model.UserData.getFieldTemplate('Classification',  obj, 1, idxEmission, channelObj);
                                     end
 
                                     obj.UserData.Emissions.auxAppData(idxEmission).DriveTest = [];
-                                
-                                case 'Description'
-                                    obj.UserData.Emissions.Description(idxEmission)         = varargin{3};
-                                    return
+                                    RF.Measures(obj, 1, idxEmission, 'Emission', channelObj)
 
                                 case 'IsTruncated'
-                                    obj.UserData.Emissions.isTruncated(idxEmission)         = varargin{3};
+                                    obj.UserData.Emissions.isTruncated(idxEmission)          = varargin{3};
+
+                                    obj.UserData.Emissions.ChannelAssigned(idxEmission)      = model.UserData.getFieldTemplate('ChannelAssigned', obj, 1, idxEmission, channelObj);
+
+                                    if isequal(obj.UserData.Emissions.Classification(idxEmission).autoSuggested, obj.UserData.Emissions.Classification(idxEmission).userModified)
+                                        obj.UserData.Emissions.Classification(idxEmission)   = model.UserData.getFieldTemplate('Classification',  obj, 1, idxEmission, channelObj);
+                                    end
+                                    return
+
+                                case 'Description'
+                                    obj.UserData.Emissions.Description(idxEmission)          = varargin{3};
+                                    return
                             end
-        
-                            RF.Measures(obj, 1, idxEmission, 'Emission', channelObj)
         
                         case 'Delete'
                             idxEmissions = varargin{1};
@@ -283,50 +282,24 @@ classdef SpecData < model.SpecDataBase
                 case 'UserData:ReportFields'
                     switch updateType
                         case 'Creation'
-                            idxThreads   = varargin{1};
-                            channelObj   = varargin{2};
-                            occFcnHandle = varargin{3};
+                            idxThreads = varargin{1};
+                            channelObj = varargin{2};
         
                             for ii = idxThreads
                                 obj(ii).UserData.reportFlag = true;
                                 
                                 % Ocupação
-                                if isempty(obj(ii).UserData.reportOCC)
-                                    if isempty(obj(ii).UserData.occMethod.CacheIndex)
-                                        if isempty(obj(ii).UserData.occMethod.RelatedIndex)        
-                                            obj(ii).UserData.reportOCC = model.UserData.getFieldTemplate('DefaultAlgorithm: Occupancy');        
-                                        else
-                                            idx2 = obj(ii).UserData.occMethod.SelectedIndex;
-                                            obj(ii).UserData.reportOCC = struct('Method',                  'Linear fixo (COLETA)',                      ...
-                                                                                'IntegrationTimeCaptured', mean(obj(idx2).RelatedFiles.RevisitTime)/60, ...
-                                                                                'THRCaptured',             obj(idx2).MetaData.Threshold);
-                                        end
-                                        occIndex = occFcnHandle(ii, 'REPORT');
-                        
-                                    else
-                                        occIndex = obj(ii).UserData.occMethod.CacheIndex;
-                                    end
-                                    obj(ii).UserData.reportOCC = obj(ii).UserData.occCache(occIndex).Info;
-                                end
+                                checkIfOccupancyPerBinExist(obj(ii))
                 
-                                % Detecção de emissões
-                                if isempty(obj(ii).UserData.reportDetection)
-                                    obj(ii).UserData.reportDetection = model.UserData.getFieldTemplate('DefaultAlgorithm: Detection');
-        
-                                    findPeaks = FindPeaksOfPrimaryBand(channelObj, obj(ii));
-                                    if ~isempty(findPeaks)
-                                        obj(ii).UserData.reportDetection.Parameters = struct('Distance_kHz', 1000 * findPeaks.Distance, ... % MHz >> kHz
-                                                                                             'BW_kHz',       1000 * findPeaks.BW,       ... % MHz >> kHz
-                                                                                             'Prominence1',  findPeaks.Prominence1,     ...
-                                                                                             'Prominence2',  findPeaks.Prominence2,     ...
-                                                                                             'meanOCC',      findPeaks.meanOCC,         ...
-                                                                                             'maxOCC',       findPeaks.maxOCC);
-                                    end
-                                end
-                
-                                % Classificação das emissões
-                                if isempty(obj(ii).UserData.reportClassification)
-                                    obj(ii).UserData.reportClassification = model.UserData.getFieldTemplate('DefaultAlgorithm: Classification');
+                                % Detecção de emissões        
+                                findPeaks = FindPeaksOfPrimaryBand(channelObj, obj(ii));
+                                if ~isempty(findPeaks)
+                                    obj(ii).UserData.reportAlgorithms.Detection.Parameters = struct('Distance_kHz', 1000 * findPeaks.Distance, ... % MHz >> kHz
+                                                                                                    'BW_kHz',       1000 * findPeaks.BW,       ... % MHz >> kHz
+                                                                                                    'Prominence1',  findPeaks.Prominence1,     ...
+                                                                                                    'Prominence2',  findPeaks.Prominence2,     ...
+                                                                                                    'meanOCC',      findPeaks.meanOCC,         ...
+                                                                                                    'maxOCC',       findPeaks.maxOCC);
                                 end
                             end
 
@@ -334,10 +307,7 @@ classdef SpecData < model.SpecDataBase
                             idxThreads = varargin{1};
 
                             for ii = idxThreads
-                                obj(ii).UserData.reportFlag           = false;
-                                obj(ii).UserData.reportOCC            = [];
-                                obj(ii).UserData.reportDetection      = [];
-                                obj(ii).UserData.reportClassification = [];
+                                obj(ii).UserData.reportFlag = false;
                             end
 
                         case 'ReportOCC:Edit'
@@ -346,14 +316,14 @@ classdef SpecData < model.SpecDataBase
                             end
 
                             occCache = varargin{1};
-                            obj.UserData.reportOCC = occCache;
+                            obj.UserData.reportAlgorithms.Occupancy = occCache;
 
                         case 'ReportDetection:ManualMode:Edit'
                             if numel(obj) > 1
                                 error('Unexpected non scalar object')
                             end
 
-                            obj.UserData.reportDetection.ManualMode = varargin{1};
+                            obj.UserData.reportAlgorithms.Detection.ManualMode = varargin{1};
 
                         otherwise
                             error('Unexpected update type')
@@ -362,23 +332,43 @@ classdef SpecData < model.SpecDataBase
                 case 'UserData:OccupancyFields+ReportFields'
                     switch updateType
                         case 'Refresh'
-                            idxThreads   = varargin{1};
-                            channelObj   = varargin{2};
-                            occFcnHandle = varargin{3};
+                            idxThreads = varargin{1};
+                            channelObj = varargin{2};
 
                             for ii = idxThreads
-                                obj(ii).UserData.occCache             = struct('Info', {}, 'THR', {}, 'Data', {});
-                                obj(ii).UserData.occMethod.CacheIndex = [];
+                                if ~isempty(obj(ii).UserData.occMethod.CacheIndex)
+                                    obj(ii).UserData.occMethod.CacheIndex = [];
+                                    obj(ii).UserData.occCache             = struct('Info', {}, 'THR', {}, 'Data', {});
 
-                                if ~isempty(obj(ii).UserData.reportOCC)
-                                    obj(ii).UserData.reportOCC        = [];
-                                    update(obj, 'UserData:ReportFields', 'Creation', ii, channelObj, occFcnHandle)
+                                    update(obj(ii), 'UserData:ReportFields', 'Creation', ii, channelObj)
                                 end
                             end
 
                         otherwise
                             error('Unexpected update type')
                     end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function checkIfOccupancyPerBinExist(obj)
+            if isempty(obj.UserData.occMethod.CacheIndex)
+                occParameters = RF.Occupancy.ParametersDefault();
+                occTHR        = RF.Occupancy.Threshold(occParameters.Method, occParameters, obj, 'bin');
+                occData       = RF.Occupancy.run(obj.Data{1}, obj.Data{2}, occParameters.Method, occTHR, occParameters.IntegrationTime);
+    
+                obj.UserData.occMethod.CacheIndex = 1;
+                obj.UserData.occCache             = struct('Info', occParameters, 'THR', occTHR, 'Data', {occData});
+            else
+                occIndex      = obj.UserData.occMethod.CacheIndex;
+                occParameters = obj.UserData.occCache(occIndex).Info;
+
+                obj.UserData.reportAlgorithms.Occupancy = occParameters;
+            end
+
+            if isempty(obj.UserData.occInfIntegration)
+                occTHR = obj.UserData.occCache.THR;
+                obj.UserData.occInfIntegration    = obj.Data{2} > occTHR;
             end
         end
 
@@ -730,25 +720,6 @@ classdef SpecData < model.SpecDataBase
                      obj(idx1).MetaData.FreqStart  == obj(idx2).MetaData.FreqStart && ...
                      obj(idx1).MetaData.FreqStop   == obj(idx2).MetaData.FreqStop  && ...
                      obj(idx1).MetaData.DataPoints == obj(idx2).MetaData.DataPoints;
-        end
-
-        %-----------------------------------------------------------------%
-        function checkIfOccupancyPerBinExist(obj)
-            if isempty(obj.UserData.occMethod.CacheIndex)
-                occParameters = RF.Occupancy.ParametersDefault();
-                occTHR        = RF.Occupancy.Threshold(occParameters.Method, occParameters, obj, 'bin');
-                occData       = RF.Occupancy.run(obj.Data{2}, occParameters.Method, occTHR, occParameters.IntegrationTime, obj.Data{1});
-    
-                obj.UserData.occMethod.CacheIndex = 1;
-                obj.UserData.occCache             = struct('Info', occParameters, 'THR', occTHR, 'Data', {occData});
-                obj.UserData.occInfIntegration    = obj.Data{2} > occTHR;
-
-            else
-                occIndex      = obj.UserData.occMethod.CacheIndex;
-                occParameters = obj.UserData.occCache(occIndex).Info;
-
-                obj.UserData.reportAlgorithms.Occupancy = occParameters;
-            end
         end
 
         %-----------------------------------------------------------------%

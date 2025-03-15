@@ -969,7 +969,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             end
 
             % Filtragem, preenchendo a tabela e o seu label (nº de linhas).
-            idxRFDataHubArray = find(fcn.TableFiltering(app.rfDataHub, app.filterTable));
+            idxRFDataHubArray = find(util.TableFiltering(app.rfDataHub, app.filterTable));
             columnGUINames    = {'ID', 'Frequency', 'Description', 'Service', 'Station', 'BW', 'Distance'};
 
             set(app.UITable, 'Selection', [], 'Data', app.rfDataHub(idxRFDataHubArray, columnGUINames))
@@ -1346,7 +1346,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp, filterTable)
+        function startupFcn(app, mainapp, filterTable, rfDataHubAnnotation)
             
             app.mainApp       = mainapp;
             app.General       = mainapp.General;
@@ -1354,8 +1354,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.executionMode = mainapp.executionMode;
             app.specData      = mainapp.specData;
     
-            if nargin == 3
+            if nargin == 4
                 app.filterTable = filterTable;
+                app.rfDataHubAnnotation = rfDataHubAnnotation;
             end
     
             app.GridLayout.ColumnWidth(7:10) = {0,0,0,0};
@@ -1563,7 +1564,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             end
 
             % Painel HTML
-            htmlContent = auxApp.rfdatahub.htmlCode_StationInfo(app.rfDataHub, idxRFDataHub, app.rfDataHubLOG, app.General);
+            htmlContent = util.HtmlTextGenerator.Station(app.rfDataHub, idxRFDataHub, app.rfDataHubLOG, app.General);
             app.stationInfo.HTMLSource = htmlContent;
 
             % Painel PDF
@@ -1606,11 +1607,12 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
                 case app.referenceTX_EditionMode
                     app.referenceTX_EditionMode.UserData = ~app.referenceTX_EditionMode.UserData;
+                    
                     if app.referenceTX_EditionMode.UserData
                         referenceTX_EditionPanelLayout(app, 'on')
-                        referenceTX_FieldValueChanged(app, struct('Source', app.referenceTX_EditionMode))
+                        focus(app.referenceTX_Latitude)
                     else
-                        referenceTX_EditionPanelLayout(app, 'off')
+                        referenceTX_EditionModeImageClicked(app, struct('Source', app.referenceTX_EditionCancel))
                     end
 
                 case app.referenceTX_EditionConfirm
@@ -1618,22 +1620,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     referenceTX_EditionPanelLayout(app, 'off')
 
                 case app.referenceTX_EditionCancel
+                    idxRFDataHub = getRFDataHubIndex(app);
+                    referenceTX_UpdatePanel(app, idxRFDataHub)
                     referenceTX_EditionPanelLayout(app, 'off')
-            end
-
-        end
-
-        % Value changed function: referenceTX_Latitude, 
-        % ...and 1 other component
-        function referenceTX_FieldValueChanged(app, event)
-            
-            switch event.Source
-                case app.referenceTX_EditionMode
-                    focus(app.referenceTX_Latitude)
-                case app.referenceTX_Latitude
-                    focus(app.referenceTX_Longitude)
-                case app.referenceTX_Longitude
-                    focus(app.referenceTX_Height)
             end
 
         end
@@ -1649,11 +1638,12 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
                 case app.referenceRX_EditionMode
                     app.referenceRX_EditionMode.UserData = ~app.referenceRX_EditionMode.UserData;
+
                     if app.referenceRX_EditionMode.UserData
                         referenceRX_EditionPanelLayout(app, 'on')
-                        referenceRX_FieldValueChanged(app, struct('Source', app.referenceRX_EditionMode))
+                        focus(app.referenceRX_Latitude)
                     else
-                        referenceRX_EditionPanelLayout(app, 'off')
+                        referenceRX_EditionModeImageClicked(app, struct('Source', app.referenceRX_EditionCancel))
                     end
 
                 case app.referenceRX_EditionConfirm
@@ -1663,24 +1653,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 case app.referenceRX_EditionCancel
                     rxSite = app.referenceRX_Refresh.UserData.DistanceColumnSource;
                     referenceRX_UpdatePanel(app, rxSite)
-
                     referenceRX_EditionPanelLayout(app, 'off')
             end        
-
-        end
-
-        % Value changed function: referenceRX_Latitude, 
-        % ...and 1 other component
-        function referenceRX_FieldValueChanged(app, event)
-            
-            switch event.Source
-                case app.referenceRX_EditionMode
-                    focus(app.referenceRX_Latitude)
-                case app.referenceRX_Latitude
-                    focus(app.referenceRX_Longitude)
-                case app.referenceRX_Longitude
-                    focus(app.referenceRX_Height)
-            end
 
         end
 
@@ -2178,8 +2152,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create referenceTX_Latitude
             app.referenceTX_Latitude = uieditfield(app.referenceTX_Grid, 'numeric');
+            app.referenceTX_Latitude.Limits = [-90 90];
             app.referenceTX_Latitude.ValueDisplayFormat = '%.6f';
-            app.referenceTX_Latitude.ValueChangedFcn = createCallbackFcn(app, @referenceTX_FieldValueChanged, true);
             app.referenceTX_Latitude.Editable = 'off';
             app.referenceTX_Latitude.FontSize = 11;
             app.referenceTX_Latitude.Layout.Row = 2;
@@ -2196,8 +2170,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create referenceTX_Longitude
             app.referenceTX_Longitude = uieditfield(app.referenceTX_Grid, 'numeric');
+            app.referenceTX_Longitude.Limits = [-180 180];
             app.referenceTX_Longitude.ValueDisplayFormat = '%.6f';
-            app.referenceTX_Longitude.ValueChangedFcn = createCallbackFcn(app, @referenceTX_FieldValueChanged, true);
             app.referenceTX_Longitude.Editable = 'off';
             app.referenceTX_Longitude.FontSize = 11;
             app.referenceTX_Longitude.Layout.Row = 2;
@@ -2336,8 +2310,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create referenceRX_Latitude
             app.referenceRX_Latitude = uieditfield(app.referenceRX_Grid, 'numeric');
+            app.referenceRX_Latitude.Limits = [-90 90];
             app.referenceRX_Latitude.ValueDisplayFormat = '%.6f';
-            app.referenceRX_Latitude.ValueChangedFcn = createCallbackFcn(app, @referenceRX_FieldValueChanged, true);
             app.referenceRX_Latitude.Editable = 'off';
             app.referenceRX_Latitude.FontSize = 11;
             app.referenceRX_Latitude.Layout.Row = 2;
@@ -2354,8 +2328,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
             % Create referenceRX_Longitude
             app.referenceRX_Longitude = uieditfield(app.referenceRX_Grid, 'numeric');
+            app.referenceRX_Longitude.Limits = [-180 180];
             app.referenceRX_Longitude.ValueDisplayFormat = '%.6f';
-            app.referenceRX_Longitude.ValueChangedFcn = createCallbackFcn(app, @referenceRX_FieldValueChanged, true);
             app.referenceRX_Longitude.Editable = 'off';
             app.referenceRX_Longitude.FontSize = 11;
             app.referenceRX_Longitude.Layout.Row = 2;

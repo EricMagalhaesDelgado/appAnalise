@@ -195,7 +195,7 @@ classdef (Abstract) RFDataHub
 
 
         %-----------------------------------------------------------------%
-        function stationInfo = query(RFDataHub, stationID, latNode, longNode)            
+        function stationInfo = query(RFDataHub, stationID, latNode, longNode)
             % stationID é uma string com o número da estação real ou virtual 
             % (quando possui o caractere "#" à frente do número). latNode e 
             % longNode são as coordenadas geográficas do local onde ocorreu 
@@ -216,6 +216,15 @@ classdef (Abstract) RFDataHub
             
             Latitude    = RFDataHub.Latitude(idx(1));
             Longitude   = RFDataHub.Longitude(idx(1));
+            try
+                AntennaHeight = str2double(char(RFDataHub.AntennaHeight(idxRFDataHub(idxStation))));
+    
+                mustBeFinite(AntennaHeight)
+                mustBeNonnegative(AntennaHeight)
+                mustBeNonempty(AntennaHeight)             
+            catch
+                AntennaHeight = 0;
+            end
 
             Frequency   = sprintf('%.3f, ', RFDataHub.Frequency(idx));
             Frequency   = Frequency(1:end-2);
@@ -224,9 +233,10 @@ classdef (Abstract) RFDataHub
             Service     = RFDataHub.Service(idx(1));
             Station     = RFDataHub.Station(idx(1));
             Description = class.RFDataHub.Description(RFDataHub, idx(1));
+            Details     = jsonencode(RFDataHub(idx(1), setdiff(RFDataHub.Properties.VariableNames, {'Service', 'Station', 'Latitude', 'Longitude', 'AntennaHeight'})));
                         
             Distance    = deg2km(distance(latNode, longNode, Latitude, Longitude));
-            stationInfo = struct('ID', ID, 'Frequency', Frequency, 'Service', Service, 'Station', Station, 'Description', Description, 'Distance', Distance);
+            stationInfo = struct('ID', ID, 'Frequency', Frequency, 'Service', Service, 'Station', Station, 'Description', Description, 'Distance', Distance, 'Latitude', Latitude, 'Longitude', Longitude, 'AntennaHeight', AntennaHeight, 'Details', Details);
         end
 
 

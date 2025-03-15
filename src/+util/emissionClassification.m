@@ -22,7 +22,7 @@ function emissionInfo = emissionClassification(specData, idxThread, idxEmission,
         emissionInfo.RiskLevel    = '-';
 
     else
-        switch specData(idxThread).UserData.reportAlgorithms.Classification.Type
+        switch specData(idxThread).UserData.reportAlgorithms.Classification.Algorithm
             case 'Frequency+Distance Type 1'
                 emissionInfo = Type1_FreqDist(emissionInfo, Truncated, specData, idxThread, idxEmission, channelObj);
     
@@ -64,12 +64,27 @@ function emissionInfo = Type1_FreqDist(emissionInfo, Truncated, specData, idxThr
         [refStationDistance, ...
          idxStation]          = min(RFDataHubStationsDistance);
 
-        % Valores relacionados à estação mais próxima:
-        refStationNumber      = RFDataHub.Station(idxRFDataHub(idxStation));
+        % ToDo:
+        % Criar método na classe RFDataHub que retorne os dados da estação.
+
+        % stationID   = ['#' num2str(idxRFDataHub(idxStation))];
+        % stationInfo = query(RFDataHub, stationID, specData(idxThread).GPS.Latitude, specData(idxThread).GPS.Longitude);
+
         refStationService     = RFDataHub.Service(idxRFDataHub(idxStation));
+        refStationNumber      = RFDataHub.Station(idxRFDataHub(idxStation));        
         refStationLatitude    = RFDataHub.Latitude(idxRFDataHub(idxStation));
         refStationLongitude   = RFDataHub.Longitude(idxRFDataHub(idxStation));
         refStationDescription = class.RFDataHub.Description(RFDataHub, idxRFDataHub(idxStation));
+
+        try
+            refStationAntennaHeight = str2double(char(RFDataHub.AntennaHeight(idxRFDataHub(idxStation))));
+
+            mustBeFinite(refStationAntennaHeight)
+            mustBeNonnegative(refStationAntennaHeight)
+            mustBeNonempty(refStationAntennaHeight)             
+        catch
+            refStationAntennaHeight = 0;
+        end
 
         if RFDataHub.BW(idxRFDataHub(idxStation)) > 0
             refStationBandWidth = RFDataHub.BW(idxRFDataHub(idxStation));
@@ -92,9 +107,9 @@ function emissionInfo = Type1_FreqDist(emissionInfo, Truncated, specData, idxThr
                             continue
                         end                        
                     elseif contains(refStationDescription, "[MOSAICO-SRD] FM") 
-                        classStation = regexp(refStationDescription, '\[MOSAICO-SRD\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
-                        if ~isempty(classStation)
-                            classContour = FM_classCountour(classStation.class);
+                        classStation = char(RFDataHub.StationClass(idxRFDataHub(idxStation)));
+                        if ismember(classStation(1), {'A', 'B', 'C', 'E'})
+                            classContour = FM_classCountour(classStation(1));
                             break
                         else
                             idxRFDataHub(idxStation)              = [];
@@ -107,9 +122,9 @@ function emissionInfo = Type1_FreqDist(emissionInfo, Truncated, specData, idxThr
                 
                 case 'TV'
                     if contains(refStationDescription, "[MOSAICO-SRD] TV")
-                        classStation = regexp(refStationDescription, '\[MOSAICO-SRD\] [FMTV]{2}-C[0-9]{1,2}, (?<class>[ABCE]{1})', 'names');
-                        if ~isempty(classStation)
-                            classContour = TV_classCountour(classStation.class);
+                        classStation = char(RFDataHub.StationClass(idxRFDataHub(idxStation)));
+                        if ismember(classStation(1), {'A', 'B', 'C', 'E'})
+                            classContour = TV_classCountour(classStation(1));
                             break
                         else
                             idxRFDataHub(idxStation)              = [];
@@ -132,20 +147,22 @@ function emissionInfo = Type1_FreqDist(emissionInfo, Truncated, specData, idxThr
         if (refStationDistance > ruralContour) || (refStationBandWidth < (1-bandwidthRange(1))*emissionBandWidth) || (refStationBandWidth > (1+bandwidthRange(2))*emissionBandWidth)
             return
         end
+        
+        emissionInfo.Service        = refStationService;
+        emissionInfo.Station        = refStationNumber;
+        emissionInfo.Latitude       = refStationLatitude;
+        emissionInfo.Longitude      = refStationLongitude;
+        emissionInfo.AntennaHeight  = refStationAntennaHeight;
+        emissionInfo.Description    = refStationDescription;
+        emissionInfo.Distance       = refStationDistance;
+        emissionInfo.Details        = jsonencode(RFDataHub(idxRFDataHub(idxStation), setdiff(RFDataHub.Properties.VariableNames, {'Service', 'Station', 'Latitude', 'Longitude', 'AntennaHeight'})));
+        emissionInfo.EmissionType   = 'Fundamental';
 
         if refStationService ~= -1
             emissionInfo.Regulatory = 'Licenciada';
             emissionInfo.Irregular  = 'Não';
             emissionInfo.RiskLevel  = '-';
         end
-        
-        emissionInfo.Service      = refStationNumber;
-        emissionInfo.Station      = refStationService;
-        emissionInfo.Latitude     = refStationLatitude;
-        emissionInfo.Longitude    = refStationLongitude;
-        emissionInfo.Description  = refStationDescription;
-        emissionInfo.Distance     = refStationDistance;
-        emissionInfo.EmissionType = 'Fundamental';
     end
 end
 

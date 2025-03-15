@@ -548,6 +548,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         switch operationType
                             case 'closeFcn'
                                 closeModule(app.tabGroupController, "DRIVETEST", app.General)
+                            case {'ChannelParameterChanged', 'ChannelDefault'}
+                                play_UpdateAuxiliarApps(app, 'SIGNALANALYSIS')
                             otherwise
                                 error('UnexpectedCall')
                         end
@@ -566,14 +568,23 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         switch operationType
                             case 'closeFcn'
                                 closeModule(app.tabGroupController, "SIGNALANALYSIS", app.General)
-                            case {'DeleteButtonPushed', 'PeakValueChanged'}
+                            case 'DeleteButtonPushed'
                                 idxThread = varargin{1};
                                 idxEmission = varargin{2};
             
                                 if isequal(idxThread, app.play_PlotPanel.UserData.NodeData)
                                     plot.draw2D.ClearWrite_old(app, idxThread, operationType, idxEmission)
-                                end                            
-                                play_UpdatePeaksTable(app, idxThread, 'signalAnalysis.EditOrDeleteEmission')
+                                end
+                                play_UpdateAuxiliarApps(app)
+                            case 'IsTruncatedValueChanged'
+                                idxThread   = varargin{1};
+                                idxEmission = varargin{2};
+                                isTruncated = app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission);
+
+                                update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'IsTruncated', idxEmission, isTruncated, app.channelObj)
+
+                                play_FindPeaks_TreeSelectionChanged(app)            
+                                play_UpdateAuxiliarApps(app)
                             case 'PeakDescriptionChanged'
                                 play_FindPeaks_TreeSelectionChanged(app)
                             otherwise
@@ -910,8 +921,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             addComponent(app.tabGroupController, "Built-in", "",                         app.menu_Button4, "AlwaysOn", struct('On', 'Misc_32Yellow.png',             'Off', 'Misc_32White.png'),             matlab.graphics.GraphicsPlaceholder, 2)
             addComponent(app.tabGroupController, "External", "auxApp.winDriveTest",      app.menu_Button5, "AlwaysOn", struct('On', 'DriveTestDensity_32Yellow.png', 'Off', 'DriveTestDensity_32White.png'), app.menu_Button2,                    3)
             addComponent(app.tabGroupController, "External", "auxApp.winSignalAnalysis", app.menu_Button6, "AlwaysOn", struct('On', 'exceptionList_32Yellow.png',    'Off', 'exceptionList_32White.png'),    app.menu_Button2,                    4)
-            addComponent(app.tabGroupController, "External", "auxApp.winRFDataHub",      app.menu_Button7, "AlwaysOn", struct('On', 'mosaic_32Yellow.png',           'Off', 'mosaic_32White.png'),           app.menu_Button1,                    5)
-            addComponent(app.tabGroupController, "External", "auxApp.winConfig",         app.menu_Button8, "AlwaysOn", struct('On', 'Settings_36Yellow.png',         'Off', 'Settings_36White.png'),         app.menu_Button1,                    6)
+            addComponent(app.tabGroupController, "External", "auxApp.winRFDataHub",      app.menu_Button7, "AlwaysOn", struct('On', 'mosaic_32Yellow.png',           'Off', 'mosaic_32White.png'),           app.menu_Button2,                    5)
+            addComponent(app.tabGroupController, "External", "auxApp.winConfig",         app.menu_Button8, "AlwaysOn", struct('On', 'Settings_36Yellow.png',         'Off', 'Settings_36White.png'),         app.menu_Button2,                    6)
 
             % Salva na propriedade "UserData" as opções de ícone e o índice 
             % da aba, simplificando os ajustes decorrentes de uma alteração...
@@ -1080,17 +1091,18 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 case 'SIGNALANALYSIS'                    
                     if auxAppIsOpen
-                        idxPrjPeaks = auxAppHandle.UITable.Selection;                        
+                        selectedRow = auxAppHandle.UITable.Selection;                        
                     else
-                        idxPrjPeaks = 1;
+                        selectedRow = [];
                     end
 
-                    inputArguments = {app, idxPrjPeaks};
+                    inputArguments = {app, selectedRow};
 
                 case 'RFDATAHUB'
                     if auxAppIsOpen
-                        filterTable    = auxAppHandle.filterTable;
-                        inputArguments = {app, filterTable};
+                        filterTable         = auxAppHandle.filterTable;
+                        rfDataHubAnnotation = auxAppHandle.rfDataHubAnnotation;
+                        inputArguments      = {app, filterTable, rfDataHubAnnotation};
                     end
             end
         end
@@ -1710,12 +1722,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             switch Method
                 case 'Linear fixo (COLETA)'
                     occParameters = RF.Occupancy.Parameters(Method, app.play_OCC_IntegrationTimeCaptured.Value, str2double(app.play_OCC_THRCaptured.Value));
-
                 case 'Linear fixo'
                     occParameters = RF.Occupancy.Parameters(Method, str2double(app.play_OCC_IntegrationTime.Value), app.play_OCC_THR.Value);
-
                 case {'Linear adaptativo', 'Envoltória do ruído'}
-                    occParameters = RF.Occupancy.Parameters(Method, str2double(app.play_OCC_IntegrationTime.Value), app.play_OCC_Offset.Value, app.play_OCC_noiseFcn.Value, app.play_OCC_noiseTrashSamples.Value/100, app.play_OCC_noiseUsefulSamples.Value/100, app.play_OCC_ceilFactor.Value);
+                    occParameters = RF.Occupancy.Parameters(Method, str2double(app.play_OCC_IntegrationTime.Value), app.play_OCC_Offset.Value, app.play_OCC_noiseFcn.Value, app.play_OCC_noiseTrashSamples.Value/100, app.play_OCC_noiseUsefulSamples.Value/100, app.play_OCC_ceilFactor.Value);            
             end
         end
 
@@ -1729,10 +1739,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             switch srcFcn
                 case 'PLAYBACK/REPORT'
-                    if isempty(app.specData(idx).UserData.reportOCC)
+                    if isempty(app.specData(idx).UserData.occCache)
                         occParameters = play_OCCParameters(app);
                     else
-                        occParameters = app.specData(idx).UserData.reportOCC;
+                        occParameters = app.specData(idx).UserData.reportAlgorithms.Occupancy;
                     end
                     play_OCCLayoutStartup(app, idx)
 
@@ -1740,7 +1750,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     occParameters = play_OCCParameters(app);
 
                 case 'REPORT'
-                    occParameters = app.specData(idx).UserData.reportOCC;
+                    occParameters = app.specData(idx).UserData.reportAlgorithms.Occupancy;
             end
             
             occIndex = find(cellfun(@(x) isequal(x, occParameters), {app.specData(idx).UserData.occCache.Info}));
@@ -1755,7 +1765,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                     otherwise
                         update(app.specData(idx), 'UserData:OccupancyFields', 'SelectedIndex:Refresh')
-                        occData = RF.Occupancy.run(app.specData(idx).Data{1}, app.specData(idx).Data{2}, occParameters, occTHR);
+                        occData = RF.Occupancy.run(app.specData(idx).Data{1}, app.specData(idx).Data{2}, occParameters.Method, occTHR, occParameters.IntegrationTime);
                 end
 
                 update(app.specData(idx), 'UserData:OccupancyFields', 'Cache:Add', occIndex, occParameters, occTHR, occData)
@@ -2193,36 +2203,42 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function play_AddEmission2List(app, idxThread, newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm)
-            update(app.specData(idxThread), 'UserData:Emissions', 'Add', newEmissionIndex, newEmissionFrequency, newEmissionBW, newEmissionDetectionAlgorithm, app.channelObj)            
+        function play_AddEmission2List(app, idxThread, idxFreqCenter, FreqCenter, BW_kHz, Algorithm, Description)
+            arguments
+                app
+                idxThread
+                idxFreqCenter
+                FreqCenter
+                BW_kHz
+                Algorithm
+                Description = [];
+            end
+            update(app.specData(idxThread), 'UserData:Emissions', 'Add', idxFreqCenter, FreqCenter, BW_kHz, Algorithm, Description, app.channelObj)
             
             idx = app.play_PlotPanel.UserData.NodeData;
-            plot_updateSelectedEmission(app, idxThread, newEmissionIndex, idx == idxThread)            
-            play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')
+            plot_updateSelectedEmission(app, idxThread, idxFreqCenter, idx == idxThread)            
+            play_UpdateAuxiliarApps(app)
         end
 
         %-----------------------------------------------------------------%
-        function play_UpdatePeaksTable(app, idxThreads, operationType)
-            idxReport = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
-
-            if isempty(idxReport)
-                closeModule(app.tabGroupController, "SIGNALANALYSIS", app.General)
-
-            else
-                if any(ismember(idxThreads, idxReport))
-                    report.Controller(app, operationType)
-
-                    hSignalAnalysis = auxAppHandle(app, 'SIGNALANALYSIS');
-                    if ~isempty(hSignalAnalysis) && isvalid(hSignalAnalysis)
-                        idxPrjPeaks = hSignalAnalysis.UITable.Selection;
-                        renderProjectDataOnScreen(hSignalAnalysis, idxPrjPeaks)
-                    end
+        function play_UpdateAuxiliarApps(app, auxAppToUpdate)
+            arguments
+                app
+                auxAppToUpdate {mustBeMember(auxAppToUpdate, {'All', 'SIGNALANALYSIS', 'DRIVETEST'})} = 'All'
+            end
+            
+            if ismember(auxAppToUpdate, {'All', 'SIGNALANALYSIS'})
+                hSignalAnalysis = auxAppHandle(app, 'SIGNALANALYSIS');
+                if ~isempty(hSignalAnalysis) && isvalid(hSignalAnalysis)
+                    ipcSecundaryMatlabCallsHandler(hSignalAnalysis, app)
                 end
             end
 
-            hDriveTest = auxAppHandle(app, 'DRIVETEST');
-            if ~isempty(hDriveTest) && isvalid(hDriveTest)
-                ipcSecundaryMatlabCallsHandler(hDriveTest, app)
+            if ismember(auxAppToUpdate, {'All', 'DRIVETEST'})
+                hDriveTest = auxAppHandle(app, 'DRIVETEST');
+                if ~isempty(hDriveTest) && isvalid(hDriveTest)
+                    ipcSecundaryMatlabCallsHandler(hDriveTest, app)
+                end
             end
         end
 
@@ -2842,7 +2858,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             play_TreeSelectionChanged(app)
-            play_UpdatePeaksTable(app, idxThreads, 'report.AddOrDeleteThread')
         end
 
         %-----------------------------------------------------------------%
@@ -2851,10 +2866,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 if isempty(app.report_ThreadAlgorithms.UserData) || ~isequal(app.report_ThreadAlgorithms.UserData, app.play_PlotPanel.UserData)
                     set(app.report_ThreadAlgorithms, 'HTMLSource', util.HtmlTextGenerator.ReportAlgorithms(app.specData(idx)), ...
                                                      'UserData',   app.play_PlotPanel.UserData)
-    
-                    app.report_EditDetection.Enable      = ~app.specData(idx).UserData.reportDetection.ManualMode;
-                    app.report_EditClassification.Enable = 1;                
-                    set(app.report_DetectionManualMode, 'Enable', 1, 'Value', app.specData(idx).UserData.reportDetection.ManualMode)
+
+                    app.report_EditDetection.Enable      = ~app.specData(idx).UserData.reportAlgorithms.Detection.ManualMode;
+                    app.report_EditClassification.Enable = 1;
+                    set(app.report_DetectionManualMode, 'Enable', 1, 'Value', app.specData(idx).UserData.reportAlgorithms.Detection.ManualMode)
                 end
 
             else
@@ -4424,14 +4439,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 idxThread   = app.play_PlotPanel.UserData.NodeData;
                 idxEmission = app.play_FindPeaks_Tree.SelectedNodes.NodeData;
 
-                set(app.play_FindPeaks_PeakCF, 'Value', round(app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), 3), 'Enable', 1)
-                set(app.play_FindPeaks_PeakBW, 'Value', round(app.specData(idxThread).UserData.Emissions.BW_kHz(idxEmission), 1),    'Enable', 1)
-
-                if ismissing(app.specData(idxThread).UserData.Emissions.Description(idxEmission))
-                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'Description', idxEmission, "")
-                end
-                userDescription = app.specData(idxThread).UserData.Emissions.Description(idxEmission);
-                set(app.play_FindPeaks_Description, 'Value', userDescription, 'Enable', 1)
+                set(app.play_FindPeaks_PeakCF,      'Value', round(app.specData(idxThread).UserData.Emissions.Frequency(idxEmission), 3), 'Enable', 1)
+                set(app.play_FindPeaks_PeakBW,      'Value', round(app.specData(idxThread).UserData.Emissions.BW_kHz(idxEmission), 1),    'Enable', 1)
+                set(app.play_FindPeaks_Description, 'Value',       app.specData(idxThread).UserData.Emissions.Description(idxEmission),   'Enable', 1)
 
                 if strcmp(app.play_FindPeaks_Tree.SelectedNodes.Icon, 'signalTruncated_32.png')
                     app.play_FindPeaks_ContextMenu_digital.Enable = 0;
@@ -4519,17 +4529,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 tempBandTable(invalidIndex,:) = [];
                                 newIndex(invalidIndex)        = [];
 
-                                newFreq  = tempBandTable.Frequency;         % Em MHz
-                                newBW    = tempBandTable.BW;                % Em kHz
+                                numEmissions   = numel(newIndex);
+                                newFreq        = tempBandTable.Frequency;         % Em MHz
+                                newBW          = tempBandTable.BW;                % Em kHz
+                                Method         = repmat({jsonencode(struct('Algorithm', 'ExternalFile'))}, numEmissions, 1);
+                                newDescription = tempBandTable.Description;
                                 
-                                Method   = {};
-                                for jj = 1:height(tempBandTable)
-                                    Method{jj,1} = jsonencode(struct('Algorithm', 'ExternalFile', 'Description', tempBandTable.Description{jj}));
-                                end
-
-                                NN = numel(newIndex);
-                                if NN
-                                    play_AddEmission2List(app, ii, newIndex, newFreq, newBW, Method)
+                                if numEmissions
+                                    play_AddEmission2List(app, ii, newIndex, newFreq, newBW, Method, newDescription)
                                 end
                             end
                         end
@@ -4553,7 +4560,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                                         'Distance_kHz', app.play_FindPeaks_distance.Value,   ...
                                                         'BW_kHz',       app.play_FindPeaks_BW.Value);
         
-                                    [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaks(app.specData, idx, Attributes);
+                                    [newIndex, newFreq, newBW, Method] = util.Detection.FindPeaks(app.specData, idx, Attributes);
         
                                 case 'FindPeaks+OCC'
                                     Attributes = struct('Algorithm',    app.play_FindPeaks_Algorithm.Value,   ...
@@ -4564,7 +4571,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                                         'meanOCC',      app.play_FindPeaks_meanOCC.Value,     ...
                                                         'maxOCC',       app.play_FindPeaks_maxOCC.Value);
                                     
-                                    [newIndex, newFreq, newBW, Method] = fcn.Detection_FindPeaksPlusOCC(app, app.specData, idx, Attributes);
+                                    [newIndex, newFreq, newBW, Method] = util.Detection.FindPeaksPlusOCC(app.specData, idx, Attributes);
                             end    
                             newBW  = newBW * 1000;
 
@@ -4647,7 +4654,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 update(app.specData(idxThread), 'UserData:Emissions', 'Delete', idxEmissions)
                 
                 plot.draw2D.ClearWrite_old(app, idxThread, 'DeleteButtonPushed', 1)
-                play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')
+                play_UpdateAuxiliarApps(app)
             end
             
         end
@@ -4668,18 +4675,20 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                        return
                     end
                     
-                    idxNewFrequency = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
-                    newFrequency    = app.bandObj.xArray(idxNewFrequency);
+                    idxFrequency = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
+                    FreqCenter   = app.bandObj.xArray(idxFrequency);
+                    BW_kHz       = app.play_FindPeaks_PeakBW.Value;
 
-                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'Frequency',   idxEmission, idxNewFrequency, newFrequency, app.channelObj)
-                    app.play_FindPeaks_PeakCF.Value = newFrequency;
-                    plot_updateSelectedEmission(app, idxThread, idxNewFrequency)
+                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'Frequency', idxEmission, idxFrequency, FreqCenter, BW_kHz, app.channelObj)
+                    app.play_FindPeaks_PeakCF.Value = FreqCenter;
+                    plot_updateSelectedEmission(app, idxThread, idxFrequency)
 
                 case app.play_FindPeaks_PeakBW
                     idxFrequency = freq2idx(app.bandObj, app.play_FindPeaks_PeakCF.Value*1e+6);
-                    newBandWidth = app.play_FindPeaks_PeakBW.Value;
+                    FreqCenter   = app.play_FindPeaks_PeakCF.Value;
+                    BW_kHz       = app.play_FindPeaks_PeakBW.Value;
 
-                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'BandWidth',   idxEmission, newBandWidth, app.channelObj)
+                    update(app.specData(idxThread), 'UserData:Emissions', 'Edit', 'BandWidth', idxEmission, idxFrequency, FreqCenter, BW_kHz, app.channelObj)
                     plot_updateSelectedEmission(app, idxThread, idxFrequency)
 
                 case app.play_FindPeaks_Description
@@ -4689,7 +4698,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     app.play_FindPeaks_Description.Value = newDescription;
             end
 
-            play_UpdatePeaksTable(app, idxThread, 'playback.AddEditOrDeleteEmission')
+            play_UpdateAuxiliarApps(app)
             
         end
 
@@ -4704,16 +4713,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     
                 switch event.Source.Text
                     case 'Truncar frequência'
-                        update(app.specData(idx), 'UserData:Emissions', 'Edit', 'IsTruncated', idxEmission, 1)
+                        update(app.specData(idx), 'UserData:Emissions', 'Edit', 'IsTruncated', idxEmission, 1, app.channelObj)
                         app.play_FindPeaks_Tree.SelectedNodes(ii).Icon = 'signalTruncated_32.png';
     
                     case 'Não truncar'
-                        update(app.specData(idx), 'UserData:Emissions', 'Edit', 'IsTruncated', idxEmission, 0)
+                        update(app.specData(idx), 'UserData:Emissions', 'Edit', 'IsTruncated', idxEmission, 0, app.channelObj)
                         app.play_FindPeaks_Tree.SelectedNodes(ii).Icon = 'signalUntruncated_32.png';
                 end
             end            
             play_FindPeaks_TreeSelectionChanged(app)            
-            play_UpdatePeaksTable(app, idx, 'playback.AddEditOrDeleteEmission')
+            play_UpdateAuxiliarApps(app)
             
         end
 
@@ -4773,7 +4782,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 newIndex = app.specData(idx).UserData.Emissions.idxFrequency(idxEmission);
 
                 plot_updateSelectedEmission(app, idx, newIndex)
-                play_UpdatePeaksTable(app, idx, 'playback.AddEditOrDeleteEmission')
+                play_UpdateAuxiliarApps(app)
             end
 
             plot.draw2D.horizontalSetOfLines(app.UIAxes1, app.bandObj, idx, 'BandLimits')
@@ -4849,7 +4858,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 update(app.specData(idx), 'UserData:BandLimits', 'Table:Edit', bandLimitsTable)
                 plot_updateSelectedEmission(app, idx, idxFrequency)
-                play_UpdatePeaksTable(app, idx, 'playback.AddEditOrDeleteEmission')
+                play_UpdateAuxiliarApps(app)
 
             else
                 update(app.specData(idx), 'UserData:BandLimits', 'Table:Edit', bandLimitsTable)
@@ -4878,7 +4887,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 update(app.specData(idx), 'UserData:BandLimits', 'Table:DeleteRows', idxBandLimits)
                 if exist('userSelection', 'var')
                     plot_updateSelectedEmission(app, idx, app.specData(idx).UserData.Emissions.idxFrequency)
-                    play_UpdatePeaksTable(app, idx,'playback.AddEditOrDeleteEmission')
+                    play_UpdateAuxiliarApps(app)
                 end
     
                 play_BandLimits_TreeBuilding(app, idx)
@@ -5057,7 +5066,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 if any(~ismember(idxThreads, find(arrayfun(@(x) x.UserData.reportFlag, app.specData))))
                     app.progressDialog.Visible = 'visible';
 
-                    update(app.specData, 'UserData:ReportFields', 'Creation', idxThreads, app.channelObj, @app.play_OCCIndex)
+                    update(app.specData, 'UserData:ReportFields', 'Creation', idxThreads, app.channelObj)
                     report_TreeBuilding(app)
                     report_SaveWarn(app)
 
@@ -5084,7 +5093,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function report_DetectionManualModeValueChanged(app, event)
             
             idx = app.play_PlotPanel.UserData.NodeData;            
-            update(app.specData(idx), 'UserData:ReportFields', 'ReportDetection:ManualMode:Edit', double(app.report_DetectionManualMode.Value))
+            update(app.specData(idx), 'UserData:ReportFields', 'ReportDetection:ManualMode:Edit', double(app.report_DetectionManualMode.Value))            
+            app.report_ThreadAlgorithms.UserData = [];
             report_Algorithms(app, idx)
 
         end
@@ -5124,12 +5134,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             report.Controller(app, 'Report')
-            
-            hSignalAnalysis = auxAppHandle(app, 'SIGNALANALYSIS');
-            if ~isempty(hSignalAnalysis) && isvalid(hSignalAnalysis)
-                idxPrjPeaks = hSignalAnalysis.UITable.Selection;
-                renderProjectDataOnScreen(hSignalAnalysis, idxPrjPeaks)
-            end
+
+            % Atualiza apps auxiliares...
+            play_UpdateAuxiliarApps(app)
 
             % LAYOUT:
             % Esse modo "REPORT" pode detectar, automaticamente, novas
@@ -5326,7 +5333,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         % Reinicia os valores de ocupação...
                         idxThread = idxThreads(1);
                         if ~isempty(app.specData(idxThread).UserData.occCache)
-                            update(app.specData, 'UserData:OccupancyFields+ReportFields', 'Refresh', idxThread, app.channelObj, @app.play_OCCIndex)
+                            update(app.specData, 'UserData:OccupancyFields+ReportFields', 'Refresh', idxThread, app.channelObj)
                         end
     
                     %-----------------------------------------------------%
@@ -6385,7 +6392,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_OCC_IntegrationTime
             app.play_OCC_IntegrationTime = uidropdown(app.play_OCCGrid);
-            app.play_OCC_IntegrationTime.Items = {'1', '5', '15', '30', '60'};
+            app.play_OCC_IntegrationTime.Items = {'1', '5', '15', '30', '60', 'Inf'};
             app.play_OCC_IntegrationTime.ValueChangedFcn = createCallbackFcn(app, @play_Occupancy_Callbacks, true);
             app.play_OCC_IntegrationTime.Tag = 'Factor';
             app.play_OCC_IntegrationTime.FontSize = 11;
