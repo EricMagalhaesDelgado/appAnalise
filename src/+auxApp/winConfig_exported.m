@@ -463,6 +463,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Migrar update p/ classe RFDataHub.
 
             try
+                appName  = class.Constants.appName;
                 rfDataHubLink = util.publicLink(appName, app.rootFolder, 'RFDataHub');
 
                 tempDir = tempname;
@@ -488,7 +489,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                 clear global RFDataHub
                 clear global RFDataHubLog
                 clear global RFDataHub_info
-                class.RFDataHub.read(app.rootFolder, tempDir)
+                model.RFDataHub.read(appName, app.rootFolder, tempDir)
 
                 % Apaga os arquivos temporários.
                 rmdir(tempDir, 's')

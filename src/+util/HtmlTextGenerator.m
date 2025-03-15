@@ -260,7 +260,7 @@ classdef (Abstract) HtmlTextGenerator
             end    
         
             % stationLOG
-            stationLOG = class.RFDataHub.queryLog(rfDataHubLOG, stationInfo.Log);
+            stationLOG = model.RFDataHub.queryLog(rfDataHubLOG, stationInfo.Log);
             if isempty(stationLOG)
                 stationLOG = 'Registro não editado';
             end

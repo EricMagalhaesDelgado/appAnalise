@@ -9,13 +9,13 @@ function hROI = ROI(Type, hAxes, customProp)
 
     switch Type
         case {'Line', 'Threshold'}
-            hROI = images.roi.Line(hAxes,      defaultProp{:});
+            hROI = images.roi.Line(     hAxes, defaultProp{:});
         case 'Circle'
-            hROI = images.roi.Circle(hAxes,    defaultProp{:});
+            hROI = images.roi.Circle(   hAxes, defaultProp{:});
         case 'Rectangle'
             hROI = images.roi.Rectangle(hAxes, defaultProp{:});
         case 'Polygon'
-            hROI = images.roi.Rectangle(hAxes, defaultProp{:});
+            hROI = images.roi.Polygon(  hAxes, defaultProp{:});
     end
 
     if ~isempty(customProp)

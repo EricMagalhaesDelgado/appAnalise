@@ -817,7 +817,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         function Parameters = createPlotParameters(app)
             for ii = 1:height(app.filterTable)
                 if isvalid(app.filterTable.roi(ii).handle)
-                    app.filterTable.roi(ii).specification = filter_roiSpecification(app, app.filterTable.roi(ii).handle);
+                    app.filterTable.roi(ii).specification = util.roiSpecificationFromHandle(app.filterTable.roi(ii).handle);
                 end
             end
 
@@ -1420,26 +1420,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         % FILTROS
-        %-----------------------------------------------------------------%
-        function specification = filter_roiSpecification(app, hROI)
-            % Características mínimas de cada tipo de ROI para que seja
-            % possível a sua reconstrução programáticamente...
-
-            switch class(hROI)
-                case 'images.roi.Line'
-                    specification = struct('Position', hROI.Position);
-                case 'images.roi.Circle'
-                    specification = struct('Center', hROI.Center, 'Radius', hROI.Radius);
-                case 'images.roi.Rectangle'
-                    specification = struct('Position', hROI.Position, 'RotationAngle', hROI.RotationAngle);                
-                case 'images.roi.Polygon'
-                    specification = struct('Position', hROI.Position);
-                case 'map.graphics.chart.primitive.Polygon'
-                    specification = struct('Latitude',  struct(hROI.ShapeData).InternalData.VertexCoordinate1, ...
-                                           'Longitude', struct(hROI.ShapeData).InternalData.VertexCoordinate2);
-            end
-        end
-
         %-----------------------------------------------------------------%
         function filter_TreeBuilding(app)
             if ~isempty(app.filter_Tree.Children)
@@ -2432,7 +2412,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                     hROI = plot_FilterROIObject(app, 'DrawInRealTime', FilterSubtype, app.UIAxes4);
                     hROI.Position = [height(app.specFilteredTable) Threshold; 1 Threshold];
 
-                    app.filterTable(end+1,:) = {FilterType, FilterSubtype, struct('handle', hROI, 'specification', filter_roiSpecification(app, hROI))};
+                    app.filterTable(end+1,:) = {FilterType, FilterSubtype, struct('handle', hROI, 'specification', util.roiSpecificationFromHandle(hROI))};
 
                 case app.filter_Geographic
                     FilterType = 'Geographic ROI';
@@ -2454,7 +2434,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
                                     if isa(shapeObj, 'geopolyshape')
                                         hROI = plot_FilterROIObject(app, 'DrawInRealTime', FilterSubtype, app.UIAxes1, shapeObj);
-                                        app.filterTable(end+1,:) = {FilterType, FilterSubtype, struct('handle', hROI, 'specification', filter_roiSpecification(app, hROI))};
+                                        app.filterTable(end+1,:) = {FilterType, FilterSubtype, struct('handle', hROI, 'specification', util.roiSpecificationFromHandle(hROI))};
                                     end
                                 end
 
@@ -2487,7 +2467,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                                 return
                             end
 
-                            app.filterTable(end+1,:) = {FilterType, FilterSubtype, struct('handle', hROI, 'specification', filter_roiSpecification(app, hROI))};
+                            app.filterTable(end+1,:) = {FilterType, FilterSubtype, struct('handle', hROI, 'specification', util.roiSpecificationFromHandle(hROI))};
                     end
                     
                     if isprop(hROI, 'DisplayName')

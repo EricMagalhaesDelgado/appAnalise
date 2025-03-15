@@ -41,7 +41,7 @@ function fLogical = TableFiltering(hTable, filterTable)
     
                     switch filterTable.Type{jj}
                         case 'ROI'
-                            tempLogical = or(tempLogical, inROI(filterTable.Value{jj}{1}, hTable.Latitude, hTable.Longitude));
+                            tempLogical = or(tempLogical, inROI(filterTable.Value{jj}.handle, hTable.Latitude, hTable.Longitude));
                             
                         otherwise
                             Fcn = filterFcn(filterTable.Operation{jj}, filterTable.Value{jj}, fTolerance);

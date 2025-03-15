@@ -301,7 +301,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         function startup_timerFcn(app)
             if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
                 stop(app.timerObj)
-                delete(app.timerObj)                
+                delete(app.timerObj)   
+
                 startup_Controller(app)
             end
         end
@@ -968,6 +969,33 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 initialSelectedRowID = app.UITable.Data.ID{app.UITable.Selection(1)};
             end
 
+            % Verifica se todos os filtros geográficos que envolvem ROIs
+            % estão válidos, eventualmente recriando os ROIs.
+            idxROIFilter = find(app.filterTable.Type == "ROI");
+            if ~isempty(idxROIFilter) && any(cellfun(@(x) ~isvalid(x.handle), app.filterTable.Value(idxROIFilter)))
+                delete(findobj(app.UIAxes1, 'Tag', 'FilterROI'))
+
+                for ii = idxROIFilter'
+                    roiFcn = class(app.filterTable.Value{ii}.handle);
+                    roiSpecification = structUtil.struct2cellWithFields(app.filterTable.Value{ii}.specification);
+
+                    roiNameArgument = '';
+                    if isa(app.filterTable.Value{ii}.handle, 'images.roi.Rectangle')
+                        roiNameArgument = 'Rotatable=true, ';
+                    end
+
+                    eval(sprintf('hROI = %s(app.UIAxes1, Color=[0.40,0.73,0.88], LineWidth=1, Deletable=0, FaceSelectable=0, %sTag="FilterROI", UserData="%s");', roiFcn, roiNameArgument, app.filterTable.uuid{ii}))
+                    set(hROI, roiSpecification{:})
+
+                    plot.axes.Interactivity.DefaultEnable(app.UIAxes1)                    
+                    addlistener(hROI, 'MovingROI', @app.filter_ROICallbacks);
+                    addlistener(hROI, 'ROIMoved',  @app.filter_ROICallbacks);
+                    addlistener(hROI, 'ObjectBeingDestroyed', @(src, ~)plot.axes.Interactivity.DeleteROIListeners(src));
+
+                    app.filterTable.Value{ii}.handle = hROI;                    
+                end
+            end
+
             % Filtragem, preenchendo a tabela e o seu label (nº de linhas).
             idxRFDataHubArray = find(util.TableFiltering(app.rfDataHub, app.filterTable));
             columnGUINames    = {'ID', 'Frequency', 'Description', 'Service', 'Station', 'BW', 'Distance'};
@@ -1474,7 +1502,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
 
                 try
                     idxRFDataHubArray = app.UITable.UserData;
-                    tempRFDataHub = class.RFDataHub.ColumnNames(app.rfDataHub(idxRFDataHubArray,1:29), 'eng2port');
+                    tempRFDataHub = model.RFDataHub.ColumnNames(app.rfDataHub(idxRFDataHubArray,1:29), 'eng2port');
                     writetable(tempRFDataHub, fileFullPath, 'WriteMode', 'overwritesheet')
                 catch ME
                     appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
@@ -1576,12 +1604,12 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 
             % Plot "AntennaPattern"
             % O bloco try/catch protege possível erro no parser da informação
-            % do Mosaico. Como exposto em class.RFDataHub.parsingAntennaPattern
+            % do Mosaico. Como exposto em model.RFDataHub.parsingAntennaPattern
             % foram identificados quatro formas de armazenar a informação.
             cla(app.UIAxes3)
             if app.rfDataHub.AntennaPattern(idxRFDataHub) ~= "-1"
                 try
-                    [angle, gain] = class.RFDataHub.parsingAntennaPattern(app.rfDataHub.AntennaPattern(idxRFDataHub), 360);
+                    [angle, gain] = model.RFDataHub.parsingAntennaPattern(app.rfDataHub.AntennaPattern(idxRFDataHub), 360);
                     hAntennaPattern = polarplot(app.UIAxes3, angle, gain, 'Tag', 'AntennaPattern');
                     plot.datatip.Template(hAntennaPattern, "AntennaPattern")
                 catch
@@ -1789,7 +1817,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     addlistener(hROI, 'MovingROI', @app.filter_ROICallbacks);
                     addlistener(hROI, 'ROIMoved',  @app.filter_ROICallbacks);
                     addlistener(hROI, 'ObjectBeingDestroyed', @(src, ~)plot.axes.Interactivity.DeleteROIListeners(src));
-                    Value = {hROI};                    
+                    Value = struct('handle', hROI, 'specification', util.roiSpecificationFromHandle(hROI));
             end
 
             newFilter     = {Order, height(app.filterTable)+1, RelatedID,           ...

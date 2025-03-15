@@ -901,6 +901,23 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             app.General.Models     = struct2table(jsondecode(fileread(reportTemplateFile)));
             app.General.Report     = '';
+
+            % Leitura de arquivo "IBGE.mat", salvando-o em memória como 
+            % variável global.
+            [~, msgError] = gpsLib.checkIfIBGEIsGlobal();
+            if ~isempty(msgError)
+                switch app.executionMode
+                    case 'MATLABEnvironment'
+                        msgQuestion = sprintf(['Erro na leitura da base de dados "IBGE"\n%s\n\nEsse problema pode ' ...
+                                               'ser resolvido mapeando "SupportPackages" no path do MATLAB'], msgError);
+                    otherwise
+                        msgQuestion = sprintf(['Erro na leitura da base de dados "IBGE"\n%s\n\nEsse problema pode ' ...
+                                               'ser resolvido apagando manualmente a pasta %s'], msgError, ctfroot);
+                end
+
+                appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'OK'}, 1, 1);
+                closeFcn(app)
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -4918,7 +4935,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             if ~isempty(idxRFDataHub)
                 auxDistance      = deg2km(distance(app.specData(idxThread).GPS.Latitude, app.specData(idxThread).GPS.Longitude, RFDataHub.Latitude(idxRFDataHub), RFDataHub.Longitude(idxRFDataHub)));
                 [Distance, idx4] = min(auxDistance);
-                Description      = class.RFDataHub.Description(RFDataHub, idxRFDataHub(idx4));
+                Description      = model.RFDataHub.Description(RFDataHub, idxRFDataHub(idx4));
 
                 if app.specData(idxThread).UserData.Emissions.isTruncated(idxEmission)
                     msg = sprintf(['A frequência central da emissão (%.3f MHz) foi truncada em <b>%.5f MHz</b>.\n\n'                            ...

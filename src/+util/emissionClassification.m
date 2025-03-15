@@ -74,7 +74,7 @@ function emissionInfo = Type1_FreqDist(emissionInfo, Truncated, specData, idxThr
         refStationNumber      = RFDataHub.Station(idxRFDataHub(idxStation));        
         refStationLatitude    = RFDataHub.Latitude(idxRFDataHub(idxStation));
         refStationLongitude   = RFDataHub.Longitude(idxRFDataHub(idxStation));
-        refStationDescription = class.RFDataHub.Description(RFDataHub, idxRFDataHub(idxStation));
+        refStationDescription = model.RFDataHub.Description(RFDataHub, idxRFDataHub(idxStation));
 
         try
             refStationAntennaHeight = str2double(char(RFDataHub.AntennaHeight(idxRFDataHub(idxStation))));

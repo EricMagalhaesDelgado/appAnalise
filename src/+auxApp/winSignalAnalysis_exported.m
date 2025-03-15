@@ -845,7 +845,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 [idxThread, idxEmission] = emissionIndex(app);
                 receiverLatitude  = app.specData(idxThread).GPS.Latitude;
                 receiverLongitude = app.specData(idxThread).GPS.Longitude;
-                stationInfo       = class.RFDataHub.query(RFDataHub, app.StationID.Value, receiverLatitude, receiverLongitude);
+                stationInfo       = model.RFDataHub.query(RFDataHub, app.StationID.Value, receiverLatitude, receiverLongitude);
 
                 % Caso a estação não conste em RFDataHub, o método query
                 % chamado anteriormente retornará um erro. Mas caso
