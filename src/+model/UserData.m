@@ -99,7 +99,7 @@ classdef UserData
                                            'userModified',  chAssigned);
 
                 case 'Classification'
-                    emissionInfo  = util.emissionClassification(varargin{:});
+                    emissionInfo  = util.Classification.run(varargin{:});
                     fieldTemplate = struct('autoSuggested', emissionInfo, ...
                                            'userModified',  emissionInfo);
 

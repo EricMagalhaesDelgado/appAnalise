@@ -177,7 +177,7 @@ classdef SpecData < model.SpecDataBase
                                 obj.UserData.Emissions.ChannelAssigned(idxEmission)           = model.UserData.getFieldTemplate('ChannelAssigned', obj, 1, idxEmission, channelObj);
                                 obj.UserData.Emissions.Classification(idxEmission)            = model.UserData.getFieldTemplate('Classification',  obj, 1, idxEmission, channelObj);
                                 
-                                RF.Measures(obj, 1, idxEmission, 'Emission', channelObj)
+                                util.Measures(obj, 1, idxEmission, 'Emission', channelObj)
                             end
         
                         case 'Edit'
@@ -211,7 +211,7 @@ classdef SpecData < model.SpecDataBase
                                     end
 
                                     obj.UserData.Emissions.auxAppData(idxEmission).DriveTest = [];
-                                    RF.Measures(obj, 1, idxEmission, 'Emission', channelObj)
+                                    util.Measures(obj, 1, idxEmission, 'Emission', channelObj)
 
                                 case 'IsTruncated'
                                     obj.UserData.Emissions.isTruncated(idxEmission)          = varargin{3};

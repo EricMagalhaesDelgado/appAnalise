@@ -976,16 +976,14 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                 delete(findobj(app.UIAxes1, 'Tag', 'FilterROI'))
 
                 for ii = idxROIFilter'
-                    roiFcn = class(app.filterTable.Value{ii}.handle);
-                    roiSpecification = structUtil.struct2cellWithFields(app.filterTable.Value{ii}.specification);
-
-                    roiNameArgument = '';
+                    roiFcn  = class(app.filterTable.Value{ii}.handle);
+                    roiSpec = [structUtil.struct2cellWithFields(app.filterTable.Value{ii}.specification), ...
+                               {'Color', [0.40,0.73,0.88], 'Tag', 'FilterROI', 'UserData', app.filterTable.uuid{ii}}];
                     if isa(app.filterTable.Value{ii}.handle, 'images.roi.Rectangle')
-                        roiNameArgument = 'Rotatable=true, ';
+                        roiSpec = [roiSpec, {'Rotatable', true}];
                     end
 
-                    eval(sprintf('hROI = %s(app.UIAxes1, Color=[0.40,0.73,0.88], LineWidth=1, Deletable=0, FaceSelectable=0, %sTag="FilterROI", UserData="%s");', roiFcn, roiNameArgument, app.filterTable.uuid{ii}))
-                    set(hROI, roiSpecification{:})
+                    hROI = plot.ROI.draw(roiFcn, app.UIAxes1, roiSpec);
 
                     plot.axes.Interactivity.DefaultEnable(app.UIAxes1)                    
                     addlistener(hROI, 'MovingROI', @app.filter_ROICallbacks);
@@ -1817,7 +1815,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                     addlistener(hROI, 'MovingROI', @app.filter_ROICallbacks);
                     addlistener(hROI, 'ROIMoved',  @app.filter_ROICallbacks);
                     addlistener(hROI, 'ObjectBeingDestroyed', @(src, ~)plot.axes.Interactivity.DeleteROIListeners(src));
-                    Value = struct('handle', hROI, 'specification', util.roiSpecificationFromHandle(hROI));
+                    Value = struct('handle', hROI, 'specification', plot.ROI.specification(hROI));
             end
 
             newFilter     = {Order, height(app.filterTable)+1, RelatedID,           ...
