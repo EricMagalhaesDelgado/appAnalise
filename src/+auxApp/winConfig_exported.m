@@ -2,83 +2,83 @@ classdef winConfig_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                        matlab.ui.Figure
-        GridLayout                      matlab.ui.container.GridLayout
-        jsBackDoor                      matlab.ui.control.HTML
-        tool_RFDataHubButton            matlab.ui.control.Image
-        tool_FiscalizaButton            matlab.ui.control.Image
-        tool_LeftPanelVisibility        matlab.ui.control.Image
-        Document                        matlab.ui.container.GridLayout
-        Folders_Grid                    matlab.ui.container.GridLayout
-        config_FolderMapPanel           matlab.ui.container.Panel
-        config_FolderMapGrid            matlab.ui.container.GridLayout
-        config_Folder_tempPath          matlab.ui.control.EditField
-        config_Folder_tempPathLabel     matlab.ui.control.Label
-        config_Folder_userPathButton    matlab.ui.control.Image
-        config_Folder_userPath          matlab.ui.control.EditField
-        config_Folder_userPathLabel     matlab.ui.control.Label
-        config_Folder_pythonPathButton  matlab.ui.control.Image
-        config_Folder_pythonPath        matlab.ui.control.EditField
-        config_Folder_pythonPathLabel   matlab.ui.control.Label
-        config_Folder_DataHubPOSTButton  matlab.ui.control.Image
-        config_Folder_DataHubPOST       matlab.ui.control.EditField
-        config_Folder_DataHubPOSTLabel  matlab.ui.control.Label
-        config_Folder_DataHubGETButton  matlab.ui.control.Image
-        config_Folder_DataHubGET        matlab.ui.control.EditField
-        config_Folder_DataHubGETLabel   matlab.ui.control.Label
-        config_FolderMapLabel           matlab.ui.control.Label
-        APIFiscaliza_Grid               matlab.ui.container.GridLayout
-        config_FiscalizaVersion         matlab.ui.container.ButtonGroup
-        config_FiscalizaHM              matlab.ui.control.RadioButton
-        config_FiscalizaPD              matlab.ui.control.RadioButton
-        config_FiscalizaVersionLabel    matlab.ui.control.Label
-        General_Grid                    matlab.ui.container.GridLayout
-        general_ElevationPanel          matlab.ui.container.Panel
-        general_ElevationGrid           matlab.ui.container.GridLayout
-        ElevationForceSearch            matlab.ui.control.CheckBox
-        ElevationNPoints                matlab.ui.control.DropDown
-        ElevationNPointsLabel           matlab.ui.control.Label
-        ElevationAPIServer              matlab.ui.control.DropDown
-        ElevationAPIServerLabel         matlab.ui.control.Label
-        general_ElevationRefresh        matlab.ui.control.Image
-        general_ElevationLabel          matlab.ui.control.Label
-        general_GraphicsPanel           matlab.ui.container.Panel
-        general_GraphicsGrid            matlab.ui.container.GridLayout
-        openAuxiliarApp2Debug           matlab.ui.control.CheckBox
-        openAuxiliarAppAsDocked         matlab.ui.control.CheckBox
-        imgResolution                   matlab.ui.control.DropDown
-        imgResolutionLabel              matlab.ui.control.Label
-        imgFormat                       matlab.ui.control.DropDown
-        imgFormatLabel                  matlab.ui.control.Label
-        gpuType                         matlab.ui.control.DropDown
-        gpuTypeLabel                    matlab.ui.control.Label
-        graphics_Refresh                matlab.ui.control.Image
-        general_GraphicsLabel           matlab.ui.control.Label
-        general_FilePanel               matlab.ui.container.Panel
-        general_FileGrid                matlab.ui.container.GridLayout
-        mergeDistance                   matlab.ui.control.Spinner
-        mergeLabel2                     matlab.ui.control.Label
-        mergeAntenna                    matlab.ui.control.CheckBox
-        mergeDataType                   matlab.ui.control.CheckBox
-        mergeLabel1                     matlab.ui.control.Label
-        general_mergeRefresh            matlab.ui.control.Image
-        general_FileLabel               matlab.ui.control.Label
-        general_AppVersionPanel         matlab.ui.container.Panel
-        general_AppVersionGrid          matlab.ui.container.GridLayout
-        AppVersion                      matlab.ui.control.HTML
-        general_AppVersionRefresh       matlab.ui.control.Image
-        general_AppVersionLabel         matlab.ui.control.Label
-        LeftPanel                       matlab.ui.container.Panel
-        LeftPanelGrid                   matlab.ui.container.GridLayout
-        LeftPanelRadioGroup             matlab.ui.container.ButtonGroup
-        btnFolder                       matlab.ui.control.RadioButton
-        btnFiscaliza                    matlab.ui.control.RadioButton
-        btnGeneral                      matlab.ui.control.RadioButton
-        LeftPanelTitle                  matlab.ui.container.GridLayout
-        menuUnderline                   matlab.ui.control.Image
-        menu_ButtonGrid                 matlab.ui.container.GridLayout
-        menu_ButtonIcon                 matlab.ui.control.Image
-        menu_ButtonLabel                matlab.ui.control.Label
+        UIFigure                      matlab.ui.Figure
+        GridLayout                    matlab.ui.container.GridLayout
+        jsBackDoor                    matlab.ui.control.HTML
+        tool_RFDataHubButton          matlab.ui.control.Image
+        tool_FiscalizaButton          matlab.ui.control.Image
+        tool_LeftPanelVisibility      matlab.ui.control.Image
+        Document                      matlab.ui.container.GridLayout
+        Folders_Grid                  matlab.ui.container.GridLayout
+        FolderMapPanel                matlab.ui.container.Panel
+        FolderMapGrid                 matlab.ui.container.GridLayout
+        tempPath                      matlab.ui.control.EditField
+        tempPathLabel                 matlab.ui.control.Label
+        userPathButton                matlab.ui.control.Image
+        userPath                      matlab.ui.control.EditField
+        userPathLabel                 matlab.ui.control.Label
+        pythonPathButton              matlab.ui.control.Image
+        pythonPath                    matlab.ui.control.EditField
+        pythonPathLabel               matlab.ui.control.Label
+        DataHubPOSTButton             matlab.ui.control.Image
+        DataHubPOST                   matlab.ui.control.EditField
+        DataHubPOSTLabel              matlab.ui.control.Label
+        DataHubGETButton              matlab.ui.control.Image
+        DataHubGET                    matlab.ui.control.EditField
+        DataHubGETLabel               matlab.ui.control.Label
+        config_FolderMapLabel         matlab.ui.control.Label
+        APIFiscaliza_Grid             matlab.ui.container.GridLayout
+        config_FiscalizaVersion       matlab.ui.container.ButtonGroup
+        config_FiscalizaHM            matlab.ui.control.RadioButton
+        config_FiscalizaPD            matlab.ui.control.RadioButton
+        config_FiscalizaVersionLabel  matlab.ui.control.Label
+        General_Grid                  matlab.ui.container.GridLayout
+        general_ElevationPanel        matlab.ui.container.Panel
+        general_ElevationGrid         matlab.ui.container.GridLayout
+        ElevationForceSearch          matlab.ui.control.CheckBox
+        ElevationNPoints              matlab.ui.control.DropDown
+        ElevationNPointsLabel         matlab.ui.control.Label
+        ElevationAPIServer            matlab.ui.control.DropDown
+        ElevationAPIServerLabel       matlab.ui.control.Label
+        general_ElevationRefresh      matlab.ui.control.Image
+        general_ElevationLabel        matlab.ui.control.Label
+        general_GraphicsPanel         matlab.ui.container.Panel
+        general_GraphicsGrid          matlab.ui.container.GridLayout
+        openAuxiliarApp2Debug         matlab.ui.control.CheckBox
+        openAuxiliarAppAsDocked       matlab.ui.control.CheckBox
+        imgResolution                 matlab.ui.control.DropDown
+        imgResolutionLabel            matlab.ui.control.Label
+        imgFormat                     matlab.ui.control.DropDown
+        imgFormatLabel                matlab.ui.control.Label
+        gpuType                       matlab.ui.control.DropDown
+        gpuTypeLabel                  matlab.ui.control.Label
+        graphics_Refresh              matlab.ui.control.Image
+        general_GraphicsLabel         matlab.ui.control.Label
+        general_FilePanel             matlab.ui.container.Panel
+        general_FileGrid              matlab.ui.container.GridLayout
+        mergeDistance                 matlab.ui.control.Spinner
+        mergeLabel2                   matlab.ui.control.Label
+        mergeAntenna                  matlab.ui.control.CheckBox
+        mergeDataType                 matlab.ui.control.CheckBox
+        mergeLabel1                   matlab.ui.control.Label
+        general_mergeRefresh          matlab.ui.control.Image
+        general_FileLabel             matlab.ui.control.Label
+        general_AppVersionPanel       matlab.ui.container.Panel
+        general_AppVersionGrid        matlab.ui.container.GridLayout
+        AppVersion                    matlab.ui.control.HTML
+        general_AppVersionRefresh     matlab.ui.control.Image
+        general_AppVersionLabel       matlab.ui.control.Label
+        LeftPanel                     matlab.ui.container.Panel
+        LeftPanelGrid                 matlab.ui.container.GridLayout
+        LeftPanelRadioGroup           matlab.ui.container.ButtonGroup
+        btnFolder                     matlab.ui.control.RadioButton
+        btnFiscaliza                  matlab.ui.control.RadioButton
+        btnGeneral                    matlab.ui.control.RadioButton
+        LeftPanelTitle                matlab.ui.container.GridLayout
+        menuUnderline                 matlab.ui.control.Image
+        menu_ButtonGrid               matlab.ui.container.GridLayout
+        menu_ButtonIcon               matlab.ui.control.Image
+        menu_ButtonLabel              matlab.ui.control.Label
     end
 
     
@@ -109,7 +109,7 @@ classdef winConfig_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         DefaultValues = struct('File',      struct('DataType', true, 'DataTypeLabel', 'remove', 'Antenna', true, 'AntennaLabel', 'remove', 'AntennaAttributes', {{'Name', 'Azimuth', 'Elevation', 'Polarization', 'Height', 'SwitchPort', 'LNBChannel'}}, 'Distance', 100), ...
-                               'Graphics',  struct('openGL', 'hardware', 'Format', 'jpeg', 'Resolution', '120', 'Dock', true),                               ...
+                               'Graphics',  struct('openGL', 'hardware', 'Format', 'jpeg', 'Resolution', '120', 'Dock', true),                                                                                                                                              ...
                                'Elevation', struct('Points', '256', 'ForceSearch', false, 'Server', 'Open-Elevation'))
     end
     
@@ -341,25 +341,25 @@ classdef winConfig_exported < matlab.apps.AppBase
                     DataHub_GET  = app.mainApp.General.fileFolder.DataHub_GET;
                     DataHub_POST = app.mainApp.General.fileFolder.DataHub_POST;
                     if isfolder(DataHub_GET)
-                        app.config_Folder_DataHubGET.Value  = DataHub_GET;
+                        app.DataHubGET.Value  = DataHub_GET;
                     end
         
                     if isfolder(DataHub_POST)
-                        app.config_Folder_DataHubPOST.Value = DataHub_POST;
+                        app.DataHubPOST.Value = DataHub_POST;
                     end
         
                     % Python
-                    pythonPath = app.mainApp.General.fileFolder.pythonPath;
-                    if isfile(pythonPath)
-                        app.config_Folder_pythonPath.Value = pythonPath;
+                    pyPath = app.mainApp.General.fileFolder.pythonPath;
+                    if isfile(pyPath)
+                        app.pythonPath.Value = pyPath;
                     else
                         pyEnv = pyenv;
-                        app.config_Folder_pythonPath.Value = pyEnv.Executable;
+                        app.pythonPath.Value = pyEnv.Executable;
                     end
     
                     % userPath & tempPath
-                    app.config_Folder_userPath.Value = app.mainApp.General.fileFolder.userPath;
-                    app.config_Folder_tempPath.Value = app.mainApp.General.fileFolder.tempPath;
+                    app.userPath.Value = app.mainApp.General.fileFolder.userPath;
+                    app.tempPath.Value = app.mainApp.General.fileFolder.tempPath;
             end
         end
 
@@ -459,44 +459,16 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             d = appUtil.modalWindow(app.UIFigure, "progressdlg", 'Em andamento... esse processo pode demorar alguns minutos!');
 
-            % ToDo
-            % Migrar update p/ classe RFDataHub.
-
             try
                 appName  = class.Constants.appName;
                 rfDataHubLink = util.publicLink(appName, app.rootFolder, 'RFDataHub');
-
-                tempDir = tempname;
-                mkdir(tempDir)
-
-                websave(fullfile(tempDir, 'estacoes.parquet.gzip'), rfDataHubLink.Table);
-                websave(fullfile(tempDir, 'log.parquet.gzip'),      rfDataHubLink.Log);
-                websave(fullfile(tempDir, 'Release.json'),          rfDataHubLink.Release);
-
-                if isfile(fullfile(app.rootFolder, 'DataBase', 'RFDataHub_old.mat'))
-                    delete(fullfile(app.rootFolder, 'DataBase', 'RFDataHub_old.mat'))
-                end
-
-                while true
-                    status = movefile(fullfile(app.rootFolder, 'DataBase', 'RFDataHub.mat'), fullfile(app.rootFolder, 'DataBase', 'RFDataHub_old.mat'), 'f');
-                    if status
-                        break
-                    end
-                    pause(.1)
-                end
-
-                % Apaga as variáveis globais, lendo os novos arquivos.
-                clear global RFDataHub
-                clear global RFDataHubLog
-                clear global RFDataHub_info
-                model.RFDataHub.read(appName, app.rootFolder, tempDir)
-
-                % Apaga os arquivos temporários.
-                rmdir(tempDir, 's')
+                model.RFDataHub.update(appName, app.rootFolder, app.mainApp.General.fileFolder.tempPath, rfDataHubLink)
 
                 % Atualiza versão.
                 global RFDataHub_info
+
                 app.mainApp.General.AppVersion.rfDataHub = RFDataHub_info;
+                app.stableVersion.rfDataHub = RFDataHub_info;
                 app.tool_RFDataHubButton.Enable = 0;
                 
             catch ME
@@ -504,7 +476,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             end
 
             AppVersion_updatePanel(app)
-
             delete(d)
 
         end
@@ -564,10 +535,10 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                 %---------------------------------------------------------%
                 case app.general_mergeRefresh
-                    app.mainApp.General.Merge = struct('DataType',          app.DefaultValues.File.DataTypeLabel,     ...
-                                                          'Antenna',           app.DefaultValues.File.AntennaLabel,      ...
-                                                          'AntennaAttributes', app.DefaultValues.File.AntennaAttributes, ...
-                                                          'Distance',          app.DefaultValues.File.Distance);
+                    app.mainApp.General.Merge = struct('DataType',           app.DefaultValues.File.DataTypeLabel,      ...
+                                                       'Antenna',            app.DefaultValues.File.AntennaLabel,       ...
+                                                       'AntennaAttributes', {app.DefaultValues.File.AntennaAttributes}, ...
+                                                       'Distance',           app.DefaultValues.File.Distance);
             end
 
             app.mainApp.General_I.Merge = app.mainApp.General.Merge;            
@@ -661,9 +632,9 @@ classdef winConfig_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: config_Folder_DataHubGETButton, 
-        % ...and 3 other components
-        function config_getFolder(app, event)
+        % Image clicked function: DataHubGETButton, DataHubPOSTButton, 
+        % ...and 2 other components
+        function Folder_ButtonPushed(app, event)
             
             try
                 relatedFolder = eval(sprintf('app.config_Folder_%s.Value', event.Source.Tag));                    
@@ -676,7 +647,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             elseif isfile(relatedFolder)
                 initialFolder = fileparts(relatedFolder);
             else
-                initialFolder = app.config_Folder_userPath.Value;
+                initialFolder = app.userPath.Value;
             end
             
             selectedFolder = uigetdir(initialFolder);
@@ -684,42 +655,50 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             if selectedFolder
                 switch event.Source
-                    case app.config_Folder_DataHubGETButton
-                        appName  = class.Constants.appName;
-                        repoName = 'DataHub - GET';
-
+                    case app.DataHubGETButton
                         if strcmp(app.mainApp.General.fileFolder.DataHub_GET, selectedFolder) 
                             return
-                        elseif all(cellfun(@(x) contains(selectedFolder, x), {repoName, appName}))
-                            app.progressDialog.Visible = 'visible';
-
-                            app.config_Folder_DataHubGET.Value = selectedFolder;
-                            app.mainApp.General.fileFolder.DataHub_GET = selectedFolder;
                         else
-                            appUtil.modalWindow(app.UIFigure, 'error', sprintf('Não identificado se tratar da pasta "%s" do repositório "%s".', appName, repoName));
+                            appName  = class.Constants.appName;
+                            repoName = 'DataHub - GET';
+
+                            if all(cellfun(@(x) contains(selectedFolder, x, "IgnoreCase", true), {repoName, appName})) || contains(selectedFolder, appName, "IgnoreCase", true)
+                                % .\OneDrive - ANATEL\DataHub - GET\appAnalise
+                                % .\OneDrive - ANATEL\Inova Fiscaliza - appAnalise
+                                % .\OneDrive - ANATEL\appAnalise
+
+                                app.DataHubGET.Value = selectedFolder;
+                                app.mainApp.General.fileFolder.DataHub_GET = selectedFolder;
+                            else
+                                appUtil.modalWindow(app.UIFigure, 'error', sprintf('Não identificado se tratar da pasta "%s" do repositório "%s".', appName, repoName));
+                                return
+                            end
                         end
 
-                    case app.config_Folder_DataHubPOSTButton
-                        appName  = class.Constants.appName;
-                        repoName = 'DataHub - POST';
-
+                    case app.DataHubPOSTButton
                         if strcmp(app.mainApp.General.fileFolder.DataHub_POST, selectedFolder) 
                             return
-                        elseif all(cellfun(@(x) contains(selectedFolder, x), {repoName, appName}))
-                            app.config_Folder_DataHubPOST.Value = selectedFolder;
-                            app.mainApp.General.fileFolder.DataHub_POST = selectedFolder;
                         else
-                            appUtil.modalWindow(app.UIFigure, 'error', sprintf('Não identificado se tratar da pasta "%s" do repositório "%s".', appName, repoName));
+                            appName  = class.Constants.appName;
+                            repoName = 'DataHub - POST';
+
+                            if all(cellfun(@(x) contains(selectedFolder, x, "IgnoreCase", true), {repoName, appName})) || contains(selectedFolder, appName, "IgnoreCase", true)
+                                app.DataHubPOST.Value = selectedFolder;
+                                app.mainApp.General.fileFolder.DataHub_POST = selectedFolder;
+                            else
+                                appUtil.modalWindow(app.UIFigure, 'error', sprintf('Não identificado se tratar da pasta "%s" do repositório "%s".', appName, repoName));
+                                return
+                            end
                         end
 
-                    case app.config_Folder_pythonPathButton
-                        pythonPath = fullfile(selectedFolder, ccTools.fcn.OperationSystem('pythonExecutable'));
-                        if isfile(pythonPath)
+                    case app.pythonPathButton
+                        pyPath = fullfile(selectedFolder, ccTools.fcn.OperationSystem('pythonExecutable'));
+                        if isfile(pyPath)
                             app.progressDialog.Visible = 'visible';
 
                             try
-                                pyenv('Version', pythonPath);
-                                app.mainApp.General.fileFolder.pythonPath = pythonPath;
+                                pyenv('Version', pyPath);
+                                app.mainApp.General.fileFolder.pythonPath = pyPath;
 
                             catch ME
                                 appUtil.modalWindow(app.UIFigure, 'error', 'O <i>app</i> deverá ser reinicializado para que a alteração tenha efeito.');
@@ -732,8 +711,8 @@ classdef winConfig_exported < matlab.apps.AppBase
                             return
                         end
 
-                    case app.config_Folder_userPathButton
-                        app.config_Folder_userPath.Value = selectedFolder;
+                    case app.userPathButton
+                        app.userPath.Value = selectedFolder;
                         app.mainApp.General.fileFolder.userPath = selectedFolder;
                 end
 
@@ -790,7 +769,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {320, '1x', 0, 0};
+            app.Document.ColumnWidth = {320, 0, 0, '1x'};
             app.Document.RowHeight = {26, '1x'};
             app.Document.RowSpacing = 5;
             app.Document.Padding = [5 5 5 5];
@@ -1213,21 +1192,21 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_FiscalizaVersion = uibuttongroup(app.APIFiscaliza_Grid);
             app.config_FiscalizaVersion.SelectionChangedFcn = createCallbackFcn(app, @config_FiscalizaMode, true);
             app.config_FiscalizaVersion.BackgroundColor = [1 1 1];
-            app.config_FiscalizaVersion.Layout.Row = 3;
+            app.config_FiscalizaVersion.Layout.Row = [3 8];
             app.config_FiscalizaVersion.Layout.Column = [1 2];
 
             % Create config_FiscalizaPD
             app.config_FiscalizaPD = uiradiobutton(app.config_FiscalizaVersion);
             app.config_FiscalizaPD.Text = 'FISCALIZA PRODUÇÃO';
             app.config_FiscalizaPD.FontSize = 11;
-            app.config_FiscalizaPD.Position = [10 36 146 22];
+            app.config_FiscalizaPD.Position = [10 552 146 22];
 
             % Create config_FiscalizaHM
             app.config_FiscalizaHM = uiradiobutton(app.config_FiscalizaVersion);
             app.config_FiscalizaHM.Text = 'FISCALIZA <font style="color: red;">HOMOLOGAÇÃO</font> (versão destinada a testes)';
             app.config_FiscalizaHM.FontSize = 11;
             app.config_FiscalizaHM.Interpreter = 'html';
-            app.config_FiscalizaHM.Position = [10 10 310 22];
+            app.config_FiscalizaHM.Position = [10 526 310 22];
             app.config_FiscalizaHM.Value = true;
 
             % Create Folders_Grid
@@ -1248,126 +1227,126 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_FolderMapLabel.Layout.Column = 1;
             app.config_FolderMapLabel.Text = 'MAPEAMENTO DE PASTAS';
 
-            % Create config_FolderMapPanel
-            app.config_FolderMapPanel = uipanel(app.Folders_Grid);
-            app.config_FolderMapPanel.AutoResizeChildren = 'off';
-            app.config_FolderMapPanel.Layout.Row = 3;
-            app.config_FolderMapPanel.Layout.Column = 1;
+            % Create FolderMapPanel
+            app.FolderMapPanel = uipanel(app.Folders_Grid);
+            app.FolderMapPanel.AutoResizeChildren = 'off';
+            app.FolderMapPanel.Layout.Row = 3;
+            app.FolderMapPanel.Layout.Column = 1;
 
-            % Create config_FolderMapGrid
-            app.config_FolderMapGrid = uigridlayout(app.config_FolderMapPanel);
-            app.config_FolderMapGrid.ColumnWidth = {'1x', 20};
-            app.config_FolderMapGrid.RowHeight = {17, 22, 17, 22, 17, 22, 17, 22, 17, 22, '1x'};
-            app.config_FolderMapGrid.ColumnSpacing = 5;
-            app.config_FolderMapGrid.RowSpacing = 5;
-            app.config_FolderMapGrid.BackgroundColor = [1 1 1];
+            % Create FolderMapGrid
+            app.FolderMapGrid = uigridlayout(app.FolderMapPanel);
+            app.FolderMapGrid.ColumnWidth = {'1x', 20};
+            app.FolderMapGrid.RowHeight = {17, 22, 17, 22, 17, 22, 17, 22, 17, 22, '1x'};
+            app.FolderMapGrid.ColumnSpacing = 5;
+            app.FolderMapGrid.RowSpacing = 5;
+            app.FolderMapGrid.BackgroundColor = [1 1 1];
 
-            % Create config_Folder_DataHubGETLabel
-            app.config_Folder_DataHubGETLabel = uilabel(app.config_FolderMapGrid);
-            app.config_Folder_DataHubGETLabel.VerticalAlignment = 'bottom';
-            app.config_Folder_DataHubGETLabel.FontSize = 10;
-            app.config_Folder_DataHubGETLabel.Layout.Row = 1;
-            app.config_Folder_DataHubGETLabel.Layout.Column = 1;
-            app.config_Folder_DataHubGETLabel.Text = 'DataHub - GET:';
+            % Create DataHubGETLabel
+            app.DataHubGETLabel = uilabel(app.FolderMapGrid);
+            app.DataHubGETLabel.VerticalAlignment = 'bottom';
+            app.DataHubGETLabel.FontSize = 10;
+            app.DataHubGETLabel.Layout.Row = 1;
+            app.DataHubGETLabel.Layout.Column = 1;
+            app.DataHubGETLabel.Text = 'DataHub - GET:';
 
-            % Create config_Folder_DataHubGET
-            app.config_Folder_DataHubGET = uieditfield(app.config_FolderMapGrid, 'text');
-            app.config_Folder_DataHubGET.Editable = 'off';
-            app.config_Folder_DataHubGET.FontSize = 11;
-            app.config_Folder_DataHubGET.Layout.Row = 2;
-            app.config_Folder_DataHubGET.Layout.Column = 1;
+            % Create DataHubGET
+            app.DataHubGET = uieditfield(app.FolderMapGrid, 'text');
+            app.DataHubGET.Editable = 'off';
+            app.DataHubGET.FontSize = 11;
+            app.DataHubGET.Layout.Row = 2;
+            app.DataHubGET.Layout.Column = 1;
 
-            % Create config_Folder_DataHubGETButton
-            app.config_Folder_DataHubGETButton = uiimage(app.config_FolderMapGrid);
-            app.config_Folder_DataHubGETButton.ImageClickedFcn = createCallbackFcn(app, @config_getFolder, true);
-            app.config_Folder_DataHubGETButton.Tag = 'DataHub_GET';
-            app.config_Folder_DataHubGETButton.Layout.Row = 2;
-            app.config_Folder_DataHubGETButton.Layout.Column = 2;
-            app.config_Folder_DataHubGETButton.ImageSource = 'OpenFile_36x36.png';
+            % Create DataHubGETButton
+            app.DataHubGETButton = uiimage(app.FolderMapGrid);
+            app.DataHubGETButton.ImageClickedFcn = createCallbackFcn(app, @Folder_ButtonPushed, true);
+            app.DataHubGETButton.Tag = 'DataHub_GET';
+            app.DataHubGETButton.Layout.Row = 2;
+            app.DataHubGETButton.Layout.Column = 2;
+            app.DataHubGETButton.ImageSource = 'OpenFile_36x36.png';
 
-            % Create config_Folder_DataHubPOSTLabel
-            app.config_Folder_DataHubPOSTLabel = uilabel(app.config_FolderMapGrid);
-            app.config_Folder_DataHubPOSTLabel.VerticalAlignment = 'bottom';
-            app.config_Folder_DataHubPOSTLabel.FontSize = 10;
-            app.config_Folder_DataHubPOSTLabel.Layout.Row = 3;
-            app.config_Folder_DataHubPOSTLabel.Layout.Column = 1;
-            app.config_Folder_DataHubPOSTLabel.Text = 'DataHub - POST:';
+            % Create DataHubPOSTLabel
+            app.DataHubPOSTLabel = uilabel(app.FolderMapGrid);
+            app.DataHubPOSTLabel.VerticalAlignment = 'bottom';
+            app.DataHubPOSTLabel.FontSize = 10;
+            app.DataHubPOSTLabel.Layout.Row = 3;
+            app.DataHubPOSTLabel.Layout.Column = 1;
+            app.DataHubPOSTLabel.Text = 'DataHub - POST:';
 
-            % Create config_Folder_DataHubPOST
-            app.config_Folder_DataHubPOST = uieditfield(app.config_FolderMapGrid, 'text');
-            app.config_Folder_DataHubPOST.Editable = 'off';
-            app.config_Folder_DataHubPOST.FontSize = 11;
-            app.config_Folder_DataHubPOST.Layout.Row = 4;
-            app.config_Folder_DataHubPOST.Layout.Column = 1;
+            % Create DataHubPOST
+            app.DataHubPOST = uieditfield(app.FolderMapGrid, 'text');
+            app.DataHubPOST.Editable = 'off';
+            app.DataHubPOST.FontSize = 11;
+            app.DataHubPOST.Layout.Row = 4;
+            app.DataHubPOST.Layout.Column = 1;
 
-            % Create config_Folder_DataHubPOSTButton
-            app.config_Folder_DataHubPOSTButton = uiimage(app.config_FolderMapGrid);
-            app.config_Folder_DataHubPOSTButton.ImageClickedFcn = createCallbackFcn(app, @config_getFolder, true);
-            app.config_Folder_DataHubPOSTButton.Tag = 'DataHub_POST';
-            app.config_Folder_DataHubPOSTButton.Layout.Row = 4;
-            app.config_Folder_DataHubPOSTButton.Layout.Column = 2;
-            app.config_Folder_DataHubPOSTButton.ImageSource = 'OpenFile_36x36.png';
+            % Create DataHubPOSTButton
+            app.DataHubPOSTButton = uiimage(app.FolderMapGrid);
+            app.DataHubPOSTButton.ImageClickedFcn = createCallbackFcn(app, @Folder_ButtonPushed, true);
+            app.DataHubPOSTButton.Tag = 'DataHub_POST';
+            app.DataHubPOSTButton.Layout.Row = 4;
+            app.DataHubPOSTButton.Layout.Column = 2;
+            app.DataHubPOSTButton.ImageSource = 'OpenFile_36x36.png';
 
-            % Create config_Folder_pythonPathLabel
-            app.config_Folder_pythonPathLabel = uilabel(app.config_FolderMapGrid);
-            app.config_Folder_pythonPathLabel.VerticalAlignment = 'bottom';
-            app.config_Folder_pythonPathLabel.FontSize = 10;
-            app.config_Folder_pythonPathLabel.Layout.Row = 5;
-            app.config_Folder_pythonPathLabel.Layout.Column = 1;
-            app.config_Folder_pythonPathLabel.Text = 'Pasta do ambiente virtual Python (lib fiscaliza):';
+            % Create pythonPathLabel
+            app.pythonPathLabel = uilabel(app.FolderMapGrid);
+            app.pythonPathLabel.VerticalAlignment = 'bottom';
+            app.pythonPathLabel.FontSize = 10;
+            app.pythonPathLabel.Layout.Row = 5;
+            app.pythonPathLabel.Layout.Column = 1;
+            app.pythonPathLabel.Text = 'Pasta do ambiente virtual Python (lib fiscaliza):';
 
-            % Create config_Folder_pythonPath
-            app.config_Folder_pythonPath = uieditfield(app.config_FolderMapGrid, 'text');
-            app.config_Folder_pythonPath.Editable = 'off';
-            app.config_Folder_pythonPath.FontSize = 11;
-            app.config_Folder_pythonPath.Layout.Row = 6;
-            app.config_Folder_pythonPath.Layout.Column = 1;
+            % Create pythonPath
+            app.pythonPath = uieditfield(app.FolderMapGrid, 'text');
+            app.pythonPath.Editable = 'off';
+            app.pythonPath.FontSize = 11;
+            app.pythonPath.Layout.Row = 6;
+            app.pythonPath.Layout.Column = 1;
 
-            % Create config_Folder_pythonPathButton
-            app.config_Folder_pythonPathButton = uiimage(app.config_FolderMapGrid);
-            app.config_Folder_pythonPathButton.ImageClickedFcn = createCallbackFcn(app, @config_getFolder, true);
-            app.config_Folder_pythonPathButton.Tag = 'pythonPath';
-            app.config_Folder_pythonPathButton.Layout.Row = 6;
-            app.config_Folder_pythonPathButton.Layout.Column = 2;
-            app.config_Folder_pythonPathButton.ImageSource = 'OpenFile_36x36.png';
+            % Create pythonPathButton
+            app.pythonPathButton = uiimage(app.FolderMapGrid);
+            app.pythonPathButton.ImageClickedFcn = createCallbackFcn(app, @Folder_ButtonPushed, true);
+            app.pythonPathButton.Tag = 'pythonPath';
+            app.pythonPathButton.Layout.Row = 6;
+            app.pythonPathButton.Layout.Column = 2;
+            app.pythonPathButton.ImageSource = 'OpenFile_36x36.png';
 
-            % Create config_Folder_userPathLabel
-            app.config_Folder_userPathLabel = uilabel(app.config_FolderMapGrid);
-            app.config_Folder_userPathLabel.VerticalAlignment = 'bottom';
-            app.config_Folder_userPathLabel.FontSize = 10;
-            app.config_Folder_userPathLabel.Layout.Row = 7;
-            app.config_Folder_userPathLabel.Layout.Column = 1;
-            app.config_Folder_userPathLabel.Text = 'Pasta do usuário:';
+            % Create userPathLabel
+            app.userPathLabel = uilabel(app.FolderMapGrid);
+            app.userPathLabel.VerticalAlignment = 'bottom';
+            app.userPathLabel.FontSize = 10;
+            app.userPathLabel.Layout.Row = 7;
+            app.userPathLabel.Layout.Column = 1;
+            app.userPathLabel.Text = 'Pasta do usuário:';
 
-            % Create config_Folder_userPath
-            app.config_Folder_userPath = uieditfield(app.config_FolderMapGrid, 'text');
-            app.config_Folder_userPath.Editable = 'off';
-            app.config_Folder_userPath.FontSize = 11;
-            app.config_Folder_userPath.Layout.Row = 8;
-            app.config_Folder_userPath.Layout.Column = 1;
+            % Create userPath
+            app.userPath = uieditfield(app.FolderMapGrid, 'text');
+            app.userPath.Editable = 'off';
+            app.userPath.FontSize = 11;
+            app.userPath.Layout.Row = 8;
+            app.userPath.Layout.Column = 1;
 
-            % Create config_Folder_userPathButton
-            app.config_Folder_userPathButton = uiimage(app.config_FolderMapGrid);
-            app.config_Folder_userPathButton.ImageClickedFcn = createCallbackFcn(app, @config_getFolder, true);
-            app.config_Folder_userPathButton.Tag = 'userPath';
-            app.config_Folder_userPathButton.Layout.Row = 8;
-            app.config_Folder_userPathButton.Layout.Column = 2;
-            app.config_Folder_userPathButton.ImageSource = 'OpenFile_36x36.png';
+            % Create userPathButton
+            app.userPathButton = uiimage(app.FolderMapGrid);
+            app.userPathButton.ImageClickedFcn = createCallbackFcn(app, @Folder_ButtonPushed, true);
+            app.userPathButton.Tag = 'userPath';
+            app.userPathButton.Layout.Row = 8;
+            app.userPathButton.Layout.Column = 2;
+            app.userPathButton.ImageSource = 'OpenFile_36x36.png';
 
-            % Create config_Folder_tempPathLabel
-            app.config_Folder_tempPathLabel = uilabel(app.config_FolderMapGrid);
-            app.config_Folder_tempPathLabel.VerticalAlignment = 'bottom';
-            app.config_Folder_tempPathLabel.FontSize = 10;
-            app.config_Folder_tempPathLabel.Layout.Row = 9;
-            app.config_Folder_tempPathLabel.Layout.Column = 1;
-            app.config_Folder_tempPathLabel.Text = 'Pasta temporária:';
+            % Create tempPathLabel
+            app.tempPathLabel = uilabel(app.FolderMapGrid);
+            app.tempPathLabel.VerticalAlignment = 'bottom';
+            app.tempPathLabel.FontSize = 10;
+            app.tempPathLabel.Layout.Row = 9;
+            app.tempPathLabel.Layout.Column = 1;
+            app.tempPathLabel.Text = 'Pasta temporária:';
 
-            % Create config_Folder_tempPath
-            app.config_Folder_tempPath = uieditfield(app.config_FolderMapGrid, 'text');
-            app.config_Folder_tempPath.Editable = 'off';
-            app.config_Folder_tempPath.FontSize = 11;
-            app.config_Folder_tempPath.Layout.Row = 10;
-            app.config_Folder_tempPath.Layout.Column = 1;
+            % Create tempPath
+            app.tempPath = uieditfield(app.FolderMapGrid, 'text');
+            app.tempPath.Editable = 'off';
+            app.tempPath.FontSize = 11;
+            app.tempPath.Layout.Row = 10;
+            app.tempPath.Layout.Column = 1;
 
             % Create tool_LeftPanelVisibility
             app.tool_LeftPanelVisibility = uiimage(app.GridLayout);

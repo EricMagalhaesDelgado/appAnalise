@@ -5,7 +5,7 @@ function [htmlContent, stableVersion, updatedModule] = htmlCode_CheckAvailableUp
         appName          = class.Constants.appName;
         presentVersion   = struct(appName,     appGeneral.AppVersion.(appName).version, ...
                                   'fiscaliza', appGeneral.AppVersion.fiscaliza,         ...
-                                  'RFDataHub', appGeneral.AppVersion.RFDataHub); 
+                                  'rfDataHub', appGeneral.AppVersion.rfDataHub); 
         
         % Versão estável, indicada nos arquivos de referência (na nuvem):
         [versionFileURL, rfDataHubURL] = util.publicLink(appName, rootFolder, 'VersionFile+RFDataHub');
@@ -16,7 +16,7 @@ function [htmlContent, stableVersion, updatedModule] = htmlCode_CheckAvailableUp
 
         stableVersion    = struct(appName,     generalVersions.(appName).Version, ...
                                   'fiscaliza', generalVersions.fiscaliza.Version, ...
-                                  'RFDataHub', rfdatahubVersion.rfdatahub);
+                                  'rfDataHub', rfdatahubVersion.rfdatahub);
         
         % Validação:
         if isequal(presentVersion, stableVersion)
@@ -37,7 +37,7 @@ function [htmlContent, stableVersion, updatedModule] = htmlCode_CheckAvailableUp
                 nonUpdatedModule(end+1) = {'fiscaliza'};
             end
 
-            if isequal(presentVersion.RFDataHub, stableVersion.RFDataHub)
+            if isequal(presentVersion.rfDataHub, stableVersion.rfDataHub)
                 updatedModule(end+1)    = {'RFDataHub'};
             else
                 nonUpdatedModule(end+1) = {'RFDataHub'};
