@@ -204,13 +204,13 @@
                             "ID",
                             "Frequency",
                             "Truncated",
-                            "BW",
-                            "minLevel",
-                            "meanLevel",
-                            "maxLevel",
-                            "meanOCC",
-                            "maxOCC",
-                            "Description",
+                            "BW_kHz",
+                            "Level_FreqCenter_Min",
+                            "Level_FreqCenter_Mean",
+                            "Level_FreqCenter_Max",
+                            "FCO_FreqCenter_Finite_Mean",
+                            "FCO_FreqCenter_Finite_Max",
+                            "MergedDescriptions",
                             "Distance"
                         ],
                         "Filter": [],
@@ -243,31 +243,31 @@
                             {
                                 "Editable": "false",
                                 "ColumnName": "Nível mínimo (%LevelUnit%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Nível médio (%LevelUnit%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Nível máximo (%LevelUnit%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Ocupação média (%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Ocupação máxima (%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {
@@ -546,12 +546,11 @@
                         "Columns": [
                             "Frequency",
                             "Truncated",
-                            "BW",                            
+                            "BW_kHz",                            
                             "Regulatory",
                             "Type",
                             "RiskLevel",
-                            "Description",
-                            "UserDescription"
+                            "MergedDescriptions"
                         ],
                         "Filter": [],
                         "Caption": "Sumário da monitoração sob análise em relação à possível irregularidade de emissão.",
@@ -560,31 +559,31 @@
                                 "Editable": "false",
                                 "ColumnName": "Frequência<br>(MHz)",
                                 "Precision": "%.3f",
-                                "Width": "70px"
+                                "Width": "75px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Frequência canal (MHz)",
                                 "Precision": "%.3f",
-                                "Width": "70px"
+                                "Width": "75px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Largura<br>(kHz)",
                                 "Precision": "%.1f",
-                                "Width": "70px"
+                                "Width": "75px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Situação",
                                 "Precision": "%s",
-                                "Width": "130px"
+                                "Width": "150px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Tipo de emissão",
                                 "Precision": "%s",
-                                "Width": "130px"
+                                "Width": "150px"
                             },
                             {
                                 "Editable": "false",
@@ -595,12 +594,6 @@
                             {
                                 "Editable": "false",
                                 "ColumnName": "Identificação do provável emissor",
-                                "Precision": "%s",
-                                "Width": "auto"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Informações complementares",
                                 "Precision": "%s",
                                 "Width": "auto"
                             }

@@ -122,9 +122,9 @@ function GeneralTable = Channel(specData, idxThread, tempBandObj, occInfo)
             EmissionFrequency    = specData.UserData.Emissions.Frequency(idxEmission);
             idxEmissionFrequency = freq2idx(chStart*1e+6, chStop*1e+6, height(chMatrix), EmissionFrequency*1e+6);
     
-            EmissionDescription  = specData.UserData.Emissions.UserData(idxEmission).Description;
-            if isnumeric(EmissionDescription) || isempty(EmissionDescription)
-                EmissionDescription = '-';
+            EmissionDescription  = specData.UserData.Emissions.Description(idxEmission);
+            if EmissionDescription == "" || ismissing(EmissionDescription)
+                EmissionDescription = "-";
             end
 
             % Ocupação da frequência central. Uma espécia de FCO do bin que
@@ -132,10 +132,10 @@ function GeneralTable = Channel(specData, idxThread, tempBandObj, occInfo)
             % EmissionOccupancy  = 100 * sum(occMatrix(idxEmissionFrequency, :)) / width(occMatrix);
             EmissionOccupancy    = binFCO(idxEmissionFrequency);
 
-            EmissionTable(jj, :) = {EmissionFrequency,                           ...
-                                    specData.UserData.Emissions.BW(idxEmission), ...
-                                    EmissionOccupancy,                           ...
-                                    EmissionDescription};
+            EmissionTable(jj, :) = {EmissionFrequency,                               ...
+                                    specData.UserData.Emissions.BW_kHz(idxEmission), ...
+                                    EmissionOccupancy,                               ...
+                                    char(EmissionDescription)};
         end
 
         chName = extractBefore(chTable.Name{ii}, ' @');

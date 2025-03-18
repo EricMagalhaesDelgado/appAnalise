@@ -1,19 +1,40 @@
-function Table = Algorithms(SpecInfo, idx, idxEmissions)
+function Table = Algorithms(specData, idxThread)
 
     Table = table('Size', [3, 2],                    ...
                   'VariableTypes', {'cell', 'cell'}, ...
                   'VariableNames', {'Algorithm', 'Parameters'});
         
     % Ocupação
-    Ocupation = {sprintf('Método: %s',     SpecInfo(idx).UserData.reportOCC.Method); ...
-                 sprintf('Parâmetros: %s', jsonencode(rmfield(SpecInfo(idx).UserData.reportOCC, 'Method')))};
+    if isempty(specData(idxThread).UserData.Emissions)
+        Occupancy = {sprintf('Método: %s',       specData(idxThread).UserData.reportAlgorithms.Occupancy.Method); ...
+                     sprintf('• Parâmetros: %s', jsonencode(structUtil.delEmptyFields(specData(idxThread).UserData.reportAlgorithms.Occupancy, {'Method'})))};
+
+    else        
+        occList  = arrayfun(@(x) x.Occupancy, specData(idxThread).UserData.Emissions.Algorithms, 'UniformOutput', false);
+        [occType, ~, occTypeIndex] = unique(occList, 'stable');
+
+        Occupancy = {};        
+        for ii = 1:numel(occType)
+            sOCCType   = jsondecode(occType{ii});
+            sOCCIndex  = find(occTypeIndex == ii);
+            peaksLabel = strjoin(string(sOCCIndex), ', ');
+    
+            Occupancy(end+1:end+3,1) = {sprintf('Método: %s',       sOCCType.Method);                                                                     ...
+                                        sprintf('• Parâmetros: %s', jsonencode(structUtil.delEmptyFields(sOCCType, {'Method'}), "ConvertInfAndNaN", false)); ...
+                                        sprintf('• Emissões: %s',   peaksLabel)};
+    
+            if (numel(occType) > 1) && (ii < numel(occType))
+                Occupancy(end+1) = {'&nbsp;'};
+            end
+        end
+    end
 
     % Detecção
-    bandLimitsStatus = SpecInfo(idx).UserData.bandLimitsStatus;
-    bandLimitsTable  = SpecInfo(idx).UserData.bandLimitsTable;
+    bandLimitsStatus = specData(idxThread).UserData.bandLimitsStatus;
+    bandLimitsTable  = specData(idxThread).UserData.bandLimitsTable;
     if ~bandLimitsStatus || isempty(bandLimitsTable)
-        bandLimits = sprintf('Faixa sob análise: %.3f - %.3f MHz', SpecInfo(idx).MetaData.FreqStart / 1e+6, ...
-                                                                   SpecInfo(idx).MetaData.FreqStop  / 1e+6);    
+        bandLimits = sprintf('Faixa sob análise: %.3f - %.3f MHz', specData(idxThread).MetaData.FreqStart / 1e+6, ...
+                                                                   specData(idxThread).MetaData.FreqStop  / 1e+6);    
     else
         bandLimits = {};
         for ii = 1:height(bandLimitsTable)
@@ -25,18 +46,15 @@ function Table = Algorithms(SpecInfo, idx, idxEmissions)
 
     % Essa operação aqui surgiu por conta da inclusão de emissões através
     % de arquivos (seja ele gerado pelo ROMES ou outra ferramenta).
-    detectionIndex = contains(SpecInfo(idx).UserData.reportPeaksTable.Detection, '"Algorithm":"ExternalFile"');
-    detectionList  = SpecInfo(idx).UserData.reportPeaksTable.Detection;
-    detectionList(detectionIndex) = {'{"Algorithm":"ExternalFile"}'};
-    
+    detectionList  = arrayfun(@(x) x.Detection, specData(idxThread).UserData.Emissions.Algorithms, 'UniformOutput', false);
     [DetectionType, ~, DetectionTypeIndex] = unique(detectionList, 'stable');
 
-    if SpecInfo(idx).UserData.reportDetection.ManualMode
+    if specData(idxThread).UserData.reportAlgorithms.Detection.ManualMode
         Detection = {'Detecção limitada às emissoes identificadas no modo PLAYBACK do appAnalise'; bandLimits};
     else
         Detection = {'Detecção não limitada às emissões identificadas no modo PLAYBACK do appAnalise'; bandLimits; ...
-                     sprintf('Algoritmo: %s',  SpecInfo(idx).UserData.reportDetection.Algorithm);                  ...
-                     sprintf('Parâmetros: %s', jsonencode(SpecInfo(idx).UserData.reportDetection.Parameters, "ConvertInfAndNaN", false))};
+                     sprintf('Algoritmo: %s',  specData(idxThread).UserData.reportAlgorithms.Detection.Algorithm);       ...
+                     sprintf('• Parâmetros: %s', jsonencode(specData(idxThread).UserData.reportAlgorithms.Detection.Parameters, "ConvertInfAndNaN", false))};
     end
 
     if ~isempty(DetectionType)
@@ -44,17 +62,17 @@ function Table = Algorithms(SpecInfo, idx, idxEmissions)
     end
 
     for ii =1:numel(DetectionType)
-        sDetectionType  = jsondecode(DetectionType{ii});
-        sDetectionIndex = find(DetectionTypeIndex == ii);
-        PeaksLabel      = strjoin(string(sDetectionIndex), ', ');
+        sOCCType   = jsondecode(DetectionType{ii});
+        sOCCIndex  = find(DetectionTypeIndex == ii);
+        peaksLabel = strjoin(string(sOCCIndex), ', ');
 
-        if isfield(sDetectionType, 'Parameters')
-            Detection(end+1:end+3,1) = {sprintf('Algoritmo: %s',  sDetectionType.Algorithm);                ...
-                                        sprintf('• Parâmetros: %s', jsonencode(sDetectionType.Parameters, "ConvertInfAndNaN", false)); ...
-                                        sprintf('• Emissões: %s', PeaksLabel)};
+        if isfield(sOCCType, 'Parameters')
+            Detection(end+1:end+3,1) = {sprintf('Algoritmo: %s',    sOCCType.Algorithm);                                         ...
+                                        sprintf('• Parâmetros: %s', jsonencode(sOCCType.Parameters, "ConvertInfAndNaN", false)); ...
+                                        sprintf('• Emissões: %s',   peaksLabel)};
         else
-            Detection(end+1:end+2,1) = {sprintf('Algoritmo: %s',  sDetectionType.Algorithm);                ...
-                                        sprintf('• Emissões: %s', PeaksLabel)};
+            Detection(end+1:end+2,1) = {sprintf('Algoritmo: %s',    sOCCType.Algorithm); ...
+                                        sprintf('• Emissões: %s',   peaksLabel)};
         end
 
         if (numel(DetectionType) > 1) && (ii < numel(DetectionType))
@@ -63,10 +81,11 @@ function Table = Algorithms(SpecInfo, idx, idxEmissions)
     end
     
     % Classificação
-    Classification = {sprintf('Algoritmo: %s',  SpecInfo(idx).UserData.reportClassification.Algorithm); ...
-                      sprintf('Parâmetros: %s', jsonencode(SpecInfo(idx).UserData.reportClassification.Parameters))};
+    Classification = {sprintf('Algoritmo: %s',  specData(idxThread).UserData.reportAlgorithms.Classification.Algorithm); ...
+                      sprintf('• Parâmetros: %s', jsonencode(specData(idxThread).UserData.reportAlgorithms.Classification.Parameters, "ConvertInfAndNaN", false))};
 
-    Table(1,:) = {'Ocupação',                  Ocupation};
+
+    Table(1,:) = {'Ocupação',                  Occupancy};
     Table(2,:) = {'Detecção de emissões',      Detection};
     Table(3,:) = {'Classificação de emissões', Classification};
 end

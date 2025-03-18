@@ -223,13 +223,13 @@
                             "ID",
                             "Frequency",
                             "Truncated",
-                            "BW",
-                            "minLevel",
-                            "meanLevel",
-                            "maxLevel",
-                            "meanOCC",
-                            "maxOCC",
-                            "Description",
+                            "BW_kHz",
+                            "Level_FreqCenter_Min",
+                            "Level_FreqCenter_Mean",
+                            "Level_FreqCenter_Max",
+                            "FCO_FreqCenter_Finite_Mean",
+                            "FCO_FreqCenter_Finite_Max",
+                            "MergedDescriptions",
                             "Distance"
                         ],
                         "Filter": [],
@@ -262,31 +262,31 @@
                             {
                                 "Editable": "false",
                                 "ColumnName": "Nível mínimo (%LevelUnit%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Nível médio (%LevelUnit%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Nível máximo (%LevelUnit%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Ocupação média (%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Ocupação máxima (%)",
-                                "Precision": "%s",
+                                "Precision": "%.1f",
                                 "Width": "70px"
                             },
                             {

@@ -88,8 +88,8 @@ classdef (Abstract) Plot
                         case 'DriveTestChannelPower'
                             idxEmission = reportInfo.General.Parameters.Plot.idxEmission;
 
-                            if ~isempty(specData.UserData.Emissions.UserData(idxEmission).DriveTest)
-                                specRawTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.specRawTable;
+                            if ~isempty(specData.UserData.Emissions.auxAppData(idxEmission).DriveTest)
+                                specRawTable = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.specRawTable;
                                 Color        = '#91ff00';
                                 EdgeAlpha    = 1;
                                 FaceAlpha    = .4;
@@ -221,7 +221,7 @@ classdef (Abstract) Plot
                     if ischar(ROI.Color)
                         ROI.Color = hex2rgb(ROI.Color);
                     end
-                    drawrectangle(hAxes, 'Position', [pks.Frequency(ii)-pks.BW(ii)/2000, yLim(1)+1, pks.BW(ii)/1000, diff(yLim)-2],                   ...
+                    drawrectangle(hAxes, 'Position', [pks.Frequency(ii)-pks.BW_kHz(ii)/2000, yLim(1)+1, pks.BW_kHz(ii)/1000, diff(yLim)-2],                   ...
                                          'Color', ROI.Color, 'EdgeAlpha', ROI.EdgeAlpha, 'FaceAlpha', ROI.FaceAlpha, 'MarkerSize', 5, 'LineWidth', 1, ...
                                          'Deletable', 0, 'InteractionsAllowed', 'none', 'Tag', 'mkrROI');
                 end
@@ -284,21 +284,21 @@ classdef (Abstract) Plot
             specData = tempBandObj.callingApp.specData(idxThread);
             idxEmission = reportInfo.General.Parameters.Plot.idxEmission;
 
-            if ~isempty(specData.UserData.Emissions.UserData(idxEmission).DriveTest)
+            if ~isempty(specData.UserData.Emissions.auxAppData(idxEmission).DriveTest)
                 % Density | Distortion
-                Source      = specData.UserData.Emissions.UserData(idxEmission).DriveTest.Source;
-                filterTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.filterTable;
-                pointsTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.pointsTable;
-                plotMode    = specData.UserData.Emissions.UserData(idxEmission).DriveTest.plotType;
-                plotSize    = specData.UserData.Emissions.UserData(idxEmission).DriveTest.plotSize;
-                Basemap     = specData.UserData.Emissions.UserData(idxEmission).DriveTest.Basemap;
-                Colormap    = specData.UserData.Emissions.UserData(idxEmission).DriveTest.Colormap;
+                Source      = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.Source;
+                filterTable = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.filterTable;
+                pointsTable = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.pointsTable;
+                plotMode    = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.plotType;
+                plotSize    = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.plotSize;
+                Basemap     = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.Basemap;
+                Colormap    = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.Colormap;
     
                 switch Source
                     case {'Raw', 'Filtered'}
-                        srcTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.specFilteredTable;
+                        srcTable = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.specFilteredTable;
                     case 'Data-Binning'
-                        srcTable = specData.UserData.Emissions.UserData(idxEmission).DriveTest.specBinTable;
+                        srcTable = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.specBinTable;
                 end
     
                 if ~strcmp(hAxes.Basemap, Basemap)
@@ -311,9 +311,9 @@ classdef (Abstract) Plot
 
                 % Points
                 if ~isempty(pointsTable)
-                    MarkerStyle = specData.UserData.Emissions.UserData(idxEmission).DriveTest.points_Marker;
-                    MarkerColor = specData.UserData.Emissions.UserData(idxEmission).DriveTest.points_Color;
-                    MarkerSize  = specData.UserData.Emissions.UserData(idxEmission).DriveTest.points_Size;
+                    MarkerStyle = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.points_Marker;
+                    MarkerColor = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.points_Color;
+                    MarkerSize  = specData.UserData.Emissions.auxAppData(idxEmission).DriveTest.points_Size;
                     plot.DriveTest.Points(hAxes, pointsTable, MarkerStyle, MarkerColor, MarkerSize)
                 end
 

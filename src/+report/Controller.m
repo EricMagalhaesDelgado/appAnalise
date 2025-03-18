@@ -5,15 +5,15 @@ function Controller(app, operationType)
         operationType char {mustBeMember(operationType, {'Report'})}
     end
 
+    d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'on', 'Interpreter', 'html', 'Cancelable', 'on', 'CancelText', 'Cancelar', 'Message', 'Em andamento...');
+
     try
         if isempty(app.General.AppVersion.fiscaliza) && strcmp(operationType, 'Report')
             app.General.AppVersion = util.getAppVersion(app.rootFolder, app.entryPointFolder, app.General.fileFolder.tempPath, 'full+Python');
         end
     
         reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
-        [idxThreads, reportInfo]   = report.GeneralInfo(app, operationType, reportTemplateIndex);
-
-        d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'off', 'Interpreter', 'html', 'Cancelable', 'on', 'CancelText', 'Cancelar', 'Value', 0, 'Message', 'Em andamento...');
+        [idxThreads, reportInfo]   = report.GeneralInfo(app, operationType, reportTemplateIndex);        
 
         % Verifica se o template e relatório selecionado demanda
         % arquivos externos (imagens e tabelas).
@@ -27,8 +27,7 @@ function Controller(app, operationType)
         end
 
         % Verifica...
-        [htmlReport, Peaks] = report.ReportGenerator(app, idxThreads, reportInfo, d);
-        report.ReportGenerator_PeaksUpdate(app, idxThreads, Peaks)
+        htmlReport = report.ReportGenerator(app, idxThreads, reportInfo, d);
 
         switch app.report_Version.Value
             case 'Definitiva'
@@ -73,10 +72,9 @@ function Controller(app, operationType)
         end
         
     catch ME
+        struct2table(ME.stack)
         appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
     end
 
-    if exist('d', 'var')
-        delete(d)
-    end
+    delete(d)
 end

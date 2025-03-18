@@ -2,22 +2,13 @@ function varargout = Summary(specData, callingModule, requestedOutput)
 
     arguments
         specData
-        callingModule   char {mustBeMember(callingModule,   {'SIGNALANALYSIS', 'REPORT'})}
+        callingModule   char {mustBeMember(callingModule,   {'REPORT'})}
         requestedOutput char {mustBeMember(requestedOutput, {'EditedEmissionsTable', 'TotalSummaryTable', 'EditedEmissionsTable+TotalSummaryTable', 'IrregularTable'})} = 'TotalSummaryTable'
     end
 
-    emissionsTable = util.createEmissionsTable(specData, [callingModule ': JSONFile']);
+    emissionsTable = util.createEmissionsTable(specData, 'REPORT: HTMLFile');
     if isempty(emissionsTable)
         return
-    end
-
-
-    % Mesclar descrição obtida do RFDataHub com a inserida pelo usuário.
-    emissionsTable.MergedDescriptions = emissionsTable.RFDataHubDescription;
-    
-    idxUserDescription = find(emissionsTable.Description ~= "" & ~ismissing(emissionsTable.Description));
-    if ~isempty(idxUserDescription)
-        emissionsTable.MergedDescriptions(idxUserDescription) = strcat(emissionsTable.MergedDescriptions(idxUserDescription), ' (',  cellstr(emissionsTable.Description(idxUserDescription)), ')');
     end
     
 
@@ -37,7 +28,7 @@ function varargout = Summary(specData, callingModule, requestedOutput)
 
         Bands = unique(emissionsTable.Band, 'stable');
 
-        for Band = Bands
+        for Band = Bands'
             tagIdx = strcmp(emissionsTable.Band, Band);
     
             N1_Licenciada      = sum(tagIdx & strcmpi(emissionsTable.Regulatory,  'Licenciada'));
@@ -61,10 +52,10 @@ function varargout = Summary(specData, callingModule, requestedOutput)
             N4_Alto            = sum(tagIdx & strcmpi(emissionsTable.RiskLevel,   'Alto'));
     
             N5_Radcom          = sum(tagIdx & (emissionsTable.Service == 231));
-            N5_ClasseC         = sum(tagIdx & (emissionsTable.RFDataHubSource == "MOSAICO-SRD") & (emissionTable.RFDataHubClass == "C"));
-            N5_ClasseB         = sum(tagIdx & (emissionsTable.RFDataHubSource == "MOSAICO-SRD") & ismember(emissionTable.RFDataHubClass, ["B", "B1", "B2"]));
-            N5_ClasseA         = sum(tagIdx & (emissionsTable.RFDataHubSource == "MOSAICO-SRD") & ismember(emissionTable.RFDataHubClass, ["A", "A1", "A2", "A3", "A4"]));
-            N5_ClasseE         = sum(tagIdx & (emissionsTable.RFDataHubSource == "MOSAICO-SRD") & ismember(emissionTable.RFDataHubClass, ["E", "E1", "E2", "E3"]));
+            N5_ClasseC         = sum(tagIdx & (emissionsTable.RFDataHubSource == "MOSAICO-SRD") & (emissionsTable.RFDataHubClass == "C"));
+            N5_ClasseB         = sum(tagIdx & (emissionsTable.RFDataHubSource == "MOSAICO-SRD") & ismember(emissionsTable.RFDataHubClass, ["B", "B1", "B2"]));
+            N5_ClasseA         = sum(tagIdx & (emissionsTable.RFDataHubSource == "MOSAICO-SRD") & ismember(emissionsTable.RFDataHubClass, ["A", "A1", "A2", "A3", "A4"]));
+            N5_ClasseE         = sum(tagIdx & (emissionsTable.RFDataHubSource == "MOSAICO-SRD") & ismember(emissionsTable.RFDataHubClass, ["E", "E1", "E2", "E3"]));
             
             TotalSummaryTable(end+1, :) = {Band, N1_Licenciada, N1_NaoLicenciada, N1_NaoLicenciavel,                                                       ...
                                                  N2_Fundamental, N2_Harmonico, N2_Produto, N2_Espuria, N2_NaoIdentificada, N2_NaoManifestada, N2_Pendente, ...
@@ -78,7 +69,7 @@ function varargout = Summary(specData, callingModule, requestedOutput)
         irregularIndex = strcmpi(emissionsTable.Irregular, 'Sim');
         irregularTable = emissionsTable(irregularIndex, {'Frequency',          ...
                                                          'Truncated',          ...
-                                                         'BW',                 ...
+                                                         'BW_kHz',             ...
                                                          'MergedDescriptions', ...
                                                          'Regulatory',         ...
                                                          'Type',               ...

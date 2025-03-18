@@ -114,7 +114,7 @@ classdef UserData
                                                                 'maxOCC',       67));
 
                 case 'DefaultAlgorithm: Classification'
-                    fieldTemplate = RF.Classification.ParametersDefault;
+                    fieldTemplate = util.Classification.ParametersDefault;
 
                 case 'DefaultAlgorithm: Occupancy'
                     fieldTemplate = RF.Occupancy.ParametersDefault();

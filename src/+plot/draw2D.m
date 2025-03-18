@@ -71,8 +71,8 @@ classdef (Abstract) draw2D
 
                 case 'Emission'
                     srcInfo  = specData.UserData.Emissions;
-                    srcInfo.FreqStart = srcInfo.Frequency - srcInfo.BW/2000;
-                    srcInfo.FreqStop  = srcInfo.Frequency + srcInfo.BW/2000;
+                    srcInfo.FreqStart = srcInfo.Frequency - srcInfo.BW_kHz/2000;
+                    srcInfo.FreqStop  = srcInfo.Frequency + srcInfo.BW_kHz/2000;
             end
 
             if ~exist('plotFlag', 'var')

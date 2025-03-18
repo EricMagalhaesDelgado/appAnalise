@@ -12,7 +12,7 @@ function tableStr = fiscalizaJsonFile(specData, idxThreads, emissionsTable)
     
     PeakTable           = emissionsTable; % countTable(:,5:21);
     PeakTable.Frequency = round(PeakTable.Frequency, 3);
-    PeakTable.BW        = round(PeakTable.BW_kHz, 1);
+    PeakTable.BW_kHz    = round(PeakTable.BW_kHz, 1);
 
     jj = 0;
     for ii = idxThreads
@@ -59,7 +59,7 @@ function tableStr = fiscalizaJsonFile(specData, idxThreads, emissionsTable)
     Detection          = unique(DetectionList);
     Classification     = unique(ClassificationList);
 
-    occMethodTable(1:numel(occMethod),:)           = [num2cell((1:numel(occMethod))'), occMethod];
+    occMethodTable(1:numel(occMethod),:)           = [num2cell((1:numel(occMethod))'), cellfun(@(x) jsonencode(structUtil.delEmptyFields(jsondecode(x))), occMethod, 'UniformOutput', false)];
     DetectionTable(1:numel(Detection),:)           = [num2cell((1:numel(Detection))'), Detection];    
     ClassificationTable(1:numel(Classification),:) = [num2cell((1:numel(Classification))'), Classification];
 
@@ -85,9 +85,35 @@ function tableStr = fiscalizaJsonFile(specData, idxThreads, emissionsTable)
     end
 
     if ~isempty(PeakTable)
+        PeakTable = PeakTable(:, {'FK1', 'FK2', 'FK3', 'FK4',   ...
+                                  'Frequency',                  ...
+                                  'Truncated',                  ...
+                                  'BW_kHz',                     ...
+                                  'Level_FreqCenter_Min',       ...
+                                  'Level_FreqCenter_Mean',      ...
+                                  'Level_FreqCenter_Max',       ...
+                                  'FCO_FreqCenter_Finite_Mean', ...
+                                  'FCO_FreqCenter_Finite_Max',  ...
+                                  'Type',                       ...
+                                  'Regulatory',                 ...
+                                  'Service',                    ...
+                                  'Station',                    ...
+                                  'MergedDescriptions',         ...
+                                  'Distance',                   ...
+                                  'Irregular',                  ...
+                                  'RiskLevel'});
+        PeakTable = renamevars(PeakTable, PeakTable.Properties.VariableNames([7:12, 17]), {'BW', 'minLevel', 'meanLevel', 'maxLevel', 'meanOCC', 'maxOCC', 'Description'});
         PeakTable = movevars(PeakTable, {'FK1', 'FK2', 'FK3', 'FK4'}, 'Before', 1);
-        tableStr  = jsonencode(struct('ReferenceData1', TaskTable, 'ReferenceData2', occMethodTable, 'ReferenceData3', DetectionTable, 'ReferenceData4', ClassificationTable, 'MeasurementData', PeakTable(:,1:end-1)), 'PrettyPrint', true);
+
+        PeakTable.minLevel  = round(PeakTable.minLevel, 1);
+        PeakTable.meanLevel = round(PeakTable.meanLevel, 1);
+        PeakTable.maxLevel  = round(PeakTable.maxLevel, 1);
+        PeakTable.meanOCC   = round(PeakTable.meanOCC, 1);
+        PeakTable.maxOCC    = round(PeakTable.maxOCC, 1);
+        PeakTable.Distance  = round(PeakTable.Distance, 1);
+
+        tableStr  = jsonencode(struct('Version', '1.01', 'ReferenceData1', TaskTable, 'ReferenceData2', occMethodTable, 'ReferenceData3', DetectionTable, 'ReferenceData4', ClassificationTable, 'MeasurementData', PeakTable), 'PrettyPrint', true);
     else
-        tableStr  = jsonencode(struct('ReferenceData1', TaskTable), 'PrettyPrint', true);
+        tableStr  = jsonencode(struct('Version', '1.01', 'ReferenceData1', TaskTable), 'PrettyPrint', true);
     end            
 end

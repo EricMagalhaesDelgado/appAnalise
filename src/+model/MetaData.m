@@ -21,5 +21,13 @@ classdef MetaData < handle
             end
             relatedFiles = unique(relatedFiles);
         end
+
+        %-----------------------------------------------------------------%
+        function estimatedMemory = EstimatedMemory(obj, idx)        
+            estimatedMemory = 0;
+            for ii = 1:numel(obj(idx).Data)
+                estimatedMemory = estimatedMemory + 4 * sum(obj(idx).Data(ii).RelatedFiles.nSweeps) .* obj(idx).Data(ii).MetaData.DataPoints .* 1e-6;
+            end
+        end
     end
 end

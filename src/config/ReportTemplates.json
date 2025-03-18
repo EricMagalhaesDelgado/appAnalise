@@ -98,42 +98,8 @@
         }
     },
     {
-        "Name": "PMEC 2024",
-        "Template": "PMEC_2024.json",
-        "Description": "Plano de Monitoração do Espectro utilizado por Aplicações Críticas",
-        "Author": "Centralizador PMEC 2024",
-        "Version": "1.01",
-        "Release": "02/11/2024",
-        "RelatedServices": [
-            "010 - COLETIVO - SERVIÇO MOVEL PESSOAL",
-            "019 - RESTRITO - LIMITADO PRIVADO",
-            "230 - COLETIVO - RADIODIFUSÃO SONORA EM FREQÜÊNCIA MODULADA",
-            "231 - COLETIVO - RADIODIFUSÃO COMUNITÁRIA",
-            "507 - RESTRITO - MÓVEL AERONÁUTICO"
-        ],
-        "JournalTable": [],
-        "ExternalFilesTags": []
-    },
-    {
-        "Name": "PMEC 2024 (DT)",
-        "Template": "PMEC_2024_DT.json",
-        "Description": "Plano de Monitoração do Espectro utilizado por Aplicações Críticas",
-        "Author": "Centralizador PMEC 2024",
-        "Version": "1.02",
-        "Release": "02/11/2024",
-        "RelatedServices": [
-            "010 - COLETIVO - SERVIÇO MOVEL PESSOAL",
-            "019 - RESTRITO - LIMITADO PRIVADO",
-            "230 - COLETIVO - RADIODIFUSÃO SONORA EM FREQÜÊNCIA MODULADA",
-            "231 - COLETIVO - RADIODIFUSÃO COMUNITÁRIA",
-            "507 - RESTRITO - MÓVEL AERONÁUTICO"
-        ],
-        "JournalTable": [],
-        "ExternalFilesTags": []
-    },
-    {
-        "Name": "PMEF 2024",
-        "Template": "PMEF_2024.json",
+        "Name": "PMEF 2025",
+        "Template": "PMEF_2025.json",
         "Description": "Plano de Monitoração do Espectro na Fronteira",
         "Author": "Centralizador PMEF 2024",
         "Version": "1.01",
@@ -157,47 +123,9 @@
             "Table": [
                 "METODOLOGIA",
                 "ROMES",
-                "ANÁLISE"
+                "SUMÁRIO"
             ]
         }
-    },
-    {
-        "Name": "PMRD 2024",
-        "Template": "PMRD_2024.json",
-        "Description": "Plano de Monitoração de Radiodifusão",
-        "Author": "Centralizador PMRD 2024",
-        "Version": "1.01",
-        "Release": "02/11/2024",
-        "RelatedServices": [
-            "230 - COLETIVO - RADIODIFUSÃO SONORA EM FREQÜÊNCIA MODULADA",
-            "231 - COLETIVO - RADIODIFUSÃO COMUNITÁRIA",
-            "247 - COLETIVO - GERADORA DE RADIODIFUSÃO DE SONS E IMAGENS - DIGITAL",
-            "248 - COLETIVO - RADIODIFUSÃO DE SONS E IMAGENS",
-            "800 - COLETIVO - RETRANSMISSAO DE T.V.",
-            "801 - COLETIVO - RETRANSMISSÃO DE RADIODIFUSÃO DE SONS E IMAGENS - DIGITAL",
-            "805 - COLETIVO - RETRANSMISSÃO DE RÁDIO (RTR) NA AMAZÔNIA LEGAL"
-        ],
-        "JournalTable": [],
-        "ExternalFilesTags": []
-    },
-    {
-        "Name": "PMRD 2024 (DT)",
-        "Template": "PMRD_2024_DT.json",
-        "Description": "Plano de Monitoração de Radiodifusão",
-        "Author": "Centralizador PMRD 2024",
-        "Version": "1.02",
-        "Release": "02/11/2024",
-        "RelatedServices": [
-            "230 - COLETIVO - RADIODIFUSÃO SONORA EM FREQÜÊNCIA MODULADA",
-            "231 - COLETIVO - RADIODIFUSÃO COMUNITÁRIA",
-            "247 - COLETIVO - GERADORA DE RADIODIFUSÃO DE SONS E IMAGENS - DIGITAL",
-            "248 - COLETIVO - RADIODIFUSÃO DE SONS E IMAGENS",
-            "800 - COLETIVO - RETRANSMISSAO DE T.V.",
-            "801 - COLETIVO - RETRANSMISSÃO DE RADIODIFUSÃO DE SONS E IMAGENS - DIGITAL",
-            "805 - COLETIVO - RETRANSMISSÃO DE RÁDIO (RTR) NA AMAZÔNIA LEGAL"
-        ],
-        "JournalTable": [],
-        "ExternalFilesTags": []
     },
     {
         "Name": "PMSAT 2024",

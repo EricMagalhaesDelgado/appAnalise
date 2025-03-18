@@ -712,7 +712,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 case app.tool_ExportJSONFile
                     idxThreads = 1:numel(app.specData);
 
-                    emissionSummaryTable   = reportLibConnection.table.Summary(app.specData, 'SIGNALANALYSIS', 'EditedEmissionsTable');
+                    emissionSummaryTable   = util.createEmissionsTable(app.specData, 'SIGNALANALYSIS: JSONFile');
                     emissionFiscalizaTable = reportLibConnection.table.fiscalizaJsonFile(app.specData, idxThreads, emissionSummaryTable);
     
                     nameFormatMap   = {'*.json', 'appAnalise (*.json)'};

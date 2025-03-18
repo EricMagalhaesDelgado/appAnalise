@@ -2779,6 +2779,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % novo fluxo espectral selecionado, e não àquele que estava
             % sendo apresentado.
             idx = app.play_Tree.SelectedNodes.NodeData;
+            idx = idx(1);
             nSweeps = numel(app.specData(idx).Data{1});
             
             plot_startupFcn(app, idx)
@@ -3190,11 +3191,21 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             if app.General.operationMode.Simulation
                 app.General.operationMode.Simulation = false;
-                filePath = fullfile(app.rootFolder, 'Simulation');
+                
+                [projectFolder, ...
+                 programDataFolder] = appUtil.Path(class.Constants.appName, app.rootFolder);
+                simulationFolders   = {programDataFolder, projectFolder};
 
-                listOfFiles = dir(filePath);
-                fileName = {listOfFiles.name};
-                fileName = fileName(endsWith(lower(fileName), '.mat'));
+                for ii = 1:numel(simulationFolders)
+                    filePath    = fullfile(simulationFolders{ii}, 'Simulation');    
+                    listOfFiles = dir(filePath);
+                    fileName    = {listOfFiles.name};
+                    fileName    = fileName(endsWith(lower(fileName), '.mat'));
+
+                    if ~isempty(fileName)
+                        break
+                    end
+                end
 
             else
                 [fileName, filePath] = uigetfile({'*.bin;*.dbm;*.mat', 'Binários (*.bin,*.dbm,*.mat)'; ...
@@ -5119,8 +5130,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Image clicked function: tool_ReportGenerator
         function report_playButtonPushed(app, event)
             
-            % VALIDAÇÕES:
-            if ~sum(arrayfun(@(x) x.UserData.reportFlag, app.specData))
+            % <VALIDATION>
+            idxThreads = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+
+            if isempty(idxThreads)
                 msgWarning = 'Necessário incluir ao menos um fluxo espectral na lista de fluxos a processar.';
                 appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                 return
@@ -5130,25 +5143,41 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                 return
 
-            elseif strcmp(app.report_Version.Value, 'Definitiva')
-                if ~report_checkValidIssueID(app)
-                    msgWarning = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
-                    appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-                    return
-                end
+            else
+                switch app.report_Version.Value
+                    case 'Definitiva'
+                        % EMISSÃO AINDA PENDENTE DE IDENTIFICAÇÃO
+                        classification = {};
+                        for ii = idxThreads
+                            classification{end+1} = arrayfun(@(x) x.userModified.EmissionType, app.specData(3).UserData.Emissions.Classification, 'UniformOutput', false);
+                        end
+                        classification = vertcat(classification{:});
 
-                if ~report_checkValidIssueID(app)
-                    msgWarning = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
-                    appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-                    return
-                end
+                        if any(contains(classification, 'Pendente', 'IgnoreCase', true))
+                            msgWarning = sprintf(['Há ao menos uma emissão ainda pendente de identificação, o que inviabiliza a geração ' ...
+                                                  'da versão definitiva do relatório.\n\nA identificação das emissões é realizada no módulo "Análise de sinais".']);
+                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                            return
+                        end
 
-                msgQuestion   = sprintf('Confirma que se trata de monitoração relacionada à Inspeção nº %.0f?', app.report_Issue.Value);
-                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-                if userSelection == "Não"
-                    return
+                        % INSPEÇÃO
+                        if ~report_checkValidIssueID(app)
+                            msgWarning = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
+                            appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                            return
+                        end
+        
+                        msgQuestion   = sprintf('Confirma que se trata de monitoração relacionada à Inspeção nº %.0f?', app.report_Issue.Value);
+                        userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                        if userSelection == "Não"
+                            return
+                        end
+
+                    case 'Preliminar'
+                        % ...
                 end
             end
+            % </VALIDATION>
 
             report.Controller(app, 'Report')
 

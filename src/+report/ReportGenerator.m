@@ -1,4 +1,4 @@
-function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo, progressDialog)
+function htmlReport = ReportGenerator(app, idxThreads, reportInfo, progressDialog)
     
     global hContainer
 
@@ -62,7 +62,6 @@ function [htmlReport, peaksTable] = ReportGenerator(app, idxThreads, reportInfo,
             % Atualiza barra de progresso... e cancela operação, caso
             % requisitado pelo usuário.
             if parentNode.Recurrence && ~isempty(progressDialog)
-                progressDialog.Value = jj/NN;
                 if progressDialog.CancelRequested
                     return
                 end
@@ -158,7 +157,7 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThreads, idx, 
                             emissionBandObj = class.Band('appAnalise:REPORT:EMISSION', tempBandObj.callingApp);
 
                             for emissionIndex = 1:height(specData(idxThreads(idx)).UserData.Emissions)
-                                if isempty(specData(idxThreads(idx)).UserData.Emissions.UserData(emissionIndex).DriveTest)
+                                if isempty(specData(idxThreads(idx)).UserData.Emissions.auxAppData(emissionIndex).DriveTest)
                                     continue
                                 end
 
@@ -187,12 +186,29 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThreads, idx, 
                     plotName   = strsplit(childNode.Data.Plot, ':');
                     plotLayout = str2double(strsplit(childNode.Data.Layout, ':'));    
                     plotInfo   = arrayfun(@(x, y) struct('Name', x, 'Layout', y), plotName, plotLayout);
+
+                    % Outra exceção... 
+                    % Se a ideia é incluir o plot da rota percorrida no início
+                    % do relatório, deve-se identificar a rota que apresenta
+                    % a maior variação das coordenadas geográficas.
+                    if ~parentNode.Recurrence && isequal(plotName, {'DriveTestRoute'})
+                        referenceGPS = arrayfun(@(x) x.GPS, specData(idxThreads));
+
+                        [~, idxLat]  = max([referenceGPS.Latitude_std]);
+                        [~, idxLong] = max([referenceGPS.Longitude_std]);
+
+                        if idxLat == idxLong
+                            idx = idxLat;
+                        elseif ~ismember(idx, [idxLat, idxLong])
+                            idx = idxLat;
+                        end
+                    end
                     
                     Image = Fcn_Image(specData, idxThreads, idx, tempBandObj, reportInfo, parentNode.Recurrence, childNode, plotInfo, hFigure);
                     htmlTempContent = reportLib.sourceCode.htmlCreation(childNode, Image);
     
                 case 'Table'
-                    Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, tempBandObj.callingApp.projectData.peaksTable, tempBandObj.callingApp.projectData.exceptionList, parentNode.Recurrence, childNode);
+                    Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, parentNode.Recurrence, childNode);
                     htmlTempContent = reportLib.sourceCode.htmlCreation(childNode, Table);
     
                 otherwise
@@ -202,6 +218,7 @@ function htmlContent = HTMLRenderization(parentNode, specData, idxThreads, idx, 
             htmlContent = [htmlContent, htmlTempContent];
     
         catch ME
+            struct2table(ME.stack)
             msgError = extractAfter(ME.message, 'Configuration file error message: ');
     
             if ~isempty(msgError)
@@ -376,9 +393,9 @@ function value = Fcn_Source(specData, idxThreads, idx, reportInfo, fieldName)
             idxBand     = reportInfo.General.Parameters.Plot.idxBand;
             idxEmission = reportInfo.General.Parameters.Plot.idxEmission;
 
-            value = sprintf('EMISSÃO #%d.%d: <b>%.3f MHz ⌂ %.1f kHz</b>',    idxBand, idxEmission,                                  ...
-                                                                             specData(idxThread).UserData.Emissions{idxEmission,2}, ...
-                                                                             specData(idxThread).UserData.Emissions{idxEmission,3});
+            value = sprintf('EMISSÃO #%d.%d: <b>%.3f MHz ⌂ %.1f kHz</b>',    idxBand, idxEmission,                                          ...
+                                                                             specData(idxThread).UserData.Emissions.Frequency(idxEmission), ...
+                                                                             specData(idxThread).UserData.Emissions.BW_kHz(idxEmission));
     end
 end
 
@@ -431,7 +448,7 @@ end
 %-------------------------------------------------------------------------%
 % TABELA
 %-------------------------------------------------------------------------%
-function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, peaksTable, exceptionList, Recurrence, Children)    
+function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, Recurrence, Children)    
     Origin = Children.Data.Origin;
     Source = '';
     
@@ -484,22 +501,21 @@ function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, p
                     Table = Fcn_Table_PreProcess(emissionTable, reportInfo, Children);
         
                 case 'EmissionPerBand'
-                    if ~isempty(specData(idxThreads(idx)).UserData.reportPeaksTable)                        
-                        Table = specData(idxThreads(idx)).UserData.reportPeaksTable;
+                    if ~isempty(specData(idxThreads(idx)).UserData.Emissions)
+                        Table = util.createEmissionsTable(specData(idxThreads(idx)), 'REPORT: HTMLFile');
                         Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
-
                         Table.Properties.VariableNames = replace(Table.Properties.VariableNames, '%LevelUnit%', specData(idxThreads(idx)).MetaData.LevelUnit);
                     end
         
                 case 'Summary'        
-                    if ~isempty(peaksTable)
-                        Table = reportLibConnection.table.Summary(peaksTable, exceptionList, 'TotalSummaryTable');
+                    if ~isempty(specData(idxThreads(idx)).UserData.Emissions)
+                        Table = reportLibConnection.table.Summary(specData(idxThreads), 'REPORT', 'TotalSummaryTable');
                         Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
                     end
 
                 case 'Irregular'
-                    if ~isempty(peaksTable)
-                        Table = reportLibConnection.table.Summary(peaksTable, exceptionList, 'IrregularTable');
+                    if ~isempty(specData(idxThreads(idx)).UserData.Emissions)
+                        Table = reportLibConnection.table.Summary(specData(idxThreads), 'REPORT', 'IrregularTable');
                         Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
                     end
         
