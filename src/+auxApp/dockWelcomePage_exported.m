@@ -29,12 +29,13 @@ classdef dockWelcomePage_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp)
+        function startupFcn(app, mainApp, MFilePath)
             
-            app.mainApp = mainapp;
+            app.mainApp = mainApp;
+
             app.appTitle.Text = sprintf(['<p style="margin-right: 10px;"><font style="font-size: 18px; ' ...
                                          'color: #262626;"><b>appAnalise</b></font><br>%s (v. %s)</p>'], class.Constants.appRelease, class.Constants.appVersion);
-            app.releaseNotes.HTMLSource = auxApp.welcomepage.htmlCode_ReleaseNotes(app.mainApp.rootFolder);
+            app.releaseNotes.HTMLSource = util.HtmlTextGenerator.ReleaseNotes(MFilePath);
 
         end
 

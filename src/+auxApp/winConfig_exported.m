@@ -57,6 +57,8 @@ classdef winConfig_exported < matlab.apps.AppBase
         DataHubGETLabel               matlab.ui.control.Label
         config_FolderMapLabel         matlab.ui.control.Label
         APIFiscaliza_Grid             matlab.ui.container.GridLayout
+        Panel                         matlab.ui.container.Panel
+        GridLayout2                   matlab.ui.container.GridLayout
         config_FiscalizaVersion       matlab.ui.container.ButtonGroup
         config_FiscalizaHM            matlab.ui.control.RadioButton
         config_FiscalizaPD            matlab.ui.control.RadioButton
@@ -761,7 +763,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {320, 0, '1x', 0, 0};
+            app.Document.ColumnWidth = {320, '1x', 0, 0, 0};
             app.Document.RowHeight = {26, '1x'};
             app.Document.RowSpacing = 5;
             app.Document.Padding = [5 5 5 5];
@@ -948,7 +950,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create APIFiscaliza_Grid
             app.APIFiscaliza_Grid = uigridlayout(app.Document);
             app.APIFiscaliza_Grid.ColumnWidth = {'1x', 20};
-            app.APIFiscaliza_Grid.RowHeight = {27, 5, 68, 15, 12, 5, '1x', 1};
+            app.APIFiscaliza_Grid.RowHeight = {27, 5, '1x'};
             app.APIFiscaliza_Grid.RowSpacing = 0;
             app.APIFiscaliza_Grid.Padding = [0 0 0 0];
             app.APIFiscaliza_Grid.Layout.Row = [1 2];
@@ -963,25 +965,39 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_FiscalizaVersionLabel.Layout.Column = 1;
             app.config_FiscalizaVersionLabel.Text = 'API FISCALIZA';
 
+            % Create Panel
+            app.Panel = uipanel(app.APIFiscaliza_Grid);
+            app.Panel.BackgroundColor = [0.9412 0.9412 0.9412];
+            app.Panel.Layout.Row = 3;
+            app.Panel.Layout.Column = [1 2];
+
+            % Create GridLayout2
+            app.GridLayout2 = uigridlayout(app.Panel);
+            app.GridLayout2.ColumnWidth = {'1x'};
+            app.GridLayout2.RowHeight = {68, '1x'};
+            app.GridLayout2.Padding = [0 0 0 0];
+            app.GridLayout2.BackgroundColor = [1 1 1];
+
             % Create config_FiscalizaVersion
-            app.config_FiscalizaVersion = uibuttongroup(app.APIFiscaliza_Grid);
+            app.config_FiscalizaVersion = uibuttongroup(app.GridLayout2);
             app.config_FiscalizaVersion.SelectionChangedFcn = createCallbackFcn(app, @config_FiscalizaMode, true);
+            app.config_FiscalizaVersion.BorderType = 'none';
             app.config_FiscalizaVersion.BackgroundColor = [1 1 1];
-            app.config_FiscalizaVersion.Layout.Row = [3 8];
-            app.config_FiscalizaVersion.Layout.Column = [1 2];
+            app.config_FiscalizaVersion.Layout.Row = 1;
+            app.config_FiscalizaVersion.Layout.Column = 1;
 
             % Create config_FiscalizaPD
             app.config_FiscalizaPD = uiradiobutton(app.config_FiscalizaVersion);
             app.config_FiscalizaPD.Text = 'FISCALIZA PRODUÇÃO';
             app.config_FiscalizaPD.FontSize = 11;
-            app.config_FiscalizaPD.Position = [10 552 146 22];
+            app.config_FiscalizaPD.Position = [10 37 146 22];
 
             % Create config_FiscalizaHM
             app.config_FiscalizaHM = uiradiobutton(app.config_FiscalizaVersion);
             app.config_FiscalizaHM.Text = 'FISCALIZA <font style="color: red;">HOMOLOGAÇÃO</font> (versão destinada a testes)';
             app.config_FiscalizaHM.FontSize = 11;
             app.config_FiscalizaHM.Interpreter = 'html';
-            app.config_FiscalizaHM.Position = [10 526 310 22];
+            app.config_FiscalizaHM.Position = [10 11 310 22];
             app.config_FiscalizaHM.Value = true;
 
             % Create Folders_Grid

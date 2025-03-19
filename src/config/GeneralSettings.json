@@ -1,5 +1,5 @@
 {
-    "version": 0.88,
+    "version": 0.89,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -10,6 +10,7 @@
         "webServer": "WIMATLABPDIN01"
     },
     "fileFolder": {
+        "MFilePath": "",
         "userPath": "",
         "tempPath": "",
         "pythonPath": "",

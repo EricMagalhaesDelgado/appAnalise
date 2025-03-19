@@ -780,8 +780,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
                 end
 
-                app.entryPointFolder = fileparts(mfilename('fullpath'));
-                app.rootFolder = appUtil.RootFolder(class.Constants.appName, app.entryPointFolder);
+                MFilePath = fileparts(mfilename('fullpath'));
+                app.rootFolder = appUtil.RootFolder(class.Constants.appName, MFilePath);
                 
                 % WELCOMEPAGE
                 % 1/7: Insere estilo ao container do auxApp.dockWelcomePage.
@@ -792,7 +792,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
                 
                 % 3/7: Inicia auxApp.dockWelcomePage.
-                menu_LayoutPopupApp(app, 'WelcomePage')
+                menu_LayoutPopupApp(app, 'WelcomePage', MFilePath)
                 
                 % Customiza as aspectos estéticos de alguns dos componentes da GUI 
                 % (diretamente em JS).
@@ -800,7 +800,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 jsBackDoor_Customizations(app, 1)
 
                 % Leitura do arquivo "GeneralSettings.json".
-                startup_ConfigFileRead(app)
+                startup_ConfigFileRead(app, MFilePath)
                 startup_AppProperties(app)
                 startup_GUIComponents(app)
                 
@@ -824,7 +824,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function startup_ConfigFileRead(app)
+        function startup_ConfigFileRead(app, MFilePath)
             % "GeneralSettings.json"
             [app.General_I, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder);
             if ~isempty(msgWarning)
@@ -835,7 +835,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % sessão.
             tempDir = tempname;
             mkdir(tempDir)
-            app.General_I.fileFolder.tempPath = tempDir;
+            app.General_I.fileFolder.tempPath  = tempDir;
+            app.General_I.fileFolder.MFilePath = MFilePath;
 
             switch app.executionMode
                 case 'webApp'
@@ -891,7 +892,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             app.General            = app.General_I;        
-            app.General.AppVersion = util.getAppVersion(app.rootFolder, app.entryPointFolder, tempDir, 'full');
+            app.General.AppVersion = util.getAppVersion(app.rootFolder, MFilePath, tempDir, 'full'); % RFDataHub lido aqui
 
             % Um dos arquivos que compõem a subpasta "config", copiada para
             % "ProgramData/ANATEL/appAnalise" na primeira execução, é o arquivo 
@@ -1009,7 +1010,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             play_FindPeaks_AlgorithmValueChanged(app)
 
             % Painel "REPORT >> PROJECT"
-            app.report_ThreadAlgorithms.HTMLSource   = fullfile(app.rootFolder, 'resources', 'Icons', 'Warning.html');
+            app.report_ThreadAlgorithms.HTMLSource   = fullfile(app.General.fileFolder.MFilePath, 'resources', 'Icons', 'Warning.html');
             app.report_ModelName.Items               = [{''}; app.General.Models.Name];
 
             % Painel "CONFIG >> PYTHON"
@@ -2904,7 +2905,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
 
             else
-                set(app.report_ThreadAlgorithms, 'HTMLSource', fullfile(app.rootFolder, 'resources', 'Icons', 'Warning.html'), ...
+                set(app.report_ThreadAlgorithms, 'HTMLSource', fullfile(app.General.fileFolder.MFilePath, 'resources', 'Icons', 'Warning.html'), ...
                                                  'UserData',   [])
 
                 app.report_EditDetection.Enable      = 0;
@@ -3192,7 +3193,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Image clicked function: file_OpenInitialPopup
         function file_ButtonPushed_OpenPopup(app, event)
             
-            menu_LayoutPopupApp(app, 'WelcomePage')
+            menu_LayoutPopupApp(app, 'WelcomePage', app.General.fileFolder.MFilePath)
 
         end
 
@@ -5062,7 +5063,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
 
                 try
-                    templateFullFile = fullfile(app.rootFolder, 'Template', templateName);
+                    templateFullFile = fullfile(app.General.fileFolder.MFilePath, 'resources', 'FileTemplates', templateName);
                     copyfile(templateFullFile, fileFullPath, 'f')
                 catch ME
                     appUtil.modalWindow(app.UIFigure, 'error', ME.message);

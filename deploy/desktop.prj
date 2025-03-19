@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="2671343276" file="D:\InovaFiscaliza\appAnalise\deploy\desktop.prj" location="D:\InovaFiscaliza\appAnalise\deploy" name="desktop" preferred-package-location="D:\InovaFiscaliza\appAnalise\deploy\desktop\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration build-checksum="382747112" file="D:\InovaFiscaliza\appAnalise\deploy\desktop.prj" location="D:\InovaFiscaliza\appAnalise\deploy" name="desktop" preferred-package-location="D:\InovaFiscaliza\appAnalise\deploy\desktop\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>appAnalise</param.appname>
     <param.icon>${PROJECT_ROOT}\desktop_resources\icon.ico</param.icon>
     <param.icons>
@@ -35,8 +35,8 @@
     <param.web.mcr.name>appAnalise</param.web.mcr.name>
     <param.package.mcr.name>appAnalise</param.package.mcr.name>
     <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
-    <param.windows.command.prompt>true</param.windows.command.prompt>
-    <param.create.log>false</param.create.log>
+    <param.windows.command.prompt>false</param.windows.command.prompt>
+    <param.create.log>true</param.create.log>
     <param.log.file>log.txt</param.log.file>
     <param.native.matlab>false</param.native.matlab>
     <param.checkbox>false</param.checkbox>
@@ -69,8 +69,6 @@
       <param.package.mcr />
       <param.no.mcr />
       <param.no.mcr.name />
-      <param.windows.command.prompt />
-      <param.create.log />
       <param.native.matlab />
       <param.checkbox />
       <param.example />

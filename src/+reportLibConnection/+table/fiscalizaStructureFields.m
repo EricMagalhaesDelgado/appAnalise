@@ -42,7 +42,7 @@ function [ReportProject, emissionFiscalizaTable] = fiscalizaStructureFields(app,
     % Juntar numa mesma variável a informação gerada pelo algoritmo
     % embarcado no appAnálise (app.peaksTable) com a informação
     % gerada pelo fiscal (app.exceptionList).
-    [emissionTable, emissionSummaryTable] = reportLibConnection.table.Summary(app.specData(idxThreads), 'REPORT', 'EditedEmissionsTable+TotalSummaryTable');
+    [emissionTable, emissionSummaryTable] = reportLibConnection.table.Summary(app.specData, idxThreads, 'REPORT', 'EditedEmissionsTable+TotalSummaryTable');
 
     ReportProject.emissionsValue1 = sum(emissionSummaryTable{:,2:4}, 'all');                               % Qtd. emissões
     ReportProject.emissionsValue2 = sum(emissionSummaryTable{:,2});                                        % Qtd. emissões licenciadas

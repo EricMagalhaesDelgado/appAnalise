@@ -509,13 +509,13 @@ function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, R
         
                 case 'Summary'        
                     if ~isempty(specData(idxThreads(idx)).UserData.Emissions)
-                        Table = reportLibConnection.table.Summary(specData(idxThreads), 'REPORT', 'TotalSummaryTable');
+                        Table = reportLibConnection.table.Summary(specData, idxThreads, 'REPORT', 'TotalSummaryTable');
                         Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
                     end
 
                 case 'Irregular'
                     if ~isempty(specData(idxThreads(idx)).UserData.Emissions)
-                        Table = reportLibConnection.table.Summary(specData(idxThreads), 'REPORT', 'IrregularTable');
+                        Table = reportLibConnection.table.Summary(specData, idxThreads, 'REPORT', 'IrregularTable');
                         Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
                     end
         
