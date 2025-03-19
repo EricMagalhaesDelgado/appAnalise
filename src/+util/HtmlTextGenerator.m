@@ -41,6 +41,9 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         function htmlContent = Thread(dataSource, varargin)
             if isa(dataSource, 'model.MetaData')
+                % As validações feitas na GUI garantem que idxFile será
+                % escalar, e idxThread será diferente de vazio.
+
                 idxFile    = varargin{1};
                 idxThread  = varargin{2};
 
@@ -50,11 +53,16 @@ classdef (Abstract) HtmlTextGenerator
                                                     'Type',    dataSource(idxFile).Type,        ...
                                                     'nData',   numel(dataSource(idxFile).Data), ...
                                                     'Memory',  sprintf('%.3f MB', dataSource(idxFile).Memory)));
-                if isempty(idxThread)
-                    receiverList = strjoin(unique({dataSource(idxFile).Data.Receiver})', '<br>');
-                else
-                    receiverList = dataSource(idxFile).Data(idxThread(1)).Receiver;
-                end
+                
+                receiverList = arrayfun(@(x) x.Receiver, dataSource(idxFile).Data(idxThread), "UniformOutput", false);
+                receiverList = strjoin(unique(receiverList), '<br>');
+
+                % receiverList = {};
+                % for ii = idxFile
+                %     receiverList = [receiverList, {dataSource(ii).Data.Receiver}];
+                % end
+                % receiverList = strjoin(unique(receiverList), '<br>');
+
                 dataStruct(end+1) = struct('group', 'RECEPTOR',  'value', receiverList);
         
             else % 'model.SpecData'
@@ -85,8 +93,15 @@ classdef (Abstract) HtmlTextGenerator
                     dataStruct(end).value.VBW = sprintf('%.3f kHz', dataStruct(end).value.VBW/1000);
                 end
         
-                % GPS e arquivos:
-                dataStruct(end+1) = struct('group', 'GPS', 'value', specData.GPS);
+                % GPS, altura da antena e arquivos:
+                dataStruct(end+1) = struct('group', 'GPS',    'value', specData.GPS);
+                if ~isempty(specData.UserData.AntennaHeight)
+                    if specData.UserData.AntennaHeight == -1
+                        dataStruct(end+1) = struct('group', 'ANTENA', 'value', '-1');
+                    else
+                        dataStruct(end+1) = struct('group', 'ANTENA', 'value', sprintf('%.1fm', specData.UserData.AntennaHeight));
+                    end
+                end
                 dataStruct(end+1) = struct('group', 'FONTE DA INFORMAÇÃO',                                   ...
                                            'value', struct('File',    strjoin(specData.RelatedFiles.File, ', '), ...
                                                            'nSweeps', sum(specData.RelatedFiles.nSweeps)));

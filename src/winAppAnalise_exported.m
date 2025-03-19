@@ -592,7 +592,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
 
                     % DOCK:WELCOMEPAGE
-                    case 'auxApp.dockWelcomePage_exported'
+                    case {'auxApp.dockWelcomePage', 'auxApp.dockWelcomePage_exported'}
                         pushedButtonTag = varargin{1};
                         simulationFlag  = varargin{2};
 
@@ -943,7 +943,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Salva na propriedade "UserData" as opções de ícone e o índice 
             % da aba, simplificando os ajustes decorrentes de uma alteração...
-            app.file_Tree.UserData                    = struct('previousSelectedFileIndex', []);
+            app.file_Tree.UserData                    = struct('previousSelectedFileIndex', [], 'previousSelectedFileThread', []);
             app.play_TreePanelVisibility.UserData     = struct('Mode', 'PLAYBACK', 'Visible', true);
             app.play_Channel_ShowPlot.UserData        = false;
             
@@ -1223,7 +1223,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case 'Classification'; screenWidth  = 534; screenHeight = 248;
                 case 'AddFiles';       screenWidth  = 880; screenHeight = 480;
                 case 'TimeFiltering';  screenWidth  = 640; screenHeight = 480;
-                case 'EditLocation';   screenWidth  = 360; screenHeight = 210;
+                case 'EditLocation';   screenWidth  = 394; screenHeight = 194;
                 case 'AddKFactor';     screenWidth  = 480; screenHeight = 360;
                 case 'AddChannel';     screenWidth  = 560; screenHeight = 480;
             end
@@ -1235,8 +1235,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % do BackgroundColor do Grid (caso não tenha sido aplicada anteriormente).
             ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
             inputArguments = [{app}, varargin];
-            eval(sprintf('auxApp.dock%s_exported(app.popupContainer, inputArguments{:})', auxiliarApp))
-            app.popupContainerGrid.Visible = 1;
+            
+            if ~isempty(app.General) && app.General.operationMode.Debug
+                eval(sprintf('auxApp.dock%s(inputArguments{:})', auxiliarApp))
+            else
+                eval(sprintf('auxApp.dock%s_exported(app.popupContainer, inputArguments{:})', auxiliarApp))
+                app.popupContainerGrid.Visible = 1;
+            end            
         end
 
 
@@ -1382,7 +1387,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function file_TreeBuilding(app)
             if ~isempty(app.file_Tree.Children)
                 delete(app.file_Tree.Children)
-                app.file_Tree.UserData.previousSelectedFileIndex = [];
+                app.file_Tree.UserData = struct('previousSelectedFileIndex', [], 'previousSelectedFileThread', []);
             end
 
             if ~isempty(app.metaData)
@@ -1662,16 +1667,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function play_changingTreeNodeStyleFromReport(app)
-            idx = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+            nodeTreeList     = findobj(app.play_Tree, 'Tag', 'BAND');
+            nodeDataTreeList = [nodeTreeList.NodeData];
+            
+            idxReportThreads = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+            [~, idxReport]   = ismember(idxReportThreads, nodeDataTreeList);
 
-            if ~isempty(idx)
-                nodeTreeList     = findobj(app.play_Tree, 'Tag', 'BAND');
-                nodeDataTreeList = [nodeTreeList.NodeData];
-                [~, idxReport]   = ismember(idx, nodeDataTreeList);
-
-                set(nodeTreeList(idxReport),                        'Icon', 'Report_32.png')
-                set(setdiff(nodeTreeList, nodeTreeList(idxReport)), 'Icon', '')
-            end
+            set(nodeTreeList(idxReport),                        'Icon', 'Report_32.png')
+            set(setdiff(nodeTreeList, nodeTreeList(idxReport)), 'Icon', '')
         end
 
         %-----------------------------------------------------------------%
@@ -2843,11 +2846,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % os fluxos incluídos para análise (no modo RELATÓRIO).
             play_changingTreeNodeStyleFromReport(app)
 
+            % Atualizando módulo auxiliar auxApp.winSignalAnalysis, caso
+            % habilitada a visualização apenas das emissões relacionadas
+            % aos fluxos espectrais a processar.
+            play_UpdateAuxiliarApps(app, 'SIGNALANALYSIS')
+
             % E, posteriormente, ajusta os elementos do painel do modo
             % RELATÓRIO.
             idxThreads = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
             if isempty(idxThreads)
-                app.projectData.peaksTable(:,:) = [];
                 app.tool_ReportGenerator.Enable = 0;
 
             else
@@ -3037,8 +3044,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 return
             end
             
-            prjInfo  = struct('exceptionList', app.projectData.exceptionList);
-            model.fileWriter.MAT(fileFullPath, 'UserData', app.specData(idx), prjInfo, {'Data', 'callingApp', 'sortType'})
+            model.fileWriter.MAT(fileFullPath, 'UserData', app.specData(idx), struct.empty, {'Data', 'callingApp', 'sortType'})
         end
 
         %-----------------------------------------------------------------%
@@ -3303,30 +3309,46 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Selection changed function: file_Tree
         function file_TreeSelectionChanged(app, event)
             
-            if ~isempty(app.metaData)
-                % Caso seja selecionado apenas um nó, apresenta-se os
-                % metadados relacionados, além de habilitar os botões do 
-                % toolbar.
-                if isscalar(app.file_Tree.SelectedNodes)
-                    idxFile   = app.file_Tree.SelectedNodes.NodeData.idx1;
-                    idxThread = app.file_Tree.SelectedNodes.NodeData.idx2;
+            currentSelectedFileIndex = [];
 
-                    if ~isequal(app.file_Tree.UserData.previousSelectedFileIndex, idxFile)
-                        app.file_Tree.UserData.previousSelectedFileIndex = idxFile;
+            if ~isempty(app.file_Tree.SelectedNodes)
+                % Caso sejam selecionados nós de apenas um único arquivo,
+                % apresentam-se os metadados relacionados à informação 
+                % espectral, além de habilitar os botões do toolbar.
 
-                        collapse(app.file_Tree)                        
-                        expand(app.file_Tree.Children(idxFile), 'all')
-                        scroll(app.file_Tree, app.file_Tree.SelectedNodes)
+                idxFileList   = arrayfun(@(x) x.NodeData.idx1, app.file_Tree.SelectedNodes, "UniformOutput", false);
+                idxFile       = unique(horzcat(idxFileList{:}));
+
+                if isscalar(idxFile)
+                    idxThreadList = arrayfun(@(x) x.NodeData.idx2, app.file_Tree.SelectedNodes, "UniformOutput", false);
+                    idxThread     = idxThreadList{1};
+
+                    for ii = 2:numel(idxThreadList)
+                        idxThread = intersect(idxThread, idxThreadList{ii});
                     end
 
-                    app.file_Metadata.HTMLSource = util.HtmlTextGenerator.Thread(app.metaData, idxFile, idxThread);
-                else
-                    app.file_Metadata.HTMLSource = ' ';
+                    if ~isempty(idxThread)
+                        currentSelectedFileIndex = struct('previousSelectedFileIndex',  idxFile, ...
+                                                          'previousSelectedFileThread', idxThread);
+                    end
                 end
+            end
+
+            if isequal(app.file_Tree.UserData, currentSelectedFileIndex)
+                % Não faz nada...
+
+            elseif ~isempty(currentSelectedFileIndex)
+                app.file_Tree.UserData = currentSelectedFileIndex;
+
+                collapse(app.file_Tree)                        
+                expand(app.file_Tree.Children(idxFile), 'all')
+                scroll(app.file_Tree, app.file_Tree.SelectedNodes(end))
+
+                app.file_Metadata.HTMLSource = util.HtmlTextGenerator.Thread(app.metaData, idxFile, idxThread);
 
             else
-                % Desabilita o painel de metadados...
-                app.file_Metadata.HTMLSource   = ' ';
+                app.file_Tree.UserData = struct('previousSelectedFileIndex', [], 'previousSelectedFileThread', []);
+                app.file_Metadata.HTMLSource = ' ';
             end
             
         end
@@ -5252,9 +5274,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                     prjInfo = struct('Name',           fileName,                        ...
                                      'reportInfo',     rmfield(reportInfo, 'Filename'), ...
-                                     'generatedFiles', generatedZIPFile,                ...
-                                     'peaksTable',     app.projectData.peaksTable,      ...
-                                     'exceptionList',  app.projectData.exceptionList);
+                                     'generatedFiles', generatedZIPFile);
                     
                     model.fileWriter.MAT(fileFullPath, 'ProjectData', app.specData(idx), prjInfo, {'callingApp', 'sortType'})
                     

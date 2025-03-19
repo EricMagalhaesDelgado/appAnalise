@@ -6,7 +6,7 @@ function varargout = Summary(specData, callingModule, requestedOutput)
         requestedOutput char {mustBeMember(requestedOutput, {'EditedEmissionsTable', 'TotalSummaryTable', 'EditedEmissionsTable+TotalSummaryTable', 'IrregularTable'})} = 'TotalSummaryTable'
     end
 
-    emissionsTable = util.createEmissionsTable(specData, 'REPORT: HTMLFile');
+    emissionsTable = util.createEmissionsTable(specData, 1:numel(specData), 'REPORT: HTMLFile');
     if isempty(emissionsTable)
         return
     end

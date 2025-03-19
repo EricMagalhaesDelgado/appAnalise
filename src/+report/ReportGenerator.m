@@ -502,7 +502,7 @@ function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, R
         
                 case 'EmissionPerBand'
                     if ~isempty(specData(idxThreads(idx)).UserData.Emissions)
-                        Table = util.createEmissionsTable(specData(idxThreads(idx)), 'REPORT: HTMLFile');
+                        Table = util.createEmissionsTable(specData, idxThreads(idx), 'REPORT: HTMLFile');
                         Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
                         Table.Properties.VariableNames = replace(Table.Properties.VariableNames, '%LevelUnit%', specData(idxThreads(idx)).MetaData.LevelUnit);
                     end

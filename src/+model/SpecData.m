@@ -79,17 +79,19 @@ classdef SpecData < model.SpecDataBase
         
                     switch updateType
                         case 'Refresh'
-                            newAntennaHeight = [];
+                            for ii = idxThreads
+                                newAntennaHeight = AntennaHeight(obj, ii, -1, 'refreshValue');
+                                obj(ii).UserData.AntennaHeight = newAntennaHeight;
+                            end
 
                         case 'ManualEdition'
                             newAntennaHeight = varargin{2};
+                            for ii = idxThreads
+                                obj(ii).UserData.AntennaHeight = newAntennaHeight;
+                            end
 
                         otherwise 
                             error('Unexpected update type')
-                    end
-        
-                    for ii = idxThreads
-                        obj(ii).UserData.AntennaHeight = newAntennaHeight;
                     end
 
                 case 'UserData:Channel'
@@ -476,9 +478,6 @@ classdef SpecData < model.SpecDataBase
                                     end
                                 end
                             end
-
-                            callingApp.projectData.peaksTable     = prjInfo.peaksTable;
-                            callingApp.projectData.exceptionList  = prjInfo.exceptionList;
                         end
                     end
                 end
@@ -517,7 +516,7 @@ classdef SpecData < model.SpecDataBase
                 hFigure    (1,1) matlab.ui.Figure
             end
             
-            % VALIDAÇÕES
+            % <VALIDATION>
             if numel(idxThreads) < 2
                 error(ErrorMessage(obj, 'merge'))
             end
@@ -529,37 +528,30 @@ classdef SpecData < model.SpecDataBase
             end
 
             resolutionList = unique(mergeTable.Resolution);
-            if ~isscalar(resolutionList)
-                msgQuestion = {};
-                for ii = 1:height(mergeTable)
-                    msgQuestion{end+1} = sprintf('• %.3f - %.3f MHz (Resolução = %.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.Resolution(ii)/1000);
-                end
-                msgQuestion   = sprintf(['Os fluxos espectrais a mesclar possuem valores diferentes de resolução.\n%s\n\n'                                ...
-                                         'Deseja continuar esse processo de mesclagem, o que resultará em um fluxo que armazenará como metadado a maior ' ...
-                                         'resolução (no caso, %.3f kHz)?'], strjoin(msgQuestion, '\n'), max(mergeTable.Resolution)/1000);
-                userSelection = appUtil.modalWindow(hFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                if userSelection == "Não"
-                    return
-                end
+            stepWidthList  = unique(mergeTable.StepWidth);
+
+            msgQuestion = {};
+            if ~isscalar(resolutionList) && ~isscalar(stepWidthList)
+                msgQuestion = arrayfun(@(x,y,z,w) sprintf('• <b>%.3f - %.3f MHz</b>: %.3f kHz (RBW), %.3f kHz (passo)', x, y, z, w), mergeTable.FreqStart/1e+6, mergeTable.FreqStop/1e+6, mergeTable.Resolution/1000, mergeTable.StepWidth/1000, 'UniformOutput', false);
+            elseif ~isscalar(resolutionList)
+                msgQuestion = arrayfun(@(x,y,z)   sprintf('• <b>%.3f - %.3f MHz</b>: %.3f kHz (RBW)',                   x, y, z),    mergeTable.FreqStart/1e+6, mergeTable.FreqStop/1e+6, mergeTable.Resolution/1000,                            'UniformOutput', false);
+            elseif ~isscalar(stepWidthList)
+                msgQuestion = arrayfun(@(x,y,z)   sprintf('• <b>%.3f - %.3f MHz</b>: %.3f kHz (passo)',                 x, y, z),    mergeTable.FreqStart/1e+6, mergeTable.FreqStop/1e+6, mergeTable.StepWidth/1000,                             'UniformOutput', false);
             end
 
-            stepWidthList = unique(mergeTable.StepWidth);
-            if ~isscalar(stepWidthList)
-                msgQuestion = {};
-                for ii = 1:height(mergeTable)
-                    msgQuestion{end+1} = sprintf('• %.3f - %.3f MHz (Passo da varredura = %.3f kHz)', mergeTable.FreqStart(ii)/1e+6, mergeTable.FreqStop(ii)/1e+6, mergeTable.StepWidth(ii)/1000);
-                end
-                msgQuestion   = sprintf(['Os fluxos espectrais a mesclar possuem valores diferentes de passos de varredura.\n%s\n\n'             ...
-                                         'Deseja continuar esse processo de mesclagem, o que poderá demandar a interpolação da(s) '              ...
-                                         'matriz(es) de níveis do(s) fluxo(s), resultando em um único passo de varredura (no caso, %.3f kHz)?'], ...
-                                         strjoin(msgQuestion, '\n'), mode(mergeTable.StepWidth)/1000);
+            if ~isempty(msgQuestion)
+                msgQuestion = sprintf(['Os fluxos espectrais a mesclar possuem valores diferentes de resolução ou passo da varredura.\n\n' ...
+                                       '<font style="font-size: 11px;">%s</font>\n\nDeseja continuar esse processo de mesclagem, o que '   ...
+                                       'resultará em um fluxo que armazenará como metadados os maiores valores de resolução e passo da varredura?'], strjoin(msgQuestion, '\n'));
+                
                 userSelection = appUtil.modalWindow(hFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
                 if userSelection == "Não"
                     return
                 end
             end
+            % </VALIDATION>
             
-            % MESCLAGEM
+            % <PROCESS>
             mergeType = identifyMergeType(obj, mergeTable);
             nThreads  = numel(idxThreads);
 
@@ -631,15 +623,15 @@ classdef SpecData < model.SpecDataBase
             end
 
             obj(idxThreads(1)).MetaData.Resolution = max(resolutionList);
-            obj(idxThreads(1)).Data{1}      = timeArray;
-            obj(idxThreads(1)).Data{2}      = dataMatrix;
+            obj(idxThreads(1)).Data{1}  = timeArray;
+            obj(idxThreads(1)).Data{2}  = dataMatrix;
             basicStats(obj(idxThreads(1)))
 
-            % PÓS-MESCLAGEM
             delete(obj(idxThreads(2:nThreads)))
             obj(idxThreads(2:nThreads)) = [];
 
             occupancyMapping(obj)
+            % </PROCESS>
         end
 
         %-----------------------------------------------------------------%
@@ -678,10 +670,17 @@ classdef SpecData < model.SpecDataBase
         end
 
         %-----------------------------------------------------------------%
-        function antennaHeight = AntennaHeight(obj, idx, referenceValue)
+        function antennaHeight = AntennaHeight(obj, idx, referenceValue, operationType)
+            arguments
+                obj
+                idx
+                referenceValue = -1
+                operationType  char {mustBeMember(operationType, {'initialValue', 'getCurrentValue', 'refreshValue'})} = 'getCurrentValue'
+            end
+
             antennaHeight = NaN;
 
-            if ~isempty(obj(idx).UserData.AntennaHeight)
+            if strcmp(operationType, 'getCurrentValue') && ~isempty(obj(idx).UserData.AntennaHeight)
                 antennaHeight = obj(idx).UserData.AntennaHeight;
                 
             elseif isfield(obj(idx).MetaData.Antenna, 'Height')
@@ -888,6 +887,7 @@ classdef SpecData < model.SpecDataBase
         %-----------------------------------------------------------------%
         function obj = finalOrganizationOfData(obj, prjInfo)
             obj = sort(obj, obj(1).sortType);
+            app = obj(1).callingApp;
 
             for ii = 1:numel(obj)
                 % Ordenando os dados...
@@ -904,14 +904,17 @@ classdef SpecData < model.SpecDataBase
                 % Estatística básica dos dados:
                 basicStats(obj(ii))
 
-                if ismember(obj(ii).MetaData.DataType, class.Constants.specDataTypes) && isempty(prjInfo)
+                obj(ii).UserData(1).AntennaHeight = AntennaHeight(obj, ii, -1, 'initialValue');
+
+                if ~app.General.Channel.ManualMode && ismember(obj(ii).MetaData.DataType, class.Constants.specDataTypes) && isempty(prjInfo)
                     % Mapeamento entre os fluxos de espectro e as canalizações
                     % aplicáveis à cada faixa.
                     obj(ii).UserData(1).channelLibIndex = FindRelatedBands(obj(ii).callingApp.channelObj, obj(ii));
                 end
+
+                obj(ii).UserData(1).reportAlgorithms.Detection.ManualMode = app.General.Detection.ManualMode;
             end
         
-            app        = obj(1).callingApp;
             idxThreads = find(arrayfun(@(x) x.UserData.reportFlag, obj));
             update(obj, 'UserData:ReportFields', 'Creation', idxThreads, app.channelObj, @app.play_OCCIndex)
         end

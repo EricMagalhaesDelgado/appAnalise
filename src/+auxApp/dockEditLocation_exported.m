@@ -2,24 +2,25 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure              matlab.ui.Figure
-        GridLayout            matlab.ui.container.GridLayout
-        Document              matlab.ui.container.GridLayout
-        btnOK                 matlab.ui.control.Button
-        rxLocationRefresh     matlab.ui.control.Image
-        rxLocationPanel       matlab.ui.container.Panel
-        rxLocationGrid        matlab.ui.container.GridLayout
-        rxCity                matlab.ui.control.EditField
-        rxCityLabel           matlab.ui.control.Label
-        rxSearchCity          matlab.ui.control.Image
-        rxHeight              matlab.ui.control.NumericEditField
-        rxHeightLabel         matlab.ui.control.Label
-        rxLongitude           matlab.ui.control.NumericEditField
-        rxLongitudeLabel      matlab.ui.control.Label
-        rxLatitude            matlab.ui.control.NumericEditField
-        rxLatitudeLabel       matlab.ui.control.Label
-        rxLocationPanelLabel  matlab.ui.control.Label
-        btnClose              matlab.ui.control.Image
+        UIFigure               matlab.ui.Figure
+        GridLayout             matlab.ui.container.GridLayout
+        Document               matlab.ui.container.GridLayout
+        rxLocationPanel        matlab.ui.container.Panel
+        rxLocationGrid         matlab.ui.container.GridLayout
+        rxCity                 matlab.ui.control.EditField
+        rxCityLabel            matlab.ui.control.Label
+        rxHeight               matlab.ui.control.NumericEditField
+        rxHeightLabel          matlab.ui.control.Label
+        rxLongitude            matlab.ui.control.NumericEditField
+        rxLongitudeLabel       matlab.ui.control.Label
+        rxLatitude             matlab.ui.control.NumericEditField
+        rxLatitudeLabel        matlab.ui.control.Label
+        rxLocationEditCancel   matlab.ui.control.Image
+        rxLocationEditConfirm  matlab.ui.control.Image
+        rxLocationEditMode     matlab.ui.control.Image
+        rxRefresh              matlab.ui.control.Image
+        rxLocationPanelLabel   matlab.ui.control.Label
+        btnClose               matlab.ui.control.Image
     end
 
     
@@ -30,60 +31,93 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
 
         mainApp
         specData
-        referenceData
+        selectedThreads
+        progressDialog
+
+        initialGPS
     end
 
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function initialValues(app, idxThreads)
-            idxThread = idxThreads(1);
+        function updatePanelValues(app)
+            % A edição de informações relacionadas ao local de monitoração 
+            % é aplicável apenas quando selecionados fluxos espectrais 
+            % relacionados ao mesmo local.
+            idxThread = app.selectedThreads;
+            idxThread = idxThread(1);
 
-            app.referenceData = struct('idxThread', idxThreads,                                      ...
-                                       'Status',    app.specData(idxThread).GPS.Status,              ...
-                                       'Latitude',  round(app.specData(idxThread).GPS.Latitude,  6), ...
-                                       'Longitude', round(app.specData(idxThread).GPS.Longitude, 6), ...
-                                       'Height',    AntennaHeight(app.specData, idxThread, -1),      ...
-                                       'Location',  app.specData(idxThread).GPS.Location);
-
-            app.rxLatitude.Value  = app.referenceData.Latitude;
-            app.rxLongitude.Value = app.referenceData.Longitude;
-            app.rxHeight.Value    = app.referenceData.Height;
-            app.rxCity.Value      = app.referenceData.Location;
+            % Atualiza painel...
+            app.rxLatitude.Value  = round(app.specData(idxThread).GPS.Latitude,  6);
+            app.rxLongitude.Value = round(app.specData(idxThread).GPS.Longitude, 6);
+            app.rxHeight.Value    = AntennaHeight(app.specData, idxThread, -1);
+            app.rxCity.Value      = app.specData(idxThread).GPS.Location;
+            app.rxRefresh.Visible = app.specData(idxThread).GPS.Edited;
         end
 
         %-----------------------------------------------------------------%
-        function [editionFlag, gpsEditionFlag, heightEditionFlag] = checkEdition(app)
-            gpsEditionFlag    = false;
-            heightEditionFlag = false;
+        function updatePanelLayout(app, editionStatus)
+            arguments
+                app 
+                editionStatus char {mustBeMember(editionStatus, {'on', 'off'})}
+            end            
 
-            if abs(app.rxLatitude.Value  - app.referenceData.Latitude)  > class.Constants.floatDiffTolerance || ...
-               abs(app.rxLongitude.Value - app.referenceData.Longitude) > class.Constants.floatDiffTolerance || ...
-               ~strcmp(app.rxCity.Value, app.referenceData.Location)
-                gpsEditionFlag = true;
+            switch editionStatus
+                case 'on'
+                    set(app.rxLocationEditMode, 'ImageSource', 'Edit_32Filled.png', 'Tooltip', 'Cancela edição dos parâmetros do local da monitoração', 'UserData', true)
+                    app.Document.ColumnWidth(end-1:end) = {16,16};
+                    app.rxLocationEditConfirm.Enable = 1;
+                    app.rxLocationEditCancel.Enable  = 1;
+
+                    set(findobj(app.rxLocationGrid.Children, 'Type', 'uinumericeditfield', '-or', 'Type', 'uieditfield'), 'Editable', 1)
+
+                case 'off'
+                    set(app.rxLocationEditMode, 'ImageSource', 'Edit_32.png', 'Tooltip', 'Possibilita edição dos parâmetros do local da monitoração', 'UserData', false)
+                    app.Document.ColumnWidth(end-1:end) = {0,0};
+                    app.rxLocationEditConfirm.Enable = 0;
+                    app.rxLocationEditCancel.Enable  = 0;
+                    set(findobj(app.rxLocationGrid.Children, 'Type', 'uinumericeditfield', '-or', 'Type', 'uieditfield'), 'Editable', 0)
+                    
+
+                    updatePanelValues(app)
             end
-
-            if (app.rxHeight.Value > 0) && (abs(app.rxHeight.Value - app.referenceData.Height) > class.Constants.floatDiffTolerance)
-                heightEditionFlag = true;
-            end
-
-            editionFlag = gpsEditionFlag || heightEditionFlag;
         end
 
         %-----------------------------------------------------------------%
-        function [PreviousEditionFlag, gpsPreviousEditionFlag, heightPreviousEditionFlag] = checkPreviousEdition(app, idxThreads)
-            gpsPreviousEditionFlag    = false;
-            heightPreviousEditionFlag = false;
+        function currentGPS = currentGPS(app)
+            currentGPS = struct('Latitude',  app.rxLatitude.Value,  ...
+                                'Longitude', app.rxLongitude.Value, ...
+                                'Height',    app.rxHeight.Value,    ...
+                                'Location',  app.rxCity.Value);
+        end
 
-            if app.referenceData.Status == -1
-                gpsPreviousEditionFlag = true;
+        %-----------------------------------------------------------------%
+        function applyManualEdition(app)
+            idxThreads        = app.selectedThreads;
+            currentLocation   = currentGPS(app);
+
+            gpsEditionFlag    = ~isequal(rmfield(app.initialGPS, 'Height'), rmfield(currentLocation, 'Height'));
+            heightEditionFlag = ~isequal(app.initialGPS.Height, currentLocation.Height);
+
+            if gpsEditionFlag
+                newGPS = struct('Status', -1, 'Matrix', [app.rxLatitude.Value, app.rxLongitude.Value]);
+                newGPS = rmfield(gpsLib.summary(newGPS), 'Matrix');
+                newGPS.Location = app.rxCity.Value;
+                newGPS.Edited = true;
+
+                update(app.specData, 'GPS', 'ManualEdition', idxThreads, newGPS)
             end
 
-            if any(arrayfun(@(x) ~isempty(x.UserData.AntennaHeight), app.specData(idxThreads)))
-                heightPreviousEditionFlag = true;
+            if heightEditionFlag
+                newAntennaHeight = app.rxHeight.Value;
+                update(app.specData, 'UserData:AntennaHeight', 'ManualEdition', idxThreads, newAntennaHeight)
             end
 
-            PreviousEditionFlag = gpsPreviousEditionFlag || heightPreviousEditionFlag;
+            if gpsEditionFlag || heightEditionFlag
+                updatePanelValues(app)
+                app.initialGPS = currentGPS(app);
+                callingMainApp(app, true, true)
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -97,150 +131,105 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp, idxThreads)
+        function startupFcn(app, mainApp, idxThreads)
             
-            app.mainApp  = mainapp;
-            app.specData = mainapp.specData;
+            app.mainApp  = mainApp;
+            app.specData = mainApp.specData;
+            app.selectedThreads = idxThreads;
+            app.progressDialog  = app.mainApp.progressDialog;
 
-            initialValues(app, idxThreads)
+            updatePanelValues(app)
+            app.initialGPS = currentGPS(app);
+            app.rxLocationEditMode.UserData = false;
             
         end
 
-        % Close request function: UIFigure
+        % Callback function: UIFigure, btnClose
         function closeFcn(app, event)
             
+            callingMainApp(app, false, false)            
             delete(app)
             
         end
 
-        % Callback function: rxCity, rxHeight, rxLatitude, 
+        % Image clicked function: rxLocationEditCancel, 
         % ...and 3 other components
-        function rxLocationValueChanged(app, event)
+        function buttonPushed(app, event)
             
             switch event.Source
-                %---------------------------------------------------------%
-                case app.rxLatitude
-                    focus(app.rxLongitude)
+                case app.rxRefresh
+                    idxThreads = app.selectedThreads;
 
-                %---------------------------------------------------------%
-                case app.rxLongitude
-                    focus(app.rxHeight)
+                    update(app.specData, 'GPS',                    'Refresh', idxThreads)
+                    update(app.specData, 'UserData:AntennaHeight', 'Refresh', idxThreads)
 
-                case app.rxHeight
-                    focus(app.rxSearchCity)
+                    updatePanelValues(app)
+                    app.initialGPS = currentGPS(app);
+                    callingMainApp(app, true, true)
 
-                %---------------------------------------------------------%
-                case app.rxSearchCity
-                    refPoint = struct('Latitude',  app.rxLatitude.Value, ...
-                                      'Longitude', app.rxLongitude.Value);
-                    
-                    app.mainApp.progressDialog.Visible = 'visible';
-                    [cityName, cityDistance, cityInfo] = gpsLib.findNearestCity(refPoint);
-                    app.mainApp.progressDialog.Visible = 'hidden';
-
-                    if ~strcmp(cityName, app.rxCity.Value)        
-                        msgQuestion   = sprintf(['%s retornou o município "%s" como a localidade mais próxima das '  ...
-                                                 'coordenadas geográficas (%.6fº, %.6fº), cuja sede está a %.1f km ' ...
-                                                 'de distância.<br><br>Deseja atualizar essa informação?!'], cityInfo.source, cityName, refPoint.Latitude, refPoint.Longitude, cityDistance);
-                        userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-    
-                        if userSelection == "Sim"
-                            app.rxCity.Value = cityName;
-                        end
-
+                case app.rxLocationEditMode
+                    app.rxLocationEditMode.UserData = ~app.rxLocationEditMode.UserData;
+        
+                    if app.rxLocationEditMode.UserData
+                        updatePanelLayout(app, 'on')
+                        focus(app.rxLatitude)        
                     else
-                        msgWarning    = sprintf('%s retornou o município "%s", valor já inserido no campo "Município/UF"', cityInfo.source, cityName);
-                        appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                        buttonPushed(app, struct('Source', app.rxLocationEditCancel))
                     end
 
-                %---------------------------------------------------------%
-                case app.rxCity
-                    app.rxCity.Value = strtrim(app.rxCity.Value);
-                    [cityName, Latitude, Longitude] = gpsLib.findCityCoordinates(app.rxCity.Value);
+                case app.rxLocationEditConfirm
+                    applyManualEdition(app)
+                    updatePanelLayout(app, 'off')
 
-                    if ~isempty(cityName)
-                        app.rxCity.Value = cityName;
-
-                        msgQuestion   = 'Deseja atualizar, além da localidade, as informações de Latitude e Longitude?';
-                        userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-
-                        if userSelection == "Sim"                            
-                            app.rxLatitude.Value  = Latitude;
-                            app.rxLongitude.Value = Longitude;
-                        end                        
-                        
-                    else
-                        app.rxCity.Value = event.PreviousValue;
-                        
-                        msgWarning    = sprintf(['Não encontrada em base do IBGE o município <b>"%s"</b>. Favor corrigir ' ...
-                                                 'eventual erro na grafia, inserindo os acentos, no formato Município/UF.'], app.rxCity.Value);
-                        appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-                    end
-
-                %---------------------------------------------------------%
-                case app.rxLocationRefresh
-                    idxThreads = app.referenceData.idxThread;
-                    [PreviousEditionFlag, gpsPreviousEditionFlag, heightPreviousEditionFlag] = checkPreviousEdition(app, idxThreads);
-
-                    if PreviousEditionFlag
-                        if gpsPreviousEditionFlag
-                            update(app.specData, 'GPS', 'Refresh', idxThreads)
-                        end
-
-                        if heightPreviousEditionFlag
-                            update(app.specData, 'UserData:AntennaHeight', 'Refresh', idxThreads)
-                        end
-    
-                        initialValues(app, idxThreads)
-                        callingMainApp(app, true, true)
-                    end
-            end
-
-            if checkEdition(app)
-                app.btnOK.Enable = 1;
-            else
-                app.btnOK.Enable = 0;
+                case app.rxLocationEditCancel
+                    updatePanelLayout(app, 'off')
             end
             
         end
 
-        % Callback function: btnClose, btnOK
-        function ButtonPushed(app, event)
-            
-            pushedButtonTag = event.Source.Tag;
-            switch pushedButtonTag
-                case 'OK'
-                    [editionFlag, gpsEditionFlag, heightEditionFlag] = checkEdition(app);
+        % Value changed function: rxCity, rxLatitude, rxLongitude
+        function rxCityValueChanged(app, event)
+                
+            app.progressDialog.Visible = 'visible';
 
-                    if editionFlag
-                        idxThreads = app.referenceData.idxThread;
+            switch event.Source
+                case {app.rxLatitude, app.rxLongitude}                    
+                    refPoint = struct('Latitude',  app.rxLatitude.Value, 'Longitude', app.rxLongitude.Value);
+                    cityName = gpsLib.findNearestCity(refPoint);
 
-                        % Latitude, Longitude e City
-                        if gpsEditionFlag
-                            newGPS = struct('Status', -1, 'Matrix', [app.rxLatitude.Value, app.rxLongitude.Value]);
-                            newGPS = rmfield(gpsLib.summary(newGPS), 'Matrix');
-                            newGPS.Location = app.rxCity.Value;
-                            newGPS.Edited = true;
-
-                            update(app.specData, 'GPS', 'ManualEdition', idxThreads, newGPS)
-                        end
-
-                        % AntennaHeight
-                        if heightEditionFlag
-                            newAntennaHeight = app.rxHeight.Value;
-                            update(app.specData, 'UserData:AntennaHeight', 'ManualEdition', idxThreads, newAntennaHeight)
-                        end
+                    if ~strcmp(cityName, app.rxCity.Value)        
+                        app.rxCity.Value = cityName;
                     end
 
-                    updateFlag = true;
+                    app.progressDialog.Visible = 'hidden';
 
-                case 'Close'
-                    updateFlag = false;
+                case app.rxCity
+                    app.rxCity.Value = strtrim(app.rxCity.Value);
+                    [cityName, Latitude, Longitude] = gpsLib.findCityCoordinates(app.rxCity.Value);
+
+                    app.progressDialog.Visible = 'hidden';
+        
+                    if ~isempty(cityName)
+                        app.rxCity.Value = cityName;
+
+                        msgQuestion      = 'Deseja atualizar, além da localidade, as informações de Latitude e Longitude?';
+                        userSelection    = appUtil.modalWindow(app.mainApp.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);        
+                        if userSelection == "Não"
+                            return
+                        end
+        
+                        app.rxLatitude.Value  = Latitude;
+                        app.rxLongitude.Value = Longitude;
+                        
+                    else
+                        app.rxCity.Value = event.PreviousValue;
+                        
+                        msgWarning       = sprintf(['Não encontrada em base do IBGE o município <b>"%s"</b>. Favor corrigir ' ...
+                                                    'eventual erro na grafia, inserindo os acentos, no formato Município/UF.'], app.rxCity.Value);
+                        appUtil.modalWindow(app.mainApp.UIFigure, 'warning', msgWarning);
+                    end
             end
-
-            callingMainApp(app, updateFlag, false)
-            closeFcn(app)
-
+            
         end
     end
 
@@ -257,7 +246,7 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 360 210];
+                app.UIFigure.Position = [100 100 394 194];
                 app.UIFigure.Name = 'appAnalise';
                 app.UIFigure.Icon = 'icon_48.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -290,7 +279,7 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
             % Create btnClose
             app.btnClose = uiimage(app.GridLayout);
             app.btnClose.ScaleMethod = 'none';
-            app.btnClose.ImageClickedFcn = createCallbackFcn(app, @ButtonPushed, true);
+            app.btnClose.ImageClickedFcn = createCallbackFcn(app, @closeFcn, true);
             app.btnClose.Tag = 'Close';
             app.btnClose.Layout.Row = 1;
             app.btnClose.Layout.Column = 2;
@@ -298,8 +287,8 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {16, '1x', 69, 16};
-            app.Document.RowHeight = {22, 110, 22};
+            app.Document.ColumnWidth = {'1x', 16, 16, 0, 0};
+            app.Document.RowHeight = {22, '1x'};
             app.Document.ColumnSpacing = 5;
             app.Document.RowSpacing = 5;
             app.Document.Padding = [10 10 10 5];
@@ -312,19 +301,58 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
             app.rxLocationPanelLabel.VerticalAlignment = 'bottom';
             app.rxLocationPanelLabel.FontSize = 10;
             app.rxLocationPanelLabel.Layout.Row = 1;
-            app.rxLocationPanelLabel.Layout.Column = [1 2];
+            app.rxLocationPanelLabel.Layout.Column = 1;
             app.rxLocationPanelLabel.Text = 'LOCAL DA MONITORAÇÃO';
+
+            % Create rxRefresh
+            app.rxRefresh = uiimage(app.Document);
+            app.rxRefresh.ImageClickedFcn = createCallbackFcn(app, @buttonPushed, true);
+            app.rxRefresh.Visible = 'off';
+            app.rxRefresh.Tooltip = {'Retorna às configurações iniciais'};
+            app.rxRefresh.Layout.Row = 1;
+            app.rxRefresh.Layout.Column = 2;
+            app.rxRefresh.VerticalAlignment = 'bottom';
+            app.rxRefresh.ImageSource = 'Refresh_18.png';
+
+            % Create rxLocationEditMode
+            app.rxLocationEditMode = uiimage(app.Document);
+            app.rxLocationEditMode.ImageClickedFcn = createCallbackFcn(app, @buttonPushed, true);
+            app.rxLocationEditMode.Tooltip = {'Possibilita edição dos parâmetros do local da monitoração'};
+            app.rxLocationEditMode.Layout.Row = 1;
+            app.rxLocationEditMode.Layout.Column = 3;
+            app.rxLocationEditMode.VerticalAlignment = 'bottom';
+            app.rxLocationEditMode.ImageSource = 'Edit_32.png';
+
+            % Create rxLocationEditConfirm
+            app.rxLocationEditConfirm = uiimage(app.Document);
+            app.rxLocationEditConfirm.ImageClickedFcn = createCallbackFcn(app, @buttonPushed, true);
+            app.rxLocationEditConfirm.Enable = 'off';
+            app.rxLocationEditConfirm.Tooltip = {'Confirma edição, recriando perfil de terreno'};
+            app.rxLocationEditConfirm.Layout.Row = 1;
+            app.rxLocationEditConfirm.Layout.Column = 4;
+            app.rxLocationEditConfirm.VerticalAlignment = 'bottom';
+            app.rxLocationEditConfirm.ImageSource = 'Ok_32Green.png';
+
+            % Create rxLocationEditCancel
+            app.rxLocationEditCancel = uiimage(app.Document);
+            app.rxLocationEditCancel.ImageClickedFcn = createCallbackFcn(app, @buttonPushed, true);
+            app.rxLocationEditCancel.Enable = 'off';
+            app.rxLocationEditCancel.Tooltip = {'Cancela edição'};
+            app.rxLocationEditCancel.Layout.Row = 1;
+            app.rxLocationEditCancel.Layout.Column = 5;
+            app.rxLocationEditCancel.VerticalAlignment = 'bottom';
+            app.rxLocationEditCancel.ImageSource = 'Delete_32Red.png';
 
             % Create rxLocationPanel
             app.rxLocationPanel = uipanel(app.Document);
             app.rxLocationPanel.AutoResizeChildren = 'off';
             app.rxLocationPanel.Layout.Row = 2;
-            app.rxLocationPanel.Layout.Column = [1 4];
+            app.rxLocationPanel.Layout.Column = [1 5];
 
             % Create rxLocationGrid
             app.rxLocationGrid = uigridlayout(app.rxLocationPanel);
-            app.rxLocationGrid.ColumnWidth = {'1x', '1x', '1x', 18};
-            app.rxLocationGrid.RowHeight = {17, 22, 17, 22};
+            app.rxLocationGrid.ColumnWidth = {'1x', '1x', '1x'};
+            app.rxLocationGrid.RowHeight = {22, 22, 22, 22};
             app.rxLocationGrid.RowSpacing = 5;
             app.rxLocationGrid.Padding = [10 10 10 5];
             app.rxLocationGrid.BackgroundColor = [0.9804 0.9804 0.9804];
@@ -341,7 +369,8 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
             app.rxLatitude = uieditfield(app.rxLocationGrid, 'numeric');
             app.rxLatitude.Limits = [-90 90];
             app.rxLatitude.ValueDisplayFormat = '%.6f';
-            app.rxLatitude.ValueChangedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxLatitude.ValueChangedFcn = createCallbackFcn(app, @rxCityValueChanged, true);
+            app.rxLatitude.Editable = 'off';
             app.rxLatitude.FontSize = 11;
             app.rxLatitude.Layout.Row = 2;
             app.rxLatitude.Layout.Column = 1;
@@ -359,7 +388,8 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
             app.rxLongitude = uieditfield(app.rxLocationGrid, 'numeric');
             app.rxLongitude.Limits = [-180 180];
             app.rxLongitude.ValueDisplayFormat = '%.6f';
-            app.rxLongitude.ValueChangedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxLongitude.ValueChangedFcn = createCallbackFcn(app, @rxCityValueChanged, true);
+            app.rxLongitude.Editable = 'off';
             app.rxLongitude.FontSize = 11;
             app.rxLongitude.Layout.Row = 2;
             app.rxLongitude.Layout.Column = 2;
@@ -377,19 +407,11 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
             app.rxHeight = uieditfield(app.rxLocationGrid, 'numeric');
             app.rxHeight.Limits = [-1 1000];
             app.rxHeight.ValueDisplayFormat = '%.1f';
-            app.rxHeight.ValueChangedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxHeight.Editable = 'off';
             app.rxHeight.FontSize = 11;
             app.rxHeight.Layout.Row = 2;
             app.rxHeight.Layout.Column = 3;
             app.rxHeight.Value = -1;
-
-            % Create rxSearchCity
-            app.rxSearchCity = uiimage(app.rxLocationGrid);
-            app.rxSearchCity.ImageClickedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
-            app.rxSearchCity.Tooltip = {'Consulta município'};
-            app.rxSearchCity.Layout.Row = 2;
-            app.rxSearchCity.Layout.Column = 4;
-            app.rxSearchCity.ImageSource = 'Globo_32.png';
 
             % Create rxCityLabel
             app.rxCityLabel = uilabel(app.rxLocationGrid);
@@ -401,29 +423,11 @@ classdef dockEditLocation_exported < matlab.apps.AppBase
 
             % Create rxCity
             app.rxCity = uieditfield(app.rxLocationGrid, 'text');
-            app.rxCity.ValueChangedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
+            app.rxCity.ValueChangedFcn = createCallbackFcn(app, @rxCityValueChanged, true);
+            app.rxCity.Editable = 'off';
             app.rxCity.FontSize = 11;
             app.rxCity.Layout.Row = 4;
-            app.rxCity.Layout.Column = [1 4];
-
-            % Create rxLocationRefresh
-            app.rxLocationRefresh = uiimage(app.Document);
-            app.rxLocationRefresh.ImageClickedFcn = createCallbackFcn(app, @rxLocationValueChanged, true);
-            app.rxLocationRefresh.Tooltip = {'Retorna às configurações iniciais'};
-            app.rxLocationRefresh.Layout.Row = 3;
-            app.rxLocationRefresh.Layout.Column = 1;
-            app.rxLocationRefresh.ImageSource = 'Refresh_18.png';
-
-            % Create btnOK
-            app.btnOK = uibutton(app.Document, 'push');
-            app.btnOK.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
-            app.btnOK.Tag = 'OK';
-            app.btnOK.IconAlignment = 'right';
-            app.btnOK.BackgroundColor = [0.9804 0.9804 0.9804];
-            app.btnOK.Enable = 'off';
-            app.btnOK.Layout.Row = 3;
-            app.btnOK.Layout.Column = [3 4];
-            app.btnOK.Text = 'OK';
+            app.rxCity.Layout.Column = [1 3];
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

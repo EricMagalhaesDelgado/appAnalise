@@ -1,8 +1,8 @@
 {
-    "version": 0.86,
+    "version": 0.88,
     "operationMode": {
         "Debug": false,
-        "Dock": false,
+        "Dock": true,
         "Simulation": false
     },
     "computerName": {
@@ -372,12 +372,18 @@
         "lastSearch": []
     },
     "Integration": {
-        "Trace": null,
+        "Trace": Infinity,
         "SampleTime": 10
     },
     "Elevation": {
         "Points": 256,
         "ForceSearch": false,
         "Server": "Open-Elevation"
+    },
+    "Channel": {
+        "ManualMode": false
+    },
+    "Detection": {
+        "ManualMode": false
     }
 }

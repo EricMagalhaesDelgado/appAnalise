@@ -5,6 +5,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         UIFigure                       matlab.ui.Figure
         GridLayout                     matlab.ui.container.GridLayout
         toolGrid                       matlab.ui.container.GridLayout
+        CheckBox                       matlab.ui.control.CheckBox
         tool_ControlPanelVisibility    matlab.ui.control.Image
         jsBackDoor                     matlab.ui.control.HTML
         tool_ExportJSONFile            matlab.ui.control.Image
@@ -104,8 +105,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             try
                 switch class(callingApp)
                     case {'winAppAnalise', 'winAppAnalise_exported'}
-                        selectedRow = app.UITable.Selection;
-                        startup_createEmissionsTable(app, selectedRow)
+                        CheckBoxValueChanged(app)
 
                     otherwise
                         error('UnexpectedCall')
@@ -199,7 +199,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             drawnow
 
             pause(.100)
-            startup_createEmissionsTable(app, selectedRow)
+            CheckBoxValueChanged(app, struct('initialSelection', selectedRow))
             focus(app.UITable)
 
             app.progressDialog.Visible = 'hidden';
@@ -244,8 +244,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function startup_createEmissionsTable(app, selectedRow)
-            app.emissionsTable = util.createEmissionsTable(app.specData, 'SIGNALANALYSIS: GUI');
+        function startup_createEmissionsTable(app, idxThreads, selectedRow)
+            app.emissionsTable = util.createEmissionsTable(app.specData, idxThreads, 'SIGNALANALYSIS: GUI');
     
             if isempty(app.emissionsTable)
                 selectedRow = [];
@@ -568,8 +568,6 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function AddException(app, triggeredComponent, varargin)
-
-            selectedRow = app.UITable.Selection;
             [idxThread, idxEmission] = emissionIndex(app);
 
             switch triggeredComponent
@@ -644,12 +642,13 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                     end
             end
 
-            startup_createEmissionsTable(app, selectedRow)
+            CheckBoxValueChanged(app)
         end
 
         %-----------------------------------------------------------------%
         function [idxThread, idxEmission] = emissionIndex(app)
             selectedRow = app.UITable.Selection;
+
             idxThread   = app.emissionsTable.idxThread(selectedRow);
             idxEmission = app.emissionsTable.idxEmission(selectedRow);
         end
@@ -710,9 +709,13 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
                 %---------------------------------------------------------%
                 case app.tool_ExportJSONFile
-                    idxThreads = 1:numel(app.specData);
+                    if app.CheckBox.Value
+                        idxThreads = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+                    else
+                        idxThreads = 1:numel(app.specData);
+                    end
 
-                    emissionSummaryTable   = util.createEmissionsTable(app.specData, 'SIGNALANALYSIS: JSONFile');
+                    emissionSummaryTable   = util.createEmissionsTable(app.specData, idxThreads, 'SIGNALANALYSIS: JSONFile');
                     emissionFiscalizaTable = reportLibConnection.table.fiscalizaJsonFile(app.specData, idxThreads, emissionSummaryTable);
     
                     nameFormatMap   = {'*.json', 'appAnalise (*.json)'};
@@ -945,6 +948,25 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             AddException(app, event.Source)
 
+        end
+
+        % Value changed function: CheckBox
+        function CheckBoxValueChanged(app, event)
+            
+            if app.CheckBox.Value
+                idxThreads = find(arrayfun(@(x) x.UserData.reportFlag, app.specData));
+            else
+                idxThreads = 1:numel(app.specData);
+            end
+
+            if exist('event', 'var') && isfield(event, 'initialSelection')
+                selectedRow = event.initialSelection;
+            else
+                selectedRow = app.UITable.Selection;
+            end
+
+            startup_createEmissionsTable(app, idxThreads, selectedRow)
+            
         end
     end
 
@@ -1376,11 +1398,11 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
-            app.toolGrid.ColumnWidth = {22, 22, '1x', 22, 22};
+            app.toolGrid.ColumnWidth = {'1x', 22, 22, 22, 22};
             app.toolGrid.RowHeight = {4, 17, '1x'};
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
-            app.toolGrid.Padding = [0 5 0 5];
+            app.toolGrid.Padding = [5 5 0 5];
             app.toolGrid.Layout.Row = 4;
             app.toolGrid.Layout.Column = [1 5];
             app.toolGrid.BackgroundColor = [0.9412 0.9412 0.9412];
@@ -1390,7 +1412,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.tool_ShowGlobalExceptionList.ImageClickedFcn = createCallbackFcn(app, @toolbarCallbacks, true);
             app.tool_ShowGlobalExceptionList.Tooltip = {'Mostra lista global de exceções'; '(emissão não é considerada "Não licenciada")'};
             app.tool_ShowGlobalExceptionList.Layout.Row = 2;
-            app.tool_ShowGlobalExceptionList.Layout.Column = 1;
+            app.tool_ShowGlobalExceptionList.Layout.Column = 4;
             app.tool_ShowGlobalExceptionList.ImageSource = 'Info_32.png';
 
             % Create tool_ExportJSONFile
@@ -1399,13 +1421,13 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.tool_ExportJSONFile.ImageClickedFcn = createCallbackFcn(app, @toolbarCallbacks, true);
             app.tool_ExportJSONFile.Tooltip = {'Exporta arquivo JSON com informações das emissões sob análise'};
             app.tool_ExportJSONFile.Layout.Row = 2;
-            app.tool_ExportJSONFile.Layout.Column = 2;
+            app.tool_ExportJSONFile.Layout.Column = 3;
             app.tool_ExportJSONFile.ImageSource = 'Export_16.png';
 
             % Create jsBackDoor
             app.jsBackDoor = uihtml(app.toolGrid);
             app.jsBackDoor.Layout.Row = 2;
-            app.jsBackDoor.Layout.Column = 4;
+            app.jsBackDoor.Layout.Column = 2;
 
             % Create tool_ControlPanelVisibility
             app.tool_ControlPanelVisibility = uiimage(app.toolGrid);
@@ -1413,6 +1435,14 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.tool_ControlPanelVisibility.Layout.Row = 2;
             app.tool_ControlPanelVisibility.Layout.Column = 5;
             app.tool_ControlPanelVisibility.ImageSource = 'ArrowRight_32.png';
+
+            % Create CheckBox
+            app.CheckBox = uicheckbox(app.toolGrid);
+            app.CheckBox.ValueChangedFcn = createCallbackFcn(app, @CheckBoxValueChanged, true);
+            app.CheckBox.Text = 'Exibir apenas emissões dos fluxos espectrais selecionados para o relatório.';
+            app.CheckBox.FontSize = 11;
+            app.CheckBox.Layout.Row = 2;
+            app.CheckBox.Layout.Column = 1;
 
             % Create ContextMenu_UITable
             app.ContextMenu_UITable = uicontextmenu(app.UIFigure);
