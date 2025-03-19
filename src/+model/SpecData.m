@@ -293,16 +293,8 @@ classdef SpecData < model.SpecDataBase
                                 % Ocupação
                                 checkIfOccupancyPerBinExist(obj(ii))
                 
-                                % Detecção de emissões        
-                                findPeaks = FindPeaksOfPrimaryBand(channelObj, obj(ii));
-                                if ~isempty(findPeaks)
-                                    obj(ii).UserData.reportAlgorithms.Detection.Parameters = struct('Distance_kHz', 1000 * findPeaks.Distance, ... % MHz >> kHz
-                                                                                                    'BW_kHz',       1000 * findPeaks.BW,       ... % MHz >> kHz
-                                                                                                    'Prominence1',  findPeaks.Prominence1,     ...
-                                                                                                    'Prominence2',  findPeaks.Prominence2,     ...
-                                                                                                    'meanOCC',      findPeaks.meanOCC,         ...
-                                                                                                    'maxOCC',       findPeaks.maxOCC);
-                                end
+                                % Detecção de emissões
+                                FindPeaks(obj, ii, channelObj)
                             end
 
                         case 'Delete'
@@ -904,14 +896,14 @@ classdef SpecData < model.SpecDataBase
                 % Estatística básica dos dados:
                 basicStats(obj(ii))
 
+                % O índice do "UserData" inicializa a estrutura...
                 obj(ii).UserData(1).AntennaHeight = AntennaHeight(obj, ii, -1, 'initialValue');
 
-                if ~app.General.Channel.ManualMode && ismember(obj(ii).MetaData.DataType, class.Constants.specDataTypes) && isempty(prjInfo)
-                    % Mapeamento entre os fluxos de espectro e as canalizações
-                    % aplicáveis à cada faixa.
-                    obj(ii).UserData(1).channelLibIndex = FindRelatedBands(obj(ii).callingApp.channelObj, obj(ii));
+                if ~app.General.Channel.ManualMode && ismember(obj(ii).MetaData.DataType, class.Constants.specDataTypes) && isempty(prjInfo)                    
+                    obj(ii).UserData(1).channelLibIndex = FindRelatedBands(app.channelObj, obj(ii));
                 end
 
+                FindPeaks(obj, ii, app.channelObj)
                 obj(ii).UserData(1).reportAlgorithms.Detection.ManualMode = app.General.Detection.ManualMode;
             end
         
@@ -948,6 +940,20 @@ classdef SpecData < model.SpecDataBase
                                            '• Tipo "adjacent-channel": os fluxos devem estar relacionados a faixas de frequências adjacentes, podendo ter sobreposição espectral entre fluxos, além de possuírem os campos "LevelUnit", "nSweeps" e "DataType" idênticos.']);
                 otherwise
                     errorMessage = 'Unknown error';
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function FindPeaks(obj, idx, channelObj)
+            findPeaks = FindPeaksOfPrimaryBand(channelObj, obj(idx));
+
+            if ~isempty(findPeaks)
+                obj(idx).UserData(1).reportAlgorithms.Detection.Parameters = struct('Distance_kHz', 1000 * findPeaks.Distance, ... % MHz >> kHz
+                                                                                    'BW_kHz',       1000 * findPeaks.BW,       ... % MHz >> kHz
+                                                                                    'Prominence1',  findPeaks.Prominence1,     ...
+                                                                                    'Prominence2',  findPeaks.Prominence2,     ...
+                                                                                    'meanOCC',      findPeaks.meanOCC,         ...
+                                                                                    'maxOCC',       findPeaks.maxOCC);
             end
         end
     end

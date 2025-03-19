@@ -112,8 +112,8 @@ function tableStr = fiscalizaJsonFile(specData, idxThreads, emissionsTable)
         PeakTable.maxOCC    = round(PeakTable.maxOCC, 1);
         PeakTable.Distance  = round(PeakTable.Distance, 1);
 
-        tableStr  = jsonencode(struct('Version', '1.01', 'ReferenceData1', TaskTable, 'ReferenceData2', occMethodTable, 'ReferenceData3', DetectionTable, 'ReferenceData4', ClassificationTable, 'MeasurementData', PeakTable), 'PrettyPrint', true);
+        tableStr  = jsonencode(struct('Version', '1.01', 'ReferenceData1', TaskTable, 'ReferenceData2', occMethodTable, 'ReferenceData3', DetectionTable, 'ReferenceData4', ClassificationTable, 'MeasurementData', PeakTable), 'PrettyPrint', true, 'ConvertInfAndNaN', false);
     else
-        tableStr  = jsonencode(struct('Version', '1.01', 'ReferenceData1', TaskTable), 'PrettyPrint', true);
+        tableStr  = jsonencode(struct('Version', '1.01', 'ReferenceData1', TaskTable), 'PrettyPrint', true, 'ConvertInfAndNaN', false);
     end            
 end

@@ -95,7 +95,7 @@ classdef (Abstract) HtmlTextGenerator
         
                 % GPS, altura da antena e arquivos:
                 dataStruct(end+1) = struct('group', 'GPS',    'value', specData.GPS);
-                if ~isempty(specData.UserData.AntennaHeight)
+                if isprop(specData, 'UserData') && ~isempty(specData.UserData) && ~isempty(specData.UserData.AntennaHeight)
                     if specData.UserData.AntennaHeight == -1
                         dataStruct(end+1) = struct('group', 'ANTENA', 'value', '-1');
                     else

@@ -1,8 +1,8 @@
 function emissionsAddedFlag = importAnalysis(app, specData, fileName)
 
     % Author.: Eric Magalhães Delgado
-    % Date...: February 20, 2025
-    % Version: 1.01
+    % Date...: March 18, 2025
+    % Version: 1.02
 
     load(fileName, '-mat', 'prj_Type', 'prj_Version', 'prj_specData', 'prj_Info')
     if ~strcmp(prj_Type, 'User data')
@@ -20,47 +20,37 @@ function emissionsAddedFlag = importAnalysis(app, specData, fileName)
     emissionsTable.Lim1 = emissionsTable.Frequency*1e+6 - (emissionsTable.BW_kHz/2)*1000;      % Em Hz
     emissionsTable.Lim2 = emissionsTable.Frequency*1e+6 + (emissionsTable.BW_kHz/2)*1000;      % Em Hz
 
-    emissionsDetection  = jsonencode(struct('Algorithm', 'Manual'));
-
     for ii = 1:numel(specData)
         FreqStart  = specData(ii).MetaData.FreqStart;
         FreqStop   = specData(ii).MetaData.FreqStop;
         DataPoints = specData(ii).MetaData.DataPoints;
 
         idxNewEmissions = find((emissionsTable.Lim1 >= FreqStart) & (emissionsTable.Lim2 <= FreqStop));
-        if ~isempty(idxNewEmissions)
-            emissionsAddedFlag = true;
+        numEmissions    = numel(idxNewEmissions);
+        if numEmissions
+            newFreq     = emissionsTable.Frequency(idxNewEmissions);
+            newIndex    = freq2idx(FreqStart, FreqStop, DataPoints, newFreq);
+            newBW_kHz   = emissionsTable.BW_kHz(idxNewEmissions);
+            Method      = repmat({jsonencode(struct('Algorithm', 'Manual'))}, numEmissions, 1);
+            Description = emissionsTable.Description(idxNewEmissions);
 
-            % Frequency-Index Mapping
-            [aCoef, ...
-             bCoef]   = idxFrequencyMap(FreqStart, FreqStop, DataPoints);
+            update(specData(ii), 'UserData:Emissions', 'Add', newIndex, newFreq, newBW_kHz, Method, Description, app.channelObj)
 
-            newFreq   = emissionsTable.Frequency(idxNewEmissions);
-            newIndex  = round((newFreq*1e+6 - bCoef) / aCoef);
-            newBW_kHz = emissionsTable.BW_kHz(idxNewEmissions);
-            Method    = repmat(emissionsDetection, numel(idxNewEmissions), 1);
+            % Insere as anotações manuais, mas precisa validar que a
+            % emissão de fato foi incluída porque ela pode ter sido
+            % eliminada por coincidência com outra, ou por não atender
+            % algum filtro.
+            for jj = 1:numEmissions
+                idxNewEmissionFrequency = find(specData(ii).UserData.Emissions.idxFrequency == newIndex(jj) & abs(specData(ii).UserData.Emissions.BW_kHz - newBW_kHz(jj)) < 1e-5, 1);
+                if ~isempty(idxNewEmissionFrequency)
+                    emissionsAddedFlag = true;
 
-            update(specData(ii), 'UserData:Emissions', 'Add', newIndex, newFreq, newBW_kHz, Method)
+                    if ~isequal(emissionsTable.Classification(idxNewEmissions(jj)).autoSuggested, emissionsTable.Classification(idxNewEmissions(jj)).userModified)
+                        specData(ii).UserData.Emissions.Classification(idxNewEmissionFrequency).userModified = emissionsTable.Classification(idxNewEmissions(jj)).userModified;
+                    end
 
-            play_BandLimits_updateEmissions(app, ii, newIndex, updatePlotFlag)
-            play_UpdatePeaksTable(app, ii, 'playback.AddEditOrDeleteEmission')
-
-            % Verifica se as frequências das emissões constam na lista de exceção.
-            % Caso sim, adiciona a informação em app.exceptionList, editando 
-            % o "Tag" de cada registro. Caso já exista registro com uma das
-            % frequências, por outro lado, essa informação não é acrescida.
-            if ~isempty(prj_Info.exceptionList)
-                threadTag = Tag(specData, ii);
-
-                for kk = 1:numel(newFreq)
-                    idx3 = find(abs(prj_Info.exceptionList.Frequency - newFreq(kk)) <= class.Constants.floatDiffTolerance);
-                    for ll = idx3'
-                        idx4 = find(strcmp(app.projectData.exceptionList.Tag, threadTag) & (abs(app.projectData.exceptionList.Frequency-prj_Info.exceptionList.Frequency(ll)) <= class.Constants.floatDiffTolerance), 1);
-                        
-                        if isempty(idx4)
-                            app.projectData.exceptionList(end+1,:) = prj_Info.exceptionList(ll,:);
-                            app.projectData.exceptionList.Tag{end} = threadTag;
-                        end
+                    if ~isequal(emissionsTable.ChannelAssigned(idxNewEmissions(jj)).autoSuggested, emissionsTable.ChannelAssigned(idxNewEmissions(jj)).userModified)
+                        specData(ii).UserData.Emissions.ChannelAssigned(idxNewEmissionFrequency).userModified = emissionsTable.ChannelAssigned(idxNewEmissions(jj)).userModified;
                     end
                 end
             end
@@ -70,7 +60,8 @@ end
 
 
 %-------------------------------------------------------------------------%
-function [aCoef, bCoef] = idxFrequencyMap(FreqStart, FreqStop, DataPoints)
-    aCoef = (FreqStop - FreqStart) / (DataPoints - 1);
-    bCoef = FreqStart - aCoef;
+function idxArray = freq2idx(FreqStart, FreqStop, DataPoints, FreqArrayInMHz)
+    aCoef    = (FreqStop - FreqStart) / (DataPoints - 1);
+    bCoef    = FreqStart - aCoef;
+    idxArray = round((FreqArrayInMHz*1e+6 - bCoef) / aCoef);
 end

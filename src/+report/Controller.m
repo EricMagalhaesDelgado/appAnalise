@@ -13,7 +13,7 @@ function Controller(app, operationType)
         end
     
         reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
-        [idxThreads, reportInfo]   = report.GeneralInfo(app, operationType, reportTemplateIndex);        
+        [idxThreads, reportInfo]   = report.GeneralInfo(app, operationType, reportTemplateIndex);
 
         % Verifica se o template e relatório selecionado demanda
         % arquivos externos (imagens e tabelas).
@@ -26,7 +26,23 @@ function Controller(app, operationType)
             end
         end
 
-        % Verifica...
+        % Identifica emissões, caso não se trate da versão definita e esteja 
+        % habilitado.
+        if app.report_Version.Value ~= "Definitiva"
+            for ii = idxThreads
+                checkIfOccupancyPerBinExist(app.specData(ii))
+
+                ManualMode = app.specData(ii).UserData.reportAlgorithms.Detection.ManualMode;
+                if ~ManualMode
+                    Attributes = app.specData(ii).UserData.reportAlgorithms.Detection.Parameters;
+                    Attributes.Algorithm = app.specData(ii).UserData.reportAlgorithms.Detection.Algorithm;
+
+                    util.Detection.Controller(app.specData, ii, Attributes, true, app.channelObj);
+                end
+            end
+        end
+
+        % Cria relatório...
         htmlReport = report.ReportGenerator(app, idxThreads, reportInfo, d);
 
         switch app.report_Version.Value
@@ -48,24 +64,21 @@ function Controller(app, operationType)
             case 'Definitiva'
                 JSONFile = [baseFullFileName '.json'];
                 MATFile  = [baseFullFileName '.mat'];
-                ZIPFile  = fullfile(app.General.fileFolder.userPath, [baseFileName '.zip']);
-                
-                [ReportProject, emissionFiscalizaTable] = ReportGenerator_Aux2(app, idxThreads, reportInfo);
-                save(MATFile, 'ReportProject', '-mat', '-v7.3')
-                writematrix(emissionFiscalizaTable, JSONFile, "FileType", "text", "QuoteStrings", "none")
-
-                app.projectData.generatedFiles.lastHTMLDocFullPath = HTMLDocFullPath;
-                app.projectData.generatedFiles.lastTableFullPath   = JSONFile;
-                app.projectData.generatedFiles.lastMATFullPath     = MATFile;
-
-                nameFormatMap = {'*.zip', 'appAnalise (*.zip)'};
-                ZIPFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, ZIPFile);
-                if isempty(ZIPFullPath)
+                ZIPFile  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', {'*.zip', 'appAnalise (*.zip)'}, fullfile(app.General.fileFolder.userPath, [baseFileName '.zip']));
+                if isempty(ZIPFile)
                     return
                 end
                 
-                zip(ZIPFullPath, {HTMLDocFullPath, JSONFile, MATFile})
-                app.projectData.generatedFiles.lastZIPFullPath     = ZIPFullPath;
+                [ReportProject, emissionFiscalizaTable] = reportLibConnection.table.fiscalizaStructureFields(app, idxThreads, reportInfo);
+
+                save(MATFile, 'ReportProject', '-mat', '-v7.3')
+                writematrix(emissionFiscalizaTable, JSONFile, "FileType", "text", "QuoteStrings", "none")                
+                zip(ZIPFile, {HTMLDocFullPath, JSONFile, MATFile})
+                
+                app.projectData.generatedFiles.lastHTMLDocFullPath = HTMLDocFullPath;
+                app.projectData.generatedFiles.lastTableFullPath   = JSONFile;
+                app.projectData.generatedFiles.lastMATFullPath     = MATFile;
+                app.projectData.generatedFiles.lastZIPFullPath     = ZIPFile;
 
             case 'Preliminar'
                 web(HTMLDocFullPath, '-new')

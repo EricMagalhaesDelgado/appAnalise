@@ -104,14 +104,25 @@ classdef UserData
                                            'userModified',  emissionInfo);
 
                 case 'DefaultAlgorithm: Detection'
-                    fieldTemplate = struct('ManualMode', 0,                         ...
-                                           'Algorithm', 'FindPeaks+OCC',            ...
-                                           'Parameters', struct('Distance_kHz', 25, ... % kHz
-                                                                'BW_kHz',       10, ... % kHz
-                                                                'Prominence1',  10, ...
-                                                                'Prominence2',  30, ...
-                                                                'meanOCC',      10, ...
-                                                                'maxOCC',       67));
+                    ManualMode = 0;
+                    Parameters = struct('Distance_kHz', 25, ... % kHz
+                                        'BW_kHz',       10, ... % kHz
+                                        'Prominence1',  10, ...
+                                        'Prominence2',  30, ...
+                                        'meanOCC',      10, ...
+                                        'maxOCC',       67);
+
+                    if nargin >= 2
+                        ManualMode = varargin{1};
+                    end
+
+                    if nargin >= 3
+                        Parameters = varargin{2};
+                    end
+
+                    fieldTemplate = struct('ManualMode', ManualMode,     ...
+                                           'Algorithm', 'FindPeaks+OCC', ...
+                                           'Parameters', Parameters);
 
                 case 'DefaultAlgorithm: Classification'
                     fieldTemplate = util.Classification.ParametersDefault;

@@ -648,6 +648,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                                 case {'REPORT:DETECTION', 'REPORT:CLASSIFICATION'}
                                     idxThread     = varargin{3};
+
+                                    % Esse estado força a atualização do
+                                    % painel...
+                                    app.report_ThreadAlgorithms.UserData = [];
                                     report_Algorithms(app, idxThread)
                                     report_SaveWarn(app)
 
@@ -1000,6 +1004,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             play_FindPeaks_ClassValueChanged(app)
 
             play_FindPeaks_RadioGroupSelectionChanged(app)
+
+            app.play_FindPeaks_Algorithm.Value = 'FindPeaks+OCC';
             play_FindPeaks_AlgorithmValueChanged(app)
 
             % Painel "REPORT >> PROJECT"
@@ -4554,17 +4560,19 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         rawTable.Properties.VariableNames = {'Frequency', 'BW', 'Description'};
 
                         if ~isempty(rawTable)
-                            msgQuestion   = sprintf(['Foram extraídos registros de emissões centralizadas em %s.\n\nEssas emissões serão incluídas na lista ' ...
-                                                     'de emissões do fluxo espectral selecionado, caso se sobreponham à faixa de frequência.\n\nDeseja '      ...
-                                                     'analisar a inclusão desses registros para os outros fluxos?'],                                          ...
+                            msgQuestion   = sprintf(['Foram identificadas emissões centralizadas em %s.\n\nEssas emissões serão adicionadas ' ...
+                                                     'ao fluxo espectral selecionado, caso estejam dentro da faixa de frequência.\n\nDeseja ' ...
+                                                     'incluir essas emissões nos demais fluxos também?'],                                     ...
                                                      strjoin(string(sort(rawTable.Frequency))+" MHz", ', '));
                             userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                            if strcmp(userSelection, 'Sim')
-                                idxThreads  = 1:numel(app.specData);
-                                tempBandObj = class.Band('appAnalise:PLAYBACK', app);
-                            else
-                                idxThreads  = idx;
-                                tempBandObj = app.bandObj;
+
+                            switch userSelection
+                                case 'Sim'
+                                    idxThreads  = 1:numel(app.specData);
+                                    tempBandObj = class.Band('appAnalise:PLAYBACK', app);
+                                otherwise
+                                    idxThreads  = idx;
+                                    tempBandObj = app.bandObj;
                             end
                             
                             for ii = idxThreads
@@ -4608,10 +4616,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                                         'THR',          app.play_FindPeaks_THR.Value,        ...
                                                         'Prominence',   app.play_FindPeaks_prominence.Value, ...
                                                         'Distance_kHz', app.play_FindPeaks_distance.Value,   ...
-                                                        'BW_kHz',       app.play_FindPeaks_BW.Value);
-        
-                                    [newIndex, newFreq, newBW, Method] = util.Detection.FindPeaks(app.specData, idx, Attributes);
-        
+                                                        'BW_kHz',       app.play_FindPeaks_BW.Value);        
                                 case 'FindPeaks+OCC'
                                     Attributes = struct('Algorithm',    app.play_FindPeaks_Algorithm.Value,   ...
                                                         'Distance_kHz', app.play_FindPeaks_distance.Value,    ...
@@ -4620,10 +4625,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                                         'Prominence2',  app.play_FindPeaks_Prominence2.Value, ...
                                                         'meanOCC',      app.play_FindPeaks_meanOCC.Value,     ...
                                                         'maxOCC',       app.play_FindPeaks_maxOCC.Value);
-                                    
-                                    [newIndex, newFreq, newBW, Method] = util.Detection.FindPeaksPlusOCC(app.specData, idx, Attributes);
-                            end    
-                            newBW  = newBW * 1000;
+                            end
+                            [newIndex, newFreq, newBW, Method] = util.Detection.Controller(app.specData, idx, Attributes);
 
                         %-------------------------------------------------%
                         case app.play_FindPeaks_ROI
@@ -4797,14 +4800,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Value changed function: play_FindPeaks_Class
         function play_FindPeaks_ClassValueChanged(app, event)
             
-            idx = find(strcmp(app.channelObj.FindPeaks.Name, app.play_FindPeaks_Class.Value), 1);
+            idxFindPeaks = find(strcmp(app.channelObj.FindPeaks.Name, app.play_FindPeaks_Class.Value), 1);
 
-            app.play_FindPeaks_distance.Value    = 1000 * app.channelObj.FindPeaks.Distance(idx);
-            app.play_FindPeaks_BW.Value          = 1000 * app.channelObj.FindPeaks.BW(idx);
-            app.play_FindPeaks_Prominence1.Value = app.channelObj.FindPeaks.Prominence1(idx);
-            app.play_FindPeaks_Prominence2.Value = app.channelObj.FindPeaks.Prominence2(idx);
-            app.play_FindPeaks_meanOCC.Value     = app.channelObj.FindPeaks.meanOCC(idx);
-            app.play_FindPeaks_maxOCC.Value      = app.channelObj.FindPeaks.maxOCC(idx);
+            app.play_FindPeaks_distance.Value    = 1000 * app.channelObj.FindPeaks.Distance(idxFindPeaks);
+            app.play_FindPeaks_BW.Value          = 1000 * app.channelObj.FindPeaks.BW(idxFindPeaks);
+            app.play_FindPeaks_Prominence1.Value = app.channelObj.FindPeaks.Prominence1(idxFindPeaks);
+            app.play_FindPeaks_Prominence2.Value = app.channelObj.FindPeaks.Prominence2(idxFindPeaks);
+            app.play_FindPeaks_meanOCC.Value     = app.channelObj.FindPeaks.meanOCC(idxFindPeaks);
+            app.play_FindPeaks_maxOCC.Value      = app.channelObj.FindPeaks.maxOCC(idxFindPeaks);
                         
         end
 
@@ -5210,9 +5213,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Esse modo "REPORT" pode detectar, automaticamente, novas
             % emissões. Essa informação é salva na própria app.specData.
             % Necesário, portanto, atualizar screen.
-            app.play_Tree.SelectedNodes = app.play_PlotPanel.UserData;
-            app.play_PlotPanel.UserData = [];
-            play_TreeSelectionChanged(app)
+            if app.report_Version.Value ~= "Definitiva"
+                app.play_Tree.SelectedNodes = app.play_PlotPanel.UserData;
+                app.play_PlotPanel.UserData = [];
+                play_TreeSelectionChanged(app)
+            end
 
         end
 
@@ -7299,7 +7304,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_FindPeaks_Algorithm.BackgroundColor = [1 1 1];
             app.play_FindPeaks_Algorithm.Layout.Row = 2;
             app.play_FindPeaks_Algorithm.Layout.Column = [1 3];
-            app.play_FindPeaks_Algorithm.Value = 'FindPeaks';
+            app.play_FindPeaks_Algorithm.Value = 'FindPeaks+OCC';
 
             % Create play_FindPeaks_TraceLabel
             app.play_FindPeaks_TraceLabel = uilabel(app.play_FindPeaks_ParametersGrid);

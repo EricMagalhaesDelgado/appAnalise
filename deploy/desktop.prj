@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="4246999563" file="D:\InovaFiscaliza\appAnalise\deploy\desktop.prj" location="D:\InovaFiscaliza\appAnalise\deploy" name="desktop" preferred-package-location="D:\InovaFiscaliza\appAnalise\deploy\standalone\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration build-checksum="2671343276" file="D:\InovaFiscaliza\appAnalise\deploy\desktop.prj" location="D:\InovaFiscaliza\appAnalise\deploy" name="desktop" preferred-package-location="D:\InovaFiscaliza\appAnalise\deploy\desktop\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>appAnalise</param.appname>
     <param.icon>${PROJECT_ROOT}\desktop_resources\icon.ico</param.icon>
     <param.icons>
@@ -32,8 +32,8 @@
     <param.web.mcr>true</param.web.mcr>
     <param.package.mcr>false</param.package.mcr>
     <param.no.mcr>false</param.no.mcr>
-    <param.web.mcr.name>MyAppInstaller_web</param.web.mcr.name>
-    <param.package.mcr.name>MyAppInstaller_mcr</param.package.mcr.name>
+    <param.web.mcr.name>appAnalise</param.web.mcr.name>
+    <param.package.mcr.name>appAnalise</param.package.mcr.name>
     <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
     <param.windows.command.prompt>true</param.windows.command.prompt>
     <param.create.log>false</param.create.log>
@@ -46,9 +46,7 @@
 	 
  Input Arguments 
 	 -?  print help on how to use the application 
-	 input arguments 
- Description 
- 	 Pós-processamento de dados gerados em monitorações do espectro de radiofrequências.</param.help.text>
+	 input arguments</param.help.text>
     <unset>
       <param.email />
       <param.summary />
@@ -70,8 +68,6 @@
       <param.web.mcr />
       <param.package.mcr />
       <param.no.mcr />
-      <param.web.mcr.name />
-      <param.package.mcr.name />
       <param.no.mcr.name />
       <param.windows.command.prompt />
       <param.create.log />
@@ -86,9 +82,6 @@
       <file>C:\SupportPackages\src</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+auxApp</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+class</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+fcn</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+fileReader</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+fileWriter</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+fiscalizaLibConnection</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+model</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+plot</file>

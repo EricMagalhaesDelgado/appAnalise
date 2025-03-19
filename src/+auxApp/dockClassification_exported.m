@@ -42,11 +42,11 @@ classdef dockClassification_exported < matlab.apps.AppBase
         function initialValues(app)
             idxThread = app.mainApp.play_PlotPanel.UserData.NodeData;
             
-            app.Algorithm.Value  = app.specData(idxThread).UserData.reportClassification.Algorithm;
-            app.Contour.Value    = app.specData(idxThread).UserData.reportClassification.Parameters.Contour;
-            app.Multiplier.Value = app.specData(idxThread).UserData.reportClassification.Parameters.ClassMultiplier;
-            app.bwLim1.Value     = app.specData(idxThread).UserData.reportClassification.Parameters.bwFactors(1);
-            app.bwLim2.Value     = app.specData(idxThread).UserData.reportClassification.Parameters.bwFactors(2);
+            app.Algorithm.Value  = app.specData(idxThread).UserData.reportAlgorithms.Classification.Algorithm;
+            app.Contour.Value    = app.specData(idxThread).UserData.reportAlgorithms.Classification.Parameters.Contour;
+            app.Multiplier.Value = app.specData(idxThread).UserData.reportAlgorithms.Classification.Parameters.ClassMultiplier;
+            app.bwLim1.Value     = app.specData(idxThread).UserData.reportAlgorithms.Classification.Parameters.bwFactors(1);
+            app.bwLim2.Value     = app.specData(idxThread).UserData.reportAlgorithms.Classification.Parameters.bwFactors(2);
         end
 
         %-----------------------------------------------------------------%
@@ -54,11 +54,11 @@ classdef dockClassification_exported < matlab.apps.AppBase
             editionFlag = false;
 
             idxThread = app.mainApp.play_PlotPanel.UserData.NodeData;
-            if ~isequal(app.Algorithm.Value,  app.specData(idxThread).UserData.reportClassification.Algorithm)                  || ...
-               ~isequal(app.Contour.Value,    app.specData(idxThread).UserData.reportClassification.Parameters.Contour)         || ...
-               ~isequal(app.Multiplier.Value, app.specData(idxThread).UserData.reportClassification.Parameters.ClassMultiplier) || ...
-               ~isequal(app.bwLim1.Value,     app.specData(idxThread).UserData.reportClassification.Parameters.bwFactors(1))    || ...
-               ~isequal(app.bwLim2.Value,     app.specData(idxThread).UserData.reportClassification.Parameters.bwFactors(2))
+            if ~isequal(app.Algorithm.Value,  app.specData(idxThread).UserData.reportAlgorithms.Classification.Algorithm)                  || ...
+               ~isequal(app.Contour.Value,    app.specData(idxThread).UserData.reportAlgorithms.Classification.Parameters.Contour)         || ...
+               ~isequal(app.Multiplier.Value, app.specData(idxThread).UserData.reportAlgorithms.Classification.Parameters.ClassMultiplier) || ...
+               ~isequal(app.bwLim1.Value,     app.specData(idxThread).UserData.reportAlgorithms.Classification.Parameters.bwFactors(1))    || ...
+               ~isequal(app.bwLim2.Value,     app.specData(idxThread).UserData.reportAlgorithms.Classification.Parameters.bwFactors(2))
 
                 editionFlag = true;
             end
@@ -75,10 +75,10 @@ classdef dockClassification_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp)
+        function startupFcn(app, mainApp)
             
-            app.mainApp  = mainapp;
-            app.specData = mainapp.specData;
+            app.mainApp  = mainApp;
+            app.specData = mainApp.specData;
 
             initialValues(app)
             
@@ -111,10 +111,10 @@ classdef dockClassification_exported < matlab.apps.AppBase
             pushedButtonTag = event.Source.Tag;
             switch pushedButtonTag
                 case 'OK'
-                    app.specData(idxThread).UserData.reportClassification.Algorithm  = app.Algorithm.Value;
-                    app.specData(idxThread).UserData.reportClassification.Parameters = struct('Contour',         app.Contour.Value,    ...
-                                                                                              'ClassMultiplier', app.Multiplier.Value, ...
-                                                                                              'bwFactors',       [app.bwLim1.Value, app.bwLim2.Value]);
+                    app.specData(idxThread).UserData.reportAlgorithms.Classification.Algorithm  = app.Algorithm.Value;
+                    app.specData(idxThread).UserData.reportAlgorithms.Classification.Parameters = struct('Contour',         app.Contour.Value,    ...
+                                                                                                         'ClassMultiplier', app.Multiplier.Value, ...
+                                                                                                         'bwFactors',       [app.bwLim1.Value, app.bwLim2.Value]);
 
                     updateFlag = true;
 

@@ -4,4 +4,3 @@ deploy/webapp/
 resources/
 
 # List of untracked files to ignore:
-src/config/DataBase/RFDataHub.mat

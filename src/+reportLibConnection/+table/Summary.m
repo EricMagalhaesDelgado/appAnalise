@@ -6,11 +6,8 @@ function varargout = Summary(specData, callingModule, requestedOutput)
         requestedOutput char {mustBeMember(requestedOutput, {'EditedEmissionsTable', 'TotalSummaryTable', 'EditedEmissionsTable+TotalSummaryTable', 'IrregularTable'})} = 'TotalSummaryTable'
     end
 
-    emissionsTable = util.createEmissionsTable(specData, 1:numel(specData), 'REPORT: HTMLFile');
-    if isempty(emissionsTable)
-        return
-    end
-    
+    varargout = {};
+    emissionsTable = util.createEmissionsTable(specData, 1:numel(specData), 'REPORT: HTMLFile');    
 
     % Itera em relação às faixas de frequências monitoradas, montando tabela que 
     % pode ser renderizada no Relatório de Monitoração ou no "journal" (ou histórico) 
@@ -79,7 +76,6 @@ function varargout = Summary(specData, callingModule, requestedOutput)
 
     % Saída:
     requestedOutput = strsplit(requestedOutput, '+');
-    varargout = {};
     for jj = 1:numel(requestedOutput)
         switch requestedOutput{jj}
             case 'TotalSummaryTable'

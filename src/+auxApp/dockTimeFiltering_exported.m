@@ -223,10 +223,10 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp, idxThreads)
+        function startupFcn(app, mainApp, idxThreads)
             
-            app.mainApp  = mainapp;
-            app.specData = mainapp.specData;
+            app.mainApp  = mainApp;
+            app.specData = mainApp.specData;
 
             jsBackDoor_Initialization(app)
             initialValues(app, idxThreads)
@@ -298,11 +298,8 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
     
                     for ii = 1:height(app.filterSummary)
                         idxThread = app.filterSummary.idxThread(ii);
-                        app.mainApp.specData(idxThread) = filter(app.mainApp.specData(idxThread), app.filterTable, app.filterSummary.FilterLogicalArray{ii});
+                        app.specData(idxThread) = filter(app.specData(idxThread), app.filterTable, app.filterSummary.FilterLogicalArray{ii});
                     end
-                    
-                    sortType = char(setdiff({'Receiver+ID', 'Receiver+Frequency'}, app.mainApp.play_TreeSort.UserData));
-                    app.mainApp.specData = sort(app.mainApp.specData, sortType);
 
                     updateFlag = true;
 

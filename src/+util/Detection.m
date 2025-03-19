@@ -2,6 +2,41 @@ classdef (Abstract) Detection
 
     methods (Static = true)
         %-----------------------------------------------------------------%
+        function [newIndex, newFreq, newBW_kHz, Method] = Controller(specData, idxThread, Attributes, AddEmissionsFlag, varargin)
+            arguments
+                specData         model.SpecDataBase
+                idxThread        (1,1) {mustBeInteger, mustBeNonnegative, mustBeNonempty}
+                Attributes       (1,1) struct
+                AddEmissionsFlag (1,1) logical = false
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+
+            switch Attributes.Algorithm
+                case 'FindPeaks'
+                    [newIndex, newFreq, newBW_MHz, Method] = util.Detection.FindPeaks(specData, idxThread, Attributes);
+
+                case 'FindPeaks+OCC'                    
+                    [newIndex, newFreq, newBW_MHz, Method] = util.Detection.FindPeaksPlusOCC(specData, idxThread, Attributes);
+            end    
+            newBW_kHz  = newBW_MHz * 1000;
+
+            if AddEmissionsFlag
+                channelObj = varargin{1};
+
+                if ischar(Method)
+                    Method = {Method};
+                end
+
+                if numel(newIndex)
+                    update(specData(idxThread), 'UserData:Emissions', 'Add', newIndex, newFreq, newBW_kHz, Method, [], channelObj)
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
         function [newIndex, newFreq, newBW_MHz, method] = FindPeaks(specData, idxThread, Attributes)        
             newIndex  = [];
             newFreq   = [];
@@ -13,24 +48,19 @@ classdef (Abstract) Detection
                 case 'Média';   idxFcn = 2;
                 case 'MaxHold'; idxFcn = 3;
             end
+
+            [aCoef, ...
+             bCoef]  = util.freq2idx('Coefficients', specData, idxThread);
         
-            DataPoints = specData(idxThread).MetaData.DataPoints;
-            FreqStart  = specData(idxThread).MetaData.FreqStart;
-            FreqStop   = specData(idxThread).MetaData.FreqStop;
-        
-            aCoef      = (FreqStop-FreqStart)/(DataPoints-1);
-            bCoef      = FreqStart-aCoef;
-        
-            idxRange   = matlab.findpeaks(specData(idxThread).Data{3}(:,idxFcn), 'NPeaks',            Attributes.NPeaks,                      ...
-                                                                                 'MinPeakHeight',     Attributes.THR,                         ...
-                                                                                 'MinPeakProminence', Attributes.Prominence,                  ...
-                                                                                 'MinPeakDistance',   1000 * Attributes.Distance_kHz / aCoef, ... % kHz >> Hertz
-                                                                                 'MinPeakWidth',      1000 * Attributes.BW_kHz       / aCoef, ... % kHz >> Hertz
-                                                                                 'SortStr',           'descend');
-        
+            idxRange = matlab.findpeaks(specData(idxThread).Data{3}(:,idxFcn), 'NPeaks',            Attributes.NPeaks,                      ...
+                                                                               'MinPeakHeight',     Attributes.THR,                         ...
+                                                                               'MinPeakProminence', Attributes.Prominence,                  ...
+                                                                               'MinPeakDistance',   1000 * Attributes.Distance_kHz / aCoef, ... % kHz >> Hertz
+                                                                               'MinPeakWidth',      1000 * Attributes.BW_kHz       / aCoef, ... % kHz >> Hertz
+                                                                               'SortStr',           'descend');
             if ~isempty(idxRange)
                 newIndex  = mean(idxRange, 2);
-                newFreq   = (aCoef .* newIndex + bCoef) ./ 1e+6; % Em MHz
+                newFreq   = util.freq2idx('FrequencyInHertz', aCoef, bCoef, newIndex) ./ 1e+6; % Em MHz
                 newBW_MHz = (idxRange(:,2)-idxRange(:,1)) * aCoef / 1e+6; % Em MHz
         
                 newIndex  = round(newIndex);
@@ -40,7 +70,7 @@ classdef (Abstract) Detection
 
 
         %-----------------------------------------------------------------%
-        function [newIndex, newFreq, newBW, method] = FindPeaksPlusOCC(specData, idxThread, Attributes)
+        function [newIndex, newFreq, newBW_MHz, method] = FindPeaksPlusOCC(specData, idxThread, Attributes)
             % DETECTION ALGORITHM: FindPeaks+OCC (appAnálise v. 1.00)
             %
             % Possibilita identificação de emissões pelos seguintes critérios:
@@ -103,8 +133,7 @@ classdef (Abstract) Detection
                 maxFrequency = maxFrequency(idx2);
                 maxBW        = maxBW(idx2);
                 maxMethod    = maxMethod(idx2);
-            end
-        
+            end        
         
             % Validação
             % Elimina emissões identificadas no Critério 2 cujas frequências centrais estão 
@@ -120,14 +149,13 @@ classdef (Abstract) Detection
                         break
                     end
                 end
-            end
-        
+            end        
         
             % Variáveis de saída
-            newIndex = [meanIndex;     maxIndex];
-            newFreq  = [meanFrequency; maxFrequency];
-            newBW    = [meanBW;        maxBW];
-            method   = [meanMethod;    maxMethod];
+            newIndex  = [meanIndex;     maxIndex];
+            newFreq   = [meanFrequency; maxFrequency];
+            newBW_MHz = [meanBW;        maxBW];
+            method    = [meanMethod;    maxMethod];
         end
     end
 end
