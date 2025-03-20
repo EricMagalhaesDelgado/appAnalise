@@ -696,6 +696,20 @@ classdef SpecData < model.SpecDataBase
                                                  obj(idx).MetaData.FreqStart / 1e+6, ...
                                                  obj(idx).MetaData.FreqStop  / 1e+6);
         end
+
+        %-----------------------------------------------------------------%
+        function FindPeaks(obj, idx, channelObj)
+            findPeaks = FindPeaksOfPrimaryBand(channelObj, obj(idx));
+
+            if ~isempty(findPeaks)
+                obj(idx).UserData(1).reportAlgorithms.Detection.Parameters = struct('Distance_kHz', 1000 * findPeaks.Distance, ... % MHz >> kHz
+                                                                                    'BW_kHz',       1000 * findPeaks.BW,       ... % MHz >> kHz
+                                                                                    'Prominence1',  findPeaks.Prominence1,     ...
+                                                                                    'Prominence2',  findPeaks.Prominence2,     ...
+                                                                                    'meanOCC',      findPeaks.meanOCC,         ...
+                                                                                    'maxOCC',       findPeaks.maxOCC);
+            end
+        end
     end
 
 
@@ -940,20 +954,6 @@ classdef SpecData < model.SpecDataBase
                                            '• Tipo "adjacent-channel": os fluxos devem estar relacionados a faixas de frequências adjacentes, podendo ter sobreposição espectral entre fluxos, além de possuírem os campos "LevelUnit", "nSweeps" e "DataType" idênticos.']);
                 otherwise
                     errorMessage = 'Unknown error';
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function FindPeaks(obj, idx, channelObj)
-            findPeaks = FindPeaksOfPrimaryBand(channelObj, obj(idx));
-
-            if ~isempty(findPeaks)
-                obj(idx).UserData(1).reportAlgorithms.Detection.Parameters = struct('Distance_kHz', 1000 * findPeaks.Distance, ... % MHz >> kHz
-                                                                                    'BW_kHz',       1000 * findPeaks.BW,       ... % MHz >> kHz
-                                                                                    'Prominence1',  findPeaks.Prominence1,     ...
-                                                                                    'Prominence2',  findPeaks.Prominence2,     ...
-                                                                                    'meanOCC',      findPeaks.meanOCC,         ...
-                                                                                    'maxOCC',       findPeaks.maxOCC);
             end
         end
     end

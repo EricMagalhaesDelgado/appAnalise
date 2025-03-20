@@ -2847,16 +2847,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function report_TreeBuilding(app)            
             if ~isempty(app.report_Tree.Children)
                 delete(app.report_Tree.Children);
-            end            
-            
-            % Atualizando a árvore principal de fluxos de dados, destacando
-            % os fluxos incluídos para análise (no modo RELATÓRIO).
-            play_changingTreeNodeStyleFromReport(app)
-
-            % Atualizando módulo auxiliar auxApp.winSignalAnalysis, caso
-            % habilitada a visualização apenas das emissões relacionadas
-            % aos fluxos espectrais a processar.
-            play_UpdateAuxiliarApps(app, 'SIGNALANALYSIS')
+            end
 
             % E, posteriormente, ajusta os elementos do painel do modo
             % RELATÓRIO.
@@ -2888,6 +2879,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
                 expand(app.report_Tree, 'all')
             end
+
+            % Atualizando a árvore principal de fluxos de dados, destacando
+            % os fluxos incluídos para análise (no modo RELATÓRIO).
+            play_changingTreeNodeStyleFromReport(app)
+
+            % Atualizando módulo auxiliar auxApp.winSignalAnalysis, caso
+            % habilitada a visualização apenas das emissões relacionadas
+            % aos fluxos espectrais a processar.
+            play_UpdateAuxiliarApps(app, 'SIGNALANALYSIS')
 
             play_TreeSelectionChanged(app)
         end

@@ -13,6 +13,10 @@ classdef ChannelLib < handle
     methods
         %-----------------------------------------------------------------%
         function obj = ChannelLib(appName, rootFolder)
+            if nargin < 2
+                rootFolder = fileparts(fileparts(mfilename('fullpath')));
+            end
+
             [projectFolder, ...
              programDataFolder] = appUtil.Path(appName, rootFolder);
             try

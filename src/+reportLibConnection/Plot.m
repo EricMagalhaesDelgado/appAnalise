@@ -133,7 +133,7 @@ classdef (Abstract) Plot
             end
 
             % Espera renderizar e salva a imagem...
-            defaultFilename = appUtil.DefaultFileName(reportInfo.General.UserPath, sprintf('Image_ID%d', specData(idxThread).RelatedFiles.ID(1)), -1);
+            defaultFilename = appUtil.DefaultFileName(reportInfo.General.TempPath, sprintf('Image_ID%d', specData(idxThread).RelatedFiles.ID(1)), -1);
             imgFileName     = sprintf('%s.%s', defaultFilename, reportInfo.General.Image.Format);
             if ~ismember(reportInfo.Model.Version, {'final', 'Definitiva'})
                 imgFileName = replace(imgFileName, 'Image', '~Image');
