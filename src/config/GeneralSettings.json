@@ -1,5 +1,5 @@
 {
-    "version": 0.89,
+    "version": 0.93,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -19,7 +19,7 @@
         "lastVisited": ""
     },
     "fiscaliza": {
-        "systemVersion": "HOM",
+        "systemVersion": "PROD",
         "defaultValues": {
             "entidade_com_cadastro_stel": {
                 "value": "Não",
@@ -287,14 +287,14 @@
             "FaceAlpha": 0.4
         },
         "Emission": {
-            "Color": "#66bae0",
-            "LineWidth": 1,
-            "Marker": ".",
-            "MarkerSize": 14,
+            "Color": "#FF5CAD",
+            "LineWidth": 2,
+            "Marker": "|",
+            "MarkerSize": 8,
             "PickableParts": "none",
             "YLimOffsetMode": "bottom",
-            "YLimOffset": 1,
-            "StepEffect": true
+            "YLimOffset": 0,
+            "StepEffect": false
         },
         "EmissionROI": {
             "Color": "#66bae0",
@@ -312,6 +312,7 @@
             "yLabel": true,
             "xTickLabel": true,
             "yTickLabel": true,
+            "yOccupancyScale": "log",
             "xGuardBandFactor": 1
         },
         "GeographicAxes": {
@@ -385,6 +386,7 @@
         "ManualMode": false
     },
     "Detection": {
-        "ManualMode": false
+        "ManualMode": false,
+        "InitialBW_kHz": 0
     }
 }

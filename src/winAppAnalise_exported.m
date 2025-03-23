@@ -356,7 +356,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         file_ContextMenu_Tree2          matlab.ui.container.ContextMenu
         file_ContextMenu_delTree2Node   matlab.ui.container.Menu
         play_FindPeaks_ContextMenu      matlab.ui.container.ContextMenu
-        ConsultarMenu                   matlab.ui.container.Menu
+        play_FindPeaks_ContextMenu_search  matlab.ui.container.Menu
         play_FindPeaks_ContextMenu_edit  matlab.ui.container.Menu
         play_FindPeaks_ContextMenu_analog  matlab.ui.container.Menu
         play_FindPeaks_ContextMenu_digital  matlab.ui.container.Menu
@@ -528,15 +528,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             case 'FiscalizaModeChanged'
                                 % Reinicia o objeto, caso necessário...
                                 if ~isempty(app.fiscalizaObj)
-                                    delete(app.fiscalizaObj)
-                                    app.fiscalizaObj = [];
+                                    fiscalizaLibConnection.report_ResetGUI(app)
 
-                                    if app.menu_Button3.Value
-                                        play_TabGroupVisibility(app, struct('Source', app.report_ControlsTab1Image))
-                                        
-                                        app.tool_FiscalizaAutoFill.Enable = 0;
-                                        app.tool_FiscalizaUpdate.Enable   = 0;
-                                    end
+                                    delete(app.fiscalizaObj)
+                                    app.fiscalizaObj = [];                                    
                                 end
                                 misc_FiscalizaModeChanged(app)
                             otherwise
@@ -1035,7 +1030,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.UIAxes1.Layout.Tile = 1;
             app.UIAxes1.Layout.TileSpan = [2 1];
             
-            app.UIAxes2 = plot.axes.Creation(hParent, 'Cartesian', {'YScale', 'log'});
+            app.UIAxes2 = plot.axes.Creation(hParent, 'Cartesian', {'YScale', app.General.Plot.Axes.yOccupancyScale});
             app.UIAxes2.Layout.Tile = 3;
             
             app.UIAxes3 = plot.axes.Creation(hParent, 'Cartesian', {'Layer', 'top', 'Box', 'on', 'XGrid', 'off', 'XMinorGrid', 'off', 'YGrid', 'off', 'YMinorGrid', 'off', 'UserData', struct('CLimMode', 'auto', 'Colormap', '')});
@@ -3118,15 +3113,18 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            % Especificidade "winAppAnalise":
+            % Mensagem de confirmação:
             projectName = char(app.report_ProjectName.Value);
             if ~isempty(projectName) && app.report_ProjectWarnIcon.Visible
-                msgQuestion   = sprintf(['O projeto aberto - registrado no arquivo <b>"%s"</b> - foi alterado.\n\n' ...
-                                         'Deseja descartar essas alterações? Caso não, favor salvá-las no modo RELATÓRIO.'], projectName);
-                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-                if userSelection == "Não"
-                    return
-                end
+                msgQuestion = sprintf(['O projeto aberto - registrado no arquivo <b>"%s"</b> - foi alterado.\n\n' ...
+                                       'Deseja descartar essas alterações? Caso não, favor salvá-las no modo RELATÓRIO.'], projectName);
+            else
+                msgQuestion = 'Deseja fechar o aplicativo?';
+            end
+
+            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+            if userSelection == "Não"
+                return
             end
 
             % Aspectos gerais (comum em todos os apps):
@@ -4500,6 +4498,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 set(app.play_FindPeaks_PeakBW,      'Value', round(app.specData(idxThread).UserData.Emissions.BW_kHz(idxEmission), 1),    'Enable', 1)
                 set(app.play_FindPeaks_Description, 'Value',       app.specData(idxThread).UserData.Emissions.Description(idxEmission),   'Enable', 1)
 
+                app.play_FindPeaks_ContextMenu_search.Enable = 1;
                 if strcmp(app.play_FindPeaks_Tree.SelectedNodes.Icon, 'signalTruncated_32.png')
                     app.play_FindPeaks_ContextMenu_digital.Enable = 0;
                     app.play_FindPeaks_ContextMenu_analog.Enable  = 1;
@@ -4517,6 +4516,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 set(app.play_FindPeaks_PeakBW,      'Value', -1, 'Enable', 0)
                 set(app.play_FindPeaks_Description, 'Value', '', 'Enable', 0)
 
+                set(app.play_FindPeaks_ContextMenu_search,        'Enable', 0)
                 set(app.play_FindPeaks_ContextMenu_edit.Children, 'Enable', 1)
             end
             
@@ -4673,7 +4673,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                     newFreq(end+1,1) = double(round(hDataTips(ii).X, 3));   % Em MHz
                                 end
                             end
-                            newBW    = zeros(numel(newFreq), 1);
+                            newBW    = ones(numel(newFreq), 1) .* app.General.Detection.InitialBW_kHz;
                             newIndex = freq2idx(app.bandObj, newFreq .* 1e+6);
                             Method   = repmat({jsonencode(struct('Algorithm', 'Manual'))}, numel(newFreq), 1);
                     end
@@ -4950,7 +4950,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Menu selected function: ConsultarMenu
+        % Menu selected function: play_FindPeaks_ContextMenu_search
         function play_RFDataHubButtonPushed(app, event)
             
             global RFDataHub
@@ -5175,7 +5175,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         % EMISSÃO AINDA PENDENTE DE IDENTIFICAÇÃO
                         classification = {};
                         for ii = idxThreads
-                            classification{end+1} = arrayfun(@(x) x.userModified.EmissionType, app.specData(3).UserData.Emissions.Classification, 'UniformOutput', false);
+                            classification{end+1} = arrayfun(@(x) x.userModified.EmissionType, app.specData(ii).UserData.Emissions.Classification, 'UniformOutput', false);
                         end
                         classification = vertcat(classification{:});
 
@@ -8625,10 +8625,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_FindPeaks_ContextMenu
             app.play_FindPeaks_ContextMenu = uicontextmenu(app.UIFigure);
 
-            % Create ConsultarMenu
-            app.ConsultarMenu = uimenu(app.play_FindPeaks_ContextMenu);
-            app.ConsultarMenu.MenuSelectedFcn = createCallbackFcn(app, @play_RFDataHubButtonPushed, true);
-            app.ConsultarMenu.Text = 'Consultar';
+            % Create play_FindPeaks_ContextMenu_search
+            app.play_FindPeaks_ContextMenu_search = uimenu(app.play_FindPeaks_ContextMenu);
+            app.play_FindPeaks_ContextMenu_search.MenuSelectedFcn = createCallbackFcn(app, @play_RFDataHubButtonPushed, true);
+            app.play_FindPeaks_ContextMenu_search.Text = 'Consultar';
 
             % Create play_FindPeaks_ContextMenu_edit
             app.play_FindPeaks_ContextMenu_edit = uimenu(app.play_FindPeaks_ContextMenu);

@@ -20,7 +20,7 @@ function report_Connect(app, credentials, connectionType)
                 RefreshGUI(app.fiscalizaObj)
         end
 
-        app.play_ControlsGrid.RowHeight(2:2:12) = {0,0,0,0,'1x',0};
+        app.play_ControlsGrid.RowHeight(2:7) = {0,0,0,0,'1x',0};
         fiscalizaLibConnection.report_ToolbarStatus(app)
 
     catch ME
@@ -30,6 +30,7 @@ function report_Connect(app, credentials, connectionType)
         %     app.fiscalizaObj exista;
         % (2) Apresentar o ícone do REDMINE como placeholder; e
         % (3) Desabilitar o botão que possibilita o relato.
+        
         fiscalizaLibConnection.report_ResetGUI(app)
         appUtil.modalWindow(app.UIFigure, 'error', ME.message);
     end

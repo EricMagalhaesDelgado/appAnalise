@@ -23,12 +23,8 @@
       <file>D:\InovaFiscaliza\appAnalise\src\winAppAnalise.mlapp</file>
     </fileset.web.main>
     <fileset.resources>
-      <file>C:\SupportPackages\src</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+auxApp</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+class</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+fcn</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+fileReader</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+fileWriter</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+fiscalizaLibConnection</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+model</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+plot</file>
@@ -38,6 +34,9 @@
       <file>D:\InovaFiscaliza\appAnalise\src\config</file>
       <file>D:\InovaFiscaliza\appAnalise\src\resources</file>
       <file>D:\InovaFiscaliza\appAnalise\src\winAppAnalise.mlapp</file>
+      <file>D:\SupportPackages\src\Anatel</file>
+      <file>D:\SupportPackages\src\General</file>
+      <file>D:\SupportPackages\src\Spectrum</file>
     </fileset.resources>
     <fileset.depfun />
     <fileset.package />

@@ -1,15 +1,9 @@
-function mlapp2mPreCompile(MLAPPFiles, showDiffApp)
+function preCompile(showDiffApp)
     arguments
-        MLAPPFiles  cell    = {'winAppAnalise',                                                            ...
-                               'winRFDataHub', 'winDriveTest', 'winSignalAnalysis', 'winConfig',           ...
-                               'dockWelcomePage', 'dockAddChannel', 'dockClassification', 'dockDetection', ...
-                               'dockTimeFiltering', 'dockEditLocation', 'dockAddKFactor',                  ...
-                               'dockAddFiles'}
         showDiffApp logical = false
     end
 
-    % Essa função manipula alguns dos arquivos .MLAPP do projeto, gerando
-    % versões .M.
+    % Essa função manipula os arquivos .MLAPP do projeto, gerando versões .M.
     % - "winAppAnalise.mlapp"
     %   A versão .M facilita acompanhamento da evolução do projeto por meio 
     %   do GitHub Desktop (ao invés de executar a comparação linha a linha 
@@ -18,19 +12,22 @@ function mlapp2mPreCompile(MLAPPFiles, showDiffApp)
     % - "winDriveTest", "winSignalAnalysis", "winRFDataHub" etc
     %   A versão .M  traz manipulações que possibilitam que esses módulos do 
     %   appAnalise possam ser renderizados na figura de "winAppAnalise".
-     
-    appRootFolder = fileparts(fileparts(mfilename('fullpath')));
+
+    initFolder = fileparts(mfilename('fullpath'));
+
+    cd(fullfile(fileparts(initFolder), 'src'))
+    MLAPPFiles = dir('**/*.mlapp');
     
     for ii = 1:numel(MLAPPFiles)
+        [~, oldClassName] = fileparts(MLAPPFiles(ii).name);
+        newClassName      = [oldClassName '_exported'];
+        fileBaseName      = fullfile(MLAPPFiles(ii).folder, oldClassName);
+
         try
-            oldClassName = MLAPPFiles{ii};
-            newClassName = [oldClassName '_exported'];
+            matlabCode    = getMFileContent(fileBaseName);
 
             switch oldClassName
                 case 'winAppAnalise'
-                    fileBaseName = fullfile(appRootFolder, 'src', oldClassName);
-                    matlabCode   = getMFileContent(fileBaseName);
-
                     % SUBSTITUIÇÃO: ClassName
                     oldTags = {sprintf('classdef %s < matlab.apps.AppBase', oldClassName), ...
                                sprintf('function app = %s',                 oldClassName)};
@@ -47,9 +44,6 @@ function mlapp2mPreCompile(MLAPPFiles, showDiffApp)
                     writematrix(matlabCode, [fileBaseName '_exported.m'], 'FileType', 'text', 'WriteMode', 'overwrite', 'QuoteStrings', 'none')
 
                 otherwise
-                    fileBaseName = fullfile(appRootFolder, 'src', '+auxApp', oldClassName);                    
-                    matlabCode   = getMFileContent(fileBaseName);
-
                     % Salva a versão original do .M em pasta temporária, de
                     % forma que possa ser possível visualizar as diferenças
                     % linha a linha no Matlab, caso desejável (argumento de
@@ -89,6 +83,8 @@ function mlapp2mPreCompile(MLAPPFiles, showDiffApp)
             fprintf('ERRO ao processar o arquivo %s. %s\n', [fileBaseName '.mlapp'], ME.message)
         end
     end
+
+    cd(initFolder)
 end
 
 %-------------------------------------------------------------------------%

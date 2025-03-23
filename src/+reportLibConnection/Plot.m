@@ -63,7 +63,8 @@ classdef (Abstract) Plot
                             end
 
                         case 'Emission'
-                            plot.draw2D.horizontalSetOfLines(hAxes, tempBandObj, idxThread, 'Emission')
+                            % plot.draw2D.horizontalSetOfLines(hAxes, tempBandObj, idxThread, 'Emission')
+                            plot.Emission.TStyle(hAxes, tempBandObj, idxThread, 'Emission')
 
                         % <PENDENTE MIGRAR PARA NOVAS FUNÇÕES>
                         case 'OccupancyThreshold'

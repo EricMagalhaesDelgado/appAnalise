@@ -164,7 +164,14 @@ classdef SpecData < model.SpecDataBase
         
                             for ii = 1:numel(idxFreq)
                                 idxEmission = height(obj.UserData.Emissions) + 1;
-                                obj.UserData.Emissions(idxEmission, 1:4) = table(idxFreq(ii), FreqCenter(ii), BandWidth(ii), true);                        
+                                obj.UserData.Emissions(idxEmission, 1:4) = table(idxFreq(ii), FreqCenter(ii), BandWidth(ii), true);
+
+                                defaultChannelEmission  = model.UserData.getFieldTemplate('ChannelAssigned', obj, 1, idxEmission, channelObj);
+                                hasMatchingChannel      = any(arrayfun(@(x) isequal(x, defaultChannelEmission.autoSuggested), arrayfun(@(x) x.userModified, obj.UserData.Emissions.ChannelAssigned(1:end-1))));
+                                if hasMatchingChannel
+                                    obj.UserData.Emissions(idxEmission, :) = [];
+                                    continue
+                                end
         
                                 userDescription = "";
                                 if ~isempty(Description)
@@ -176,7 +183,7 @@ classdef SpecData < model.SpecDataBase
                                 obj.UserData.Emissions.Algorithms(idxEmission).Classification = jsonencode(obj.UserData.reportAlgorithms.Classification);
                                 obj.UserData.Emissions.Algorithms(idxEmission).Occupancy      = jsonencode(obj.UserData.reportAlgorithms.Occupancy);
                                 
-                                obj.UserData.Emissions.ChannelAssigned(idxEmission)           = model.UserData.getFieldTemplate('ChannelAssigned', obj, 1, idxEmission, channelObj);
+                                obj.UserData.Emissions.ChannelAssigned(idxEmission)           = defaultChannelEmission;
                                 obj.UserData.Emissions.Classification(idxEmission)            = model.UserData.getFieldTemplate('Classification',  obj, 1, idxEmission, channelObj);
                                 
                                 util.Measures(obj, 1, idxEmission, 'Emission', channelObj)
@@ -369,7 +376,7 @@ classdef SpecData < model.SpecDataBase
         %-----------------------------------------------------------------%
         % Toda vez que é incluída emissão à tabela, ou editada, verifica-se
         % se a emissão consta no trecho espectral pesquisável do fluxo sob
-        % análise.
+        % análise ou se já existe emissão com o mesmo canal.
         %-----------------------------------------------------------------%
         function checkIfEmissionsInSearchableBand(obj)
             for ii = 1:numel(obj)

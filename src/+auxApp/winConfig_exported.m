@@ -21,6 +21,10 @@ classdef winConfig_exported < matlab.apps.AppBase
         general_ElevationLabel        matlab.ui.control.Label
         general_GraphicsPanel         matlab.ui.container.Panel
         general_GraphicsGrid          matlab.ui.container.GridLayout
+        InitialBW_kHz                 matlab.ui.control.Spinner
+        InitialBW_kHzLabel            matlab.ui.control.Label
+        yOccupancyScale               matlab.ui.control.DropDown
+        yOccupancyScaleLabel          matlab.ui.control.Label
         imgResolution                 matlab.ui.control.DropDown
         imgResolutionLabel            matlab.ui.control.Label
         imgFormat                     matlab.ui.control.DropDown
@@ -274,6 +278,9 @@ classdef winConfig_exported < matlab.apps.AppBase
             else
                 app.graphics_Refresh.Visible = 0;
             end
+
+            app.yOccupancyScale.Value = app.mainApp.General.Plot.Axes.yOccupancyScale;
+            app.InitialBW_kHz.Value   = app.mainApp.General.Detection.InitialBW_kHz;
         end
 
         %-----------------------------------------------------------------%
@@ -547,8 +554,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: gpuType, graphics_Refresh, imgFormat, 
-        % ...and 3 other components
+        % Callback function: InitialBW_kHz, gpuType, graphics_Refresh, 
+        % ...and 5 other components
         function Graphics_ParameterValueChanged(app, event)
             
             switch event.Source
@@ -565,8 +572,15 @@ classdef winConfig_exported < matlab.apps.AppBase
                 case {app.imgFormat, app.imgResolution}
                     app.mainApp.General.Image = struct('Format', app.imgFormat.Value, 'Resolution', str2double(app.imgResolution.Value));
 
+                case app.yOccupancyScale
+                    app.mainApp.General.Plot.Axes.yOccupancyScale = app.yOccupancyScale.Value;
+                    set(app.mainApp.UIAxes2, 'YScale', app.yOccupancyScale.Value)
+
+                case app.InitialBW_kHz
+                    app.mainApp.General.Detection.InitialBW_kHz = app.InitialBW_kHz.Value;
+
                 case app.openAuxiliarAppAsDocked
-                    app.mainApp.General.operationMode.Dock = app.openAuxiliarAppAsDocked.Value;
+                    app.mainApp.General.operationMode.Dock  = app.openAuxiliarAppAsDocked.Value;
 
                 case app.openAuxiliarApp2Debug
                     app.mainApp.General.operationMode.Debug = app.openAuxiliarApp2Debug.Value;
@@ -575,9 +589,12 @@ classdef winConfig_exported < matlab.apps.AppBase
                     app.mainApp.General.Image = struct('Format', app.DefaultValues.Graphics.Format, 'Resolution', app.DefaultValues.Graphics.Resolution);
             end
 
-            app.mainApp.General_I.openGL        = app.mainApp.General.openGL;
-            app.mainApp.General_I.Image         = app.mainApp.General.Image;
-            app.mainApp.General_I.operationMode = app.mainApp.General.operationMode;
+            app.mainApp.General_I.openGL                    = app.mainApp.General.openGL;
+            app.mainApp.General_I.Image                     = app.mainApp.General.Image;
+            app.mainApp.General_I.operationMode             = app.mainApp.General.operationMode;
+            app.mainApp.General_I.Detection.InitialBW_kHz   = app.mainApp.General.Detection.InitialBW_kHz;
+            app.mainApp.General_I.Plot.Axes.yOccupancyScale = app.mainApp.General.Plot.Axes.yOccupancyScale;
+
             saveGeneralSettings(app)
             Graphics_updatePanel(app)
 
@@ -763,7 +780,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {320, '1x', 0, 0, 0};
+            app.Document.ColumnWidth = {320, 0, '1x', 0, 0};
             app.Document.RowHeight = {26, '1x'};
             app.Document.RowSpacing = 5;
             app.Document.Padding = [5 5 5 5];
@@ -1142,7 +1159,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create CustomPlotGrid
             app.CustomPlotGrid = uigridlayout(app.Document);
             app.CustomPlotGrid.ColumnWidth = {'1x', 16};
-            app.CustomPlotGrid.RowHeight = {26, 192, 22, 116, 22, '1x'};
+            app.CustomPlotGrid.RowHeight = {26, 192, 22, 170, 22, '1x'};
             app.CustomPlotGrid.RowSpacing = 5;
             app.CustomPlotGrid.Padding = [0 0 0 0];
             app.CustomPlotGrid.Layout.Row = [1 2];
@@ -1272,8 +1289,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create general_GraphicsGrid
             app.general_GraphicsGrid = uigridlayout(app.general_GraphicsPanel);
-            app.general_GraphicsGrid.ColumnWidth = {110, '1x'};
-            app.general_GraphicsGrid.RowHeight = {17, 22, 22, 22};
+            app.general_GraphicsGrid.ColumnWidth = {220, 100, 110, '1x'};
+            app.general_GraphicsGrid.RowHeight = {17, 22, 22, 22, 22, 22};
             app.general_GraphicsGrid.RowSpacing = 5;
             app.general_GraphicsGrid.Padding = [10 10 10 5];
             app.general_GraphicsGrid.BackgroundColor = [1 1 1];
@@ -1283,8 +1300,8 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.imgFormatLabel.VerticalAlignment = 'bottom';
             app.imgFormatLabel.FontSize = 11;
             app.imgFormatLabel.Layout.Row = 1;
-            app.imgFormatLabel.Layout.Column = [1 2];
-            app.imgFormatLabel.Text = 'Formato da imagem a ser criada no relatório:';
+            app.imgFormatLabel.Layout.Column = 1;
+            app.imgFormatLabel.Text = 'Formato da imagem (RELATÓRIO):';
 
             % Create imgFormat
             app.imgFormat = uidropdown(app.general_GraphicsGrid);
@@ -1300,9 +1317,9 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.imgResolutionLabel = uilabel(app.general_GraphicsGrid);
             app.imgResolutionLabel.VerticalAlignment = 'bottom';
             app.imgResolutionLabel.FontSize = 11;
-            app.imgResolutionLabel.Layout.Row = 3;
-            app.imgResolutionLabel.Layout.Column = [1 2];
-            app.imgResolutionLabel.Text = 'Resolução da imagem (dpi):';
+            app.imgResolutionLabel.Layout.Row = 1;
+            app.imgResolutionLabel.Layout.Column = 2;
+            app.imgResolutionLabel.Text = 'Resolução (dpi):';
 
             % Create imgResolution
             app.imgResolution = uidropdown(app.general_GraphicsGrid);
@@ -1310,9 +1327,48 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.imgResolution.ValueChangedFcn = createCallbackFcn(app, @Graphics_ParameterValueChanged, true);
             app.imgResolution.FontSize = 11;
             app.imgResolution.BackgroundColor = [1 1 1];
-            app.imgResolution.Layout.Row = 4;
-            app.imgResolution.Layout.Column = 1;
+            app.imgResolution.Layout.Row = 2;
+            app.imgResolution.Layout.Column = 2;
             app.imgResolution.Value = '120';
+
+            % Create yOccupancyScaleLabel
+            app.yOccupancyScaleLabel = uilabel(app.general_GraphicsGrid);
+            app.yOccupancyScaleLabel.VerticalAlignment = 'bottom';
+            app.yOccupancyScaleLabel.FontSize = 11;
+            app.yOccupancyScaleLabel.Layout.Row = 3;
+            app.yOccupancyScaleLabel.Layout.Column = 1;
+            app.yOccupancyScaleLabel.Text = 'Escala de ocupação do plot (PLAYBACK):';
+
+            % Create yOccupancyScale
+            app.yOccupancyScale = uidropdown(app.general_GraphicsGrid);
+            app.yOccupancyScale.Items = {'linear', 'log'};
+            app.yOccupancyScale.ValueChangedFcn = createCallbackFcn(app, @Graphics_ParameterValueChanged, true);
+            app.yOccupancyScale.FontSize = 11;
+            app.yOccupancyScale.BackgroundColor = [1 1 1];
+            app.yOccupancyScale.Layout.Row = 4;
+            app.yOccupancyScale.Layout.Column = 1;
+            app.yOccupancyScale.Value = 'linear';
+
+            % Create InitialBW_kHzLabel
+            app.InitialBW_kHzLabel = uilabel(app.general_GraphicsGrid);
+            app.InitialBW_kHzLabel.VerticalAlignment = 'bottom';
+            app.InitialBW_kHzLabel.WordWrap = 'on';
+            app.InitialBW_kHzLabel.FontSize = 11;
+            app.InitialBW_kHzLabel.Layout.Row = 3;
+            app.InitialBW_kHzLabel.Layout.Column = [2 4];
+            app.InitialBW_kHzLabel.Text = 'Largura de emissão em kHz para emissão criada pelo método "DataTip" (PLAYBACK):';
+
+            % Create InitialBW_kHz
+            app.InitialBW_kHz = uispinner(app.general_GraphicsGrid);
+            app.InitialBW_kHz.Step = 50;
+            app.InitialBW_kHz.Limits = [0 1000];
+            app.InitialBW_kHz.RoundFractionalValues = 'on';
+            app.InitialBW_kHz.ValueDisplayFormat = '%.0f';
+            app.InitialBW_kHz.ValueChangedFcn = createCallbackFcn(app, @Graphics_ParameterValueChanged, true);
+            app.InitialBW_kHz.FontSize = 11;
+            app.InitialBW_kHz.FontColor = [0.149 0.149 0.149];
+            app.InitialBW_kHz.Layout.Row = 4;
+            app.InitialBW_kHz.Layout.Column = 2;
 
             % Create general_ElevationLabel
             app.general_ElevationLabel = uilabel(app.CustomPlotGrid);
