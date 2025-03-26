@@ -119,7 +119,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             app.specificTime1_Date.Value  = app.specificTime1_Date.Limits(1);
             app.specificTime2_Date.Value  = app.specificTime2_Date.Limits(2);
 
-            app.HTML.HTMLSource = auxApp.timefiltering.htmlCode_ThreadsInfo(app.specData(idxThreads), app.filterSummary);
+            app.HTML.HTMLSource = util.HtmlTextGenerator.ThreadsInfo(app.specData(idxThreads), app.filterSummary);
 
             % Customiza as aspectos estéticos de alguns dos componentes da GUI 
             % (diretamente em JS).
@@ -209,7 +209,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             end                
 
             idxThreads = app.filterSummary.idxThread;
-            app.HTML.HTMLSource = auxApp.timefiltering.htmlCode_ThreadsInfo(app.specData(idxThreads), app.filterSummary);
+            app.HTML.HTMLSource = util.HtmlTextGenerator.ThreadsInfo(app.specData(idxThreads), app.filterSummary);
         end
 
         %-----------------------------------------------------------------%

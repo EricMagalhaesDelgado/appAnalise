@@ -1,11 +1,21 @@
 classdef (Abstract) HtmlTextGenerator
 
+    % Essa classe abstrata organiza a criação de "textos decorados",
+    % valendo-se das funcionalidades do HTML+CSS. Um texto aqui produzido
+    % será renderizado em um componente uihtml, uilabel ou outro que tenha 
+    % html como interpretador.
+
+    % Antes de cada função, consta a indicação do módulo que chama a
+    % função.
+
     properties (Constant)
         %-----------------------------------------------------------------%
     end
 
     
     methods (Static = true)
+        %-----------------------------------------------------------------%
+        % APPANALISE:INFO
         %-----------------------------------------------------------------%
         function htmlContent = AppInfo(appGeneral, rootFolder, executionMode)
             global RFDataHub
@@ -31,6 +41,14 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct(2) = struct('group', appName,      'value', appVersion.(appName));
             dataStruct(3) = struct('group', 'RFDataHub',  'value', struct('releasedDate', RFDataHub_info.ReleaseDate, 'numberOfRows', height(RFDataHub), 'numberOfUniqueStations', numel(unique(RFDataHub.("Station")))));
             dataStruct(4) = struct('group', 'MATLAB',     'value', appVersion.matlab);
+
+            if ~isempty(appVersion.python)
+                dataStruct(end+1) = struct('group', 'PYTHON', 'value', appVersion.python);
+            end
+        
+            if ~isempty(appVersion.fiscaliza)
+                dataStruct(end+1) = struct('group', 'FISCALIZA', 'value', appVersion.fiscaliza);
+            end
         
             htmlContent   = sprintf(['<p style="font-size: 12px; text-align:justify;">O repositório das '   ...
                                     'ferramentas desenvolvidas no Escritório de inovação da SFI pode ser ' ...
@@ -38,6 +56,9 @@ classdef (Abstract) HtmlTextGenerator
         end
 
 
+        %-----------------------------------------------------------------%
+        % APPANALISE:FILE
+        % APPANALISE:PLAYBACK
         %-----------------------------------------------------------------%
         function htmlContent = Thread(dataSource, varargin)
             if isa(dataSource, 'model.MetaData')
@@ -134,6 +155,40 @@ classdef (Abstract) HtmlTextGenerator
 
 
         %-----------------------------------------------------------------%
+        % AUXAPP.DOCKTIMEFILTERING
+        %-----------------------------------------------------------------%
+        function htmlContent = ThreadsInfo(specData, filteringSummary)
+            htmlContent = {};
+        
+            for ii = 1:numel(specData)
+                threadTag      = sprintf('%.3f - %.3f MHz', specData(ii).MetaData.FreqStart/1e+6, specData(ii).MetaData.FreqStop/1e+6);
+        
+                FilteredSweeps = '';
+                if filteringSummary.RawSweeps(ii) ~= filteringSummary.FilteredSweeps(ii)
+                    if filteringSummary.FilteredSweeps(ii)
+                        fontColor = 'gray';
+                    else
+                        fontColor = 'red';
+                    end
+        
+                    FilteredSweeps = sprintf('<br><font style="color: %s; font-size: 10px;">%d varreduras pós-filtragem</font>', fontColor, filteringSummary.FilteredSweeps(ii));
+                end
+            
+                dataStruct(1)  = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData(ii).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(ii).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));
+                dataStruct(2)  = struct('group', 'VARREDURAS',          'value', sprintf('%d >> %d', filteringSummary.RawSweeps(ii), filteringSummary.FilteredSweeps(ii)));
+            
+                htmlContent{end+1} = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px;"><b>%s</b><br>', threadTag)               ...
+                                      sprintf('<font style="color: gray; font-size: 10px;">%s - %s</font><br>', datestr(specData(ii).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(ii).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')) ...
+                                      sprintf('<font style="color: gray; font-size: 10px;">%d varreduras inicias</font>%s</p>', filteringSummary.RawSweeps(ii), FilteredSweeps)];
+            end
+        
+            htmlContent = strjoin(htmlContent);
+        end
+
+
+        %-----------------------------------------------------------------%
+        % AUXAPP.SIGNALANALYSIS
+        %-----------------------------------------------------------------%
         function [htmlContent, emissionTag, userDescription, stationInfo] = Emission(specData, idxThread, idxEmission)
             emissionTable = specData(idxThread).UserData.Emissions(idxEmission, :);
             emissionTag   = sprintf('%.3f MHz ⌂ %.1f kHz', emissionTable.Frequency, emissionTable.BW_kHz);
@@ -197,6 +252,57 @@ classdef (Abstract) HtmlTextGenerator
 
 
         %-----------------------------------------------------------------%
+        % AUXAPP.DRIVETEST
+        %-----------------------------------------------------------------%
+        function [htmlContent, emissionID] = Emission_v2(specData, idxThread, idxEmission)
+            % No módulo auxApp.DriveTest existe a figura de "emissão
+            % virtual", que corresponde à toda a faixa de frequência
+            % monitorada.
+            if isempty(idxEmission) % Emissão virtual
+                FreqCenter = (specData(idxThread).MetaData.FreqStart + specData(idxThread).MetaData.FreqStop) / 2e6; % MHz
+                BW_kHz     = (specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / 1e3; % kHz
+            
+            else % Emissão real
+                FreqCenter  = specData(idxThread).UserData.Emissions.Frequency(idxEmission);
+                BW_kHz      = specData(idxThread).UserData.Emissions.BW_kHz(idxEmission);
+            end
+        
+            emissionTag    = sprintf('%.3f MHz ⌂ %.1f kHz', FreqCenter, BW_kHz);
+        
+            bandFreqStart  = sprintf('%.3f MHz', specData(idxThread).MetaData.FreqStart/1e+6);
+            bandFreqStop   = sprintf('%.3f MHz', specData(idxThread).MetaData.FreqStop/1e+6);
+            bandStepWidth  = sprintf('%.1f kHz', (specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart)/(1000*(specData(idxThread).MetaData.DataPoints-1)));
+            bandResolution = sprintf('%.1f kHz', specData(idxThread).MetaData.Resolution/1000);
+        
+            metaData       = struct('FreqStart',        bandFreqStart,                           ...
+                                    'FreqStop',         bandFreqStop,                            ...
+                                    'DataPoints',       specData(idxThread).MetaData.DataPoints,       ...
+                                    'StepWidth',        bandStepWidth,                           ...
+                                    'Resolution',       bandResolution,                          ...
+                                    'TraceMode',        specData(idxThread).MetaData.TraceMode,        ...
+                                    'TraceIntegration', specData(idxThread).MetaData.TraceIntegration, ...
+                                    'Detector',         specData(idxThread).MetaData.Detector,         ...
+                                    'LevelUnit',        specData(idxThread).MetaData.LevelUnit);
+        
+            dataStruct(1)  = struct('group', 'RECEPTOR',            'value', specData(idxThread).Receiver);
+            dataStruct(2)  = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData(idxThread).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(idxThread).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));
+            dataStruct(3)  = struct('group', 'METADADOS',           'value', metaData);
+        
+            htmlContent    = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', emissionTag) ...
+                              textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')];
+        
+            emissionID     = struct('Thread',   struct('Index',     idxThread,                                ...
+                                                       'UUID',      {specData(idxThread).RelatedFiles.uuid}), ...
+                                    'Emission', struct('Index',     idxEmission,                              ...
+                                                       'Frequency', FreqCenter,                               ...
+                                                       'BW_kHz',    BW_kHz,                                   ...
+                                                       'Tag',       emissionTag));
+        end
+
+
+        %-----------------------------------------------------------------%
+        % APPANALISE:REPORT
+        %-----------------------------------------------------------------%
         function htmlContent = ReportAlgorithms(specData)
             threadTag = sprintf('%.3f - %.3f MHz', specData.MetaData.FreqStart/1e+6, specData.MetaData.FreqStop/1e+6);
         
@@ -224,6 +330,70 @@ classdef (Abstract) HtmlTextGenerator
         end
 
 
+        %-----------------------------------------------------------------%
+        % AUXAPP.WINCONFIG
+        %-----------------------------------------------------------------%
+        function [htmlContent, stableVersion, updatedModule] = checkAvailableUpdate(appGeneral, rootFolder)
+            try
+                % Versão instalada no computador:
+                appName          = class.Constants.appName;
+                presentVersion   = struct(appName,     appGeneral.AppVersion.(appName).version, ...
+                                          'fiscaliza', appGeneral.AppVersion.fiscaliza,         ...
+                                          'rfDataHub', appGeneral.AppVersion.rfDataHub); 
+                
+                % Versão estável, indicada nos arquivos de referência (na nuvem):
+                [versionFileURL, rfDataHubURL] = util.publicLink(appName, rootFolder, 'VersionFile+RFDataHub');
+        
+        
+                generalVersions  = webread(versionFileURL,       weboptions("ContentType", "json"));
+                rfdatahubVersion = webread(rfDataHubURL.Release, weboptions("ContentType", "json"));
+        
+                stableVersion    = struct(appName,     generalVersions.(appName).Version, ...
+                                          'fiscaliza', generalVersions.fiscaliza.Version, ...
+                                          'rfDataHub', rfdatahubVersion.rfdatahub);
+                
+                % Validação:
+                if isequal(presentVersion, stableVersion)
+                    msgWarning   = 'O appAnalise e os seus módulos - fiscaliza e RFDataHub - estão atualizados.';
+                    
+                else
+                    updatedModule    = {};
+                    nonUpdatedModule = {};
+                    if strcmp(presentVersion.(appName), stableVersion.(appName))
+                        updatedModule(end+1)    = {'appAnalise'};
+                    else
+                        nonUpdatedModule(end+1) = {'appAnalise'};
+                    end
+        
+                    if strcmp(presentVersion.fiscaliza,  stableVersion.fiscaliza)
+                        updatedModule(end+1)    = {'fiscaliza'};
+                    else
+                        nonUpdatedModule(end+1) = {'fiscaliza'};
+                    end
+        
+                    if isequal(presentVersion.rfDataHub, stableVersion.rfDataHub)
+                        updatedModule(end+1)    = {'RFDataHub'};
+                    else
+                        nonUpdatedModule(end+1) = {'RFDataHub'};
+                    end
+        
+                    dataStruct    = struct('group', 'VERSÃO INSTALADA', 'value', presentVersion);
+                    dataStruct(2) = struct('group', 'VERSÃO ESTÁVEL',   'value', stableVersion);
+                    dataStruct(3) = struct('group', 'SITUAÇÃO',         'value', struct('updated', strjoin(updatedModule, ', '), 'nonupdated', strjoin(nonUpdatedModule, ', ')));
+        
+                    msgWarning = textFormatGUI.struct2PrettyPrintList(dataStruct);
+                end
+                
+            catch ME
+                msgWarning = ME.message;
+            end
+        
+            htmlContent = msgWarning;
+        end
+
+
+        %-----------------------------------------------------------------%
+        % RFDATAHUB
         %-----------------------------------------------------------------%
         function htmlContent = Station(rfDataHub, idxRFDataHub, rfDataHubLOG, appGeneral)
             % stationTag
@@ -312,6 +482,8 @@ classdef (Abstract) HtmlTextGenerator
         end
 
 
+        %-----------------------------------------------------------------%
+        % AUXAPP.DOCKWELCOMEPAGE
         %-----------------------------------------------------------------%
         function htmlContent = ReleaseNotes(MFilePath)
             releaseNotes = readtable(fullfile(MFilePath, 'resources', 'ReleaseNotes.txt'), 'Delimiter', '\t');

@@ -1,4 +1,4 @@
-function msgWarning = exportFiles(specRawTable, specFilteredTable, specBinTable, Basename, fileZIP, dataSource, hPlot, channelTag)
+function msgWarning = exportDriveTestAnalysis(specRawTable, specFilteredTable, specBinTable, Basename, fileZIP, dataSource, hPlot, channelTag)
 
     % TABELAS DO APPANALISE:DRIVE-TEST:
     % - specRawTable.....: "Timestamp", "Latitude", "Longitude", "ChannelPower", "Filtered"

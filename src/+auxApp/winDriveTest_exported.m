@@ -1711,7 +1711,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             % Inicialmente, a informação acerca do fluxo espectral e da emissão 
             % sob análise são salvas na propriedade "selectedEmission" do app.
             [app.emissionInfo.HTMLSource, ...
-             app.selectedEmission] = auxApp.drivetest.htmlCode_EmissionInfo(app.specData, idxThread, idxEmission);
+             app.selectedEmission] = util.HtmlTextGenerator.Emission_v2(app.specData, idxThread, idxEmission);
 
             % Atualiza canal, bloqueando edição de informação do canal.
             checkChannelAssigned(app, idxThread, idxEmission)
@@ -1916,7 +1916,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             channelTag = sprintf('%.3f MHz ⌂ %.1f kHz', app.channelFrequency.Value, app.channelBandWidth.Value);
 
             try
-                msgWarning = auxApp.drivetest.exportFiles(app.specRawTable, app.specFilteredTable, app.specBinTable, Basename, fileFullPath, dataSource, hPlot, channelTag);
+                msgWarning = util.exportDriveTestAnalysis(app.specRawTable, app.specFilteredTable, app.specBinTable, Basename, fileFullPath, dataSource, hPlot, channelTag);
                 appUtil.modalWindow(app.UIFigure, 'info', msgWarning);
             catch ME
                 appUtil.modalWindow(app.UIFigure, 'error', ME.message);

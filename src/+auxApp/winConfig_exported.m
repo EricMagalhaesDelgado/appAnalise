@@ -202,7 +202,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function General_updatePanel(app)
             % Versão
-            htmlContent = auxApp.config.htmlCode_AppVersion(app.mainApp.General, app.mainApp.executionMode);
+            htmlContent = util.HtmlTextGenerator.AppInfo(app.mainApp.General, app.mainApp.rootFolder, app.mainApp.executionMode);
             app.AppVersion.HTMLSource = htmlContent;
 
             % Renderizador
@@ -496,7 +496,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             
             app.progressDialog.Visible = 'visible';
 
-            [htmlContent, app.stableVersion, updatedModule] = auxApp.config.htmlCode_CheckAvailableUpdate(app.mainApp.General, app.rootFolder);
+            [htmlContent, app.stableVersion, updatedModule] = util.HtmlTextGenerator.checkAvailableUpdate(app.mainApp.General, app.rootFolder);
             appUtil.modalWindow(app.UIFigure, "info", htmlContent);
             
             if ~ismember('RFDataHub', updatedModule)
