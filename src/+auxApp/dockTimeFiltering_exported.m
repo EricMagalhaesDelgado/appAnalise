@@ -493,26 +493,30 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             app.filterType_DateTime = uiradiobutton(app.filterTypePanel);
             app.filterType_DateTime.Tag = 'Date+Time';
             app.filterType_DateTime.Text = 'Data e hora';
-            app.filterType_DateTime.Position = [11 6 85 22];
+            app.filterType_DateTime.FontSize = 10.5;
+            app.filterType_DateTime.Position = [11 6 77 22];
             app.filterType_DateTime.Value = true;
 
             % Create filterType_Date
             app.filterType_Date = uiradiobutton(app.filterTypePanel);
             app.filterType_Date.Tag = 'Date';
             app.filterType_Date.Text = 'Data';
+            app.filterType_Date.FontSize = 10.5;
             app.filterType_Date.Position = [115 6 65 22];
 
             % Create filterType_Time
             app.filterType_Time = uiradiobutton(app.filterTypePanel);
             app.filterType_Time.Tag = 'Time';
             app.filterType_Time.Text = 'Hora';
+            app.filterType_Time.FontSize = 10.5;
             app.filterType_Time.Position = [181 6 65 22];
 
             % Create filterType_DayOfWeek
             app.filterType_DayOfWeek = uiradiobutton(app.filterTypePanel);
             app.filterType_DayOfWeek.Tag = 'DayOfWeek';
             app.filterType_DayOfWeek.Text = 'Dia da semana';
-            app.filterType_DayOfWeek.Position = [248 6 103 22];
+            app.filterType_DayOfWeek.FontSize = 10.5;
+            app.filterType_DayOfWeek.Position = [248 6 93 22];
 
             % Create filterValuePanel
             app.filterValuePanel = uipanel(app.Document);
@@ -650,7 +654,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             % Create filterTree
             app.filterTree = uitree(app.Document);
             app.filterTree.Multiselect = 'on';
-            app.filterTree.FontSize = 11;
+            app.filterTree.FontSize = 10.5;
             app.filterTree.BackgroundColor = [0.9804 0.9804 0.9804];
             app.filterTree.Layout.Row = 5;
             app.filterTree.Layout.Column = [2 4];

@@ -1132,8 +1132,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app
                 operationType char {mustBeMember(operationType, {'RELER INFORMAÇÃO ESPECTRAL', ...
                                                                  'MESCLAR FLUXOS',             ...
-                                                                 'DELETAR FLUXO',              ...
-                                                                 'IMPORTAR ANÁLISE'})}
+                                                                 'EXCLUIR FLUXO(S)',           ...
+                                                                 'IMPORTAR ANÁLISE',           ...
+                                                                 'FILTRAR FLUXO(S)',           ...
+                                                                 'EDITAR LOCAL',               ...
+                                                                 'APLICAR CORREÇÃO'})}
             end
 
             userSelection = 'Sim';
@@ -5410,7 +5413,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     
                     %-----------------------------------------------------%
                     case app.misc_Del
-                        if strcmp(auxAppStatus(app, 'DELETAR FLUXO'), 'Não')
+                        if strcmp(auxAppStatus(app, 'EXCLUIR FLUXO(S)'), 'Não')
                             return
                         end
 
@@ -5439,6 +5442,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                     %-----------------------------------------------------%
                     case app.misc_TimeFiltering
+                        if strcmp(auxAppStatus(app, 'FILTRAR FLUXO(S)'), 'Não')
+                            return
+                        end
+
                         menu_LayoutPopupApp(app, 'TimeFiltering', idxThreads)
                         return
 
@@ -5457,6 +5464,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                    'ao mesmo local.'])
                         end
 
+                        if strcmp(auxAppStatus(app, 'EDITAR LOCAL'), 'Não')
+                            return
+                        end
+
                         menu_LayoutPopupApp(app, 'EditLocation', idxThreads)
                         return
 
@@ -5465,6 +5476,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         if ~isscalar(idxThreads)
                             error(['A aplicação de uma curva de correção é possível apenas quando ' ...
                                    'selecionado um único fluxo espectral.'])
+                        end
+
+                        if strcmp(auxAppStatus(app, 'APLICAR CORREÇÃO'), 'Não')
+                            return
                         end
                         
                         menu_LayoutPopupApp(app, 'AddKFactor', idxThreads)
@@ -5685,20 +5700,20 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create file_FilteringType1
             app.file_FilteringType1 = uiradiobutton(app.file_FilteringTypePanel);
             app.file_FilteringType1.Text = 'Faixa de Frequência';
-            app.file_FilteringType1.FontSize = 10;
+            app.file_FilteringType1.FontSize = 10.5;
             app.file_FilteringType1.Position = [12 4 136 22];
             app.file_FilteringType1.Value = true;
 
             % Create file_FilteringType2
             app.file_FilteringType2 = uiradiobutton(app.file_FilteringTypePanel);
             app.file_FilteringType2.Text = 'ID';
-            app.file_FilteringType2.FontSize = 10;
+            app.file_FilteringType2.FontSize = 10.5;
             app.file_FilteringType2.Position = [164 5 52 22];
 
             % Create file_FilteringType3
             app.file_FilteringType3 = uiradiobutton(app.file_FilteringTypePanel);
             app.file_FilteringType3.Text = 'Descrição';
-            app.file_FilteringType3.FontSize = 10;
+            app.file_FilteringType3.FontSize = 10.5;
             app.file_FilteringType3.Position = [238 5 82 22];
 
             % Create file_FilteringType1_Frequency
@@ -6242,20 +6257,20 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_RadioButton_Persistance
             app.play_RadioButton_Persistance = uiradiobutton(app.play_ControlsPanel);
             app.play_RadioButton_Persistance.Text = 'Persistência';
-            app.play_RadioButton_Persistance.FontSize = 10;
-            app.play_RadioButton_Persistance.Position = [11 5 76 22];
+            app.play_RadioButton_Persistance.FontSize = 10.5;
+            app.play_RadioButton_Persistance.Position = [11 5 79 22];
             app.play_RadioButton_Persistance.Value = true;
 
             % Create play_RadioButton_Occupancy
             app.play_RadioButton_Occupancy = uiradiobutton(app.play_ControlsPanel);
             app.play_RadioButton_Occupancy.Text = 'Ocupação';
-            app.play_RadioButton_Occupancy.FontSize = 10;
-            app.play_RadioButton_Occupancy.Position = [114 5 68 22];
+            app.play_RadioButton_Occupancy.FontSize = 10.5;
+            app.play_RadioButton_Occupancy.Position = [114 5 70 22];
 
             % Create play_RadioButton_Waterfall
             app.play_RadioButton_Waterfall = uiradiobutton(app.play_ControlsPanel);
             app.play_RadioButton_Waterfall.Text = 'Waterfall';
-            app.play_RadioButton_Waterfall.FontSize = 10;
+            app.play_RadioButton_Waterfall.FontSize = 10.5;
             app.play_RadioButton_Waterfall.Position = [216 5 83 22];
 
             % Create play_Persistance_Panel
@@ -6870,7 +6885,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_ControlsTab2Info
             app.play_ControlsTab2Info = uigridlayout(app.play_ControlsGrid);
             app.play_ControlsTab2Info.ColumnWidth = {'1x', 16, 16};
-            app.play_ControlsTab2Info.RowHeight = {22, 32, 210, 80, 8, '1x', 22, 42, 8, '0.5x'};
+            app.play_ControlsTab2Info.RowHeight = {22, 36, 210, 80, 8, '1x', 22, 42, 8, '0.5x'};
             app.play_ControlsTab2Info.ColumnSpacing = 5;
             app.play_ControlsTab2Info.RowSpacing = 5;
             app.play_ControlsTab2Info.Padding = [0 0 0 0];
@@ -6900,27 +6915,27 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_Channel_ReferenceList
             app.play_Channel_ReferenceList = uiradiobutton(app.play_Channel_RadioGroup);
             app.play_Channel_ReferenceList.Text = {'Canalização'; 'de referência'};
-            app.play_Channel_ReferenceList.FontSize = 10;
-            app.play_Channel_ReferenceList.Position = [11 4 80 25];
+            app.play_Channel_ReferenceList.FontSize = 10.5;
+            app.play_Channel_ReferenceList.Position = [11 5 83 26];
             app.play_Channel_ReferenceList.Value = true;
 
             % Create play_Channel_Multiples
             app.play_Channel_Multiples = uiradiobutton(app.play_Channel_RadioGroup);
             app.play_Channel_Multiples.Text = {'Faixa de'; 'frequência'};
-            app.play_Channel_Multiples.FontSize = 10;
-            app.play_Channel_Multiples.Position = [108 4 69 25];
+            app.play_Channel_Multiples.FontSize = 10.5;
+            app.play_Channel_Multiples.Position = [105 5 71 26];
 
             % Create play_Channel_Single
             app.play_Channel_Single = uiradiobutton(app.play_Channel_RadioGroup);
             app.play_Channel_Single.Text = 'Canal';
-            app.play_Channel_Single.FontSize = 10;
-            app.play_Channel_Single.Position = [194 5 48 22];
+            app.play_Channel_Single.FontSize = 10.5;
+            app.play_Channel_Single.Position = [188 7 49 22];
 
             % Create play_Channel_File
             app.play_Channel_File = uiradiobutton(app.play_Channel_RadioGroup);
             app.play_Channel_File.Text = 'Arquivo';
-            app.play_Channel_File.FontSize = 10;
-            app.play_Channel_File.Position = [257 5 56 22];
+            app.play_Channel_File.FontSize = 10.5;
+            app.play_Channel_File.Position = [255 7 58 22];
 
             % Create play_Channel_Panel
             app.play_Channel_Panel = uipanel(app.play_ControlsTab2Info);
@@ -7223,7 +7238,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_ControlsTab3Info
             app.play_ControlsTab3Info = uigridlayout(app.play_ControlsGrid);
             app.play_ControlsTab3Info.ColumnWidth = {'1x', 100, 89, 16};
-            app.play_ControlsTab3Info.RowHeight = {22, 32, 270, 80, 8, '1x', 22, 22, 44};
+            app.play_ControlsTab3Info.RowHeight = {22, 36, 270, 80, 8, '1x', 22, 22, 44};
             app.play_ControlsTab3Info.ColumnSpacing = 5;
             app.play_ControlsTab3Info.RowSpacing = 5;
             app.play_ControlsTab3Info.Padding = [0 0 0 0];
@@ -7253,27 +7268,27 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_FindPeaks_auto
             app.play_FindPeaks_auto = uiradiobutton(app.play_FindPeaks_RadioGroup);
             app.play_FindPeaks_auto.Text = 'Automática';
-            app.play_FindPeaks_auto.FontSize = 10;
-            app.play_FindPeaks_auto.Position = [11 5 83 22];
+            app.play_FindPeaks_auto.FontSize = 10.5;
+            app.play_FindPeaks_auto.Position = [11 7 83 22];
             app.play_FindPeaks_auto.Value = true;
 
             % Create play_FindPeaks_ROI
             app.play_FindPeaks_ROI = uiradiobutton(app.play_FindPeaks_RadioGroup);
             app.play_FindPeaks_ROI.Text = 'ROI';
-            app.play_FindPeaks_ROI.FontSize = 10;
-            app.play_FindPeaks_ROI.Position = [105 5 40 22];
+            app.play_FindPeaks_ROI.FontSize = 10.5;
+            app.play_FindPeaks_ROI.Position = [105 7 41 22];
 
             % Create play_FindPeaks_DataTips
             app.play_FindPeaks_DataTips = uiradiobutton(app.play_FindPeaks_RadioGroup);
             app.play_FindPeaks_DataTips.Text = 'DataTips';
-            app.play_FindPeaks_DataTips.FontSize = 10;
-            app.play_FindPeaks_DataTips.Position = [171 5 62 22];
+            app.play_FindPeaks_DataTips.FontSize = 10.5;
+            app.play_FindPeaks_DataTips.Position = [168 7 64 22];
 
             % Create play_FindPeaks_File
             app.play_FindPeaks_File = uiradiobutton(app.play_FindPeaks_RadioGroup);
             app.play_FindPeaks_File.Text = 'Arquivo';
-            app.play_FindPeaks_File.FontSize = 10;
-            app.play_FindPeaks_File.Position = [257 5 56 22];
+            app.play_FindPeaks_File.FontSize = 10.5;
+            app.play_FindPeaks_File.Position = [255 7 58 22];
 
             % Create play_FindPeaks_ParametersPanel
             app.play_FindPeaks_ParametersPanel = uipanel(app.play_ControlsTab3Info);
@@ -8042,7 +8057,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.misc_TimeFiltering.ButtonPushedFcn = createCallbackFcn(app, @misc_OperationsCallbacks, true);
             app.misc_TimeFiltering.Icon = 'Filter_18.png';
             app.misc_TimeFiltering.BackgroundColor = [1 1 1];
-            app.misc_TimeFiltering.Tooltip = {'Exclui todas as informações espectrais'};
+            app.misc_TimeFiltering.Tooltip = {''};
             app.misc_TimeFiltering.Layout.Row = 5;
             app.misc_TimeFiltering.Layout.Column = 2;
             app.misc_TimeFiltering.Text = '';
@@ -8061,7 +8076,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.misc_EditLocation.ButtonPushedFcn = createCallbackFcn(app, @misc_OperationsCallbacks, true);
             app.misc_EditLocation.Icon = 'Pin_32.png';
             app.misc_EditLocation.BackgroundColor = [1 1 1];
-            app.misc_EditLocation.Tooltip = {'Exclui todas as informações espectrais'};
+            app.misc_EditLocation.Tooltip = {''};
             app.misc_EditLocation.Layout.Row = 5;
             app.misc_EditLocation.Layout.Column = 5;
             app.misc_EditLocation.Text = '';
@@ -8080,7 +8095,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.misc_AddCorrection.ButtonPushedFcn = createCallbackFcn(app, @misc_OperationsCallbacks, true);
             app.misc_AddCorrection.Icon = 'RFFilter_32.png';
             app.misc_AddCorrection.BackgroundColor = [1 1 1];
-            app.misc_AddCorrection.Tooltip = {'Exclui todas as informações espectrais'};
+            app.misc_AddCorrection.Tooltip = {''};
             app.misc_AddCorrection.Layout.Row = 5;
             app.misc_AddCorrection.Layout.Column = 8;
             app.misc_AddCorrection.Text = '';
@@ -8099,7 +8114,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.misc_DeleteAll.ButtonPushedFcn = createCallbackFcn(app, @misc_DeleteAllButtonPushed, true);
             app.misc_DeleteAll.Icon = 'Trash_32.png';
             app.misc_DeleteAll.BackgroundColor = [1 1 1];
-            app.misc_DeleteAll.Tooltip = {'Exclui todas as informações espectrais'};
+            app.misc_DeleteAll.Tooltip = {''};
             app.misc_DeleteAll.Layout.Row = 8;
             app.misc_DeleteAll.Layout.Column = 2;
             app.misc_DeleteAll.Text = '';

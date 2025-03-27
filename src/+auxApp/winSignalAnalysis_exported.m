@@ -1055,7 +1055,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.UITable.Multiselect = 'off';
             app.UITable.Layout.Row = 2;
             app.UITable.Layout.Column = [1 5];
-            app.UITable.FontSize = 10;
+            app.UITable.FontSize = 10.5;
 
             % Create axesTool_RestoreView
             app.axesTool_RestoreView = uiimage(app.Document);

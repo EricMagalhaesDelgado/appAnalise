@@ -3104,7 +3104,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             % Create filter_Tree
             app.filter_Tree = uitree(app.Tab2_Grid);
             app.filter_Tree.SelectionChangedFcn = createCallbackFcn(app, @filter_TreeSelectionChanged, true);
-            app.filter_Tree.FontSize = 10;
+            app.filter_Tree.FontSize = 10.5;
             app.filter_Tree.Layout.Row = 4;
             app.filter_Tree.Layout.Column = [1 2];
 
@@ -3342,7 +3342,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create points_Tree
             app.points_Tree = uitree(app.Tab3_Grid, 'checkbox');
-            app.points_Tree.FontSize = 10;
+            app.points_Tree.FontSize = 10.5;
             app.points_Tree.Layout.Row = 5;
             app.points_Tree.Layout.Column = [1 2];
 

@@ -43,9 +43,13 @@ classdef (Abstract) Emission
                         yLevel2Plot = yLevel;
                     end
 
-                    horLine = line(hAxes, [FreqStart, FreqStop], [yLevel2Plot, yLevel2Plot], plotConfig{:});
-                    verLine = line(hAxes, [FreqCenter, FreqCenter], [-inf, inf], plotConfig{:});
-                    text(hAxes, FreqCenter, yLevel2Plot, sprintf(' %d', ii), Color=horLine.Color, FontSize=10, FontWeight='bold', FontName='Helvetica', VerticalAlignment='bottom', FontSmoothing='on', Tag='EmissionTag');
+                    % ToDo:
+                    % Deixar configuráveis os parâmetros...
+                    % Editar "GeneralSettings.json"
+
+                    line(hAxes, [FreqStart, FreqStop], [yLevel2Plot, yLevel2Plot], 'Color', '#ffff12', 'LineWidth', 1, 'LineStyle', ':', 'Marker', '.', 'MarkerSize', 8, 'PickableParts', 'none', 'Tag', 'Emission');
+                    line(hAxes, [FreqCenter, FreqCenter], [-1000, 1000], 'Color', '#ffff12', 'LineWidth', 1, 'LineStyle', ':', 'PickableParts', 'none', 'Tag', 'Emission');
+                    text(hAxes, FreqCenter, yLevel2Plot, sprintf(' %d', ii), Color='#ffff12', FontSize=10, FontWeight='bold', FontName='Helvetica', VerticalAlignment='bottom', Tag='EmissionTag');
                 end
 
                 plot.axes.StackingOrder.execute(hAxes, bandObj.Context)

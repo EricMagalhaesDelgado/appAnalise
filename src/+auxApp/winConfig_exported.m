@@ -780,7 +780,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {320, 0, '1x', 0, 0};
+            app.Document.ColumnWidth = {320, '1x', 0, 0, 0};
             app.Document.RowHeight = {26, '1x'};
             app.Document.RowSpacing = 5;
             app.Document.Padding = [5 5 5 5];

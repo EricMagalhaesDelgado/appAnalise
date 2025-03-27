@@ -397,7 +397,7 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
 
             % Create kFactorTree
             app.kFactorTree = uitree(app.kFactorGrid);
-            app.kFactorTree.FontSize = 11;
+            app.kFactorTree.FontSize = 10.5;
             app.kFactorTree.Layout.Row = 4;
             app.kFactorTree.Layout.Column = [1 3];
 

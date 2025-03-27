@@ -270,6 +270,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
             app.PolarizationList.Items = {};
             app.PolarizationList.Multiselect = 'on';
             app.PolarizationList.ValueChangedFcn = createCallbackFcn(app, @PolarizationListValueChanged, true);
+            app.PolarizationList.FontSize = 11;
             app.PolarizationList.Layout.Row = 4;
             app.PolarizationList.Layout.Column = 1;
             app.PolarizationList.Value = {};
@@ -288,6 +289,7 @@ classdef dockAddChannel_exported < matlab.apps.AppBase
             app.FeixeDownList.Items = {};
             app.FeixeDownList.Multiselect = 'on';
             app.FeixeDownList.ValueChangedFcn = createCallbackFcn(app, @FeixeListValueChanged, true);
+            app.FeixeDownList.FontSize = 11;
             app.FeixeDownList.Layout.Row = 4;
             app.FeixeDownList.Layout.Column = [2 3];
             app.FeixeDownList.Value = {};

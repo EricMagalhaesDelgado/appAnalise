@@ -366,7 +366,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             app.UITable.CellEditCallback = createCallbackFcn(app, @UITableCellEdit, true);
             app.UITable.Layout.Row = 6;
             app.UITable.Layout.Column = [1 5];
-            app.UITable.FontSize = 11;
+            app.UITable.FontSize = 10.5;
 
             % Create btnOK
             app.btnOK = uibutton(app.Document, 'push');
@@ -396,15 +396,15 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             % Create PROJETOButton
             app.PROJETOButton = uiradiobutton(app.ButtonGroup);
             app.PROJETOButton.Text = 'PROJETO';
-            app.PROJETOButton.FontSize = 11;
-            app.PROJETOButton.Position = [10 27 74 22];
+            app.PROJETOButton.FontSize = 10.5;
+            app.PROJETOButton.Position = [10 27 71 22];
             app.PROJETOButton.Value = true;
 
             % Create FLUXOSAPROCESSARButton
             app.FLUXOSAPROCESSARButton = uiradiobutton(app.ButtonGroup);
             app.FLUXOSAPROCESSARButton.Text = 'FLUXOS A PROCESSAR';
-            app.FLUXOSAPROCESSARButton.FontSize = 11;
-            app.FLUXOSAPROCESSARButton.Position = [10 6 147 22];
+            app.FLUXOSAPROCESSARButton.FontSize = 10.5;
+            app.FLUXOSAPROCESSARButton.Position = [10 6 142 22];
 
             % Create report_Tree
             app.report_Tree = uitree(app.Document);
@@ -433,7 +433,7 @@ classdef dockAddFiles_exported < matlab.apps.AppBase
             % Create TAGsDEREFERNCIATextArea
             app.TAGsDEREFERNCIATextArea = uitextarea(app.Document);
             app.TAGsDEREFERNCIATextArea.Editable = 'off';
-            app.TAGsDEREFERNCIATextArea.FontSize = 11;
+            app.TAGsDEREFERNCIATextArea.FontSize = 10.5;
             app.TAGsDEREFERNCIATextArea.Layout.Row = 4;
             app.TAGsDEREFERNCIATextArea.Layout.Column = [1 3];
 

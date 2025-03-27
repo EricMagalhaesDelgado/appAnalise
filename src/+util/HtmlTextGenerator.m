@@ -50,7 +50,7 @@ classdef (Abstract) HtmlTextGenerator
                 dataStruct(end+1) = struct('group', 'FISCALIZA', 'value', appVersion.fiscaliza);
             end
         
-            htmlContent   = sprintf(['<p style="font-size: 12px; text-align:justify;">O repositório das '   ...
+            htmlContent   = sprintf(['<p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; text-align:justify; margin: 10px;">O repositório das '   ...
                                     'ferramentas desenvolvidas no Escritório de inovação da SFI pode ser ' ...
                                     'acessado <a href="%s">aqui</a>.\n\n</p>%s'], appURL.Sharepoint, textFormatGUI.struct2PrettyPrintList(dataStruct));
         end
@@ -148,7 +148,7 @@ classdef (Abstract) HtmlTextGenerator
                 threadTag = strjoin(arrayfun(@(x) sprintf('%.3f - %.3f MHz', x.MetaData.FreqStart/1e+6, x.MetaData.FreqStop/1e+6), specData, "UniformOutput", false), '<br>');
             end
         
-            htmlContent = {sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 16px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', threadTag), ...
+            htmlContent = {sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 16px; margin: 10px;"><b>%s</b></p>', threadTag), ...
                            textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')};
             htmlContent = strjoin(htmlContent);
         end
@@ -177,7 +177,7 @@ classdef (Abstract) HtmlTextGenerator
                 dataStruct(1)  = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData(ii).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(ii).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));
                 dataStruct(2)  = struct('group', 'VARREDURAS',          'value', sprintf('%d >> %d', filteringSummary.RawSweeps(ii), filteringSummary.FilteredSweeps(ii)));
             
-                htmlContent{end+1} = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px;"><b>%s</b><br>', threadTag)               ...
+                htmlContent{end+1} = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 16px; margin: 10px;"><b>%s</b><br>', threadTag)               ...
                                       sprintf('<font style="color: gray; font-size: 10px;">%s - %s</font><br>', datestr(specData(ii).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(ii).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')) ...
                                       sprintf('<font style="color: gray; font-size: 10px;">%d varreduras inicias</font>%s</p>', filteringSummary.RawSweeps(ii), FilteredSweeps)];
             end
@@ -244,9 +244,9 @@ classdef (Abstract) HtmlTextGenerator
                 dataStruct(4).value.userDescription = sprintf('<font style="color: blue;">%s</font>', userDescription);
             end
         
-            htmlContent    = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', emissionTag) ...
+            htmlContent    = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 15px; margin: 10px;"><b>%s</b></p>', emissionTag) ...
                               textFormatGUI.struct2PrettyPrintList(dataStruct(1:4)), ...
-                              '<p style="font-family: Helvetica, Arial, sans-serif; color: gray; font-size: 10px; text-align: justify; line-height: 12px; margin: 5px; padding-bottom: 10px;">&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;____________________<br>&thinsp;̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ <br>A seguir são apresentadas informações acerca do método de aferição da ocupação e dos algoritmos de detecção e classificação da emissão.</p>' ...
+                              '<p style="font-family: Helvetica, Arial, sans-serif; color: gray; font-size: 10px; text-align: justify; line-height: 10px; margin: 10px;">&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;____________________<br>&thinsp;̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ <br>A seguir são apresentadas informações acerca do método de aferição da ocupação e dos algoritmos de detecção e classificação da emissão.</p>' ...
                               textFormatGUI.struct2PrettyPrintList(dataStruct(5), 'delete')];
         end
 
@@ -288,7 +288,7 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct(2)  = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData(idxThread).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(idxThread).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));
             dataStruct(3)  = struct('group', 'METADADOS',           'value', metaData);
         
-            htmlContent    = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', emissionTag) ...
+            htmlContent    = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 16px; margin: 10px;"><b>%s</b></p>', emissionTag) ...
                               textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')];
         
             emissionID     = struct('Thread',   struct('Index',     idxThread,                                ...
@@ -325,7 +325,7 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct(end+1) = struct('group', 'CLASSIFICAÇÃO', 'value', struct('Algorithm',  specData.UserData.reportAlgorithms.Classification.Algorithm, ...
                                                                                  'Parameters', specData.UserData.reportAlgorithms.Classification.Parameters));
             
-            htmlContent = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 12px; margin: 5px; padding-top: 5px; padding-bottom: 10px;"><b>%s</b></p>', threadTag), ...
+            htmlContent = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 16px; margin: 10px;"><b>%s</b></p>', threadTag), ...
                            textFormatGUI.struct2PrettyPrintList(dataStruct)];
         end
 
@@ -475,9 +475,9 @@ classdef (Abstract) HtmlTextGenerator
             catch
             end
         
-            htmlContent   = [sprintf('<div><p style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; margin: 5px; color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px;">%s</p><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; display: inline-block; vertical-align: sub;">ID %s</span></div>', stationInfo.Source, stationInfo.ID) ...
-                             sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; margin: 5px;"><b>%s</b></p>', stationTag)                             ...
-                             sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; text-align: justify; margin: 5px; padding-bottom: 10px;">%s</p>', stationInfo.Description) ...
+            htmlContent   = [sprintf('<div style="margin-left: 10px;"><p style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px;">%s</p><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; display: inline-block; vertical-align: sub; margin-left: 5px;">ID %s</span></div>', stationInfo.Source, stationInfo.ID) ...
+                             sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; margin: 10px;"><b>%s</b></p>', stationTag)                             ...
+                             sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; text-align: justify; margin: 10px; padding-bottom: 10px;">%s</p>', stationInfo.Description) ...
                              textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')];
         end
 
@@ -490,15 +490,15 @@ classdef (Abstract) HtmlTextGenerator
             releaseNotes = sortrows(releaseNotes, 'Version', 'descend');    
             [Release, ~, idxRelease] = unique(releaseNotes.Release, 'stable');
         
-            htmlContent  = {'<div style="color: gray; font-family: Helvetica, Arial, sans-serif; font-size: 11px; text-align: justify; margin: 5px;">'};
+            htmlContent  = {'<div style="color: gray; font-family: Helvetica, Arial, sans-serif; font-size: 11px; text-align: justify; margin: 10px;">'};
             for ii = 1:numel(Release)
                 idxReleaseTable = find(idxRelease==ii);
                 [Version, ~, idxVersion] = unique(releaseNotes.Version(idxReleaseTable), 'stable');
-                htmlContent{end+1} = sprintf('<p style="color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 10px; margin: 0px;">%s</p>', Release{ii});
+                htmlContent{end+1} = sprintf('<p style="color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 10px; margin: 5px;">%s</p>', Release{ii});
         
                 for jj = 1:numel(Version)
                     idxVersionTable = find(idxVersion==jj);
-                    htmlContent{end+1} = sprintf('<span style="color: black; font-size: 10px;display: inline-block; vertical-align: sub;">v. %.2f (%s)</span>', Version(jj), releaseNotes.Date(idxReleaseTable(jj)));
+                    htmlContent{end+1} = sprintf('<span style="color: black; font-size: 10px; display: inline-block; vertical-align: sub;">v. %.2f (%s)</span>', Version(jj), releaseNotes.Date(idxReleaseTable(jj)));
         
                     for kk = idxVersionTable'
                         htmlContent{end+1} = sprintf('<p>•&thinsp;%s</p>', releaseNotes.Description{idxReleaseTable(kk)});
