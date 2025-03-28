@@ -29,25 +29,25 @@ function varargout = Summary(specData, idxThreads, callingModule, requestedOutpu
         for Band = Bands'
             tagIdx = strcmp(emissionsTable.Band, Band);
     
-            N1_Licenciada      = sum(tagIdx & strcmpi(emissionsTable.Regulatory,  'Licenciada'));
-            N1_NaoLicenciada   = sum(tagIdx & strcmpi(emissionsTable.Regulatory,  'Não licenciada'));
+            N1_Licenciada      = sum(tagIdx & ismember(emissionsTable.Regulatory, {'Licenciada', 'Licenciada UTE'})); % 'Licenciada' | 'Licenciada UTE'
+            N1_NaoLicenciada   = sum(tagIdx &  strcmpi(emissionsTable.Regulatory, 'Não licenciada'));
             N1_NaoLicenciavel  = sum(tagIdx & contains(emissionsTable.Regulatory, 'Não passível', 'IgnoreCase', true));
     
-            N2_Fundamental     = sum(tagIdx & strcmpi(emissionsTable.Type,        'Fundamental'));
-            N2_Harmonico       = sum(tagIdx & strcmpi(emissionsTable.Type,        'Harmônico de fundamental'));
-            N2_Produto         = sum(tagIdx & strcmpi(emissionsTable.Type,        'Produto de intermodulação'));
-            N2_Espuria         = sum(tagIdx & strcmpi(emissionsTable.Type,        'Espúrio'));
-            N2_NaoIdentificada = sum(tagIdx & strcmpi(emissionsTable.Type,        'Não identificado'));
-            N2_NaoManifestada  = sum(tagIdx & strcmpi(emissionsTable.Type,        'Não se manifestou'));
+            N2_Fundamental     = sum(tagIdx &  strcmpi(emissionsTable.Type,       'Fundamental'));
+            N2_Harmonico       = sum(tagIdx &  strcmpi(emissionsTable.Type,       'Harmônico de fundamental'));
+            N2_Produto         = sum(tagIdx &  strcmpi(emissionsTable.Type,       'Produto de intermodulação'));
+            N2_Espuria         = sum(tagIdx &  strcmpi(emissionsTable.Type,       'Espúrio'));
+            N2_NaoIdentificada = sum(tagIdx &  strcmpi(emissionsTable.Type,       'Não identificado'));
+            N2_NaoManifestada  = sum(tagIdx &  strcmpi(emissionsTable.Type,       'Não se manifestou'));
             N2_Pendente        = sum(tagIdx & contains(emissionsTable.Type,       'Pendente', 'IgnoreCase', true));
     
-            N3_Licenciada      = sum(tagIdx & strcmpi(emissionsTable.Regulatory,  'Licenciada')                       & strcmpi(emissionsTable.Irregular, 'Sim'));
-            N3_NaoLicenciada   = sum(tagIdx & strcmpi(emissionsTable.Regulatory,  'Não licenciada')                   & strcmpi(emissionsTable.Irregular, 'Sim'));
+            N3_Licenciada      = sum(tagIdx & ismember(emissionsTable.Regulatory, {'Licenciada', 'Licenciada UTE'})   & strcmpi(emissionsTable.Irregular, 'Sim'));
+            N3_NaoLicenciada   = sum(tagIdx &  strcmpi(emissionsTable.Regulatory, 'Não licenciada')                   & strcmpi(emissionsTable.Irregular, 'Sim'));
             N3_NaoLicenciavel  = sum(tagIdx & contains(emissionsTable.Regulatory, 'Não passível', 'IgnoreCase', true) & strcmpi(emissionsTable.Irregular, 'Sim'));
             
-            N4_Baixo           = sum(tagIdx & strcmpi(emissionsTable.RiskLevel,   'Baixo'));
-            N4_Medio           = sum(tagIdx & strcmpi(emissionsTable.RiskLevel,   'Médio'));
-            N4_Alto            = sum(tagIdx & strcmpi(emissionsTable.RiskLevel,   'Alto'));
+            N4_Baixo           = sum(tagIdx &  strcmpi(emissionsTable.RiskLevel,  'Baixo'));
+            N4_Medio           = sum(tagIdx &  strcmpi(emissionsTable.RiskLevel,  'Médio'));
+            N4_Alto            = sum(tagIdx &  strcmpi(emissionsTable.RiskLevel,  'Alto'));
     
             N5_Radcom          = sum(tagIdx & (emissionsTable.Service == 231));
             N5_ClasseC         = sum(tagIdx & (emissionsTable.RFDataHubSource == "MOSAICO-SRD") & (emissionsTable.RFDataHubClass == "C"));

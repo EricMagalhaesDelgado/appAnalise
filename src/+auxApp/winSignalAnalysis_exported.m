@@ -317,15 +317,15 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function layout_Regulatory(app)
             switch app.Regulatory.Value
-                case 'Licenciada'
+                case {'Licenciada', 'Licenciada UTE'}
                     set(app.EmissionType, 'Value', 'Fundamental', 'Enable', 0)
                     app.EmissionTypeLabel.Enable   = 0;    
                     set(app.Compliance, 'Items', {'Não', 'Sim'}, 'Value', 'Não')
 
-                case {'Não licenciada', 'Não passível de licenciamento'}    
+                otherwise % {'Não licenciada', 'Não passível de licenciamento'}
                     app.EmissionType.Enable      = 1;
                     app.EmissionTypeLabel.Enable = 1;
-                    app.StationID.Value  = '-1';
+                    app.StationID.Value          = '-1';
     
                     switch app.Regulatory.Value
                         case 'Não licenciada'
@@ -904,13 +904,13 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                     appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                     return
 
-                otherwise % case {'Não licenciada', 'Não passível de licenciamento'}
+                otherwise % case {'Licenciada UTE', 'Não licenciada', 'Não passível de licenciamento'}
                     userDescription = strtrim(app.AdditionalDescription.Value);
                     if isempty(userDescription)
                         app.Regulatory.Value = event.PreviousValue;
     
                         msgWarning = ['O campo "Informações complementares" não pode ficar vazio para registros ' ...
-                                      'relacionados a uma estação "Não licenciada" ou "Não passível de licenciamento".'];
+                                      'relacionados a uma estação "Licenciada UTE", "Não licenciada" ou "Não passível de licenciamento".'];
                         appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                         return
                     end
@@ -938,7 +938,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                         app.AdditionalDescription.Value = event.PreviousValue;
     
                         msgWarning = ['O campo "Informações complementares" não pode ficar vazio para registros ' ...
-                                      'relacionados a uma estação "Não licenciada" ou "Não passível de licenciamento".'];
+                                      'relacionados a uma estação "Licenciada UTE", "Não licenciada" ou "Não passível de licenciamento".'];
                         appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                         return
                     end
@@ -1032,7 +1032,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.tableInfoMetadata.Layout.Row = 1;
             app.tableInfoMetadata.Layout.Column = [1 5];
             app.tableInfoMetadata.Interpreter = 'html';
-            app.tableInfoMetadata.Text = {'Exibindo emissões relacionadas aos fluxos espectrais'; '<p style="color: #808080; font-size:10px; text-align: justify; margin-right: 2px;">A célula "Frequência (MHz)" apresentará <font style="color: red;">ÍCONE DE EDIÇÃO</font> toda vez que alterada a classificação da emissão. Além disso, a célula "Frequência canal (MHz)" apresentará <font style="color: red;">ÍCONE VERMELHO</font> toda vez que o nº da estação for igual a -1, o que ocorre quando a situação da emissão é "Não licenciada" ou "Não passível de licenciamento", ou quando essa informação não consta na base de dados.</p>'};
+            app.tableInfoMetadata.Text = {'Exibindo emissões relacionadas aos fluxos espectrais'; '<p style="color: #808080; font-size:10px; text-align: justify; margin-right: 2px;">A célula "Frequência (MHz)" apresentará <font style="color: red;">ÍCONE DE EDIÇÃO</font> toda vez que alterada a classificação da emissão. Além disso, a célula "Frequência canal (MHz)" apresentará <font style="color: red;">ÍCONE VERMELHO</font> toda vez que o nº da estação for igual a -1, o que ocorre quando a situação da emissão é "Licenciada UTE", "Não licenciada" ou "Não passível de licenciamento", ou quando essa informação não consta na base de dados.</p>'};
 
             % Create tableInfoNRows
             app.tableInfoNRows = uilabel(app.Document);
@@ -1172,14 +1172,14 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             % Create Regulatory
             app.Regulatory = uidropdown(app.EditableParametersGrid);
-            app.Regulatory.Items = {'Licenciada', 'Não licenciada', 'Não passível de licenciamento'};
+            app.Regulatory.Items = {'Licenciada', 'Licenciada UTE', 'Não licenciada', 'Não passível de licenciamento'};
             app.Regulatory.ValueChangedFcn = createCallbackFcn(app, @RegulatoryValueChanged, true);
             app.Regulatory.FontSize = 11;
             app.Regulatory.FontColor = [0.149 0.149 0.149];
             app.Regulatory.BackgroundColor = [1 1 1];
             app.Regulatory.Layout.Row = 2;
             app.Regulatory.Layout.Column = [1 3];
-            app.Regulatory.Value = 'Não passível de licenciamento';
+            app.Regulatory.Value = 'Licenciada';
 
             % Create StationIDLabel
             app.StationIDLabel = uilabel(app.EditableParametersGrid);
