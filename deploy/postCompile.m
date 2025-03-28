@@ -8,7 +8,7 @@ function postCompile(projectName, rootCompiledVersions, matlabRuntimeCache)
     
     arguments
         projectName          char {mustBeMember(projectName, {'appAnalise'})} = 'appAnalise'
-        rootCompiledVersions char = 'D:\_Versões Compiladas dos Apps'
+        rootCompiledVersions char = 'D:\_ANATEL - AppsDeployVersions'
         matlabRuntimeCache   char = 'E:\MATLAB Runtime\MATLAB Runtime (Custom)\R2024a'
     end
 
@@ -30,7 +30,8 @@ function postCompile(projectName, rootCompiledVersions, matlabRuntimeCache)
     % se a compilação for programaticamente realizada, usando "compile.m",
     % será criada apenas a pasta "application".
     desktopCompilerFolder = fullfile(initFolder, 'desktop');
-    desktopCompilerNew    = fullfile(desktopCompilerFolder, 'application');
+    desktopCompilarSplash = fullfile(initFolder, 'desktop_splashscreen');
+    desktopCompilerApp    = fullfile(desktopCompilerFolder, 'application');
 
     % No processo de compilação da versão webapp, o MATLAB cria os arquivos
     % "includedSupportPackages.txt", "mccExcludedFiles.log", "monitorRNI.ctf" 
@@ -51,7 +52,7 @@ function postCompile(projectName, rootCompiledVersions, matlabRuntimeCache)
     % CONFIRMA SE A VERSÃO CUSTOMIZADA DO MATLAB RUNTIME CONTÉM TODOS OS 
     % MÓDULOS NECESSÁRIOS P/ CORRETA EXECUÇÃO DO APP.
     if isfolder(matlabRuntimeCache)
-        fileContent  = strsplit(strtrim(fileread(fullfile(desktopCompilerNew, 'requiredMCRProducts.txt'))), '\t');
+        fileContent  = strsplit(strtrim(fileread(fullfile(desktopCompilerApp, 'requiredMCRProducts.txt'))), '\t');
         mcrProducts  = cellfun(@(x) int64(str2double(x)), fileContent);
     
         cacheContent = dir(fullfile(matlabRuntimeCache, '*.zip'));
@@ -69,12 +70,17 @@ function postCompile(projectName, rootCompiledVersions, matlabRuntimeCache)
     programDataFolder = fullfile(ccTools.fcn.OperationSystem('programData'), 'ANATEL', applicationName);
     databaseFile      = fullfile(programDataFolder, 'DataBase', 'RFDataHub.mat');
     if isfile(databaseFile)
-        copyfile(databaseFile, fullfile(desktopCompilerNew, 'config', 'DataBase', 'RFDataHub.mat'), 'f');
+        copyfile(databaseFile, fullfile(desktopCompilerApp, 'config', 'DataBase', 'RFDataHub.mat'), 'f');
+    end
+
+    % EXCLUI "splash.png", CASO EXISTENTE.
+    if isfile(fullfile(desktopCompilerApp, 'splash.png'))
+        delete(fullfile(desktopCompilerApp, 'splash.png'))
     end
 
     % CRIA ARQUIVO DE INTEGRIDADE "appIntegrity.json", O QUAL SERÁ INSPECIONADO 
     % PELO SPLASHSCREEN.
-    cd(desktopCompilerNew)
+    cd(desktopCompilerApp)
     
     fileName    = [applicationName '.exe'];
     codeRepo    = ['https://github.com/InovaFiscaliza/' projectName];
@@ -99,23 +105,26 @@ function postCompile(projectName, rootCompiledVersions, matlabRuntimeCache)
                           'fileHash',    exeHash,       ...
                           'fileSize',    exeSize);
     
-    writematrix(jsonencode(appIntegrity, 'PrettyPrint', true), fullfile(desktopCompilerNew, 'config', 'appIntegrity.json'), 'FileType', 'text', 'QuoteStrings', 'none')
+    writematrix(jsonencode(appIntegrity, 'PrettyPrint', true), fullfile(desktopCompilerApp, 'config', 'appIntegrity.json'), 'FileType', 'text', 'QuoteStrings', 'none')
 
     % CRIA ARQUIVO ZIPADO QUE POSSIBILITARÁ A ATUALIZAÇÃO DO APLICATIVO
     % POR MEIO DO SPLASHSCREEN.
-    zipProcess(desktopCompilerNew, sprintf('%s_Matlab.zip', applicationName))
+    zipProcess(desktopCompilerApp, sprintf('%s_Matlab.zip', applicationName))
 
-    % 6/7: ORGANIZA PASTA LOCAL QUE ARMAZENA VERSÕES COMPILADAS DO APLICATIVO.
-    if isfolder(fullfile(desktopFinalFolder, 'application'))
-        rmdir(fullfile(desktopFinalFolder, 'application'), 's')
-    end
-    
-    delete(fullfile(appCompiledVersions, sprintf('%s.zip', applicationName)))
-    delete(fullfile(appCompiledVersions, sprintf('%s_Matlab.zip', applicationName)))
+    % ORGANIZA PASTA LOCAL QUE ARMAZENA VERSÕES COMPILADAS DO APLICATIVO.
+    if isfolder(desktopFinalFolder)
+        rmdir(desktopFinalFolder, 's')
+    end    
+    delete(fullfile(appCompiledVersions, sprintf('%s_Installer.zip', applicationName)))
+    delete(fullfile(appCompiledVersions, sprintf('%s_Matlab.zip',    applicationName)))
 
     movefile(fullfile(desktopCompilerFolder, sprintf('%s_Matlab.zip', applicationName)), appCompiledVersions, 'f')
-    movefile(desktopCompilerNew, fullfile(desktopFinalFolder, 'application'), 'f')
-    zipProcess(desktopFinalFolder, sprintf('%s.zip', applicationName))    
+    copyfile(desktopCompilarSplash, desktopFinalFolder, 'f')
+    movefile(desktopCompilerApp,    fullfile(desktopFinalFolder, 'application'), 'f')
+    zipProcess(desktopFinalFolder, sprintf('%s.zip', applicationName))
+
+    zip(fullfile(appCompiledVersions, sprintf('%s_Installer.zip', applicationName)), {fullfile(initFolder, 'install.bat'), fullfile(appCompiledVersions, sprintf('%s.zip', applicationName))})
+    delete(fullfile(appCompiledVersions, sprintf('%s.zip', applicationName)))
 
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

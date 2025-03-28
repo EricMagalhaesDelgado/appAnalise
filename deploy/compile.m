@@ -1,4 +1,4 @@
-function results = compile(prjFileName)
+function results = compile(prjFileName, debugMode)
 
     % Ao compilar aplicativo construído no AppDesigner, usando o deploytool,
     % o MATLAB cria três pastas: 
@@ -14,6 +14,7 @@ function results = compile(prjFileName)
 
     arguments
         prjFileName {mustBeFile} = 'desktop.prj'
+        debugMode (1,1) logical  = false
     end
 
     %-------------------------------------------------------------%
@@ -76,7 +77,11 @@ function results = compile(prjFileName)
         'Verbose',           true,         ...
         'OutputDir',         deployFolder);
 
-    results = compiler.build.standaloneApplication(compilerOpts);
+    if debugMode || ~ispc()
+        results = compiler.build.standaloneApplication(compilerOpts);
+    else
+        results = compiler.build.standaloneWindowsApplication(compilerOpts);
+    end
     cd(initFolder)
 
 
