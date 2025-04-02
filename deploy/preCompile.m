@@ -3,6 +3,8 @@ function preCompile(showDiffApp)
         showDiffApp logical = false
     end
 
+    appName = 'appAnalise';
+
     % Essa função manipula os arquivos .MLAPP do projeto, gerando versões .M.
     % - "winAppAnalise.mlapp"
     %   A versão .M facilita acompanhamento da evolução do projeto por meio 
@@ -66,7 +68,7 @@ function preCompile(showDiffApp)
                     % SUBSTITUIÇÃO 2: CreateComponents+FigurePosition
                     matCodePart = char(extractBetween(matlabCode, oldTag2, oldTag3, 'Boundaries', 'inclusive'));
                     figPosition = regexp(matCodePart, 'app\.UIFigure\.Position = \[\d+ \d+ \d+ \d+\];', 'match', 'once');
-                    matlabCode  = replace(matlabCode, matCodePart, sprintf(Step2Pattern(class.Constants.appName), figPosition));
+                    matlabCode  = replace(matlabCode, matCodePart, sprintf(Step2Pattern(appName), figPosition));
 
                     % SUBSTITUIÇÃO 3: ClassName+Constructor+Delete
                     matlabCode  = replace(matlabCode, [oldTag4 extractAfter(matlabCode, oldTag4)], Step3Pattern(newClassName));

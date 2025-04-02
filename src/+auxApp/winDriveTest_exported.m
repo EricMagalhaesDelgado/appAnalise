@@ -433,6 +433,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             set(app.UIAxes1.LatitudeAxis,  'TickLabels', {}, 'Color', 'none')
             set(app.UIAxes1.LongitudeAxis, 'TickLabels', {}, 'Color', 'none')
+            
             geolimits(app.UIAxes1, 'auto')
             plot.axes.Colormap(app.UIAxes1, app.config_Colormap.Value)
 
@@ -466,7 +467,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             lgd.Title.FontSize = 8.5;
 
             % Colorbar
-            colorBar = colorbar(app.UIAxes1, "Location", "layout", "TickDirection", "none", "HitTest", "off", "PickableParts", "none", "FontSize", 7, "Color", "white", 'AxisLocation', 'in', 'Box', 'off');
+            colorBar = colorbar(app.UIAxes1, "Location", "layout", "TickDirection", "none", "PickableParts", "none", "FontSize", 7, "Color", "white", 'AxisLocation', 'in', 'Box', 'off');
             colorBar.Layout.Tile = 284;
             colorBar.Layout.TileSpan = [6,1];
 
