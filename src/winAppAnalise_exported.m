@@ -1300,6 +1300,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             d = appUtil.modalWindow(app.UIFigure, 'progressdlg', 'Em andamento a leitura de metadados do(s) arquivo(s) selecionado(s).');            
             
             repeteadFiles = {};
+            emptyFiles    = {};
+
             for ii = 1:numel(fileName)
                 d.Message = sprintf('Em andamento a leitura de metadados do arquivo:\n•&thinsp;%s\n\n%d de %d', fileName{ii}, ii, numel(fileName));
                 
@@ -1307,7 +1309,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 [~,~,fileExt] = fileparts(fileFullPath);
 
                 relatedFiles  = RelatedFiles(app.metaData);
-
+                
                 switch lower(fileExt)
                     case {'.bin', '.dbm', '.sm1809', '.csv'}
                         if ~any(contains(relatedFiles, fileName(ii), 'IgnoreCase', true))
@@ -1316,7 +1318,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             app.metaData(idx).File = fileFullPath;
                             app.metaData(idx).Type = 'Spectral data';
                         else
-                            repeteadFiles(end+1) = fileName(ii);
+                            repeteadFiles{end+1} = fileName{ii};
                             continue
                         end
                         
@@ -1363,13 +1365,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     app.metaData(idx).Data    = read(app.metaData(idx).Data, fileFullPath, 'MetaData');
                     app.metaData(idx).Samples = sweepsPerThread(app.metaData(idx).Data);
                     if isempty(app.metaData(idx).Samples)
+                        emptyFiles{end+1} = fileName{ii};
                         error('Empty file')
                     end
                     app.metaData(idx).Memory  = estimateMemory(app.metaData(idx).Data);
 
                 catch ME
-                    appUtil.modalWindow(app.UIFigure, 'error', ME.message);
-
                     delete(app.metaData(idx))
                     app.metaData(idx) = [];
                     fclose('all');
@@ -1381,8 +1382,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
             
             if ~isempty(repeteadFiles)
-                msgWarning = sprintf('Os metadados do(s) arquivo(s) indicado(s) a seguir já tinham sido lidos.\n%s', strjoin(strcat("•&thinsp;", repeteadFiles), '\n'));
+                msgWarning = sprintf('Os metadados dos arquivos indicados a seguir já tinham sido lidos.\n%s', strjoin(strcat('•&thinsp;', repeteadFiles), '\n'));
                 appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+            end
+
+            if ~isempty(emptyFiles)
+                msgWarning = sprintf('Os arquivos indicados a seguir não possuem informação espectral.\n%s',   strjoin(strcat('•&thinsp;', emptyFiles),    '\n'));
+                appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
             end
 
             file_TreeBuilding(app)
