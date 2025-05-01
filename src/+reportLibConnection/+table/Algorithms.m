@@ -7,7 +7,7 @@ function Table = Algorithms(specData, idxThread)
     % Ocupação
     if isempty(specData(idxThread).UserData.Emissions)
         Occupancy = {sprintf('Método: %s',       specData(idxThread).UserData.reportAlgorithms.Occupancy.Method); ...
-                     sprintf('• Parâmetros: %s', jsonencode(structUtil.delEmptyFields(specData(idxThread).UserData.reportAlgorithms.Occupancy, {'Method'})))};
+                     sprintf('- Parâmetros: %s', jsonencode(structUtil.delEmptyFields(specData(idxThread).UserData.reportAlgorithms.Occupancy, {'Method'})))};
 
     else        
         occList  = arrayfun(@(x) x.Occupancy, specData(idxThread).UserData.Emissions.Algorithms, 'UniformOutput', false);
@@ -20,8 +20,8 @@ function Table = Algorithms(specData, idxThread)
             peaksLabel = strjoin(string(sOCCIndex), ', ');
     
             Occupancy(end+1:end+3,1) = {sprintf('Método: %s',       sOCCType.Method);                                                                     ...
-                                        sprintf('• Parâmetros: %s', jsonencode(structUtil.delEmptyFields(sOCCType, {'Method'}), "ConvertInfAndNaN", false)); ...
-                                        sprintf('• Emissões: %s',   peaksLabel)};
+                                        sprintf('- Parâmetros: %s', jsonencode(structUtil.delEmptyFields(sOCCType, {'Method'}), "ConvertInfAndNaN", false)); ...
+                                        sprintf('- Emissões: %s',   peaksLabel)};
     
             if (numel(occType) > 1) && (ii < numel(occType))
                 Occupancy(end+1) = {'&nbsp;'};
@@ -54,7 +54,7 @@ function Table = Algorithms(specData, idxThread)
     else
         Detection = {'Detecção não limitada às emissões identificadas no modo PLAYBACK do appAnalise'; bandLimits; ...
                      sprintf('Algoritmo: %s',  specData(idxThread).UserData.reportAlgorithms.Detection.Algorithm);       ...
-                     sprintf('• Parâmetros: %s', jsonencode(specData(idxThread).UserData.reportAlgorithms.Detection.Parameters, "ConvertInfAndNaN", false))};
+                     sprintf('- Parâmetros: %s', jsonencode(specData(idxThread).UserData.reportAlgorithms.Detection.Parameters, "ConvertInfAndNaN", false))};
     end
 
     if ~isempty(DetectionType)
@@ -68,11 +68,11 @@ function Table = Algorithms(specData, idxThread)
 
         if isfield(sOCCType, 'Parameters')
             Detection(end+1:end+3,1) = {sprintf('Algoritmo: %s',    sOCCType.Algorithm);                                         ...
-                                        sprintf('• Parâmetros: %s', jsonencode(sOCCType.Parameters, "ConvertInfAndNaN", false)); ...
-                                        sprintf('• Emissões: %s',   peaksLabel)};
+                                        sprintf('- Parâmetros: %s', jsonencode(sOCCType.Parameters, "ConvertInfAndNaN", false)); ...
+                                        sprintf('- Emissões: %s',   peaksLabel)};
         else
             Detection(end+1:end+2,1) = {sprintf('Algoritmo: %s',    sOCCType.Algorithm); ...
-                                        sprintf('• Emissões: %s',   peaksLabel)};
+                                        sprintf('- Emissões: %s',   peaksLabel)};
         end
 
         if (numel(DetectionType) > 1) && (ii < numel(DetectionType))
@@ -82,7 +82,7 @@ function Table = Algorithms(specData, idxThread)
     
     % Classificação
     Classification = {sprintf('Algoritmo: %s',  specData(idxThread).UserData.reportAlgorithms.Classification.Algorithm); ...
-                      sprintf('• Parâmetros: %s', jsonencode(specData(idxThread).UserData.reportAlgorithms.Classification.Parameters, "ConvertInfAndNaN", false))};
+                      sprintf('- Parâmetros: %s', jsonencode(specData(idxThread).UserData.reportAlgorithms.Classification.Parameters, "ConvertInfAndNaN", false))};
 
 
     Table(1,:) = {'Ocupação',                  Occupancy};

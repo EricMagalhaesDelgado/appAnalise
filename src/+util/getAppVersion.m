@@ -1,10 +1,9 @@
-function appVersion = getAppVersion(rootFolder, entryPointFolder, temporaryDir, versionType)
+function appVersion = getAppVersion(rootFolder, entryPointFolder, temporaryDir)
 
     arguments
         rootFolder       char
         entryPointFolder char
         temporaryDir     char
-        versionType      char {mustBeMember(versionType, {'full', 'full+Python'})} = 'full'
     end
 
     appName = class.Constants.appName;
@@ -16,9 +15,7 @@ function appVersion = getAppVersion(rootFolder, entryPointFolder, temporaryDir, 
                                             'rootFolder', rootFolder,                 ...
                                             'entryPointFolder',  entryPointFolder,    ...
                                             'ctfRoot',    ctfroot),                   ...
-                        'rfDataHub', [],                                              ...
-                        'python',    [],                                              ...
-                        'fiscaliza', []);
+                        'rfDataHub', []);
 
     % OS
     appVersion.machine = struct('platform',     ccTools.fcn.OperationSystem('platform'),     ...
@@ -49,28 +46,5 @@ function appVersion = getAppVersion(rootFolder, entryPointFolder, temporaryDir, 
     if isempty(RFDataHub) || isempty(RFDataHub_info)
         model.RFDataHub.read(appName, rootFolder, temporaryDir)
     end
-    appVersion.rfDataHub = RFDataHub_info;   
-
-    % PYTHON
-    if versionType == "full+Python"
-        pyEnv = pyenv;
-
-        if isfile(pyEnv.Executable)
-            appVersion.python = struct('Version', pyEnv.Version, 'Path', pyEnv.Home);
-    
-            try
-                [~, pyPackages]  = system(fullfile(pyEnv.Home, 'Scripts', 'pip list'));
-                pyPackages_table = struct2table(regexp(pyPackages, '(?<lib>[a-zA-Z0-9_-]*)\s*(?<ver>[0-9.]+)\n', 'names'));
-        
-                appVersion.python.Packages = strjoin(pyPackages_table.lib + " v. " + pyPackages_table.ver, ', ');
-
-                % fiscaliza
-                idxFind = find(pyPackages_table.lib == "fiscaliza", 1);
-                if ~isempty(idxFind)
-                    appVersion.fiscaliza = pyPackages_table.ver{idxFind};
-                end
-            catch
-            end
-        end
-    end
+    appVersion.rfDataHub = RFDataHub_info;
 end

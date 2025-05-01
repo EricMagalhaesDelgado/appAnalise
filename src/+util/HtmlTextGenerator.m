@@ -41,14 +41,6 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct(2) = struct('group', appName,      'value', appVersion.(appName));
             dataStruct(3) = struct('group', 'RFDataHub',  'value', struct('releasedDate', RFDataHub_info.ReleaseDate, 'numberOfRows', height(RFDataHub), 'numberOfUniqueStations', numel(unique(RFDataHub.("Station")))));
             dataStruct(4) = struct('group', 'MATLAB',     'value', appVersion.matlab);
-
-            if ~isempty(appVersion.python)
-                dataStruct(end+1) = struct('group', 'PYTHON', 'value', appVersion.python);
-            end
-        
-            if ~isempty(appVersion.fiscaliza)
-                dataStruct(end+1) = struct('group', 'FISCALIZA', 'value', appVersion.fiscaliza);
-            end
         
             htmlContent   = sprintf(['<p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; text-align:justify; margin: 10px;">O repositório das '   ...
                                     'ferramentas desenvolvidas no Escritório de inovação da SFI pode ser ' ...
@@ -338,7 +330,6 @@ classdef (Abstract) HtmlTextGenerator
                 % Versão instalada no computador:
                 appName          = class.Constants.appName;
                 presentVersion   = struct(appName,     appGeneral.AppVersion.(appName).version, ...
-                                          'fiscaliza', appGeneral.AppVersion.fiscaliza,         ...
                                           'rfDataHub', appGeneral.AppVersion.rfDataHub); 
                 
                 % Versão estável, indicada nos arquivos de referência (na nuvem):
@@ -349,12 +340,11 @@ classdef (Abstract) HtmlTextGenerator
                 rfdatahubVersion = webread(rfDataHubURL.Release, weboptions("ContentType", "json"));
         
                 stableVersion    = struct(appName,     generalVersions.(appName).Version, ...
-                                          'fiscaliza', generalVersions.fiscaliza.Version, ...
                                           'rfDataHub', rfdatahubVersion.rfdatahub);
                 
                 % Validação:
                 if isequal(presentVersion, stableVersion)
-                    msgWarning   = 'O appAnalise e os seus módulos - fiscaliza e RFDataHub - estão atualizados.';
+                    msgWarning   = 'O appAnalise e o seu módulo - RFDataHub - estão atualizados.';
                     
                 else
                     updatedModule    = {};
@@ -363,12 +353,6 @@ classdef (Abstract) HtmlTextGenerator
                         updatedModule(end+1)    = {'appAnalise'};
                     else
                         nonUpdatedModule(end+1) = {'appAnalise'};
-                    end
-        
-                    if strcmp(presentVersion.fiscaliza,  stableVersion.fiscaliza)
-                        updatedModule(end+1)    = {'fiscaliza'};
-                    else
-                        nonUpdatedModule(end+1) = {'fiscaliza'};
                     end
         
                     if isequal(presentVersion.rfDataHub, stableVersion.rfDataHub)
@@ -407,7 +391,7 @@ classdef (Abstract) HtmlTextGenerator
             % stationService
             global id2nameTable
             if isempty(id2nameTable)
-                serviceOptions = appGeneral.fiscaliza.defaultValues.servicos_da_inspecao.options;
+                serviceOptions = appGeneral.eFiscaliza.defaultValues.servicos_da_inspecao.options;
                 serviceIDs     = int16(str2double(extractBefore(serviceOptions, '-')));
                 id2nameTable   = table(serviceIDs, serviceOptions, 'VariableNames', {'ID', 'Serviço'});
             end

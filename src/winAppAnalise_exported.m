@@ -55,7 +55,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         Tab2_Playback                   matlab.ui.container.Tab
         play_Grid                       matlab.ui.container.GridLayout
         play_toolGrid                   matlab.ui.container.GridLayout
-        tool_FiscalizaAutoFill          matlab.ui.control.Image
         tool_LayoutRight                matlab.ui.control.Image
         tool_FiscalizaUpdate            matlab.ui.control.Image
         tool_ReportGenerator            matlab.ui.control.Image
@@ -69,9 +68,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         submenu_Button6Grid             matlab.ui.container.GridLayout
         submenu_Button6Icon             matlab.ui.control.Image
         submenu_Button6Label            matlab.ui.control.Label
-        submenu_Button5Grid             matlab.ui.container.GridLayout
-        submenu_Button5Icon             matlab.ui.control.Image
-        submenu_Button5Label            matlab.ui.control.Label
         submenu_Button4Grid             matlab.ui.container.GridLayout
         submenu_Button4Icon             matlab.ui.control.Image
         submenu_Button4Label            matlab.ui.control.Label
@@ -110,12 +106,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         misc_SaveLabel                  matlab.ui.control.Label
         misc_Save                       matlab.ui.control.Button
         misc_Label1                     matlab.ui.control.Label
-        report_ControlsTab2Info         matlab.ui.container.GridLayout
-        report_FiscalizaPanel           matlab.ui.container.Panel
-        report_FiscalizaGrid            matlab.ui.container.GridLayout
-        report_FiscalizaIcon            matlab.ui.control.Image
-        report_FiscalizaRefresh         matlab.ui.control.Image
-        report_Fiscaliza_PanelLabel     matlab.ui.control.Label
         report_ControlsTab1Info         matlab.ui.container.GridLayout
         report_ProjectWarnIcon          matlab.ui.control.Image
         report_Tree                     matlab.ui.container.Tree
@@ -123,6 +113,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         report_TreeLabel                matlab.ui.control.Label
         report_DocumentPanel            matlab.ui.container.Panel
         GridLayout4                     matlab.ui.container.GridLayout
+        report_IssueLabel_2             matlab.ui.control.Label
+        report_Version_2                matlab.ui.control.DropDown
         report_Version                  matlab.ui.control.DropDown
         report_VersionLabel             matlab.ui.control.Label
         report_ModelName                matlab.ui.control.DropDown
@@ -410,9 +402,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % cada chamada (usando uiprogressdlg, por exemplo).
         progressDialog
 
-        % Objeto que possibilita integração com o FISCALIZA, consumindo lib
-        % escrita em Python (fiscaliza).
-        fiscalizaObj
+        % Objeto que possibilita integração com o eFiscaliza.
+        eFiscalizaObj
 
         %-----------------------------------------------------------------%
         % PROPRIEDADES ESPECÍFICAS
@@ -504,7 +495,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
                     
                     case 'customForm'
-                        fiscalizaLibConnection.report_Connect(app, event.HTMLEventData, 'OpenConnection')
+                        eFiscaliza_sendRequest(app, event.HTMLEventData, 'uploadDocument')
 
                     otherwise
                         error('UnexpectedEvent')
@@ -525,15 +516,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         switch operationType
                             case 'closeFcn'
                                 closeModule(app.tabGroupController, "CONFIG", app.General)
-                            case 'FiscalizaModeChanged'
-                                % Reinicia o objeto, caso necessário...
-                                if ~isempty(app.fiscalizaObj)
-                                    fiscalizaLibConnection.report_ResetGUI(app)
-
-                                    delete(app.fiscalizaObj)
-                                    app.fiscalizaObj = [];                                    
-                                end
-                                misc_FiscalizaModeChanged(app)
                             otherwise
                                 error('UnexpectedCall')
                         end
@@ -595,7 +577,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         % 6/7: Executa callback, a depender da escolha do usuário.
                         app.General.operationMode.Simulation = simulationFlag;
                         if simulationFlag
-                            app.General.fiscaliza.systemVersion = 'HOM';
+                            app.report_Version_2.Value = app.report_Version_2.Items{end};
                         end
 
                         switch pushedButtonTag
@@ -887,7 +869,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             app.General            = app.General_I;        
-            app.General.AppVersion = util.getAppVersion(app.rootFolder, MFilePath, tempDir, 'full'); % RFDataHub lido aqui
+            app.General.AppVersion = util.getAppVersion(app.rootFolder, MFilePath, tempDir); % RFDataHub lido aqui
 
             % Um dos arquivos que compõem a subpasta "config", copiada para
             % "ProgramData/ANATEL/appAnalise" na primeira execução, é o arquivo 
@@ -1017,9 +999,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
                 end
             end
-
-            % Painel "REPORT >> FISCALIZA"
-            misc_FiscalizaModeChanged(app)
         end
 
         %-----------------------------------------------------------------%
@@ -1156,6 +1135,62 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
     end
 
 
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        % COMUNICAÇÃO COM SISTEMA DE GESTÃO DA FISCALIZAÇÃO:
+        % • eFiscaliza (PD | HM | DS)
+        %-----------------------------------------------------------------%
+        function eFiscaliza_sendRequest(app, credentials, operation)
+            app.progressDialog.Visible = 'visible';
+
+            try
+                if ~isempty(credentials)
+                    app.eFiscalizaObj = ws.eFiscaliza(credentials.login, credentials.password);
+                end
+
+                switch operation
+                    case 'uploadDocument'
+                        env = strsplit(app.report_Version_2.Value);
+                        if numel(env) < 2
+                            env = 'PD';
+                        else
+                            env = env{2};
+                        end
+
+                        issue    = struct('type', 'ATIVIDADE DE INSPEÇÃO', 'id', app.report_Issue.Value);
+                        fileName = app.projectData.generatedFiles.lastHTMLDocFullPath;                        
+                        docSpec  = app.General.eFiscaliza;
+                        docSpec.originId = docSpec.internal.originId;
+                        docSpec.typeId   = docSpec.internal.typeId;
+
+                        [status, message] = run(app.eFiscalizaObj, env, operation, issue, docSpec, fileName);
+        
+                    otherwise
+                        error('Unexpected call')
+                end
+
+                messageIcon = 'info';
+                if contains(message, 'error', 'IgnoreCase', true)
+                    messageIcon = 'error';
+                    app.eFiscalizaObj = [];
+                end
+
+                appUtil.modalWindow(app.UIFigure, messageIcon, sprintf('<b>%s</b>\n%s', status, message));
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                app.eFiscalizaObj = [];
+            end
+
+            app.progressDialog.Visible = 'hidden';        
+        end 
+        
+        %-------------------------------------------------------------------------%
+        function status = eFiscaliza_checkIssueId(app)
+            status = (app.report_Issue.Value > 0) && (app.report_Issue.Value < inf);
+        end
+    end
+
+
     methods
         %-----------------------------------------------------------------%
         % CUSTOMIZAÇÃO DECORRENTE DA TROCA DO MODO DE OPERAÇÃO
@@ -1171,10 +1206,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.play_TreePanelVisibility.Visible       = 1;
                 app.play_TreePanelVisibility.UserData.Mode = 'PLAYBACK';
 
-                set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=1)
-                set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=0)
-                set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=0)
-
                 play_submenuButtonPushed(app, struct('Source', app.submenu_Button1Icon))
 
             elseif app.menu_Button3.Value
@@ -1182,10 +1213,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 
                 app.play_TreePanelVisibility.Visible       = 0;
                 app.play_TreePanelVisibility.UserData.Mode = 'REPORT';
-
-                set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=0)
-                set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=1)
-                set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=1, Enable=0)
 
                 play_submenuButtonPushed(app, struct('Source', app.submenu_Button4Icon))
 
@@ -1198,10 +1225,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     case 'REPORT'
                         app.play_TreePanelVisibility.Visible = 0;
                 end
-
-                set(findobj(app.play_toolGrid, 'Tag', 'PLAYBACK'),  Visible=0)
-                set(findobj(app.play_toolGrid, 'Tag', 'REPORT'),    Visible=0)
-                set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), Visible=0)
 
                 play_submenuButtonPushed(app, struct('Source', app.submenu_Button6Icon))
             end
@@ -1266,7 +1289,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function DeleteProject(app, operationType)
-            % Reinicia abas FISCALIZAÇÃO e API FISCALIZA.
             Restart(app.projectData)
             app.report_ProjectName.Value = '';
             app.report_Issue.Value       = -1;       
@@ -2925,11 +2947,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ModelName.Value    = app.projectData.documentModel;
         end
 
-        %-----------------------------------------------------------------%
-        function status = report_checkValidIssueID(app)
-            status = (app.report_Issue.Value > 0) && (app.report_Issue.Value < inf);
-        end
-
 
         %-----------------------------------------------------------------%
         % MISCELÂNEAS
@@ -3078,16 +3095,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             misc_updateLastVisitedFolder(app, fileFolder)
             
             util.importAnalysis(app, app.specData(idx), fileFullPath)
-        end
-
-        %-----------------------------------------------------------------%
-        function misc_FiscalizaModeChanged(app)
-            switch app.General.fiscaliza.systemVersion
-                case 'PROD'
-                    app.submenu_Button5Label.Text = 'API FISCALIZA';        
-                case 'HOM'
-                    app.submenu_Button5Label.Text = 'API FISCALIZA HOMOLOGAÇÃO';
-            end
         end
     end
     
@@ -3471,61 +3478,48 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         % Image clicked function: submenu_Button1Icon, 
-        % ...and 4 other components
+        % ...and 3 other components
         function play_submenuButtonPushed(app, event)
             
             switch event.Source.Tag
                 case 'PLAYBACK:GENERAL'
-                    submenuColumnWidth     = {'1x',22,22,0,0,0};
+                    submenuColumnWidth     = {'1x',22,22,0,0};
                     submenuUnderlineColumn = 1;
-                    app.play_ControlsGrid.RowHeight(2:7) = {'1x',0,0,0,0,0};
+                    app.play_ControlsGrid.RowHeight(2:6) = {'1x',0,0,0,0};
                     
                     app.submenu_Button1Grid.ColumnWidth = {18,'1x'};
                     app.submenu_Button2Grid.ColumnWidth = {18,0};
                     app.submenu_Button3Grid.ColumnWidth = {18,0};
                 
                 case 'PLAYBACK:CHANNEL'
-                    submenuColumnWidth     = {22,'1x',22,0,0,0};
+                    submenuColumnWidth     = {22,'1x',22,0,0};
                     submenuUnderlineColumn = 2;
-                    app.play_ControlsGrid.RowHeight(2:7) = {0,'1x',0,0,0,0};
+                    app.play_ControlsGrid.RowHeight(2:6) = {0,'1x',0,0,0};
 
                     app.submenu_Button1Grid.ColumnWidth = {18,0};
                     app.submenu_Button2Grid.ColumnWidth = {18,'1x'};
                     app.submenu_Button3Grid.ColumnWidth = {18,0};
                 
                 case 'PLAYBACK:EMISSION'
-                    submenuColumnWidth     = {22,22,'1x',0,0,0};
+                    submenuColumnWidth     = {22,22,'1x',0,0};
                     submenuUnderlineColumn = 3;
-                    app.play_ControlsGrid.RowHeight(2:7) = {0,0,'1x',0,0,0};
+                    app.play_ControlsGrid.RowHeight(2:6) = {0,0,'1x',0,0};
 
                     app.submenu_Button1Grid.ColumnWidth = {18,0};
                     app.submenu_Button2Grid.ColumnWidth = {18,0};
                     app.submenu_Button3Grid.ColumnWidth = {18,'1x'};
                 
                 case 'REPORT:GENERAL'
-                    submenuColumnWidth     = {0,0,0,'1x',22,0};
+                    submenuColumnWidth     = {0,0,0,'1x',0};
                     submenuUnderlineColumn = 4;
-                    app.play_ControlsGrid.RowHeight(2:7) = {0,0,0,'1x',0,0};
-                    set(findobj(app.play_toolGrid, 'Tag', 'FISCALIZA'), 'Enable', 0)
+                    app.play_ControlsGrid.RowHeight(2:6) = {0,0,0,'1x',0};
 
                     app.submenu_Button4Grid.ColumnWidth = {18,'1x'};
-                    app.submenu_Button5Grid.ColumnWidth = {18,0};
-                
-                case 'REPORT:FISCALIZA'
-                    submenuColumnWidth     = {0,0,0,22,'1x',0};
-                    submenuUnderlineColumn = 5;
-                    
-                    if ~fiscalizaLibConnection.report_StaticButtonPushed(app, event)
-                        return
-                    end
-
-                    app.submenu_Button4Grid.ColumnWidth = {18,0};
-                    app.submenu_Button5Grid.ColumnWidth = {18,'1x'};
 
                 case 'MISC:GENERAL'
-                    submenuColumnWidth     = {0,0,0,0,0,'1x'};
-                    submenuUnderlineColumn = 6;
-                    app.play_ControlsGrid.RowHeight(2:7) = {0,0,0,0,0,'1x'};
+                    submenuColumnWidth     = {0,0,0,0,'1x'};
+                    submenuUnderlineColumn = 5;
+                    app.play_ControlsGrid.RowHeight(2:6) = {0,0,0,0,'1x'};
             end
 
             app.submenu_Grid.ColumnWidth       = submenuColumnWidth;
@@ -5196,7 +5190,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
 
                         % INSPEÇÃO
-                        if ~report_checkValidIssueID(app)
+                        if ~eFiscaliza_checkIssueId(app)
                             msgWarning = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
                             appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                             return
@@ -5231,11 +5225,36 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: report_FiscalizaRefresh, 
-        % ...and 2 other components
+        % Image clicked function: tool_FiscalizaUpdate
         function report_FiscalizaStaticButtonPushed(app, event)
-            
-            fiscalizaLibConnection.report_StaticButtonPushed(app, event)
+    
+            % <VALIDATION>
+            msg = '';
+            if all(~arrayfun(@(x) x.UserData.reportFlag, app.specData))
+                msg = 'É necessário incluir pelo menos um fluxo espectral na lista de fluxos a processar.';
+            elseif ~eFiscaliza_checkIssueId(app)
+                msg = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
+            elseif isempty(app.projectData.generatedFiles) || isempty(app.projectData.generatedFiles.lastHTMLDocFullPath)
+                msg = 'A versão definitiva do relatório ainda não foi gerada.';
+            elseif ~isfile(app.projectData.generatedFiles.lastHTMLDocFullPath)
+                msg = sprintf('O arquivo "%s" não foi encontrado.', app.projectData.generatedFiles.lastHTMLDocFullPath);
+            end
+
+            if ~isempty(msg)
+                appUtil.modalWindow(app.UIFigure, 'warning', msg);
+                return
+            end
+            % </VALIDATION>
+
+            % <PROCESS>
+            if isempty(app.eFiscalizaObj)
+                dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
+                dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
+                sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', char(matlab.lang.internal.uuid()), 'Fields', dialogBox))
+            else
+                eFiscaliza_sendRequest(app, [], 'uploadDocument')
+            end
+            % </PROCESS>
 
         end
 
@@ -5340,10 +5359,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             
             switch event.Source
                 case app.report_ModelName
-                    if ~isempty(app.report_ModelName.Value)
-                        app.tool_ReportGenerator.Enable = 1;
-                    else
+                    if isempty(app.report_ModelName.Value)
                         app.tool_ReportGenerator.Enable = 0;
+                    else
+                        app.tool_ReportGenerator.Enable = 1;
                     end
 
                 case app.report_Version
@@ -6035,7 +6054,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_ControlsGrid
             app.play_ControlsGrid = uigridlayout(app.play_Grid);
             app.play_ControlsGrid.ColumnWidth = {'1x'};
-            app.play_ControlsGrid.RowHeight = {26, 880, 600, 600, 500, '1x', 320};
+            app.play_ControlsGrid.RowHeight = {26, 880, 600, 600, 500, 320};
             app.play_ControlsGrid.ColumnSpacing = 5;
             app.play_ControlsGrid.RowSpacing = 5;
             app.play_ControlsGrid.Padding = [0 0 5 0];
@@ -7750,7 +7769,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Issue.FontSize = 11;
             app.report_Issue.FontColor = [0.149 0.149 0.149];
             app.report_Issue.Layout.Row = 2;
-            app.report_Issue.Layout.Column = 1;
+            app.report_Issue.Layout.Column = [4 5];
             app.report_Issue.Value = -1;
 
             % Create report_IssueLabel
@@ -7760,8 +7779,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_IssueLabel.FontSize = 10;
             app.report_IssueLabel.FontColor = [0.149 0.149 0.149];
             app.report_IssueLabel.Layout.Row = 1;
-            app.report_IssueLabel.Layout.Column = 1;
-            app.report_IssueLabel.Text = 'Inspeção:';
+            app.report_IssueLabel.Layout.Column = [1 3];
+            app.report_IssueLabel.Text = 'Sistema:';
 
             % Create report_ModelNameLabel
             app.report_ModelNameLabel = uilabel(app.GridLayout4);
@@ -7809,6 +7828,25 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Version.Layout.Column = [4 5];
             app.report_Version.Value = 'Preliminar';
 
+            % Create report_Version_2
+            app.report_Version_2 = uidropdown(app.GridLayout4);
+            app.report_Version_2.Items = {'eFiscaliza', 'eFiscaliza DS', 'eFiscaliza HM'};
+            app.report_Version_2.FontSize = 11;
+            app.report_Version_2.BackgroundColor = [1 1 1];
+            app.report_Version_2.Layout.Row = 2;
+            app.report_Version_2.Layout.Column = [1 3];
+            app.report_Version_2.Value = 'eFiscaliza';
+
+            % Create report_IssueLabel_2
+            app.report_IssueLabel_2 = uilabel(app.GridLayout4);
+            app.report_IssueLabel_2.VerticalAlignment = 'bottom';
+            app.report_IssueLabel_2.WordWrap = 'on';
+            app.report_IssueLabel_2.FontSize = 10;
+            app.report_IssueLabel_2.FontColor = [0.149 0.149 0.149];
+            app.report_IssueLabel_2.Layout.Row = 1;
+            app.report_IssueLabel_2.Layout.Column = 4;
+            app.report_IssueLabel_2.Text = 'Id:';
+
             % Create report_TreeLabel
             app.report_TreeLabel = uilabel(app.report_ControlsTab1Info);
             app.report_TreeLabel.VerticalAlignment = 'bottom';
@@ -7842,54 +7880,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ProjectWarnIcon.VerticalAlignment = 'bottom';
             app.report_ProjectWarnIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Warn_18.png');
 
-            % Create report_ControlsTab2Info
-            app.report_ControlsTab2Info = uigridlayout(app.play_ControlsGrid);
-            app.report_ControlsTab2Info.ColumnWidth = {'1x', 16};
-            app.report_ControlsTab2Info.RowHeight = {22, '1x'};
-            app.report_ControlsTab2Info.ColumnSpacing = 5;
-            app.report_ControlsTab2Info.RowSpacing = 5;
-            app.report_ControlsTab2Info.Padding = [0 0 0 0];
-            app.report_ControlsTab2Info.Layout.Row = 6;
-            app.report_ControlsTab2Info.Layout.Column = 1;
-            app.report_ControlsTab2Info.BackgroundColor = [1 1 1];
-
-            % Create report_Fiscaliza_PanelLabel
-            app.report_Fiscaliza_PanelLabel = uilabel(app.report_ControlsTab2Info);
-            app.report_Fiscaliza_PanelLabel.VerticalAlignment = 'bottom';
-            app.report_Fiscaliza_PanelLabel.FontSize = 10;
-            app.report_Fiscaliza_PanelLabel.Layout.Row = 1;
-            app.report_Fiscaliza_PanelLabel.Layout.Column = 1;
-            app.report_Fiscaliza_PanelLabel.Text = 'ASPECTOS GERAIS';
-
-            % Create report_FiscalizaRefresh
-            app.report_FiscalizaRefresh = uiimage(app.report_ControlsTab2Info);
-            app.report_FiscalizaRefresh.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaStaticButtonPushed, true);
-            app.report_FiscalizaRefresh.Tooltip = {'Atualiza informações da inspeção'};
-            app.report_FiscalizaRefresh.Layout.Row = 1;
-            app.report_FiscalizaRefresh.Layout.Column = 2;
-            app.report_FiscalizaRefresh.VerticalAlignment = 'bottom';
-            app.report_FiscalizaRefresh.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Refresh_18.png');
-
-            % Create report_FiscalizaPanel
-            app.report_FiscalizaPanel = uipanel(app.report_ControlsTab2Info);
-            app.report_FiscalizaPanel.AutoResizeChildren = 'off';
-            app.report_FiscalizaPanel.Layout.Row = 2;
-            app.report_FiscalizaPanel.Layout.Column = [1 2];
-
-            % Create report_FiscalizaGrid
-            app.report_FiscalizaGrid = uigridlayout(app.report_FiscalizaPanel);
-            app.report_FiscalizaGrid.ColumnWidth = {'1x'};
-            app.report_FiscalizaGrid.RowHeight = {'1x'};
-            app.report_FiscalizaGrid.BackgroundColor = [1 1 1];
-
-            % Create report_FiscalizaIcon
-            app.report_FiscalizaIcon = uiimage(app.report_FiscalizaGrid);
-            app.report_FiscalizaIcon.Tag = 'FiscalizaPlaceHolder';
-            app.report_FiscalizaIcon.Enable = 'off';
-            app.report_FiscalizaIcon.Layout.Row = 1;
-            app.report_FiscalizaIcon.Layout.Column = 1;
-            app.report_FiscalizaIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Redmine_512.png');
-
             % Create misc_ControlsTab1Info
             app.misc_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
             app.misc_ControlsTab1Info.ColumnWidth = {'1x'};
@@ -7897,7 +7887,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.misc_ControlsTab1Info.ColumnSpacing = 5;
             app.misc_ControlsTab1Info.RowSpacing = 5;
             app.misc_ControlsTab1Info.Padding = [0 0 0 0];
-            app.misc_ControlsTab1Info.Layout.Row = 7;
+            app.misc_ControlsTab1Info.Layout.Row = 6;
             app.misc_ControlsTab1Info.Layout.Column = 1;
             app.misc_ControlsTab1Info.BackgroundColor = [1 1 1];
 
@@ -8136,7 +8126,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create submenu_Grid
             app.submenu_Grid = uigridlayout(app.play_ControlsGrid);
-            app.submenu_Grid.ColumnWidth = {'1x', 22, 22, 0, 0, 0};
+            app.submenu_Grid.ColumnWidth = {'1x', 22, 22, 0, 0};
             app.submenu_Grid.RowHeight = {'1x', 3};
             app.submenu_Grid.ColumnSpacing = 2;
             app.submenu_Grid.RowSpacing = 0;
@@ -8260,33 +8250,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.submenu_Button4Icon.HorizontalAlignment = 'left';
             app.submenu_Button4Icon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Report_18.png');
 
-            % Create submenu_Button5Grid
-            app.submenu_Button5Grid = uigridlayout(app.submenu_Grid);
-            app.submenu_Button5Grid.ColumnWidth = {18, 0};
-            app.submenu_Button5Grid.RowHeight = {'1x'};
-            app.submenu_Button5Grid.ColumnSpacing = 3;
-            app.submenu_Button5Grid.Padding = [2 0 0 0];
-            app.submenu_Button5Grid.Layout.Row = 1;
-            app.submenu_Button5Grid.Layout.Column = 5;
-            app.submenu_Button5Grid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create submenu_Button5Label
-            app.submenu_Button5Label = uilabel(app.submenu_Button5Grid);
-            app.submenu_Button5Label.FontSize = 11;
-            app.submenu_Button5Label.Layout.Row = 1;
-            app.submenu_Button5Label.Layout.Column = 2;
-            app.submenu_Button5Label.Text = 'API FISCALIZA';
-
-            % Create submenu_Button5Icon
-            app.submenu_Button5Icon = uiimage(app.submenu_Button5Grid);
-            app.submenu_Button5Icon.ScaleMethod = 'none';
-            app.submenu_Button5Icon.ImageClickedFcn = createCallbackFcn(app, @play_submenuButtonPushed, true);
-            app.submenu_Button5Icon.Tag = 'REPORT:FISCALIZA';
-            app.submenu_Button5Icon.Layout.Row = 1;
-            app.submenu_Button5Icon.Layout.Column = [1 2];
-            app.submenu_Button5Icon.HorizontalAlignment = 'left';
-            app.submenu_Button5Icon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Redmine_18.png');
-
             % Create submenu_Button6Grid
             app.submenu_Button6Grid = uigridlayout(app.submenu_Grid);
             app.submenu_Button6Grid.ColumnWidth = {18, '1x'};
@@ -8294,7 +8257,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.submenu_Button6Grid.ColumnSpacing = 3;
             app.submenu_Button6Grid.Padding = [2 0 0 0];
             app.submenu_Button6Grid.Layout.Row = 1;
-            app.submenu_Button6Grid.Layout.Column = 6;
+            app.submenu_Button6Grid.Layout.Column = 5;
             app.submenu_Button6Grid.BackgroundColor = [0.749 0.749 0.749];
 
             % Create submenu_Button6Label
@@ -8368,21 +8331,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create tool_ReportGenerator
             app.tool_ReportGenerator = uiimage(app.play_toolGrid);
             app.tool_ReportGenerator.ImageClickedFcn = createCallbackFcn(app, @report_playButtonPushed, true);
-            app.tool_ReportGenerator.Tag = 'REPORT';
             app.tool_ReportGenerator.Enable = 'off';
-            app.tool_ReportGenerator.Visible = 'off';
             app.tool_ReportGenerator.Tooltip = {'Gera relatório'};
             app.tool_ReportGenerator.Layout.Row = 2;
-            app.tool_ReportGenerator.Layout.Column = 15;
+            app.tool_ReportGenerator.Layout.Column = 16;
             app.tool_ReportGenerator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Publish_HTML_16.png');
 
             % Create tool_FiscalizaUpdate
             app.tool_FiscalizaUpdate = uiimage(app.play_toolGrid);
             app.tool_FiscalizaUpdate.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaStaticButtonPushed, true);
-            app.tool_FiscalizaUpdate.Tag = 'FISCALIZA';
-            app.tool_FiscalizaUpdate.Enable = 'off';
-            app.tool_FiscalizaUpdate.Visible = 'off';
-            app.tool_FiscalizaUpdate.Tooltip = {'Atualiza inspeção no FISCALIZA'};
+            app.tool_FiscalizaUpdate.Tooltip = {'Upload relatório'};
             app.tool_FiscalizaUpdate.Layout.Row = 2;
             app.tool_FiscalizaUpdate.Layout.Column = 17;
             app.tool_FiscalizaUpdate.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Up_24.png');
@@ -8393,17 +8351,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_LayoutRight.Layout.Row = 2;
             app.tool_LayoutRight.Layout.Column = 18;
             app.tool_LayoutRight.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'ArrowRight_32.png');
-
-            % Create tool_FiscalizaAutoFill
-            app.tool_FiscalizaAutoFill = uiimage(app.play_toolGrid);
-            app.tool_FiscalizaAutoFill.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaStaticButtonPushed, true);
-            app.tool_FiscalizaAutoFill.Tag = 'FISCALIZA';
-            app.tool_FiscalizaAutoFill.Enable = 'off';
-            app.tool_FiscalizaAutoFill.Visible = 'off';
-            app.tool_FiscalizaAutoFill.Tooltip = {'Preenche campos automaticamente'};
-            app.tool_FiscalizaAutoFill.Layout.Row = 2;
-            app.tool_FiscalizaAutoFill.Layout.Column = 16;
-            app.tool_FiscalizaAutoFill.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'AutoFill_36Blue.png');
 
             % Create Tab3_DriveTest
             app.Tab3_DriveTest = uitab(app.TabGroup);

@@ -313,7 +313,7 @@ function value = Fcn_Source(specData, idxThreads, idx, reportInfo, fieldName)
             value = {};
 
             % Description
-            value{end+1} = sprintf('• Descrição: "%s"', Fcn_Source(specData, idxThreads, idx, reportInfo, 'Description'));
+            value{end+1} = sprintf('- Descrição: "%s"', Fcn_Source(specData, idxThreads, idx, reportInfo, 'Description'));
             
             % TraceMode+TraceIntegration+Detector
             if ~isempty(specData(idxThreads(idx)).MetaData.TraceMode) 
@@ -323,18 +323,18 @@ function value = Fcn_Source(specData, idxThreads, idx, reportInfo, fieldName)
                 end
 
                 if ~isempty(specData(idxThreads(idx)).MetaData.Detector)
-                    Operation = sprintf('• Operação: %s-%s%s', specData(idxThreads(idx)).MetaData.TraceMode, specData(idxThreads(idx)).MetaData.Detector, TraceIntegration);
+                    Operation = sprintf('- Operação: %s-%s%s', specData(idxThreads(idx)).MetaData.TraceMode, specData(idxThreads(idx)).MetaData.Detector, TraceIntegration);
                 else
-                    Operation = sprintf('• Operação: %s%s', specData(idxThreads(idx)).MetaData.TraceMode, TraceIntegration);
+                    Operation = sprintf('- Operação: %s%s', specData(idxThreads(idx)).MetaData.TraceMode, TraceIntegration);
                 end
 
             elseif ~isempty(specData(idxThreads(idx)).MetaData.Detector)
-                Operation = sprintf('• Operação: %s', specData(idxThreads(idx)).MetaData.Detector);
+                Operation = sprintf('- Operação: %s', specData(idxThreads(idx)).MetaData.Detector);
             end
             value{end+1} = Operation;
 
             % DataPoints
-            value{end+1} = sprintf('• %d pontos por varredura', specData(idxThreads(idx)).MetaData.DataPoints);
+            value{end+1} = sprintf('- %d pontos por varredura', specData(idxThreads(idx)).MetaData.DataPoints);
 
             % Resolution+VBW+StepWidth
             RBW       = specData(idxThreads(idx)).MetaData.Resolution/1000;
@@ -342,29 +342,29 @@ function value = Fcn_Source(specData, idxThreads, idx, reportInfo, fieldName)
             StepWidth = Fcn_Source(specData, idxThreads, idx, reportInfo, 'StepWidth');
 
             if (specData(idxThreads(idx)).MetaData.Resolution ~= -1) && (specData(idxThreads(idx)).MetaData.VBW ~= -1)
-                Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (VBW), %.3f kHz (Passo da varredura)', RBW, VBW, StepWidth);
+                Resolution = sprintf('- Resolução: %.3f kHz (RBW), %.3f kHz (VBW), %.3f kHz (Passo da varredura)', RBW, VBW, StepWidth);
             elseif specData(idxThreads(idx)).MetaData.Resolution ~= -1
-                Resolution = sprintf('• Resolução: %.3f kHz (RBW), %.3f kHz (Passo da varredura)', RBW, StepWidth);
+                Resolution = sprintf('- Resolução: %.3f kHz (RBW), %.3f kHz (Passo da varredura)', RBW, StepWidth);
             elseif specData(idxThreads(idx)).MetaData.VBW ~= -1
-                Resolution = sprintf('• Resolução: %.3f kHz (VBW), %.3f kHz (Passo da varredura)', VBW, StepWidth);
+                Resolution = sprintf('- Resolução: %.3f kHz (VBW), %.3f kHz (Passo da varredura)', VBW, StepWidth);
             else
-                Resolution = sprintf('• Resolução: %.3f kHz (Passo da varredura)', StepWidth);
+                Resolution = sprintf('- Resolução: %.3f kHz (Passo da varredura)', StepWidth);
             end
             value{end+1} = Resolution;
 
             % Antenna
-            value{end+1} = sprintf('• Antena: %s', jsonencode(specData(idxThreads(idx)).MetaData.Antenna));
+            value{end+1} = sprintf('- Antena: %s', jsonencode(specData(idxThreads(idx)).MetaData.Antenna));
 
             % GPS
-            value{end+1} = sprintf('• GPS: %.6f, %.6f (%s)', specData(idxThreads(idx)).GPS.Latitude,  ...
+            value{end+1} = sprintf('- GPS: %.6f, %.6f (%s)', specData(idxThreads(idx)).GPS.Latitude,  ...
                                                              specData(idxThreads(idx)).GPS.Longitude, ...
                                                              specData(idxThreads(idx)).GPS.Location);
             % Lista de arquivos
-            value{end+1} = sprintf('• Arquivo(s): %s', Fcn_Source(specData, idxThreads, idx, reportInfo, 'RelatedFiles'));
+            value{end+1} = sprintf('- Arquivo(s): %s', Fcn_Source(specData, idxThreads, idx, reportInfo, 'RelatedFiles'));
 
             % Others
             if ~isempty(specData(idxThreads(idx)).MetaData.Others)
-                value{end+1} = sprintf('• Outros metadados: %s', specData(idxThreads(idx)).MetaData.Others);
+                value{end+1} = sprintf('- Outros metadados: %s', specData(idxThreads(idx)).MetaData.Others);
             end
 
             value = strjoin(value, '<br>');

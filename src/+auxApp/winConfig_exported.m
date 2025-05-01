@@ -2,93 +2,81 @@ classdef winConfig_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                      matlab.ui.Figure
-        GridLayout                    matlab.ui.container.GridLayout
-        jsBackDoor                    matlab.ui.control.HTML
-        tool_RFDataHubButton          matlab.ui.control.Image
-        tool_FiscalizaButton          matlab.ui.control.Image
-        tool_LeftPanelVisibility      matlab.ui.control.Image
-        Document                      matlab.ui.container.GridLayout
-        CustomPlotGrid                matlab.ui.container.GridLayout
-        general_ElevationPanel        matlab.ui.container.Panel
-        general_ElevationGrid         matlab.ui.container.GridLayout
-        ElevationForceSearch          matlab.ui.control.CheckBox
-        ElevationNPoints              matlab.ui.control.DropDown
-        ElevationNPointsLabel         matlab.ui.control.Label
-        ElevationAPIServer            matlab.ui.control.DropDown
-        ElevationAPIServerLabel       matlab.ui.control.Label
-        general_ElevationRefresh      matlab.ui.control.Image
-        general_ElevationLabel        matlab.ui.control.Label
-        general_GraphicsPanel         matlab.ui.container.Panel
-        general_GraphicsGrid          matlab.ui.container.GridLayout
-        InitialBW_kHz                 matlab.ui.control.Spinner
-        InitialBW_kHzLabel            matlab.ui.control.Label
-        yOccupancyScale               matlab.ui.control.DropDown
-        yOccupancyScaleLabel          matlab.ui.control.Label
-        imgResolution                 matlab.ui.control.DropDown
-        imgResolutionLabel            matlab.ui.control.Label
-        imgFormat                     matlab.ui.control.DropDown
-        imgFormatLabel                matlab.ui.control.Label
-        graphics_Refresh              matlab.ui.control.Image
-        general_GraphicsLabel         matlab.ui.control.Label
-        general_FilePanel             matlab.ui.container.Panel
-        general_FileGrid              matlab.ui.container.GridLayout
-        detectionManualMode           matlab.ui.control.CheckBox
-        channelManualMode             matlab.ui.control.CheckBox
-        mergeDistance                 matlab.ui.control.Spinner
-        mergeLabel2                   matlab.ui.control.Label
-        mergeAntenna                  matlab.ui.control.CheckBox
-        mergeDataType                 matlab.ui.control.CheckBox
-        mergeLabel1                   matlab.ui.control.Label
-        general_FileLabel             matlab.ui.control.Label
-        general_mergeRefresh          matlab.ui.control.Image
-        Folders_Grid                  matlab.ui.container.GridLayout
-        FolderMapPanel                matlab.ui.container.Panel
-        FolderMapGrid                 matlab.ui.container.GridLayout
-        tempPath                      matlab.ui.control.EditField
-        tempPathLabel                 matlab.ui.control.Label
-        userPathButton                matlab.ui.control.Image
-        userPath                      matlab.ui.control.EditField
-        userPathLabel                 matlab.ui.control.Label
-        pythonPathButton              matlab.ui.control.Image
-        pythonPath                    matlab.ui.control.EditField
-        pythonPathLabel               matlab.ui.control.Label
-        DataHubPOSTButton             matlab.ui.control.Image
-        DataHubPOST                   matlab.ui.control.EditField
-        DataHubPOSTLabel              matlab.ui.control.Label
-        DataHubGETButton              matlab.ui.control.Image
-        DataHubGET                    matlab.ui.control.EditField
-        DataHubGETLabel               matlab.ui.control.Label
-        config_FolderMapLabel         matlab.ui.control.Label
-        APIFiscaliza_Grid             matlab.ui.container.GridLayout
-        Panel                         matlab.ui.container.Panel
-        GridLayout2                   matlab.ui.container.GridLayout
-        config_FiscalizaVersion       matlab.ui.container.ButtonGroup
-        config_FiscalizaHM            matlab.ui.control.RadioButton
-        config_FiscalizaPD            matlab.ui.control.RadioButton
-        config_FiscalizaVersionLabel  matlab.ui.control.Label
-        General_Grid                  matlab.ui.container.GridLayout
-        openAuxiliarApp2Debug         matlab.ui.control.CheckBox
-        openAuxiliarAppAsDocked       matlab.ui.control.CheckBox
-        gpuType                       matlab.ui.control.DropDown
-        gpuTypeLabel                  matlab.ui.control.Label
-        general_AppVersionPanel       matlab.ui.container.Panel
-        general_AppVersionGrid        matlab.ui.container.GridLayout
-        AppVersion                    matlab.ui.control.HTML
-        AppVersionRefresh             matlab.ui.control.Image
-        general_AppVersionLabel       matlab.ui.control.Label
-        LeftPanel                     matlab.ui.container.Panel
-        LeftPanelGrid                 matlab.ui.container.GridLayout
-        LeftPanelRadioGroup           matlab.ui.container.ButtonGroup
-        btnFolder                     matlab.ui.control.RadioButton
-        btnFiscaliza                  matlab.ui.control.RadioButton
-        btnAnalysis                   matlab.ui.control.RadioButton
-        btnGeneral                    matlab.ui.control.RadioButton
-        LeftPanelTitle                matlab.ui.container.GridLayout
-        menuUnderline                 matlab.ui.control.Image
-        menu_ButtonGrid               matlab.ui.container.GridLayout
-        menu_ButtonIcon               matlab.ui.control.Image
-        menu_ButtonLabel              matlab.ui.control.Label
+        UIFigure                  matlab.ui.Figure
+        GridLayout                matlab.ui.container.GridLayout
+        jsBackDoor                matlab.ui.control.HTML
+        tool_RFDataHubButton      matlab.ui.control.Image
+        tool_LeftPanelVisibility  matlab.ui.control.Image
+        Document                  matlab.ui.container.GridLayout
+        CustomPlotGrid            matlab.ui.container.GridLayout
+        general_ElevationPanel    matlab.ui.container.Panel
+        general_ElevationGrid     matlab.ui.container.GridLayout
+        ElevationForceSearch      matlab.ui.control.CheckBox
+        ElevationNPoints          matlab.ui.control.DropDown
+        ElevationNPointsLabel     matlab.ui.control.Label
+        ElevationAPIServer        matlab.ui.control.DropDown
+        ElevationAPIServerLabel   matlab.ui.control.Label
+        general_ElevationRefresh  matlab.ui.control.Image
+        general_ElevationLabel    matlab.ui.control.Label
+        general_GraphicsPanel     matlab.ui.container.Panel
+        general_GraphicsGrid      matlab.ui.container.GridLayout
+        InitialBW_kHz             matlab.ui.control.Spinner
+        InitialBW_kHzLabel        matlab.ui.control.Label
+        yOccupancyScale           matlab.ui.control.DropDown
+        yOccupancyScaleLabel      matlab.ui.control.Label
+        imgResolution             matlab.ui.control.DropDown
+        imgResolutionLabel        matlab.ui.control.Label
+        imgFormat                 matlab.ui.control.DropDown
+        imgFormatLabel            matlab.ui.control.Label
+        graphics_Refresh          matlab.ui.control.Image
+        general_GraphicsLabel     matlab.ui.control.Label
+        general_FilePanel         matlab.ui.container.Panel
+        general_FileGrid          matlab.ui.container.GridLayout
+        detectionManualMode       matlab.ui.control.CheckBox
+        channelManualMode         matlab.ui.control.CheckBox
+        mergeDistance             matlab.ui.control.Spinner
+        mergeLabel2               matlab.ui.control.Label
+        mergeAntenna              matlab.ui.control.CheckBox
+        mergeDataType             matlab.ui.control.CheckBox
+        mergeLabel1               matlab.ui.control.Label
+        general_FileLabel         matlab.ui.control.Label
+        general_mergeRefresh      matlab.ui.control.Image
+        Folders_Grid              matlab.ui.container.GridLayout
+        FolderMapPanel            matlab.ui.container.Panel
+        FolderMapGrid             matlab.ui.container.GridLayout
+        tempPath                  matlab.ui.control.EditField
+        tempPathLabel             matlab.ui.control.Label
+        userPathButton            matlab.ui.control.Image
+        userPath                  matlab.ui.control.EditField
+        userPathLabel             matlab.ui.control.Label
+        DataHubPOSTButton         matlab.ui.control.Image
+        DataHubPOST               matlab.ui.control.EditField
+        DataHubPOSTLabel          matlab.ui.control.Label
+        DataHubGETButton          matlab.ui.control.Image
+        DataHubGET                matlab.ui.control.EditField
+        DataHubGETLabel           matlab.ui.control.Label
+        config_FolderMapLabel     matlab.ui.control.Label
+        General_Grid              matlab.ui.container.GridLayout
+        openAuxiliarApp2Debug     matlab.ui.control.CheckBox
+        openAuxiliarAppAsDocked   matlab.ui.control.CheckBox
+        gpuType                   matlab.ui.control.DropDown
+        gpuTypeLabel              matlab.ui.control.Label
+        general_AppVersionPanel   matlab.ui.container.Panel
+        general_AppVersionGrid    matlab.ui.container.GridLayout
+        AppVersion                matlab.ui.control.HTML
+        AppVersionRefresh         matlab.ui.control.Image
+        general_AppVersionLabel   matlab.ui.control.Label
+        LeftPanel                 matlab.ui.container.Panel
+        LeftPanelGrid             matlab.ui.container.GridLayout
+        LeftPanelRadioGroup       matlab.ui.container.ButtonGroup
+        btnFolder                 matlab.ui.control.RadioButton
+        btnAnalysis               matlab.ui.control.RadioButton
+        btnGeneral                matlab.ui.control.RadioButton
+        LeftPanelTitle            matlab.ui.container.GridLayout
+        menuUnderline             matlab.ui.control.Image
+        menu_ButtonGrid           matlab.ui.container.GridLayout
+        menu_ButtonIcon           matlab.ui.control.Image
+        menu_ButtonLabel          matlab.ui.control.Label
     end
 
     
@@ -177,13 +165,14 @@ classdef winConfig_exported < matlab.apps.AppBase
             jsBackDoor_Customizations(app)
 
             if ~strcmp(app.mainApp.executionMode, 'webApp')
-                app.AppVersionRefresh.Enable = 1;
-                app.gpuType.Enable = 1;
+                app.btnFolder.Enable               = 1;
+                app.AppVersionRefresh.Enable       = 1;
+                app.gpuType.Enable                 = 1;
                 app.openAuxiliarAppAsDocked.Enable = 1;
             end
 
             if ~isdeployed
-                app.openAuxiliarApp2Debug.Enable = 1;
+                app.openAuxiliarApp2Debug.Enable   = 1;
             end
 
             % Atualização dos painéis...
@@ -193,7 +182,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             File_updatePanel(app)
             Graphics_updatePanel(app)
             Elevation_updatePanel(app)
-            APIFiscaliza_updatePanel(app)
             Folder_updatePanel(app)
 
             app.progressDialog.Visible = 'hidden';
@@ -222,10 +210,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Modo de operação
             app.openAuxiliarAppAsDocked.Value   = app.mainApp.General.operationMode.Dock;
             app.openAuxiliarApp2Debug.Value     = app.mainApp.General.operationMode.Debug;
-
-            if isempty(app.mainApp.General.AppVersion.fiscaliza)
-                app.mainApp.General.AppVersion = util.getAppVersion(app.rootFolder, app.mainApp.entryPointFolder, app.mainApp.General.fileFolder.tempPath, 'full+Python');
-            end
         end
 
         %-----------------------------------------------------------------%
@@ -320,47 +304,24 @@ classdef winConfig_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function APIFiscaliza_updatePanel(app)
-            switch app.mainApp.General.fiscaliza.systemVersion
-                case 'PROD'
-                    app.config_FiscalizaPD.Value = 1;
-                case 'HOM'
-                    app.config_FiscalizaHM.Value = 1;
-            end
-        end
-
-        %-----------------------------------------------------------------%
         function Folder_updatePanel(app)
             % Na versão webapp, a configuração das pastas não é habilitada.
 
-            switch app.mainApp.executionMode
-                case 'webApp'
-                    app.btnFolder.Enable = 0;
+            if ~strcmp(app.mainApp.executionMode, 'webApp')
+                app.btnFolder.Enable       = 1;
 
-                otherwise
-                    % DataHub
-                    DataHub_GET  = app.mainApp.General.fileFolder.DataHub_GET;
-                    DataHub_POST = app.mainApp.General.fileFolder.DataHub_POST;
-                    if isfolder(DataHub_GET)
-                        app.DataHubGET.Value  = DataHub_GET;
-                    end
-        
-                    if isfolder(DataHub_POST)
-                        app.DataHubPOST.Value = DataHub_POST;
-                    end
-        
-                    % Python
-                    pyPath = app.mainApp.General.fileFolder.pythonPath;
-                    if isfile(pyPath)
-                        app.pythonPath.Value = pyPath;
-                    else
-                        pyEnv = pyenv;
-                        app.pythonPath.Value = pyEnv.Executable;
-                    end
+                DataHub_GET  = app.mainApp.General.fileFolder.DataHub_GET;
+                DataHub_POST = app.mainApp.General.fileFolder.DataHub_POST;
+                if isfolder(DataHub_GET)
+                    app.DataHubGET.Value   = DataHub_GET;
+                end
     
-                    % userPath & tempPath
-                    app.userPath.Value = app.mainApp.General.fileFolder.userPath;
-                    app.tempPath.Value = app.mainApp.General.fileFolder.tempPath;
+                if isfolder(DataHub_POST)
+                    app.DataHubPOST.Value  = DataHub_POST;
+                end
+
+                app.userPath.Value         = app.mainApp.General.fileFolder.userPath;
+                app.tempPath.Value         = app.mainApp.General.fileFolder.tempPath;
             end
         end
 
@@ -418,34 +379,6 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: tool_FiscalizaButton
-        function tool_FiscalizaButtonPushed(app, event)
-            
-            if strcmp(app.mainApp.General.AppVersion.fiscaliza, app.stableVersion.fiscaliza)
-                app.tool_FiscalizaButton.Enable = 0;
-                appUtil.modalWindow(app.UIFigure, 'warning', 'Módulo fiscaliza já atualizado!');
-                return
-            end
-
-            app.progressDialog.Visible = 'visible';
-
-            try
-                Python = pyenv;
-                system(sprintf('"%s" %s', fullfile(Python.Home, 'Scripts', 'pip'), sprintf('install fiscaliza==%s', app.stableVersion.fiscaliza)));
-
-                app.mainApp.General.AppVersion.fiscaliza = app.stableVersion.fiscaliza;
-                app.tool_FiscalizaButton.Enable = 0;
-
-                Layout(app)
-
-            catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
-            end
-
-            app.progressDialog.Visible = 'hidden';
-
-        end
-
         % Image clicked function: tool_RFDataHubButton
         function tool_RFDataHubButtonPushed(app, event)
             
@@ -483,10 +416,9 @@ classdef winConfig_exported < matlab.apps.AppBase
             
             selectedButton = app.LeftPanelRadioGroup.SelectedObject;
             switch selectedButton
-                case app.btnGeneral;   app.Document.ColumnWidth(2:end) = {'1x',0,0,0};
-                case app.btnAnalysis;  app.Document.ColumnWidth(2:end) = {0,'1x',0,0};
-                case app.btnFiscaliza; app.Document.ColumnWidth(2:end) = {0,0,'1x',0};
-                case app.btnFolder;    app.Document.ColumnWidth(2:end) = {0,0,0,'1x'};
+                case app.btnGeneral;   app.Document.ColumnWidth(2:end) = {'1x',0,0};
+                case app.btnAnalysis;  app.Document.ColumnWidth(2:end) = {0,'1x',0};
+                case app.btnFolder;    app.Document.ColumnWidth(2:end) = {0,0,'1x'};
             end
             
         end
@@ -501,11 +433,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             
             if ~ismember('RFDataHub', updatedModule)
                 app.tool_RFDataHubButton.Enable = 1;
-            end
-
-            if ~ismember('fiscaliza', updatedModule)
-                app.tool_FiscalizaButton.Enable = 1;
-            end            
+            end          
 
             app.progressDialog.Visible = 'hidden';
 
@@ -626,25 +554,8 @@ classdef winConfig_exported < matlab.apps.AppBase
             
         end
 
-        % Selection changed function: config_FiscalizaVersion
-        function config_FiscalizaMode(app, event)
-            
-            selectedButton = app.config_FiscalizaVersion.SelectedObject;
-            switch selectedButton
-                case app.config_FiscalizaPD
-                    app.mainApp.General.fiscaliza.systemVersion = 'PROD';
-                case app.config_FiscalizaHM
-                    app.mainApp.General.fiscaliza.systemVersion = 'HOM';
-            end
-
-            app.mainApp.General_I.fiscaliza = app.mainApp.General.fiscaliza;
-            saveGeneralSettings(app)
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'FiscalizaModeChanged')
-            
-        end
-
         % Image clicked function: DataHubGETButton, DataHubPOSTButton, 
-        % ...and 2 other components
+        % ...and 1 other component
         function Folder_ButtonPushed(app, event)
             
             try
@@ -702,26 +613,6 @@ classdef winConfig_exported < matlab.apps.AppBase
                             end
                         end
 
-                    case app.pythonPathButton
-                        pyPath = fullfile(selectedFolder, ccTools.fcn.OperationSystem('pythonExecutable'));
-                        if isfile(pyPath)
-                            app.progressDialog.Visible = 'visible';
-
-                            try
-                                pyenv('Version', pyPath);
-                                app.mainApp.General.fileFolder.pythonPath = pyPath;
-
-                            catch ME
-                                appUtil.modalWindow(app.UIFigure, 'error', 'O <i>app</i> deverá ser reinicializado para que a alteração tenha efeito.');
-                            end
-
-                            app.progressDialog.Visible = 'hidden';
-
-                        else
-                            appUtil.modalWindow(app.UIFigure, 'error', 'Não encontrado o arquivo executável do Python.');
-                            return
-                        end
-
                     case app.userPathButton
                         app.userPath.Value = selectedFolder;
                         app.mainApp.General.fileFolder.userPath = selectedFolder;
@@ -771,7 +662,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {22, 22, 22, '1x', 22};
+            app.GridLayout.ColumnWidth = {22, 22, '1x', 22};
             app.GridLayout.RowHeight = {'1x', 9, 17, 8};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 0;
@@ -780,12 +671,12 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {320, '1x', 0, 0, 0};
+            app.Document.ColumnWidth = {320, '1x', 0, 0};
             app.Document.RowHeight = {26, '1x'};
             app.Document.RowSpacing = 5;
             app.Document.Padding = [5 5 5 5];
             app.Document.Layout.Row = 1;
-            app.Document.Layout.Column = [1 5];
+            app.Document.Layout.Column = [1 4];
             app.Document.BackgroundColor = [1 1 1];
 
             % Create LeftPanelTitle
@@ -867,17 +758,12 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.btnAnalysis.FontSize = 11;
             app.btnAnalysis.Position = [11 47 58 22];
 
-            % Create btnFiscaliza
-            app.btnFiscaliza = uiradiobutton(app.LeftPanelRadioGroup);
-            app.btnFiscaliza.Text = 'API Fiscaliza';
-            app.btnFiscaliza.FontSize = 11;
-            app.btnFiscaliza.Position = [11 25 86 22];
-
             % Create btnFolder
             app.btnFolder = uiradiobutton(app.LeftPanelRadioGroup);
+            app.btnFolder.Enable = 'off';
             app.btnFolder.Text = 'Mapeamento de pastas';
             app.btnFolder.FontSize = 11;
-            app.btnFolder.Position = [11 3 137 22];
+            app.btnFolder.Position = [11 25 195 22];
 
             % Create General_Grid
             app.General_Grid = uigridlayout(app.Document);
@@ -964,59 +850,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.openAuxiliarApp2Debug.Layout.Row = 9;
             app.openAuxiliarApp2Debug.Layout.Column = [1 2];
 
-            % Create APIFiscaliza_Grid
-            app.APIFiscaliza_Grid = uigridlayout(app.Document);
-            app.APIFiscaliza_Grid.ColumnWidth = {'1x', 20};
-            app.APIFiscaliza_Grid.RowHeight = {27, 5, '1x'};
-            app.APIFiscaliza_Grid.RowSpacing = 0;
-            app.APIFiscaliza_Grid.Padding = [0 0 0 0];
-            app.APIFiscaliza_Grid.Layout.Row = [1 2];
-            app.APIFiscaliza_Grid.Layout.Column = 4;
-            app.APIFiscaliza_Grid.BackgroundColor = [1 1 1];
-
-            % Create config_FiscalizaVersionLabel
-            app.config_FiscalizaVersionLabel = uilabel(app.APIFiscaliza_Grid);
-            app.config_FiscalizaVersionLabel.VerticalAlignment = 'bottom';
-            app.config_FiscalizaVersionLabel.FontSize = 10;
-            app.config_FiscalizaVersionLabel.Layout.Row = 1;
-            app.config_FiscalizaVersionLabel.Layout.Column = 1;
-            app.config_FiscalizaVersionLabel.Text = 'API FISCALIZA';
-
-            % Create Panel
-            app.Panel = uipanel(app.APIFiscaliza_Grid);
-            app.Panel.BackgroundColor = [0.9412 0.9412 0.9412];
-            app.Panel.Layout.Row = 3;
-            app.Panel.Layout.Column = [1 2];
-
-            % Create GridLayout2
-            app.GridLayout2 = uigridlayout(app.Panel);
-            app.GridLayout2.ColumnWidth = {'1x'};
-            app.GridLayout2.RowHeight = {68, '1x'};
-            app.GridLayout2.Padding = [0 0 0 0];
-            app.GridLayout2.BackgroundColor = [1 1 1];
-
-            % Create config_FiscalizaVersion
-            app.config_FiscalizaVersion = uibuttongroup(app.GridLayout2);
-            app.config_FiscalizaVersion.SelectionChangedFcn = createCallbackFcn(app, @config_FiscalizaMode, true);
-            app.config_FiscalizaVersion.BorderType = 'none';
-            app.config_FiscalizaVersion.BackgroundColor = [1 1 1];
-            app.config_FiscalizaVersion.Layout.Row = 1;
-            app.config_FiscalizaVersion.Layout.Column = 1;
-
-            % Create config_FiscalizaPD
-            app.config_FiscalizaPD = uiradiobutton(app.config_FiscalizaVersion);
-            app.config_FiscalizaPD.Text = 'FISCALIZA PRODUÇÃO';
-            app.config_FiscalizaPD.FontSize = 11;
-            app.config_FiscalizaPD.Position = [10 37 146 22];
-
-            % Create config_FiscalizaHM
-            app.config_FiscalizaHM = uiradiobutton(app.config_FiscalizaVersion);
-            app.config_FiscalizaHM.Text = 'FISCALIZA <font style="color: red;">HOMOLOGAÇÃO</font> (versão destinada a testes)';
-            app.config_FiscalizaHM.FontSize = 11;
-            app.config_FiscalizaHM.Interpreter = 'html';
-            app.config_FiscalizaHM.Position = [10 11 310 22];
-            app.config_FiscalizaHM.Value = true;
-
             % Create Folders_Grid
             app.Folders_Grid = uigridlayout(app.Document);
             app.Folders_Grid.ColumnWidth = {'1x'};
@@ -1024,7 +857,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.Folders_Grid.RowSpacing = 0;
             app.Folders_Grid.Padding = [0 0 0 0];
             app.Folders_Grid.Layout.Row = [1 2];
-            app.Folders_Grid.Layout.Column = 5;
+            app.Folders_Grid.Layout.Column = 4;
             app.Folders_Grid.BackgroundColor = [1 1 1];
 
             % Create config_FolderMapLabel
@@ -1044,7 +877,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create FolderMapGrid
             app.FolderMapGrid = uigridlayout(app.FolderMapPanel);
             app.FolderMapGrid.ColumnWidth = {'1x', 20};
-            app.FolderMapGrid.RowHeight = {17, 22, 17, 22, 17, 22, 17, 22, 17, 22, '1x'};
+            app.FolderMapGrid.RowHeight = {17, 22, 17, 22, 17, 22, 17, 22, '1x'};
             app.FolderMapGrid.ColumnSpacing = 5;
             app.FolderMapGrid.RowSpacing = 5;
             app.FolderMapGrid.BackgroundColor = [1 1 1];
@@ -1095,34 +928,11 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.DataHubPOSTButton.Layout.Column = 2;
             app.DataHubPOSTButton.ImageSource = 'OpenFile_36x36.png';
 
-            % Create pythonPathLabel
-            app.pythonPathLabel = uilabel(app.FolderMapGrid);
-            app.pythonPathLabel.VerticalAlignment = 'bottom';
-            app.pythonPathLabel.FontSize = 10;
-            app.pythonPathLabel.Layout.Row = 5;
-            app.pythonPathLabel.Layout.Column = 1;
-            app.pythonPathLabel.Text = 'Pasta do ambiente virtual Python (lib fiscaliza):';
-
-            % Create pythonPath
-            app.pythonPath = uieditfield(app.FolderMapGrid, 'text');
-            app.pythonPath.Editable = 'off';
-            app.pythonPath.FontSize = 11;
-            app.pythonPath.Layout.Row = 6;
-            app.pythonPath.Layout.Column = 1;
-
-            % Create pythonPathButton
-            app.pythonPathButton = uiimage(app.FolderMapGrid);
-            app.pythonPathButton.ImageClickedFcn = createCallbackFcn(app, @Folder_ButtonPushed, true);
-            app.pythonPathButton.Tag = 'pythonPath';
-            app.pythonPathButton.Layout.Row = 6;
-            app.pythonPathButton.Layout.Column = 2;
-            app.pythonPathButton.ImageSource = 'OpenFile_36x36.png';
-
             % Create userPathLabel
             app.userPathLabel = uilabel(app.FolderMapGrid);
             app.userPathLabel.VerticalAlignment = 'bottom';
             app.userPathLabel.FontSize = 10;
-            app.userPathLabel.Layout.Row = 7;
+            app.userPathLabel.Layout.Row = 5;
             app.userPathLabel.Layout.Column = 1;
             app.userPathLabel.Text = 'Pasta do usuário:';
 
@@ -1130,14 +940,14 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.userPath = uieditfield(app.FolderMapGrid, 'text');
             app.userPath.Editable = 'off';
             app.userPath.FontSize = 11;
-            app.userPath.Layout.Row = 8;
+            app.userPath.Layout.Row = 6;
             app.userPath.Layout.Column = 1;
 
             % Create userPathButton
             app.userPathButton = uiimage(app.FolderMapGrid);
             app.userPathButton.ImageClickedFcn = createCallbackFcn(app, @Folder_ButtonPushed, true);
             app.userPathButton.Tag = 'userPath';
-            app.userPathButton.Layout.Row = 8;
+            app.userPathButton.Layout.Row = 6;
             app.userPathButton.Layout.Column = 2;
             app.userPathButton.ImageSource = 'OpenFile_36x36.png';
 
@@ -1145,7 +955,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.tempPathLabel = uilabel(app.FolderMapGrid);
             app.tempPathLabel.VerticalAlignment = 'bottom';
             app.tempPathLabel.FontSize = 10;
-            app.tempPathLabel.Layout.Row = 9;
+            app.tempPathLabel.Layout.Row = 7;
             app.tempPathLabel.Layout.Column = 1;
             app.tempPathLabel.Text = 'Pasta temporária:';
 
@@ -1153,7 +963,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.tempPath = uieditfield(app.FolderMapGrid, 'text');
             app.tempPath.Editable = 'off';
             app.tempPath.FontSize = 11;
-            app.tempPath.Layout.Row = 10;
+            app.tempPath.Layout.Row = 8;
             app.tempPath.Layout.Column = 1;
 
             % Create CustomPlotGrid
@@ -1453,28 +1263,19 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.tool_LeftPanelVisibility.Layout.Column = 1;
             app.tool_LeftPanelVisibility.ImageSource = 'ArrowLeft_32.png';
 
-            % Create tool_FiscalizaButton
-            app.tool_FiscalizaButton = uiimage(app.GridLayout);
-            app.tool_FiscalizaButton.ImageClickedFcn = createCallbackFcn(app, @tool_FiscalizaButtonPushed, true);
-            app.tool_FiscalizaButton.Enable = 'off';
-            app.tool_FiscalizaButton.Tooltip = {'Atualiza biblioteca fiscaliza'};
-            app.tool_FiscalizaButton.Layout.Row = 3;
-            app.tool_FiscalizaButton.Layout.Column = 2;
-            app.tool_FiscalizaButton.ImageSource = 'Redmine_32.png';
-
             % Create tool_RFDataHubButton
             app.tool_RFDataHubButton = uiimage(app.GridLayout);
             app.tool_RFDataHubButton.ImageClickedFcn = createCallbackFcn(app, @tool_RFDataHubButtonPushed, true);
             app.tool_RFDataHubButton.Enable = 'off';
             app.tool_RFDataHubButton.Tooltip = {'Atualiza RFDataHub'};
             app.tool_RFDataHubButton.Layout.Row = 3;
-            app.tool_RFDataHubButton.Layout.Column = 3;
+            app.tool_RFDataHubButton.Layout.Column = 2;
             app.tool_RFDataHubButton.ImageSource = 'mosaic_32.png';
 
             % Create jsBackDoor
             app.jsBackDoor = uihtml(app.GridLayout);
             app.jsBackDoor.Layout.Row = 3;
-            app.jsBackDoor.Layout.Column = 5;
+            app.jsBackDoor.Layout.Column = 4;
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

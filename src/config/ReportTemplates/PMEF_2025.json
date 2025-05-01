@@ -116,7 +116,7 @@
                     "Data": [
                         {
                             "Editable": "false",
-                            "Text": "Etapa \"<i>Drive-test</i>\" - A captura de dados de monitoração e a demodulação/decodificação é realizada por analisadores de rede sem fio. Os dados são armazenados em arquivos no formato RSCMD, sendo pós-processados no ROMES e no NQDi."
+                            "Text": "Etapa \"<i>Drive-test</i>\" - A captura de dados de monitoração e a demodulação/decodificação é realizada por analisadores de rede sem fio. Os dados são armazenados em arquivos no formato SQC/SQZ, sendo pós-processados no ROMES e no Smart Analytics."
                         },
                         {
                             "Editable": "false",
@@ -282,8 +282,8 @@
                             "Height": "95%"
                         },
                         "LineBreak": 0,
-                        "Intro": "{\"Type\":\"Paragraph\",\"Text\":\"A coleta de dados que possibilita a realização do <i>Drive-test</i> foi conduzida por sensor fabricado pela Rohde & Schwarz, modelo TSMW. Os dados são pós-processados no ROMES e no NQDi, quando então são identificados, para cada emissão, os códigos MCC e MNC, os quais identificam o país e a operadora responsável pela estação geradora da emissão.\"}",
-                        "Error": "{\"Type\":\"Paragraph\",\"Text\":\"A coleta de dados que possibilita a realização do <i>Drive-test</i> é conduzida por sensor fabricado pela Rohde & Schwarz, modelo TSMW, sendo os dados pós-processados no ROMES e no NQDi. Exceção ao caso em que não foi realizada a coleta de dados por impossibilidade ou adequação da fiscalização.\"}"
+                        "Intro": "{\"Type\":\"Paragraph\",\"Text\":\"A coleta de dados que possibilita a realização do <i>Drive-test</i> é conduzida por sensor fabricado pela Rohde & Schwarz, modelo TSME. Os dados são pós-processados no ROMES e no Smart Analytics, sendo identificados, para cada emissão, os códigos MCC e MNC, os quais identificam o país e a operadora responsável pela estação geradora da emissão.\"}",
+                        "Error": "{\"Type\":\"Paragraph\",\"Text\":\"A coleta de dados que possibilita a realização do <i>Drive-test</i> é conduzida por sensor fabricado pela Rohde & Schwarz, modelo TSME. Os dados são pós-processados no ROMES e no Smart Analytics. Exceção ao caso em que não foi realizada a coleta de dados por impossibilidade ou adequação da fiscalização.\"}"
                     }
                 },
                 {

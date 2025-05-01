@@ -7,11 +7,7 @@ function Controller(app, operationType)
 
     d = uiprogressdlg(app.UIFigure, 'Indeterminate', 'on', 'Interpreter', 'html', 'Cancelable', 'on', 'CancelText', 'Cancelar', 'Message', 'Em andamento...');
 
-    try
-        if isempty(app.General.AppVersion.fiscaliza) && strcmp(operationType, 'Report')
-            app.General.AppVersion = util.getAppVersion(app.rootFolder, app.entryPointFolder, app.General.fileFolder.tempPath, 'full+Python');
-        end
-    
+    try    
         reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
         [idxThreads, reportInfo]   = report.GeneralInfo(app, operationType, reportTemplateIndex);
 
