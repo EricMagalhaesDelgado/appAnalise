@@ -44,6 +44,12 @@ classdef (Abstract) datatip
 
         %-----------------------------------------------------------------%
         function Template(dtParent, dtType, varargin)
+            % ToDo:
+            % Passar como argumento de entrada o contexto do plot, de forma
+            % que o datatip seja incluído apenas em contextos que proveem
+            % interatividade. Não faz sentido, por exemplo, ter datatip ao
+            % gerar o relatório.
+
             arguments
                 dtParent
                 dtType char {mustBeMember(dtType, {'Frequency+Level', ...

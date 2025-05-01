@@ -63,8 +63,11 @@ function [hWaterfall, Decimation] = Waterfall(operationType, varargin)
                 ysecondarylabel(hAxes, sprintf('%s - %s', specData.Data{1}(1), specData.Data{1}(end)))
             end
 
-            plot.axes.Colormap(hAxes, colormapName)
-            plot.datatip.Template(hWaterfall, 'Frequency+Timestamp+Level', bandObj.LevelUnit)
+            if ~strcmp(Context, 'appAnalise:REPORT:BAND')
+                plot.datatip.Template(hWaterfall, 'Frequency+Timestamp+Level', bandObj.LevelUnit)
+            end
+
+            plot.axes.Colormap(hAxes, colormapName)            
             plot.axes.StackingOrder.execute(hAxes, bandObj.Context)
 
         case 'Delete'
