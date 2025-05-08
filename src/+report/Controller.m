@@ -65,7 +65,7 @@ function Controller(app, operationType)
                     return
                 end
                 
-                [ReportProject, emissionFiscalizaTable] = reportLibConnection.table.fiscalizaStructureFields(app, idxThreads, reportInfo);
+                [ReportProject, emissionFiscalizaTable] = reportLibConnection.table.fiscalizaStructureFields(app, idxThreads, reportInfo, 'REPORT: JSONFile');
 
                 save(MATFile, 'ReportProject', '-mat', '-v7.3')
                 writematrix(emissionFiscalizaTable, JSONFile, "FileType", "text", "QuoteStrings", "none")                

@@ -1,4 +1,4 @@
-function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeFolder, windowsDebugMode, githubReleaseFlag, githubCLIFolder, githubAccount)
+function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeFolder, showConsoleInDesktopBuild, createGitHubReleaseForDesktopBuild, githubCLIFolder, githubAccount)
     
     % Automatiza compilação do appAnalise, nas suas versões desktop e webapp.
     % No caso de criação de release no repo do GitHub, deve-se certificar
@@ -9,11 +9,11 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
     % Publicação do webapp no MATLAB WebServer ou no servidor local.
 
     arguments
-        compilationType         char {mustBeMember(compilationType, {'Desktop+WebApp', 'Desktop', 'WebApp'})} = 'WebApp'
+        compilationType         char {mustBeMember(compilationType, {'Desktop+WebApp', 'Desktop', 'WebApp'})} = 'Desktop+WebApp'
         rootCompiledFolder      char    = 'D:\_ANATEL - AppsDeployVersions'
         matlabRuntimeFolder     char    = 'E:\MATLAB Runtime\MATLAB Runtime (Custom)\R2024a'
-        windowsDebugMode  (1,1) logical = false
-        githubReleaseFlag (1,1) logical = true
+        showConsoleInDesktopBuild  (1,1) logical = false % versão desktop apresenta console
+        createGitHubReleaseForDesktopBuild (1,1) logical = true
         githubCLIFolder         char    = 'C:\Program Files\GitHub CLI'
         githubAccount           char    = 'EricMagalhaesDelgado'
     end
@@ -23,9 +23,9 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
     initFolder  = fileparts(mfilename('fullpath'));
     finalFolder = fullfile(rootCompiledFolder, appName);
 
-    if contains(compilationType, 'Desktop') && githubReleaseFlag
-        if windowsDebugMode
-            error('UnexpectedValues: "windowsDebugMode" and "createReleaseFlag"')
+    if contains(compilationType, 'Desktop') && createGitHubReleaseForDesktopBuild
+        if showConsoleInDesktopBuild
+            error('The flag "showConsoleInDesktopBuild" must be true when creating a GitHub release.');
         end
 
         cd(githubCLIFolder)
@@ -72,10 +72,10 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
     % Gera as versões desktop e webapp.
     switch compilationType
         case 'Desktop+WebApp'
-            varargout = {desktopCompilation(finalFolder, matlabRuntimeFolder, githubReleaseFlag, githubCLIFolder, windowsDebugMode), ...
+            varargout = {desktopCompilation(finalFolder, matlabRuntimeFolder, createGitHubReleaseForDesktopBuild, githubCLIFolder, showConsoleInDesktopBuild), ...
                           webappCompilation(finalFolder)};
         case 'Desktop'
-            varargout = {desktopCompilation(finalFolder, matlabRuntimeFolder, githubReleaseFlag, githubCLIFolder, windowsDebugMode)};
+            varargout = {desktopCompilation(finalFolder, matlabRuntimeFolder, createGitHubReleaseForDesktopBuild, githubCLIFolder, showConsoleInDesktopBuild)};
         case 'WebApp'
             varargout = { webappCompilation(finalFolder)};
     end

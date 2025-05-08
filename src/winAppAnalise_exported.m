@@ -8,6 +8,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         SplashScreen                    matlab.ui.control.Image
         popupContainer                  matlab.ui.container.Panel
         menu_Grid                       matlab.ui.container.GridLayout
+        DataHubLamp                     matlab.ui.control.Lamp
         dockModule_Close                matlab.ui.control.Image
         dockModule_Undock               matlab.ui.control.Image
         AppInfo                         matlab.ui.control.Image
@@ -26,34 +27,38 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         TabGroup                        matlab.ui.container.TabGroup
         Tab1_File                       matlab.ui.container.Tab
         file_Grid                       matlab.ui.container.GridLayout
-        file_panelGrid                  matlab.ui.container.GridLayout
+        file_toolGrid                   matlab.ui.container.GridLayout
+        file_SpecReadButton             matlab.ui.control.Button
+        file_OpenFileButton             matlab.ui.control.Image
+        file_OpenInitialPopup           matlab.ui.control.Image
         file_FilteringTree              matlab.ui.container.Tree
         file_FilteringAdd               matlab.ui.control.Image
-        file_FilteringType3_Description  matlab.ui.control.EditField
-        file_FilteringType2_ID          matlab.ui.control.DropDown
         file_FilteringType1_Frequency   matlab.ui.control.DropDown
+        file_FilteringType2_ID          matlab.ui.control.DropDown
+        file_FilteringType3_Description  matlab.ui.control.EditField
         file_FilteringTypePanel         matlab.ui.container.ButtonGroup
         file_FilteringType3             matlab.ui.control.RadioButton
         file_FilteringType2             matlab.ui.control.RadioButton
         file_FilteringType1             matlab.ui.control.RadioButton
         file_FilteringLabel             matlab.ui.control.Label
-        file_MetadataPanel              matlab.ui.container.Panel
-        file_MetadataGrid               matlab.ui.container.GridLayout
-        file_Metadata                   matlab.ui.control.HTML
+        file_Metadata                   matlab.ui.control.Label
         file_MetadataLabel              matlab.ui.control.Label
-        file_docGrid                    matlab.ui.container.GridLayout
-        Image                           matlab.ui.control.Image
         file_Tree                       matlab.ui.container.Tree
         file_TreeLabel                  matlab.ui.control.Label
+        file_TitleGridLine              matlab.ui.control.Image
         file_TitleGrid                  matlab.ui.container.GridLayout
         file_Title                      matlab.ui.control.Label
         file_TitleIcon                  matlab.ui.control.Image
-        file_toolGrid                   matlab.ui.container.GridLayout
-        file_SpecReadButton             matlab.ui.control.Button
-        file_OpenFileButton             matlab.ui.control.Image
-        file_OpenInitialPopup           matlab.ui.control.Image
         Tab2_Playback                   matlab.ui.container.Tab
         play_Grid                       matlab.ui.container.GridLayout
+        play_TreeTitleGrid              matlab.ui.container.GridLayout
+        play_TreeTitle                  matlab.ui.control.Label
+        play_TreeTitleImage             matlab.ui.control.Image
+        play_TreeTitleUnderline         matlab.ui.control.Image
+        play_TreeLabel                  matlab.ui.control.Label
+        play_Tree                       matlab.ui.container.Tree
+        play_MetadataLabel              matlab.ui.control.Label
+        play_Metadata                   matlab.ui.control.Label
         play_toolGrid                   matlab.ui.container.GridLayout
         tool_LayoutRight                matlab.ui.control.Image
         tool_FiscalizaUpdate            matlab.ui.control.Image
@@ -107,25 +112,31 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         misc_Save                       matlab.ui.control.Button
         misc_Label1                     matlab.ui.control.Label
         report_ControlsTab1Info         matlab.ui.container.GridLayout
-        report_ProjectWarnIcon          matlab.ui.control.Image
+        report_DetectionManualMode      matlab.ui.control.CheckBox
+        report_EditClassification       matlab.ui.control.Hyperlink
+        report_EditDetection            matlab.ui.control.Hyperlink
+        report_ThreadAlgorithms         matlab.ui.control.Label
+        report_ThreadAlgorithmsImage    matlab.ui.control.Image
+        report_ThreadAlgorithmsLabel    matlab.ui.control.Label
         report_Tree                     matlab.ui.container.Tree
         report_TreeAddImage             matlab.ui.control.Image
         report_TreeLabel                matlab.ui.control.Label
         report_DocumentPanel            matlab.ui.container.Panel
-        GridLayout4                     matlab.ui.container.GridLayout
-        report_IssueLabel_2             matlab.ui.control.Label
-        report_Version_2                matlab.ui.control.DropDown
+        report_DocumentGrid             matlab.ui.container.GridLayout
         report_Version                  matlab.ui.control.DropDown
         report_VersionLabel             matlab.ui.control.Label
         report_ModelName                matlab.ui.control.DropDown
         report_AddProjectAttachment     matlab.ui.control.Image
         report_ModelNameLabel           matlab.ui.control.Label
-        report_IssueLabel               matlab.ui.control.Label
         report_Issue                    matlab.ui.control.NumericEditField
+        report_IssueLabel               matlab.ui.control.Label
+        report_system                   matlab.ui.control.DropDown
+        report_systemLabel              matlab.ui.control.Label
         report_DocumentPanelLabel       matlab.ui.control.Label
         report_ProjectName              matlab.ui.control.TextArea
-        report_ProjectSave              matlab.ui.control.Image
         report_ProjectNew               matlab.ui.control.Image
+        report_ProjectSave              matlab.ui.control.Image
+        report_ProjectWarnIcon          matlab.ui.control.Image
         report_ProjectNameLabel         matlab.ui.control.Label
         play_ControlsTab3Info           matlab.ui.container.GridLayout
         play_FindPeaks_ExternalFilePanel  matlab.ui.container.Panel
@@ -320,25 +331,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         axesTool_Average                matlab.ui.control.Image
         axesTool_MinHold                matlab.ui.control.Image
         play_PlotPanel                  matlab.ui.container.Panel
-        play_TreeGrid                   matlab.ui.container.GridLayout
-        report_DetectionManualMode      matlab.ui.control.CheckBox
-        report_EditClassification       matlab.ui.control.Hyperlink
-        report_EditDetection            matlab.ui.control.Hyperlink
-        report_ThreadAlgorithmsPanel    matlab.ui.container.Panel
-        report_ThreadAlgorithmsGrid     matlab.ui.container.GridLayout
-        report_ThreadAlgorithms         matlab.ui.control.HTML
-        report_ThreadAlgorithmsLabel    matlab.ui.control.Label
-        play_MetadataPanel              matlab.ui.container.Panel
-        play_MetadataGrid               matlab.ui.container.GridLayout
-        play_Metadata                   matlab.ui.control.HTML
-        play_MetadataLabel              matlab.ui.control.Label
-        play_Tree                       matlab.ui.container.Tree
-        play_TreePanelVisibility        matlab.ui.control.Image
-        play_TreeLabel                  matlab.ui.control.Label
-        play_TreeTitleGrid              matlab.ui.container.GridLayout
-        play_TreeTitleUnderline         matlab.ui.control.Image
-        play_TreeTitle                  matlab.ui.control.Label
-        play_TreeTitleImage             matlab.ui.control.Image
         Tab3_DriveTest                  matlab.ui.container.Tab
         Tab4_SignalAnalysis             matlab.ui.container.Tab
         Tab5_RFDataHub                  matlab.ui.container.Tab
@@ -383,19 +375,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % paralelo etc. A ideia é deixar o MATLAB focar apenas na criação dos 
         % componentes essenciais da GUI (especificados em "createComponents"), 
         % mostrando a GUI para o usuário o mais rápido possível.
-        timerObj_startup
+        timerObj
 
-        % O MATLAB não renderiza alguns dos componentes de abas (do TabGroup) 
-        % não visíveis. E a customização de componentes, usando a lib ccTools, 
-        % somente é possível após a sua renderização. Controla-se a aplicação 
-        % da customizaçao por meio dessa propriedade jsBackDoorFlag.
+        % Controla a seleção da TabGroup a partir do menu.
         tabGroupController
-        jsBackDoorFlag = {true, ...
-                          true, ...
-                          true, ...
-                          true, ...
-                          true, ...
-                          true};
 
         % Janela de progresso já criada no DOM. Dessa forma, controla-se 
         % apenas a sua visibilidade - e tornando desnecessário criá-la a
@@ -451,6 +434,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function ipcMainJSEventsHandler(app, event)
             try
                 switch event.HTMLEventName
+                    % RENDERIZAÇÃO
+                    case 'renderer'
+                        startup_Controller(app)
+
                     % MAINAPP
                     case 'mainApp.file_Tree'
                         file_ContextMenu_delTree1NodeSelected(app)    
@@ -495,7 +482,15 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
                     
                     case 'customForm'
-                        eFiscaliza_sendRequest(app, event.HTMLEventData, 'uploadDocument')
+                        switch event.HTMLEventData.uuid
+                            case 'eFiscalizaSignInPage'
+                                report_uploadInfoController(app, event.HTMLEventData, 'uploadDocument')
+                            case 'openDevTools'
+                                if isequal(app.General.operationMode.DevTools, rmfield(event.HTMLEventData, 'uuid'))
+                                    webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
+                                    webWin.openDevTools();
+                                end
+                        end
 
                     otherwise
                         error('UnexpectedEvent')
@@ -503,7 +498,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 drawnow
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
             end
         end
 
@@ -516,6 +511,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         switch operationType
                             case 'closeFcn'
                                 closeModule(app.tabGroupController, "CONFIG", app.General)
+                            case 'checkDataHubLampStatus'
+                                DataHubWarningLamp(app)
+                            case 'openDevTools'
+                                dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
+                                dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
+                                sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', 'openDevTools', 'Fields', dialogBox))
                             otherwise
                                 error('UnexpectedCall')
                         end
@@ -577,7 +578,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         % 6/7: Executa callback, a depender da escolha do usuário.
                         app.General.operationMode.Simulation = simulationFlag;
                         if simulationFlag
-                            app.report_Version_2.Value = app.report_Version_2.Items{end};
+                            app.report_system.Value = app.report_system.Items{end};
                         end
 
                         switch pushedButtonTag
@@ -626,9 +627,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 case {'REPORT:DETECTION', 'REPORT:CLASSIFICATION'}
                                     idxThread     = varargin{3};
 
-                                    % Esse estado força a atualização do
-                                    % painel...
-                                    app.report_ThreadAlgorithms.UserData = [];
+                                    % Esse estado força a atualização do painel
+                                    app.report_ThreadAlgorithms.UserData.idxThread = [];
                                     report_Algorithms(app, idxThread)
                                     report_SaveWarn(app)
 
@@ -652,7 +652,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);            
+                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));            
             end
 
             % Caso um app auxiliar esteja em modo DOCK, o progressDialog do
@@ -668,61 +668,64 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource           = ccTools.fcn.jsBackDoorHTMLSource();
+            app.jsBackDoor.HTMLSource           = appUtil.jsBackDoorHTMLSource();
             app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcMainJSEventsHandler(app, evt);
         end
 
         %-----------------------------------------------------------------%
         function jsBackDoor_Customizations(app, tabIndex)
-            % O menu gráfico controla, programaticamente, qual das abas de
-            % app.TabGroup estará visível. 
+            persistent customizationStatus
+            if isempty(customizationStatus)
+                customizationStatus = [false, false, false, false, false, false];
+            end
 
-            % Lembrando que o MATLAB renderiza em tela apenas as abas visíveis.
-            % Por isso as customizações de abas e suas subabas somente é possível 
-            % após a renderização da aba.
             switch tabIndex
-                case 0 % STARTUP
-                    app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
-
-                    sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        'body',                           ...
-                                                                                           'classAttributes', ['--tabButton-border-color: #fff;' ...
-                                                                                                               '--tabContainer-border-color: #fff;']));
-
-                    sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
-                                                                                           'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
-                                                                                                               '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
-                                                                                                               '--mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);'        ...
-                                                                                                               '--mw-backgroundColor-tab: #fff;']));
-
-                    sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
-                                                                                           'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
+                case 0
+                    sendEventToHTMLSource(app.jsBackDoor, 'initializeStyle');
+                    app.progressDialog  = ccTools.ProgressDialog(app.jsBackDoor);
+                    customizationStatus = [false, false, false, false, false, false];
 
                 otherwise
-                    if any(app.jsBackDoorFlag{tabIndex})
-                        app.jsBackDoorFlag{tabIndex} = false;
+                    if customizationStatus(tabIndex)
+                        return
+                    end
 
-                        switch tabIndex
-                            case 1 % FILE            
-                                app.file_Tree.UserData          = struct(app.file_Tree).Controller.ViewModel.Id;
-                                app.file_FilteringTree.UserData = struct(app.file_FilteringTree).Controller.ViewModel.Id;
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'mainApp.file_Tree',          'componentDataTag', app.file_Tree.UserData,          'keyEvents', "Delete"))
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'mainApp.file_FilteringTree', 'componentDataTag', app.file_FilteringTree.UserData, 'keyEvents', "Delete"))
-            
-                            case 2 % PLAYBACK+REPORT+MISC
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.play_axesToolbar, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
+                    customizationStatus(tabIndex) = true;
+                    switch tabIndex
+                        case 1 % FILE
+                            elToModify = {app.popupContainerGrid, app.file_Tree, app.file_FilteringTree, app.file_Metadata};
+                            elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
+                            if ~isempty(elDataTag)
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                   ...
+                                    struct('dataTag', elDataTag{1}, 'style',    struct('backgroundColor', 'rgba(255,255,255,0.65)')),                                             ...
+                                    struct('dataTag', elDataTag{2}, 'listener', struct('componentName', 'mainApp.file_Tree',            'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                    struct('dataTag', elDataTag{3}, 'listener', struct('componentName', 'mainApp.file_FilteringTree',   'keyEvents', {{'Delete', 'Backspace'}}))  ...
+                                });
+
+                                ui.TextView.startup(app.jsBackDoor, elToModify{4});
+                            end
         
-                                app.play_Channel_Tree.UserData    = struct(app.play_Channel_Tree).Controller.ViewModel.Id;
-                                app.play_BandLimits_Tree.UserData = struct(app.play_BandLimits_Tree).Controller.ViewModel.Id;
-                                app.play_FindPeaks_Tree.UserData  = struct(app.play_FindPeaks_Tree).Controller.ViewModel.Id;
-                                app.report_Tree.UserData          = struct(app.report_Tree).Controller.ViewModel.Id;
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'mainApp.play_Channel_Tree',    'componentDataTag', app.play_Channel_Tree.UserData,    'keyEvents', "Delete"))
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'mainApp.play_BandLimits_Tree', 'componentDataTag', app.play_BandLimits_Tree.UserData, 'keyEvents', "Delete"))
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'mainApp.play_FindPeaks_Tree',  'componentDataTag', app.play_FindPeaks_Tree.UserData,  'keyEvents', "Delete"))
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'mainApp.report_Tree',          'componentDataTag', app.report_Tree.UserData,          'keyEvents', "Delete"))
+                        case 2 % PLAYBACK-REPORT-MISC
+                            elToModify = {app.play_axesToolbar, app.play_Channel_Tree, app.play_BandLimits_Tree, app.play_FindPeaks_Tree, app.report_Tree, app.play_Metadata, app.report_ThreadAlgorithms, app.report_ThreadAlgorithmsImage};
+                            elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
+                            if ~isempty(elDataTag)
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                   ...
+                                    struct('dataTag', elDataTag{1}, 'style',    struct('borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')),                       ...
+                                    struct('dataTag', elDataTag{2}, 'listener', struct('componentName', 'mainApp.play_Channel_Tree',    'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                    struct('dataTag', elDataTag{3}, 'listener', struct('componentName', 'mainApp.play_BandLimits_Tree', 'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                    struct('dataTag', elDataTag{4}, 'listener', struct('componentName', 'mainApp.play_FindPeaks_Tree',  'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                    struct('dataTag', elDataTag{5}, 'listener', struct('componentName', 'mainApp.report_Tree',          'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                });
 
-                            otherwise
-                                % ...
-                        end
+                                ui.TextView.startup(app.jsBackDoor, elToModify{6});
+                                ui.TextView.startup(app.jsBackDoor, elToModify{7});
+                                ui.TextView.startup(app.jsBackDoor, elToModify{8}, 'SELECIONE UM DOS FLUXOS ESPECTRAIS<br>INSERIDOS NA LISTA DE FLUXOS A PROCESSAR');
+                            end
+
+                        otherwise
+                            % Customização dos módulos que são renderizados
+                            % nesta figura são controladas pelos próprios
+                            % módulos.
                     end
             end
         end
@@ -734,70 +737,61 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % INICIALIZAÇÃO DO APP
         %-----------------------------------------------------------------%
         function startup_timerCreation(app)
-            app.timerObj_startup = timer("ExecutionMode", "fixedSpacing", ...
-                                         "StartDelay",    1.5,            ...
-                                         "Period",        .1,             ...
-                                         "TimerFcn",      @(~,~)app.startup_timerFcn);
-            start(app.timerObj_startup)
+            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
+                                 "StartDelay",    1.5,            ...
+                                 "Period",        .1,             ...
+                                 "TimerFcn",      @(~,~)app.startup_timerFcn);
+            start(app.timerObj)
         end
 
         %-----------------------------------------------------------------%
         function startup_timerFcn(app)
             if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
-                stop(app.timerObj_startup)
-                drawnow
+                stop(app.timerObj)
+                delete(app.timerObj)
 
-                app.executionMode = appUtil.ExecutionMode(app.UIFigure);
-                switch app.executionMode
-                    case 'webApp'
-                        % ...
-                    otherwise
-                        % Configura o tamanho mínimo da janela.
-                        app.FigurePosition.Visible = 1;
-                        appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-                end
-
-                MFilePath = fileparts(mfilename('fullpath'));
-                app.rootFolder = appUtil.RootFolder(class.Constants.appName, MFilePath);
-                
-                % WELCOMEPAGE
-                % 1/7: Insere estilo ao container do auxApp.dockWelcomePage.
-                sendEventToHTMLSource(app.jsBackDoor, "panelDialog", struct('componentDataTag', struct(app.popupContainer).Controller.ViewModel.Id)) 
-                
-                % 2/7: Adiciona transparência ao Grid do Container, que confere 
-                %      o efeito de janela modal à auxApp.dockWelcomePage.
-                ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
-                
-                % 3/7: Inicia auxApp.dockWelcomePage.
-                menu_LayoutPopupApp(app, 'WelcomePage', MFilePath)
-                
-                % Customiza as aspectos estéticos de alguns dos componentes da GUI 
-                % (diretamente em JS).
-                jsBackDoor_Customizations(app, 0)
-                jsBackDoor_Customizations(app, 1)
-
-                % Leitura do arquivo "GeneralSettings.json".
-                startup_ConfigFileRead(app, MFilePath)
-                startup_AppProperties(app)
-                startup_GUIComponents(app)
-                
-                % WELCOMEPAGE (continuação)
-                % 4/7: Diminui a opacidade do SplashScreen. Esse processo dura
-                %      cerca de 1250 ms. São 50 iterações em que em cada uma 
-                %      delas a opacidade da imagem diminuir em 0.02. Entre cada 
-                %      iteração, 25 ms. E executa drawnow, forçando a renderização 
-                %      em tela dos componentes.
-                sendEventToHTMLSource(app.jsBackDoor, 'turningBackgroundColorInvisible', struct('componentName', 'SplashScreen', 'componentDataTag', struct(app.SplashScreen).Controller.ViewModel.Id));
-                drawnow
-
-                % 5/7: Torna visível o container do auxApp.popupContainer, forçando
-                %      a exclusão do SplashScreen.
-                if isvalid(app.SplashScreen)
-                    pause(1)
-                    delete(app.SplashScreen)
-                end
-                app.popupContainer.Visible = 1;
+                jsBackDoor_Initialization(app)
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_Controller(app)
+            drawnow            
+            jsBackDoor_Customizations(app, 0)
+            jsBackDoor_Customizations(app, 1)
+            
+            % Essa propriedade registra o tipo de execução da aplicação, podendo
+            % ser: 'built-in', 'desktopApp' ou 'webApp'.
+            app.executionMode = appUtil.ExecutionMode(app.UIFigure);
+            if ~strcmp(app.executionMode, 'webApp')
+                app.FigurePosition.Visible = 1;
+                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
+            end
+
+            % Identifica o local deste arquivo .MLAPP, caso se trate das versões 
+            % "built-in" ou "webapp", ou do .EXE relacionado, caso se trate da
+            % versão executável (neste caso, o ctfroot indicará o local do .MLAPP).
+            MFilePath = fileparts(mfilename('fullpath'));
+            app.rootFolder = appUtil.RootFolder(class.Constants.appName, MFilePath);
+
+            % Inicia operações de gerar tela inicial, customizar componentes e
+            % de ler informações constantes em arquivos externos, aplicando-as.
+            sendEventToHTMLSource(app.jsBackDoor, "panelDialog", struct('componentDataTag', struct(app.popupContainer).Controller.ViewModel.Id)) 
+            menu_LayoutPopupApp(app, 'WelcomePage', MFilePath)
+
+            startup_ConfigFileRead(app, MFilePath)
+            startup_AppProperties(app)
+            startup_GUIComponents(app)
+
+            sendEventToHTMLSource(app.jsBackDoor, 'turningBackgroundColorInvisible', struct('componentName', 'SplashScreen', 'componentDataTag', struct(app.SplashScreen).Controller.ViewModel.Id));
+            drawnow
+
+            % Por fim, exclui-se o splashscreen.
+            if isvalid(app.SplashScreen)
+                pause(1)
+                delete(app.SplashScreen)
+            end            
+            app.popupContainer.Visible = 1;
         end
 
         %-----------------------------------------------------------------%
@@ -926,7 +920,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Salva na propriedade "UserData" as opções de ícone e o índice 
             % da aba, simplificando os ajustes decorrentes de uma alteração...
             app.file_Tree.UserData                    = struct('previousSelectedFileIndex', [], 'previousSelectedFileThread', []);
-            app.play_TreePanelVisibility.UserData     = struct('Mode', 'PLAYBACK', 'Visible', true);
             app.play_Channel_ShowPlot.UserData        = false;
             
             app.axesTool_Pan.UserData                 = false;
@@ -947,6 +940,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.General_I.Integration.Trace       = Inf;
                 app.General.Integration.Trace         = Inf;
             end
+
+            app.tool_LayoutLeft.UserData              = true;
+            app.tool_LayoutRight.UserData             = true;
 
             % Painel "PLAYBACK > ASPECTOS GERAIS > PERSISTÊNCIA"
             app.play_Persistance_Interpolation.Value  = app.General.Plot.Persistance.Interpolation;
@@ -987,17 +983,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             play_FindPeaks_AlgorithmValueChanged(app)
 
             % Painel "REPORT >> PROJECT"
-            app.report_ThreadAlgorithms.HTMLSource   = fullfile(app.General.fileFolder.MFilePath, 'resources', 'Icons', 'Warning.html');
-            app.report_ModelName.Items               = [{''}; app.General.Models.Name];
+            app.report_ModelName.Items = [{''}; app.General.Models.Name];
+            app.report_ThreadAlgorithms.UserData = struct('idxThread', [], 'id', '');
+            DataHubWarningLamp(app)
+        end
 
-            % Painel "CONFIG >> PYTHON"
-            pythonPath = app.General.fileFolder.pythonPath;
-            if isfile(pythonPath)
-                try
-                    pyenv('Version', pythonPath);
-                catch ME
-                    appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
-                end
+        %-----------------------------------------------------------------%
+        function DataHubWarningLamp(app)
+            if isfolder(app.General.fileFolder.DataHub_POST)
+                app.DataHubLamp.Visible = 0;
+            else
+                app.DataHubLamp.Visible = 1;
             end
         end
 
@@ -1137,11 +1133,24 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        % COMUNICAÇÃO COM SISTEMA DE GESTÃO DA FISCALIZAÇÃO:
-        % • eFiscaliza (PD | HM | DS)
+        % SISTEMA DE GESTÃO DA FISCALIZAÇÃO (eFiscaliza/SEI)
+        %-----------------------------------------------------------------%                
+        function status = report_checkEFiscalizaIssueId(app)
+            status = (app.report_Issue.Value > 0) && (app.report_Issue.Value < inf);
+        end
+
         %-----------------------------------------------------------------%
-        function eFiscaliza_sendRequest(app, credentials, operation)
+        function report_uploadInfoController(app, credentials, operation)
+            communicationStatus = report_sendHTMLDocToSEIviaEFiscaliza(app, credentials, operation);
+            if communicationStatus
+                report_sendJSONFileToSharepoint(app)
+            end
+        end
+
+        %-------------------------------------------------------------------------%
+        function communicationStatus = report_sendHTMLDocToSEIviaEFiscaliza(app, credentials, operation)
             app.progressDialog.Visible = 'visible';
+            communicationStatus = false;
 
             try
                 if ~isempty(credentials)
@@ -1150,7 +1159,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
                 switch operation
                     case 'uploadDocument'
-                        env = strsplit(app.report_Version_2.Value);
+                        env = strsplit(app.report_system.Value);
                         if numel(env) < 2
                             env = 'PD';
                         else
@@ -1158,35 +1167,44 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
 
                         issue    = struct('type', 'ATIVIDADE DE INSPEÇÃO', 'id', app.report_Issue.Value);
-                        fileName = app.projectData.generatedFiles.lastHTMLDocFullPath;                        
+                        fileName = app.projectData.generatedFiles.lastHTMLDocFullPath;
                         docSpec  = app.General.eFiscaliza;
                         docSpec.originId = docSpec.internal.originId;
                         docSpec.typeId   = docSpec.internal.typeId;
 
-                        [status, message] = run(app.eFiscalizaObj, env, operation, issue, docSpec, fileName);
+                        [status, msg] = run(app.eFiscalizaObj, env, operation, issue, docSpec, fileName);
         
                     otherwise
                         error('Unexpected call')
                 end
-
-                messageIcon = 'info';
-                if contains(message, 'error', 'IgnoreCase', true)
-                    messageIcon = 'error';
-                    app.eFiscalizaObj = [];
+                
+                if ~contains(msg, 'Documento cadastrado no SEI', 'IgnoreCase', true)
+                    error(msg)
                 end
 
-                appUtil.modalWindow(app.UIFigure, messageIcon, sprintf('<b>%s</b>\n%s', status, message));
+                modalWindowIcon     = 'success';
+                modalWindowMessage  = sprintf('<b>%s</b>\n%s', status, msg);
+                communicationStatus = true;
+
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
-                app.eFiscalizaObj = [];
+                app.eFiscalizaObj   = [];
+                
+                modalWindowIcon     = 'error';
+                modalWindowMessage  = ME.message;
             end
 
-            app.progressDialog.Visible = 'hidden';        
-        end 
-        
-        %-------------------------------------------------------------------------%
-        function status = eFiscaliza_checkIssueId(app)
-            status = (app.report_Issue.Value > 0) && (app.report_Issue.Value < inf);
+            appUtil.modalWindow(app.UIFigure, modalWindowIcon, modalWindowMessage);
+            app.progressDialog.Visible = 'hidden';
+        end
+
+        %------------------------------------------------------------------------%
+        function report_sendJSONFileToSharepoint(app)
+            JSONFile = app.projectData.generatedFiles.lastTableFullPath;            
+            [status, msg] = copyfile(JSONFile, app.General.fileFolder.DataHub_POST, 'f');
+
+            if ~status
+                appUtil.modalWindow(app.UIFigure, 'error', msg);
+            end
         end
     end
 
@@ -1202,35 +1220,16 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             if app.menu_Button2.Value
                 set(app.play_Tree, 'SelectedNodes', app.play_PlotPanel.UserData, 'Multiselect', 'off')
-
-                app.play_TreePanelVisibility.Visible       = 1;
-                app.play_TreePanelVisibility.UserData.Mode = 'PLAYBACK';
-
                 play_submenuButtonPushed(app, struct('Source', app.submenu_Button1Icon))
 
             elseif app.menu_Button3.Value
                 app.play_Tree.Multiselect = "on";
-                
-                app.play_TreePanelVisibility.Visible       = 0;
-                app.play_TreePanelVisibility.UserData.Mode = 'REPORT';
-
                 play_submenuButtonPushed(app, struct('Source', app.submenu_Button4Icon))
 
             elseif app.menu_Button4.Value
                 app.play_Tree.Multiselect = "on";
-                
-                switch app.play_TreePanelVisibility.UserData.Mode
-                    case 'PLAYBACK'
-                        app.play_TreePanelVisibility.Visible = 1;
-                    case 'REPORT'
-                        app.play_TreePanelVisibility.Visible = 0;
-                end
-
                 play_submenuButtonPushed(app, struct('Source', app.submenu_Button6Icon))
             end
-
-            play_TreeSecundaryPanelVisibility(app)
-            play_TreeSelectionChanged(app)
         end
 
         %-----------------------------------------------------------------%
@@ -1259,9 +1258,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.popupContainerGrid.ColumnWidth{2} = screenWidth;
             app.popupContainerGrid.RowHeight{3}   = screenHeight-180;
 
-            % Executa o app auxiliar, mas antes tenta configurar transparência
-            % do BackgroundColor do Grid (caso não tenha sido aplicada anteriormente).
-            ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
+            % Executa o app auxiliar.
             inputArguments = [{app}, varargin];
             
             if ~isempty(app.General) && app.General.operationMode.Debug
@@ -1279,9 +1276,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function DeleteAll(app)
             DeleteProject(app, 'appAnalise:MISC:RestartAnalysis')
 
-            closeModule(app.tabGroupController, "DRIVETEST",      app.General)
-            closeModule(app.tabGroupController, "SIGNALANALYSIS", app.General)
-            closeModule(app.tabGroupController, "RFDATAHUB",      app.General)
+            closeModule(app.tabGroupController, ["DRIVETEST", "SIGNALANALYSIS", "RFDATAHUB"], app.General)
 
             file_DataReaderError(app)
             file_specReadButtonVisibility(app)
@@ -1476,7 +1471,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 file_TreeSelectionChanged(app)
 
             else
-                app.file_Metadata.HTMLSource              = ' ';
+                ui.TextView.update(app.file_Metadata, '');
                 app.file_FilteringType1_Frequency.Items   = {};
                 app.file_FilteringType2_ID.Items          = {};
                 app.file_FilteringType3_Description.Value = '';
@@ -1600,7 +1595,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             if ~isempty(app.play_Tree.Children)
                 delete(app.play_Tree.Children)
             end
-            app.play_Metadata.HTMLSource = ' ';
+            ui.TextView.update(app.play_Metadata, '');
 
             receiverRawList = {app.specData.Receiver};
             [receiverList, ~, receiverIndex] = unique(receiverRawList);
@@ -1746,22 +1741,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Retira evidência às supracitadas células.
             if ~isempty(hComp)
                 set(hComp, BackgroundColor='white')
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function play_TreeSecundaryPanelVisibility(app)
-            switch app.play_TreePanelVisibility.UserData.Mode
-                case 'PLAYBACK'
-                    if app.play_TreePanelVisibility.UserData.Visible
-                        app.play_TreeGrid.RowHeight(4:10)  = {22,'1x',42,0,0,0,0};
-                    else
-                        app.play_TreeGrid.RowHeight(4:10) = {0,0,0,0,0,0,0};
-                    end
-
-                case 'REPORT'
-                    app.play_TreeGrid.RowHeight(4:8) = {0,0,0,22,'1x'};
-                    report_ModelOrVersionValueChanged(app, struct('Source', app.report_Version))
             end
         end
 
@@ -2429,7 +2408,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function prePlot_HTMLPanels(app, idxThread)
-            app.play_Metadata.HTMLSource = util.HtmlTextGenerator.Thread(app.specData, idxThread);
+            ui.TextView.update(app.play_Metadata, util.HtmlTextGenerator.Thread(app.specData, idxThread));
             app.tool_TimestampLabel.Text = sprintf('1 de %d\n%s', app.bandObj.nSweeps, app.specData(idxThread).Data{1}(1));
             ysecondarylabel(app.UIAxes1, sprintf('%s\n%.3f - %.3f MHz\n', app.specData(idxThread).Receiver, app.bandObj.FreqStart, app.bandObj.FreqStop))
         end
@@ -2458,9 +2437,22 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case 'manual'
                     app.play_Customization.Value = 1;
 
-                    app.axesTool_MinHold.UserData.Value       = app.specData(idx).UserData.customPlayback.Parameters.Controls.MinHold;
-                    app.axesTool_Average.UserData.Value       = app.specData(idx).UserData.customPlayback.Parameters.Controls.Average;
-                    app.axesTool_MaxHold.UserData.Value       = app.specData(idx).UserData.customPlayback.Parameters.Controls.MaxHold;
+                    iconDictionary = dictionary([true, false], [1, 2]);
+                    if ~isequal(app.axesTool_MinHold.UserData, app.specData(idx).UserData.customPlayback.Parameters.Controls.MinHold)
+                        app.axesTool_MinHold.UserData.Value   = app.specData(idx).UserData.customPlayback.Parameters.Controls.MinHold;
+                        app.axesTool_MinHold.ImageSource      = app.axesTool_MinHold.UserData.ImageSource{iconDictionary(app.axesTool_MinHold.UserData.Value)};
+                    end
+
+                    if ~isequal(app.axesTool_Average.UserData, app.specData(idx).UserData.customPlayback.Parameters.Controls.Average)
+                        app.axesTool_Average.UserData.Value   = app.specData(idx).UserData.customPlayback.Parameters.Controls.Average;
+                        app.axesTool_Average.ImageSource      = app.axesTool_Average.UserData.ImageSource{iconDictionary(app.axesTool_Average.UserData.Value)};
+                    end
+
+                    if ~isequal(app.axesTool_MaxHold.UserData, app.specData(idx).UserData.customPlayback.Parameters.Controls.MaxHold)
+                        app.axesTool_MaxHold.UserData.Value   = app.specData(idx).UserData.customPlayback.Parameters.Controls.MaxHold;
+                        app.axesTool_MaxHold.ImageSource      = app.axesTool_MaxHold.UserData.ImageSource{iconDictionary(app.axesTool_MaxHold.UserData.Value)};
+                    end
+
                     app.axesTool_Persistance.UserData.Value   = app.specData(idx).UserData.customPlayback.Parameters.Controls.Persistance;
                     app.axesTool_Occupancy.UserData.Value     = app.specData(idx).UserData.customPlayback.Parameters.Controls.Occupancy;
                     app.axesTool_Waterfall.UserData.Value     = app.specData(idx).UserData.customPlayback.Parameters.Controls.Waterfall;
@@ -2870,7 +2862,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % ## Modo "RELATÓRIO" ##
         %-----------------------------------------------------------------%
-        function report_TreeBuilding(app)            
+        function report_TreeBuilding(app)
             if ~isempty(app.report_Tree.Children)
                 delete(app.report_Tree.Children);
             end
@@ -2919,21 +2911,33 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
+        function report_updateAlgorithms(app, status, varargin)
+            switch status
+                case 'on'
+                    idx = varargin{1};                    
+                    ui.TextView.update(app.report_ThreadAlgorithms, util.HtmlTextGenerator.ReportAlgorithms(app.specData(idx)));
+                    app.report_ThreadAlgorithms.UserData.idxThread = app.play_PlotPanel.UserData;
+                    app.report_ThreadAlgorithmsImage.Visible = 'off';
+                    
+                case 'off'
+                    ui.TextView.update(app.report_ThreadAlgorithms, '');
+                    app.report_ThreadAlgorithms.UserData.idxThread = [];
+                    app.report_ThreadAlgorithmsImage.Visible = 'on';
+            end
+        end
+
+        %-----------------------------------------------------------------%
         function report_Algorithms(app, idx)
             if isscalar(idx) && app.specData(idx).UserData.reportFlag
-                if isempty(app.report_ThreadAlgorithms.UserData) || ~isequal(app.report_ThreadAlgorithms.UserData, app.play_PlotPanel.UserData)
-                    set(app.report_ThreadAlgorithms, 'HTMLSource', util.HtmlTextGenerator.ReportAlgorithms(app.specData(idx)), ...
-                                                     'UserData',   app.play_PlotPanel.UserData)
-
+                if isempty(app.report_ThreadAlgorithms.UserData.idxThread) || ~isequal(app.report_ThreadAlgorithms.UserData.idxThread, app.play_PlotPanel.UserData)
+                    report_updateAlgorithms(app, 'on', idx)
                     app.report_EditDetection.Enable      = ~app.specData(idx).UserData.reportAlgorithms.Detection.ManualMode;
                     app.report_EditClassification.Enable = 1;
                     set(app.report_DetectionManualMode, 'Enable', 1, 'Value', app.specData(idx).UserData.reportAlgorithms.Detection.ManualMode)
                 end
 
             else
-                set(app.report_ThreadAlgorithms, 'HTMLSource', fullfile(app.General.fileFolder.MFilePath, 'resources', 'Icons', 'Warning.html'), ...
-                                                 'UserData',   [])
-
+                report_updateAlgorithms(app, 'off')
                 app.report_EditDetection.Enable      = 0;
                 app.report_EditClassification.Enable = 0;
                 set(app.report_DetectionManualMode, 'Enable', 0, 'Value', 0)
@@ -3007,6 +3011,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             nameFormatMap = {'*.mat',    'appAnalise (*.mat)'; ...
                              '*.bin',    'Logger (*.bin)';     ...
                              '*.sm1809', 'SM1809 (*.sm1809)'};
+            
             defaultName   = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'SpectralData', -1); 
             [fileFullPath, ~, fileExt] = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
             if isempty(fileFullPath)
@@ -3017,8 +3022,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % limitações dos formatos "CRFS Bin" e "SM1809". O formato  "MAT",
             % por outro lado, não possui limitação.
             switch fileExt
-                case '.mat'
-                    % ...
                 case '.bin'
                     receiverList = unique({app.specData(idx).Receiver});
                     if (numel(receiverList) > 1) || ~contains(receiverList, 'RFeye', 'IgnoreCase', true)
@@ -3034,19 +3037,57 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
 
             if exist('msgWarning', 'var')
+                fileFullPath = '';
                 appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                 return
             end
 
-            app.progressDialog.Visible = 'visible';
+            args = {app.specData(idx)};
+            if strcmp(fileExt, '.mat')
+                args = [args, {[], {'UserData', 'callingApp', 'sortType'}}];
+            end
+            misc_ExportDataToFile(app, fileFullPath, fileExt, 'SpectralData', args{:})
+        end
 
-            switch fileExt
-                case '.mat'
-                    model.fileWriter.MAT(fileFullPath, 'SpectralData', app.specData(idx), [], {'UserData', 'callingApp', 'sortType'})
-                case '.bin'
-                    model.fileWriter.CRFSBin(fileFullPath, app.specData(idx))
-                case '.sm1809'
-                    model.fileWriter.SM1809( fileFullPath, app.specData(idx))
+        %-----------------------------------------------------------------%
+        function misc_ExportDataToFile(app, fileName, fileExt, fileType, varargin)
+            arguments
+                app
+                fileName
+                fileExt  char {mustBeMember(fileExt,  {'.mat', '.bin', '.sm1809'})}
+                fileType char {mustBeMember(fileType, {'ProjectData', 'SpectralData', 'UserData'})}
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+
+            % Avalia se o disco sob análise tem ao menos FreeStorageThreshold 
+            % de espaço livre.
+            [statusFreeStorage, msgFreeStorage] = util.checkFreeStorage(fileName, app.General.fileFolder.tempPath, app.General.operationMode.FreeStorageThreshold);
+            if ~statusFreeStorage
+                msgQuestion   = sprintf('%s\n\nDeseja continuar mesmo assim?', msgFreeStorage);
+                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+                if strcmp(userSelection, 'Não')
+                    return
+                end
+            end
+
+            app.progressDialog.Visible = 'visible';
+            
+            switch fileType
+                case {'ProjectData', 'UserData'}
+                    model.fileWriter.MAT(fileName, fileType, varargin{:});
+
+                case 'SpectralData'
+                    switch fileExt
+                        case '.mat'
+                            model.fileWriter.MAT(fileName, fileType, varargin{:});
+                        case '.bin'
+                            model.fileWriter.CRFSBin(fileName, varargin{:});
+                        case '.sm1809'
+                            model.fileWriter.SM1809( fileName, varargin{:});
+                    end
             end
 
             app.progressDialog.Visible = 'hidden';
@@ -3072,7 +3113,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 return
             end
             
-            model.fileWriter.MAT(fileFullPath, 'UserData', app.specData(idx), struct.empty, {'Data', 'callingApp', 'sortType'})
+            misc_ExportDataToFile(app, fileFullPath, '.mat', 'UserData', app.specData(idx), struct.empty, {'Data', 'callingApp', 'sortType'})
         end
 
         %-----------------------------------------------------------------%
@@ -3113,11 +3154,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.UIFigure.Position(4) = 660;
                 app.popupContainerGrid.Layout.Row = [1,2];
                 app.GridLayout.RowHeight = {44, '1x'};
-                app.play_TreeGrid.RowHeight(4:10) = {0,0,0,0,0,0,0};
                 % </GUI>
 
                 appUtil.winPosition(app.UIFigure)
-                jsBackDoor_Initialization(app)
                 startup_timerCreation(app)
 
             catch ME
@@ -3184,8 +3223,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Image clicked function: AppInfo, FigurePosition
         function menu_ToolbarImageCliced(app, event)
 
-            focus(app.jsBackDoor)
-
             switch event.Source
                 case app.FigurePosition
                     app.UIFigure.Position(3:4) = class.Constants.windowSize;
@@ -3194,7 +3231,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case app.AppInfo
                     if isempty(app.AppInfo.Tag)
                         app.progressDialog.Visible = 'visible';
-                        app.AppInfo.Tag = util.HtmlTextGenerator.AppInfo(app.General, app.rootFolder, app.executionMode);
+                        app.AppInfo.Tag = util.HtmlTextGenerator.AppInfo(app.General, app.rootFolder, app.executionMode, "popup");
                         app.progressDialog.Visible = 'hidden';
                     end
 
@@ -3213,8 +3250,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         % Image clicked function: file_OpenFileButton
         function file_ButtonPushed_OpenFile(app, event)
-            
-            focus(app.file_Tree)
 
             if app.General.operationMode.Simulation
                 app.General.operationMode.Simulation = false;
@@ -3296,13 +3331,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 if isempty(app.UIAxes1)
                     startup_Axes(app)
                 end
-
-                % Constroi a árvore de fluxos espectrais, deixando selecionado
-                % o primeiro dos fluxos. E constroi a árvore de fluxos espectrais
-                % que eventualmente foram incluídos em um projeto.
-                play_TreeBuilding(app)
-                app.play_Tree.SelectedNodes = app.play_Tree.Children(1).Children(1);
-                report_TreeBuilding(app)
     
                 % Habilita botões do menu principal - PLAYBACK, REPORT e MISC -
                 % abrindo programaticamente o modo PLAYBACK.
@@ -3313,13 +3341,20 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 app.menu_Button6.Enable = 1;
 
                 menu_mainButtonPushed(app, struct('Source', app.menu_Button2, 'PreviousValue', false))
+
+                % Constroi a árvore de fluxos espectrais, deixando selecionado
+                % o primeiro dos fluxos. E constroi a árvore de fluxos espectrais
+                % que eventualmente foram incluídos em um projeto.
+                play_TreeBuilding(app)
+                app.play_Tree.SelectedNodes = app.play_Tree.Children(1).Children(1);
+                report_TreeBuilding(app)
     
                 % Desabilita botão, inviabilizando leitura do mesmo conjunto de
                 % dados.
                 app.file_SpecReadButton.Visible = 0;
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
+                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
                 file_DataReaderError(app)
             end
 
@@ -3365,11 +3400,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 expand(app.file_Tree.Children(idxFile), 'all')
                 scroll(app.file_Tree, app.file_Tree.SelectedNodes(end))
 
-                app.file_Metadata.HTMLSource = util.HtmlTextGenerator.Thread(app.metaData, idxFile, idxThread);
+                ui.TextView.update(app.file_Metadata, util.HtmlTextGenerator.Thread(app.metaData, idxFile, idxThread));
 
             else
                 app.file_Tree.UserData = struct('previousSelectedFileIndex', [], 'previousSelectedFileThread', []);
-                app.file_Metadata.HTMLSource = ' ';
+                ui.TextView.update(app.file_Metadata, '');
             end
             
         end
@@ -3377,10 +3412,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Selection changed function: file_FilteringTypePanel
         function file_FilteringTypeChanged(app, event)
 
+            cellfun(@(x) set(x, 'Visible', 'off'), {app.file_FilteringType1_Frequency, app.file_FilteringType2_ID, app.file_FilteringType3_Description});
+
             switch app.file_FilteringTypePanel.SelectedObject
-                case app.file_FilteringType1; app.file_panelGrid.RowHeight(6:8) = {22,0,0};
-                case app.file_FilteringType2; app.file_panelGrid.RowHeight(6:8) = {0,22,0};
-                case app.file_FilteringType3; app.file_panelGrid.RowHeight(6:8) = {0,0,22};
+                case app.file_FilteringType1; app.file_FilteringType1_Frequency.Visible   = 'on';
+                case app.file_FilteringType2; app.file_FilteringType2_ID.Visible          = 'on';
+                case app.file_FilteringType3; app.file_FilteringType3_Description.Visible = 'on';
             end
 
         end
@@ -3478,7 +3515,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         end
 
         % Image clicked function: submenu_Button1Icon, 
-        % ...and 3 other components
+        % ...and 2 other components
         function play_submenuButtonPushed(app, event)
             
             switch event.Source.Tag
@@ -3525,44 +3562,31 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.submenu_Grid.ColumnWidth       = submenuColumnWidth;
             app.submenuUnderline.Layout.Column = submenuUnderlineColumn;
 
-            focus(app.jsBackDoor)
-
         end
 
-        % Image clicked function: play_TreePanelVisibility, 
-        % ...and 2 other components
+        % Image clicked function: tool_LayoutLeft, tool_LayoutRight
         function play_PanelsVisibility(app, event)
             
-            switch event.Source
-                %---------------------------------------------------------%
-                case app.play_TreePanelVisibility
-                    app.play_TreePanelVisibility.UserData.Visible = ~app.play_TreePanelVisibility.UserData.Visible;
-                    play_TreeSecundaryPanelVisibility(app)
+            event.Source.UserData = ~event.Source.UserData;
 
-                %---------------------------------------------------------%
+            switch event.Source
                 case app.tool_LayoutLeft
-                    if app.play_Grid.ColumnWidth{1}
-                        app.play_Grid.ColumnWidth(1:2) = {0, 5};
-                        app.tool_LayoutLeft.ImageSource = 'ArrowRight_32.png';
-                    else
-                        app.play_Grid.ColumnWidth(1:2) = {325, 10};
+                    if app.tool_LayoutLeft.UserData
+                        app.play_Grid.ColumnWidth(2:3) = {320, 10};
                         app.tool_LayoutLeft.ImageSource = 'ArrowLeft_32.png';
+                    else
+                        app.play_Grid.ColumnWidth(2:3) = {0, 0};
+                        app.tool_LayoutLeft.ImageSource = 'ArrowRight_32.png';
                     end
 
                 case app.tool_LayoutRight
-                    if app.play_Grid.ColumnWidth{end}
-                        app.play_Grid.ColumnWidth(end-1:end) = {5, 0};
-                        app.tool_LayoutRight.ImageSource = 'ArrowLeft_32.png';
-                    else
+                    if app.tool_LayoutRight.UserData
                         app.play_Grid.ColumnWidth(end-1:end) = {10, 325};
                         app.tool_LayoutRight.ImageSource = 'ArrowRight_32.png';
+                    else
+                        app.play_Grid.ColumnWidth(end-1:end) = {5, 0};
+                        app.tool_LayoutRight.ImageSource = 'ArrowLeft_32.png';
                     end
-            end
-
-            if app.play_Tree.Enable
-                focus(app.play_Tree)
-            else
-                focus(app.jsBackDoor)
             end
 
         end
@@ -3620,7 +3644,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Aspectos relacionados a modos auxiliares - inicialmente, necessário 
             % apenas p/ modo REPORT (app.menu_Button3).
-            if app.menu_Button3.Value
+            if app.menu_Button3.Value || ...
+                    (any(arrayfun(@(x) x.UserData.reportFlag, app.specData)) && isempty(app.report_Tree.Children))
+
                 app.report_Tree.SelectedNodes = [];
                 report_Algorithms(app, app.play_PlotPanel.UserData.NodeData)
             end
@@ -4333,7 +4359,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 play_Channel_AddChannel(app, channel2Add, typeOfChannel, idxThreads)
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
             end
 
         end
@@ -4604,7 +4630,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
 
                     catch ME
-                        appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
+                        appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
                         return
                     end
 
@@ -4612,6 +4638,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     switch app.play_FindPeaks_RadioGroup.SelectedObject
                         %-------------------------------------------------%
                         case app.play_FindPeaks_auto
+                            app.progressDialog.Visible = 'visible';
+
                             switch app.play_FindPeaks_Algorithm.Value
                                 case 'FindPeaks'
                                     Attributes = struct('Algorithm',    app.play_FindPeaks_Algorithm.Value,  ...
@@ -4656,9 +4684,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             % Se for desenhada uma ROI fora dos limites do eixo,
                             % a função freq2idx retornará ela nas extremidades do 
                             % eixo. Nesse caso, exclui-se a ROI.                            
-                            if ismember(newIndex, [1, app.specData(idx).MetaData.DataPoints])                    
-                               delete(mkrTemp)
-                               return
+                            if ismember(newIndex, [1, app.specData(idx).MetaData.DataPoints])
+                                delete(mkrTemp)
+                                return
                             end
         
                         %-------------------------------------------------%
@@ -4680,6 +4708,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             newIndex = freq2idx(app.bandObj, newFreq .* 1e+6);
                             Method   = repmat({jsonencode(struct('Algorithm', 'Manual'))}, numel(newFreq), 1);
                     end
+
+                    app.progressDialog.Visible = 'visible';
                 
                     if ischar(Method)
                         Method = {Method};
@@ -4693,6 +4723,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             delete(mkrTemp)
                         end
                     end
+
+                    app.progressDialog.Visible = 'hidden';
             end
             
             if isempty(newIndex)
@@ -5042,7 +5074,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                      '•&thinsp;Campo 8: Referência textual sobre a canalização;<br>'                                                        ...
                                      '•&thinsp;Campo 9: Natureza das emissões, podendo ser "Aircraft", "Cellular", "FM", "TV" ou "Unknown".</font><br><br>' ...
                                      'Deseja fazer download do arquivo modelo?'];
-                    templateName  = 'appAnaliseTemplate - addChannelList.json';
+                    templateName  = 'addChannelList.json';
                     templateExt   = '.json';
 
                 case app.play_FindPeaks_FileTemplate
@@ -5051,7 +5083,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                      '•&thinsp;Coluna 2: Largura ocupada, em kHZ; e<br>'                                                         ...
                                      '•&thinsp;Coluna 3: Descrição textual da emissão.</font><br><br>'                                           ...
                                      'Deseja fazer download dos arquivos modelos?'];
-                    templateName  = 'appAnaliseTemplate - addEmission.zip';
+                    templateName  = 'addEmission.zip';
                     templateExt   = '.zip';
             end
 
@@ -5069,7 +5101,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     templateFullFile = fullfile(app.General.fileFolder.MFilePath, 'resources', 'FileTemplates', templateName);
                     copyfile(templateFullFile, fileFullPath, 'f')
                 catch ME
-                    appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                    appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
                 end
             end
 
@@ -5137,7 +5169,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function report_ContextMenu_delSelected(app, event)
             
             if ~isempty(app.report_Tree.SelectedNodes)
-                idx = app.report_Tree.SelectedNodes.NodeData;
+                idx = unique([app.report_Tree.SelectedNodes.NodeData]);
                 update(app.specData, 'UserData:ReportFields', 'Delete', idx)
 
                 report_TreeBuilding(app)
@@ -5150,8 +5182,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function report_DetectionManualModeValueChanged(app, event)
             
             idx = app.play_PlotPanel.UserData.NodeData;            
-            update(app.specData(idx), 'UserData:ReportFields', 'ReportDetection:ManualMode:Edit', double(app.report_DetectionManualMode.Value))            
-            app.report_ThreadAlgorithms.UserData = [];
+            update(app.specData(idx), 'UserData:ReportFields', 'ReportDetection:ManualMode:Edit', double(app.report_DetectionManualMode.Value))
+
+            % Esse estado força a atualização do painel
+            app.report_ThreadAlgorithms.UserData.idxThread = [];
             report_Algorithms(app, idx)
 
         end
@@ -5190,7 +5224,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
 
                         % INSPEÇÃO
-                        if ~eFiscaliza_checkIssueId(app)
+                        if ~report_checkEFiscalizaIssueId(app)
                             msgWarning = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
                             appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                             return
@@ -5232,12 +5266,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             msg = '';
             if all(~arrayfun(@(x) x.UserData.reportFlag, app.specData))
                 msg = 'É necessário incluir pelo menos um fluxo espectral na lista de fluxos a processar.';
-            elseif ~eFiscaliza_checkIssueId(app)
+            elseif ~report_checkEFiscalizaIssueId(app)
                 msg = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
             elseif isempty(app.projectData.generatedFiles) || isempty(app.projectData.generatedFiles.lastHTMLDocFullPath)
                 msg = 'A versão definitiva do relatório ainda não foi gerada.';
             elseif ~isfile(app.projectData.generatedFiles.lastHTMLDocFullPath)
                 msg = sprintf('O arquivo "%s" não foi encontrado.', app.projectData.generatedFiles.lastHTMLDocFullPath);
+            elseif ~isfolder(app.General.fileFolder.DataHub_POST)
+                msg = 'Pendente mapear pasta do Sharepoint';
             end
 
             if ~isempty(msg)
@@ -5250,9 +5286,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             if isempty(app.eFiscalizaObj)
                 dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
                 dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
-                sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', char(matlab.lang.internal.uuid()), 'Fields', dialogBox))
+                sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', 'eFiscalizaSignInPage', 'Fields', dialogBox))
             else
-                eFiscaliza_sendRequest(app, [], 'uploadDocument')
+                report_uploadInfoController(app, [], 'uploadDocument')
             end
             % </PROCESS>
 
@@ -5295,28 +5331,23 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         return
                     end
 
-                    app.progressDialog.Visible = 'visible';
-
                     reportTemplateIndex = find(strcmp(app.report_ModelName.Items, app.report_ModelName.Value), 1) - 1;
                     [idx, reportInfo]   = report.GeneralInfo(app, 'Report', reportTemplateIndex);
                     
+                    generatedZIPFile = '';
                     if ~isempty(app.projectData.generatedFiles) && isfield(app.projectData.generatedFiles, 'lastZIPFullPath') && isfile(app.projectData.generatedFiles.lastZIPFullPath)
                         generatedZIPFile = app.projectData.generatedFiles.lastZIPFullPath;
-                    else
-                        generatedZIPFile = [];
                     end
 
                     prjInfo = struct('Name',           fileName,                        ...
                                      'reportInfo',     rmfield(reportInfo, 'Filename'), ...
                                      'generatedFiles', generatedZIPFile);
                     
-                    model.fileWriter.MAT(fileFullPath, 'ProjectData', app.specData(idx), prjInfo, {'callingApp', 'sortType'})
+                    misc_ExportDataToFile(app, fileFullPath, '.mat', 'ProjectData', app.specData(idx), prjInfo, {'callingApp', 'sortType'})
                     
 
                     app.report_ProjectName.Value = fileFullPath;
                     app.report_ProjectWarnIcon.Visible = 0;
-
-                    app.progressDialog.Visible = 'hidden';
             end
 
         end
@@ -5368,13 +5399,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 case app.report_Version
                     switch app.report_Version.Value
                         case 'Definitiva'
-                            app.play_TreeGrid.RowHeight(9:10)      = {0,0};
+                            app.report_ControlsTab1Info.RowHeight(end-1:end) = {0,0};
                             app.report_EditDetection.Visible       = 0;
                             app.report_EditClassification.Visible  = 0;
                             app.report_DetectionManualMode.Visible = 0;
 
                         otherwise
-                            app.play_TreeGrid.RowHeight(9:10)      = {15,22};                            
+                            app.report_ControlsTab1Info.RowHeight(end-1:end) = {15,15};                            
                             app.report_EditDetection.Visible       = 1;
                             app.report_EditClassification.Visible  = 1;
                             app.report_DetectionManualMode.Visible = 1;
@@ -5515,7 +5546,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 play_TreeRebuilding(app, SelectedNodesTextList)
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
+                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
             end
 
         end
@@ -5534,7 +5565,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.AutoResizeChildren = 'off';
             app.UIFigure.Color = [0.9412 0.9412 0.9412];
-            app.UIFigure.Position = [100 100 1244 3200];
+            app.UIFigure.Position = [100 100 1244 660];
             app.UIFigure.Name = 'appAnalise';
             app.UIFigure.Icon = 'icon_48.png';
             app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -5561,21 +5592,169 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create file_Grid
             app.file_Grid = uigridlayout(app.Tab1_File);
-            app.file_Grid.ColumnWidth = {'1x', 325};
-            app.file_Grid.RowHeight = {'1x', 34};
-            app.file_Grid.RowSpacing = 5;
+            app.file_Grid.ColumnWidth = {5, 320, '1x', 10, 304, 16, 5};
+            app.file_Grid.RowHeight = {23, 3, 5, 22, 5, '1x', 5, 22, 5, 32, 5, 22, 5, 8, 5, 68, 5, 34};
+            app.file_Grid.ColumnSpacing = 0;
+            app.file_Grid.RowSpacing = 0;
             app.file_Grid.Padding = [0 0 0 24];
             app.file_Grid.BackgroundColor = [1 1 1];
+
+            % Create file_TitleGrid
+            app.file_TitleGrid = uigridlayout(app.file_Grid);
+            app.file_TitleGrid.ColumnWidth = {18, '1x'};
+            app.file_TitleGrid.RowHeight = {23};
+            app.file_TitleGrid.ColumnSpacing = 3;
+            app.file_TitleGrid.RowSpacing = 0;
+            app.file_TitleGrid.Padding = [2 0 0 0];
+            app.file_TitleGrid.Tag = 'COLORLOCKED';
+            app.file_TitleGrid.Layout.Row = 1;
+            app.file_TitleGrid.Layout.Column = 2;
+            app.file_TitleGrid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create file_TitleIcon
+            app.file_TitleIcon = uiimage(app.file_TitleGrid);
+            app.file_TitleIcon.ScaleMethod = 'none';
+            app.file_TitleIcon.Layout.Row = 1;
+            app.file_TitleIcon.Layout.Column = 1;
+            app.file_TitleIcon.HorizontalAlignment = 'left';
+            app.file_TitleIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'addFiles_18.png');
+
+            % Create file_Title
+            app.file_Title = uilabel(app.file_TitleGrid);
+            app.file_Title.FontSize = 11;
+            app.file_Title.Layout.Row = 1;
+            app.file_Title.Layout.Column = 2;
+            app.file_Title.Text = 'ARQUIVOS';
+
+            % Create file_TitleGridLine
+            app.file_TitleGridLine = uiimage(app.file_Grid);
+            app.file_TitleGridLine.ScaleMethod = 'none';
+            app.file_TitleGridLine.Layout.Row = 2;
+            app.file_TitleGridLine.Layout.Column = 2;
+            app.file_TitleGridLine.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineH.svg');
+
+            % Create file_TreeLabel
+            app.file_TreeLabel = uilabel(app.file_Grid);
+            app.file_TreeLabel.VerticalAlignment = 'bottom';
+            app.file_TreeLabel.FontSize = 10;
+            app.file_TreeLabel.Layout.Row = 4;
+            app.file_TreeLabel.Layout.Column = 2;
+            app.file_TreeLabel.Text = 'LISTA DE ARQUIVOS';
+
+            % Create file_Tree
+            app.file_Tree = uitree(app.file_Grid);
+            app.file_Tree.Multiselect = 'on';
+            app.file_Tree.SelectionChangedFcn = createCallbackFcn(app, @file_TreeSelectionChanged, true);
+            app.file_Tree.FontSize = 10;
+            app.file_Tree.Layout.Row = [6 16];
+            app.file_Tree.Layout.Column = [2 3];
+
+            % Create file_MetadataLabel
+            app.file_MetadataLabel = uilabel(app.file_Grid);
+            app.file_MetadataLabel.VerticalAlignment = 'bottom';
+            app.file_MetadataLabel.FontSize = 10;
+            app.file_MetadataLabel.Layout.Row = 4;
+            app.file_MetadataLabel.Layout.Column = 5;
+            app.file_MetadataLabel.Text = 'METADADOS';
+
+            % Create file_Metadata
+            app.file_Metadata = uilabel(app.file_Grid);
+            app.file_Metadata.VerticalAlignment = 'top';
+            app.file_Metadata.WordWrap = 'on';
+            app.file_Metadata.FontSize = 11;
+            app.file_Metadata.Layout.Row = 6;
+            app.file_Metadata.Layout.Column = [5 6];
+            app.file_Metadata.Interpreter = 'html';
+            app.file_Metadata.Text = '';
+
+            % Create file_FilteringLabel
+            app.file_FilteringLabel = uilabel(app.file_Grid);
+            app.file_FilteringLabel.VerticalAlignment = 'bottom';
+            app.file_FilteringLabel.FontSize = 10;
+            app.file_FilteringLabel.FontColor = [0.149 0.149 0.149];
+            app.file_FilteringLabel.Layout.Row = 8;
+            app.file_FilteringLabel.Layout.Column = 5;
+            app.file_FilteringLabel.Text = 'FILTROS';
+
+            % Create file_FilteringTypePanel
+            app.file_FilteringTypePanel = uibuttongroup(app.file_Grid);
+            app.file_FilteringTypePanel.SelectionChangedFcn = createCallbackFcn(app, @file_FilteringTypeChanged, true);
+            app.file_FilteringTypePanel.BackgroundColor = [1 1 1];
+            app.file_FilteringTypePanel.Layout.Row = 10;
+            app.file_FilteringTypePanel.Layout.Column = [5 6];
+            app.file_FilteringTypePanel.FontWeight = 'bold';
+            app.file_FilteringTypePanel.FontSize = 10;
+
+            % Create file_FilteringType1
+            app.file_FilteringType1 = uiradiobutton(app.file_FilteringTypePanel);
+            app.file_FilteringType1.Text = 'Faixa de Frequência';
+            app.file_FilteringType1.FontSize = 10.5;
+            app.file_FilteringType1.Position = [12 4 136 22];
+            app.file_FilteringType1.Value = true;
+
+            % Create file_FilteringType2
+            app.file_FilteringType2 = uiradiobutton(app.file_FilteringTypePanel);
+            app.file_FilteringType2.Text = 'ID';
+            app.file_FilteringType2.FontSize = 10.5;
+            app.file_FilteringType2.Position = [164 5 52 22];
+
+            % Create file_FilteringType3
+            app.file_FilteringType3 = uiradiobutton(app.file_FilteringTypePanel);
+            app.file_FilteringType3.Text = 'Descrição';
+            app.file_FilteringType3.FontSize = 10.5;
+            app.file_FilteringType3.Position = [238 5 82 22];
+
+            % Create file_FilteringType3_Description
+            app.file_FilteringType3_Description = uieditfield(app.file_Grid, 'text');
+            app.file_FilteringType3_Description.FontSize = 11;
+            app.file_FilteringType3_Description.Visible = 'off';
+            app.file_FilteringType3_Description.Layout.Row = 12;
+            app.file_FilteringType3_Description.Layout.Column = [5 6];
+
+            % Create file_FilteringType2_ID
+            app.file_FilteringType2_ID = uidropdown(app.file_Grid);
+            app.file_FilteringType2_ID.Items = {};
+            app.file_FilteringType2_ID.Visible = 'off';
+            app.file_FilteringType2_ID.FontSize = 11;
+            app.file_FilteringType2_ID.BackgroundColor = [1 1 1];
+            app.file_FilteringType2_ID.Layout.Row = 12;
+            app.file_FilteringType2_ID.Layout.Column = [5 6];
+            app.file_FilteringType2_ID.Value = {};
+
+            % Create file_FilteringType1_Frequency
+            app.file_FilteringType1_Frequency = uidropdown(app.file_Grid);
+            app.file_FilteringType1_Frequency.Items = {};
+            app.file_FilteringType1_Frequency.FontSize = 11;
+            app.file_FilteringType1_Frequency.BackgroundColor = [1 1 1];
+            app.file_FilteringType1_Frequency.Layout.Row = 12;
+            app.file_FilteringType1_Frequency.Layout.Column = [5 6];
+            app.file_FilteringType1_Frequency.Value = {};
+
+            % Create file_FilteringAdd
+            app.file_FilteringAdd = uiimage(app.file_Grid);
+            app.file_FilteringAdd.ScaleMethod = 'scaledown';
+            app.file_FilteringAdd.ImageClickedFcn = createCallbackFcn(app, @file_FilteringAddClicked, true);
+            app.file_FilteringAdd.Layout.Row = 14;
+            app.file_FilteringAdd.Layout.Column = 6;
+            app.file_FilteringAdd.VerticalAlignment = 'bottom';
+            app.file_FilteringAdd.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'addSymbol_32.png');
+
+            % Create file_FilteringTree
+            app.file_FilteringTree = uitree(app.file_Grid);
+            app.file_FilteringTree.Multiselect = 'on';
+            app.file_FilteringTree.FontSize = 10;
+            app.file_FilteringTree.Layout.Row = 16;
+            app.file_FilteringTree.Layout.Column = [5 6];
 
             % Create file_toolGrid
             app.file_toolGrid = uigridlayout(app.file_Grid);
             app.file_toolGrid.ColumnWidth = {22, 22, 110, '1x', 110};
-            app.file_toolGrid.RowHeight = {'1x', 17, '1x'};
+            app.file_toolGrid.RowHeight = {3, 17, 2};
             app.file_toolGrid.ColumnSpacing = 5;
             app.file_toolGrid.RowSpacing = 0;
             app.file_toolGrid.Padding = [5 6 5 6];
-            app.file_toolGrid.Layout.Row = 2;
-            app.file_toolGrid.Layout.Column = [1 2];
+            app.file_toolGrid.Layout.Row = 18;
+            app.file_toolGrid.Layout.Column = [1 7];
 
             % Create file_OpenInitialPopup
             app.file_OpenInitialPopup = uiimage(app.file_toolGrid);
@@ -5607,180 +5786,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.file_SpecReadButton.Layout.Column = 5;
             app.file_SpecReadButton.Text = 'Inicia análise';
 
-            % Create file_docGrid
-            app.file_docGrid = uigridlayout(app.file_Grid);
-            app.file_docGrid.ColumnWidth = {320, '1x'};
-            app.file_docGrid.RowHeight = {23, 3, 5, 22, 5, '1x'};
-            app.file_docGrid.ColumnSpacing = 5;
-            app.file_docGrid.RowSpacing = 0;
-            app.file_docGrid.Padding = [5 0 0 0];
-            app.file_docGrid.Layout.Row = 1;
-            app.file_docGrid.Layout.Column = 1;
-            app.file_docGrid.BackgroundColor = [1 1 1];
-
-            % Create file_TitleGrid
-            app.file_TitleGrid = uigridlayout(app.file_docGrid);
-            app.file_TitleGrid.ColumnWidth = {18, '1x'};
-            app.file_TitleGrid.RowHeight = {'1x'};
-            app.file_TitleGrid.ColumnSpacing = 3;
-            app.file_TitleGrid.Padding = [2 0 0 0];
-            app.file_TitleGrid.Tag = 'COLORLOCKED';
-            app.file_TitleGrid.Layout.Row = 1;
-            app.file_TitleGrid.Layout.Column = 1;
-            app.file_TitleGrid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create file_TitleIcon
-            app.file_TitleIcon = uiimage(app.file_TitleGrid);
-            app.file_TitleIcon.ScaleMethod = 'none';
-            app.file_TitleIcon.Layout.Row = 1;
-            app.file_TitleIcon.Layout.Column = 1;
-            app.file_TitleIcon.HorizontalAlignment = 'left';
-            app.file_TitleIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'addFiles_18.png');
-
-            % Create file_Title
-            app.file_Title = uilabel(app.file_TitleGrid);
-            app.file_Title.FontSize = 11;
-            app.file_Title.Layout.Row = 1;
-            app.file_Title.Layout.Column = 2;
-            app.file_Title.Text = 'ARQUIVOS';
-
-            % Create file_TreeLabel
-            app.file_TreeLabel = uilabel(app.file_docGrid);
-            app.file_TreeLabel.VerticalAlignment = 'bottom';
-            app.file_TreeLabel.FontSize = 10;
-            app.file_TreeLabel.Layout.Row = 4;
-            app.file_TreeLabel.Layout.Column = 1;
-            app.file_TreeLabel.Text = 'LISTA DE ARQUIVOS';
-
-            % Create file_Tree
-            app.file_Tree = uitree(app.file_docGrid);
-            app.file_Tree.Multiselect = 'on';
-            app.file_Tree.SelectionChangedFcn = createCallbackFcn(app, @file_TreeSelectionChanged, true);
-            app.file_Tree.FontSize = 10;
-            app.file_Tree.Layout.Row = 6;
-            app.file_Tree.Layout.Column = [1 2];
-
-            % Create Image
-            app.Image = uiimage(app.file_docGrid);
-            app.Image.ScaleMethod = 'scaleup';
-            app.Image.Layout.Row = 2;
-            app.Image.Layout.Column = 1;
-            app.Image.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineH.png');
-
-            % Create file_panelGrid
-            app.file_panelGrid = uigridlayout(app.file_Grid);
-            app.file_panelGrid.ColumnWidth = {'1x', 16};
-            app.file_panelGrid.RowHeight = {26, 22, '1x', 22, 32, 22, 0, 0, 8, 68};
-            app.file_panelGrid.ColumnSpacing = 5;
-            app.file_panelGrid.RowSpacing = 5;
-            app.file_panelGrid.Padding = [0 0 5 0];
-            app.file_panelGrid.Layout.Row = 1;
-            app.file_panelGrid.Layout.Column = 2;
-            app.file_panelGrid.BackgroundColor = [1 1 1];
-
-            % Create file_MetadataLabel
-            app.file_MetadataLabel = uilabel(app.file_panelGrid);
-            app.file_MetadataLabel.VerticalAlignment = 'bottom';
-            app.file_MetadataLabel.FontSize = 10;
-            app.file_MetadataLabel.Layout.Row = 2;
-            app.file_MetadataLabel.Layout.Column = 1;
-            app.file_MetadataLabel.Text = 'METADADOS';
-
-            % Create file_MetadataPanel
-            app.file_MetadataPanel = uipanel(app.file_panelGrid);
-            app.file_MetadataPanel.Layout.Row = 3;
-            app.file_MetadataPanel.Layout.Column = [1 2];
-
-            % Create file_MetadataGrid
-            app.file_MetadataGrid = uigridlayout(app.file_MetadataPanel);
-            app.file_MetadataGrid.ColumnWidth = {'1x'};
-            app.file_MetadataGrid.RowHeight = {'1x'};
-            app.file_MetadataGrid.Padding = [0 0 0 0];
-            app.file_MetadataGrid.BackgroundColor = [1 1 1];
-
-            % Create file_Metadata
-            app.file_Metadata = uihtml(app.file_MetadataGrid);
-            app.file_Metadata.HTMLSource = ' ';
-            app.file_Metadata.Layout.Row = 1;
-            app.file_Metadata.Layout.Column = 1;
-
-            % Create file_FilteringLabel
-            app.file_FilteringLabel = uilabel(app.file_panelGrid);
-            app.file_FilteringLabel.VerticalAlignment = 'bottom';
-            app.file_FilteringLabel.FontSize = 10;
-            app.file_FilteringLabel.FontColor = [0.149 0.149 0.149];
-            app.file_FilteringLabel.Layout.Row = 4;
-            app.file_FilteringLabel.Layout.Column = 1;
-            app.file_FilteringLabel.Text = 'FILTROS';
-
-            % Create file_FilteringTypePanel
-            app.file_FilteringTypePanel = uibuttongroup(app.file_panelGrid);
-            app.file_FilteringTypePanel.SelectionChangedFcn = createCallbackFcn(app, @file_FilteringTypeChanged, true);
-            app.file_FilteringTypePanel.BackgroundColor = [1 1 1];
-            app.file_FilteringTypePanel.Layout.Row = 5;
-            app.file_FilteringTypePanel.Layout.Column = [1 2];
-            app.file_FilteringTypePanel.FontWeight = 'bold';
-            app.file_FilteringTypePanel.FontSize = 10;
-
-            % Create file_FilteringType1
-            app.file_FilteringType1 = uiradiobutton(app.file_FilteringTypePanel);
-            app.file_FilteringType1.Text = 'Faixa de Frequência';
-            app.file_FilteringType1.FontSize = 10.5;
-            app.file_FilteringType1.Position = [12 4 136 22];
-            app.file_FilteringType1.Value = true;
-
-            % Create file_FilteringType2
-            app.file_FilteringType2 = uiradiobutton(app.file_FilteringTypePanel);
-            app.file_FilteringType2.Text = 'ID';
-            app.file_FilteringType2.FontSize = 10.5;
-            app.file_FilteringType2.Position = [164 5 52 22];
-
-            % Create file_FilteringType3
-            app.file_FilteringType3 = uiradiobutton(app.file_FilteringTypePanel);
-            app.file_FilteringType3.Text = 'Descrição';
-            app.file_FilteringType3.FontSize = 10.5;
-            app.file_FilteringType3.Position = [238 5 82 22];
-
-            % Create file_FilteringType1_Frequency
-            app.file_FilteringType1_Frequency = uidropdown(app.file_panelGrid);
-            app.file_FilteringType1_Frequency.Items = {};
-            app.file_FilteringType1_Frequency.FontSize = 11;
-            app.file_FilteringType1_Frequency.BackgroundColor = [1 1 1];
-            app.file_FilteringType1_Frequency.Layout.Row = 6;
-            app.file_FilteringType1_Frequency.Layout.Column = [1 2];
-            app.file_FilteringType1_Frequency.Value = {};
-
-            % Create file_FilteringType2_ID
-            app.file_FilteringType2_ID = uidropdown(app.file_panelGrid);
-            app.file_FilteringType2_ID.Items = {};
-            app.file_FilteringType2_ID.FontSize = 11;
-            app.file_FilteringType2_ID.BackgroundColor = [1 1 1];
-            app.file_FilteringType2_ID.Layout.Row = 7;
-            app.file_FilteringType2_ID.Layout.Column = [1 2];
-            app.file_FilteringType2_ID.Value = {};
-
-            % Create file_FilteringType3_Description
-            app.file_FilteringType3_Description = uieditfield(app.file_panelGrid, 'text');
-            app.file_FilteringType3_Description.FontSize = 11;
-            app.file_FilteringType3_Description.Layout.Row = 8;
-            app.file_FilteringType3_Description.Layout.Column = [1 2];
-
-            % Create file_FilteringAdd
-            app.file_FilteringAdd = uiimage(app.file_panelGrid);
-            app.file_FilteringAdd.ScaleMethod = 'scaledown';
-            app.file_FilteringAdd.ImageClickedFcn = createCallbackFcn(app, @file_FilteringAddClicked, true);
-            app.file_FilteringAdd.Layout.Row = 9;
-            app.file_FilteringAdd.Layout.Column = 2;
-            app.file_FilteringAdd.VerticalAlignment = 'bottom';
-            app.file_FilteringAdd.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'addSymbol_32.png');
-
-            % Create file_FilteringTree
-            app.file_FilteringTree = uitree(app.file_panelGrid);
-            app.file_FilteringTree.Multiselect = 'on';
-            app.file_FilteringTree.FontSize = 10;
-            app.file_FilteringTree.Layout.Row = 10;
-            app.file_FilteringTree.Layout.Column = [1 2];
-
             % Create Tab2_Playback
             app.Tab2_Playback = uitab(app.TabGroup);
             app.Tab2_Playback.AutoResizeChildren = 'off';
@@ -5788,178 +5793,20 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_Grid
             app.play_Grid = uigridlayout(app.Tab2_Playback);
-            app.play_Grid.ColumnWidth = {325, 10, '1x', 198, 5, 10, 325};
-            app.play_Grid.RowHeight = {22, '1x', 34};
+            app.play_Grid.ColumnWidth = {5, 320, 10, '1x', 198, 5, 10, 325};
+            app.play_Grid.RowHeight = {23, 3, 5, 22, 5, 176, '1x', 5, 22, 5, '1x', 5, 34};
             app.play_Grid.ColumnSpacing = 0;
-            app.play_Grid.RowSpacing = 5;
+            app.play_Grid.RowSpacing = 0;
             app.play_Grid.Padding = [0 0 0 24];
             app.play_Grid.BackgroundColor = [1 1 1];
-
-            % Create play_TreeGrid
-            app.play_TreeGrid = uigridlayout(app.play_Grid);
-            app.play_TreeGrid.ColumnWidth = {64, '1x', 54, 16, 16};
-            app.play_TreeGrid.RowHeight = {26, 22, '1x', 22, '1x', 42, 22, '1x', 15, 22};
-            app.play_TreeGrid.ColumnSpacing = 5;
-            app.play_TreeGrid.RowSpacing = 5;
-            app.play_TreeGrid.Padding = [5 0 0 0];
-            app.play_TreeGrid.Layout.Row = [1 2];
-            app.play_TreeGrid.Layout.Column = 1;
-            app.play_TreeGrid.BackgroundColor = [1 1 1];
-
-            % Create play_TreeTitleGrid
-            app.play_TreeTitleGrid = uigridlayout(app.play_TreeGrid);
-            app.play_TreeTitleGrid.ColumnWidth = {18, '1x'};
-            app.play_TreeTitleGrid.RowHeight = {'1x', 3};
-            app.play_TreeTitleGrid.ColumnSpacing = 3;
-            app.play_TreeTitleGrid.RowSpacing = 0;
-            app.play_TreeTitleGrid.Padding = [2 0 0 0];
-            app.play_TreeTitleGrid.Tag = 'COLORLOCKED';
-            app.play_TreeTitleGrid.Layout.Row = 1;
-            app.play_TreeTitleGrid.Layout.Column = [1 5];
-            app.play_TreeTitleGrid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create play_TreeTitleImage
-            app.play_TreeTitleImage = uiimage(app.play_TreeTitleGrid);
-            app.play_TreeTitleImage.ScaleMethod = 'none';
-            app.play_TreeTitleImage.Layout.Row = 1;
-            app.play_TreeTitleImage.Layout.Column = 1;
-            app.play_TreeTitleImage.HorizontalAlignment = 'left';
-            app.play_TreeTitleImage.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Classification_18.png');
-
-            % Create play_TreeTitle
-            app.play_TreeTitle = uilabel(app.play_TreeTitleGrid);
-            app.play_TreeTitle.FontSize = 11;
-            app.play_TreeTitle.Layout.Row = 1;
-            app.play_TreeTitle.Layout.Column = 2;
-            app.play_TreeTitle.Text = 'DADOS';
-
-            % Create play_TreeTitleUnderline
-            app.play_TreeTitleUnderline = uiimage(app.play_TreeTitleGrid);
-            app.play_TreeTitleUnderline.ScaleMethod = 'scaleup';
-            app.play_TreeTitleUnderline.Layout.Row = 2;
-            app.play_TreeTitleUnderline.Layout.Column = [1 2];
-            app.play_TreeTitleUnderline.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineH.png');
-
-            % Create play_TreeLabel
-            app.play_TreeLabel = uilabel(app.play_TreeGrid);
-            app.play_TreeLabel.VerticalAlignment = 'bottom';
-            app.play_TreeLabel.FontSize = 10;
-            app.play_TreeLabel.Layout.Row = 2;
-            app.play_TreeLabel.Layout.Column = [1 2];
-            app.play_TreeLabel.Text = 'FLUXOS ESPECTRAIS';
-
-            % Create play_TreePanelVisibility
-            app.play_TreePanelVisibility = uiimage(app.play_TreeGrid);
-            app.play_TreePanelVisibility.ImageClickedFcn = createCallbackFcn(app, @play_PanelsVisibility, true);
-            app.play_TreePanelVisibility.Tooltip = {'Mostra metadados'};
-            app.play_TreePanelVisibility.Layout.Row = 2;
-            app.play_TreePanelVisibility.Layout.Column = 5;
-            app.play_TreePanelVisibility.VerticalAlignment = 'bottom';
-            app.play_TreePanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'layout3_32px.png');
-
-            % Create play_Tree
-            app.play_Tree = uitree(app.play_TreeGrid);
-            app.play_Tree.Multiselect = 'on';
-            app.play_Tree.SelectionChangedFcn = createCallbackFcn(app, @play_TreeSelectionChanged, true);
-            app.play_Tree.FontSize = 10;
-            app.play_Tree.FontColor = [0.651 0.651 0.651];
-            app.play_Tree.Layout.Row = 3;
-            app.play_Tree.Layout.Column = [1 5];
-
-            % Create play_MetadataLabel
-            app.play_MetadataLabel = uilabel(app.play_TreeGrid);
-            app.play_MetadataLabel.VerticalAlignment = 'bottom';
-            app.play_MetadataLabel.FontSize = 10;
-            app.play_MetadataLabel.Layout.Row = 4;
-            app.play_MetadataLabel.Layout.Column = [1 2];
-            app.play_MetadataLabel.Text = 'METADADOS';
-
-            % Create play_MetadataPanel
-            app.play_MetadataPanel = uipanel(app.play_TreeGrid);
-            app.play_MetadataPanel.AutoResizeChildren = 'off';
-            app.play_MetadataPanel.Layout.Row = [5 6];
-            app.play_MetadataPanel.Layout.Column = [1 5];
-
-            % Create play_MetadataGrid
-            app.play_MetadataGrid = uigridlayout(app.play_MetadataPanel);
-            app.play_MetadataGrid.ColumnWidth = {'1x'};
-            app.play_MetadataGrid.RowHeight = {'1x'};
-            app.play_MetadataGrid.Padding = [0 0 0 0];
-            app.play_MetadataGrid.BackgroundColor = [1 1 1];
-
-            % Create play_Metadata
-            app.play_Metadata = uihtml(app.play_MetadataGrid);
-            app.play_Metadata.HTMLSource = ' ';
-            app.play_Metadata.Layout.Row = 1;
-            app.play_Metadata.Layout.Column = 1;
-
-            % Create report_ThreadAlgorithmsLabel
-            app.report_ThreadAlgorithmsLabel = uilabel(app.play_TreeGrid);
-            app.report_ThreadAlgorithmsLabel.VerticalAlignment = 'bottom';
-            app.report_ThreadAlgorithmsLabel.FontSize = 10;
-            app.report_ThreadAlgorithmsLabel.Layout.Row = 7;
-            app.report_ThreadAlgorithmsLabel.Layout.Column = [1 2];
-            app.report_ThreadAlgorithmsLabel.Text = 'ALGORITMOS';
-
-            % Create report_ThreadAlgorithmsPanel
-            app.report_ThreadAlgorithmsPanel = uipanel(app.play_TreeGrid);
-            app.report_ThreadAlgorithmsPanel.Layout.Row = 8;
-            app.report_ThreadAlgorithmsPanel.Layout.Column = [1 5];
-
-            % Create report_ThreadAlgorithmsGrid
-            app.report_ThreadAlgorithmsGrid = uigridlayout(app.report_ThreadAlgorithmsPanel);
-            app.report_ThreadAlgorithmsGrid.ColumnWidth = {'1x'};
-            app.report_ThreadAlgorithmsGrid.RowHeight = {'1x'};
-            app.report_ThreadAlgorithmsGrid.Padding = [0 0 0 0];
-            app.report_ThreadAlgorithmsGrid.BackgroundColor = [1 1 1];
-
-            % Create report_ThreadAlgorithms
-            app.report_ThreadAlgorithms = uihtml(app.report_ThreadAlgorithmsGrid);
-            app.report_ThreadAlgorithms.Layout.Row = 1;
-            app.report_ThreadAlgorithms.Layout.Column = 1;
-
-            % Create report_EditDetection
-            app.report_EditDetection = uihyperlink(app.play_TreeGrid);
-            app.report_EditDetection.HyperlinkClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
-            app.report_EditDetection.VisitedColor = [0 0.4 0.8];
-            app.report_EditDetection.VerticalAlignment = 'top';
-            app.report_EditDetection.FontSize = 10;
-            app.report_EditDetection.FontColor = [0 0.4 0.8];
-            app.report_EditDetection.Enable = 'off';
-            app.report_EditDetection.Layout.Row = 9;
-            app.report_EditDetection.Layout.Column = 1;
-            app.report_EditDetection.Text = 'DETECÇÃO';
-
-            % Create report_EditClassification
-            app.report_EditClassification = uihyperlink(app.play_TreeGrid);
-            app.report_EditClassification.HyperlinkClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
-            app.report_EditClassification.VisitedColor = [0 0.4 0.8];
-            app.report_EditClassification.HorizontalAlignment = 'right';
-            app.report_EditClassification.VerticalAlignment = 'top';
-            app.report_EditClassification.FontSize = 10;
-            app.report_EditClassification.FontColor = [0 0.4 0.8];
-            app.report_EditClassification.Enable = 'off';
-            app.report_EditClassification.Layout.Row = 9;
-            app.report_EditClassification.Layout.Column = [3 5];
-            app.report_EditClassification.Text = 'CLASSIFICAÇÃO';
-
-            % Create report_DetectionManualMode
-            app.report_DetectionManualMode = uicheckbox(app.play_TreeGrid);
-            app.report_DetectionManualMode.ValueChangedFcn = createCallbackFcn(app, @report_DetectionManualModeValueChanged, true);
-            app.report_DetectionManualMode.Enable = 'off';
-            app.report_DetectionManualMode.Text = 'Restringir detecção de emissões ao PLAYBACK.';
-            app.report_DetectionManualMode.WordWrap = 'on';
-            app.report_DetectionManualMode.FontSize = 11;
-            app.report_DetectionManualMode.Layout.Row = 10;
-            app.report_DetectionManualMode.Layout.Column = [1 5];
 
             % Create play_PlotPanel
             app.play_PlotPanel = uipanel(app.play_Grid);
             app.play_PlotPanel.AutoResizeChildren = 'off';
             app.play_PlotPanel.BorderType = 'none';
             app.play_PlotPanel.BackgroundColor = [0 0 0];
-            app.play_PlotPanel.Layout.Row = [1 2];
-            app.play_PlotPanel.Layout.Column = [3 5];
+            app.play_PlotPanel.Layout.Row = [1 11];
+            app.play_PlotPanel.Layout.Column = [4 6];
 
             % Create play_axesToolbar
             app.play_axesToolbar = uigridlayout(app.play_Grid);
@@ -5969,7 +5816,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_axesToolbar.RowSpacing = 0;
             app.play_axesToolbar.Padding = [0 2 0 2];
             app.play_axesToolbar.Layout.Row = 1;
-            app.play_axesToolbar.Layout.Column = 4;
+            app.play_axesToolbar.Layout.Column = 5;
             app.play_axesToolbar.BackgroundColor = [1 1 1];
 
             % Create axesTool_MinHold
@@ -6019,11 +5866,14 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create axesTool_Waterfall
             app.axesTool_Waterfall = uiimage(app.play_axesToolbar);
+            app.axesTool_Waterfall.ScaleMethod = 'none';
             app.axesTool_Waterfall.ImageClickedFcn = createCallbackFcn(app, @play_AxesToolbarCallbacks, true);
             app.axesTool_Waterfall.Tag = 'Waterfall';
             app.axesTool_Waterfall.Tooltip = {'Waterfall'};
             app.axesTool_Waterfall.Layout.Row = 1;
             app.axesTool_Waterfall.Layout.Column = 10;
+            app.axesTool_Waterfall.HorizontalAlignment = 'left';
+            app.axesTool_Waterfall.VerticalAlignment = 'bottom';
             app.axesTool_Waterfall.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Waterfall_24.png');
 
             % Create axesTool_DataTip
@@ -6045,6 +5895,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create axesTool_RestoreView
             app.axesTool_RestoreView = uiimage(app.play_axesToolbar);
+            app.axesTool_RestoreView.ScaleMethod = 'none';
             app.axesTool_RestoreView.ImageClickedFcn = createCallbackFcn(app, @play_AxesToolbarCallbacks, true);
             app.axesTool_RestoreView.Tooltip = {'RestoreView'};
             app.axesTool_RestoreView.Layout.Row = 1;
@@ -6054,12 +5905,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_ControlsGrid
             app.play_ControlsGrid = uigridlayout(app.play_Grid);
             app.play_ControlsGrid.ColumnWidth = {'1x'};
-            app.play_ControlsGrid.RowHeight = {26, 880, 600, 600, 500, 320};
+            app.play_ControlsGrid.RowHeight = {26, '1x', 0, 0, 0, 0};
             app.play_ControlsGrid.ColumnSpacing = 5;
             app.play_ControlsGrid.RowSpacing = 5;
             app.play_ControlsGrid.Padding = [0 0 5 0];
-            app.play_ControlsGrid.Layout.Row = [1 2];
-            app.play_ControlsGrid.Layout.Column = 7;
+            app.play_ControlsGrid.Layout.Row = [1 11];
+            app.play_ControlsGrid.Layout.Column = 8;
             app.play_ControlsGrid.BackgroundColor = [1 1 1];
 
             % Create play_ControlsTab1Info
@@ -6182,6 +6033,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_LimitsRefresh
             app.play_LimitsRefresh = uiimage(app.play_OthersGrid);
+            app.play_LimitsRefresh.ScaleMethod = 'none';
             app.play_LimitsRefresh.ImageClickedFcn = createCallbackFcn(app, @play_LimitsRefreshImageClicked, true);
             app.play_LimitsRefresh.Tooltip = {'Retorna à configuração padrão'};
             app.play_LimitsRefresh.Layout.Row = 3;
@@ -6407,6 +6259,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_Persistance_cLim_Mode
             app.play_Persistance_cLim_Mode = uiimage(app.play_PersistanceGrid);
+            app.play_Persistance_cLim_Mode.ScaleMethod = 'none';
             app.play_Persistance_cLim_Mode.ImageClickedFcn = createCallbackFcn(app, @play_Persistance_Callbacks, true);
             app.play_Persistance_cLim_Mode.Enable = 'off';
             app.play_Persistance_cLim_Mode.Tooltip = {'Retorna à configuração padrão'};
@@ -6845,6 +6698,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_Waterfall_cLim_Mode
             app.play_Waterfall_cLim_Mode = uiimage(app.play_WaterFallGrid);
+            app.play_Waterfall_cLim_Mode.ScaleMethod = 'none';
             app.play_Waterfall_cLim_Mode.ImageClickedFcn = createCallbackFcn(app, @play_Waterfall_Callbacks, true);
             app.play_Waterfall_cLim_Mode.Enable = 'off';
             app.play_Waterfall_cLim_Mode.Layout.Row = 5;
@@ -7694,8 +7548,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create report_ControlsTab1Info
             app.report_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
-            app.report_ControlsTab1Info.ColumnWidth = {'1x', 16, 16, 16};
-            app.report_ControlsTab1Info.RowHeight = {22, 44, 22, 112, 9, 8, '1x', 32};
+            app.report_ControlsTab1Info.ColumnWidth = {95, '1x', 32, 16, 16, 16};
+            app.report_ControlsTab1Info.RowHeight = {22, 32, 22, 112, 9, 8, '1x', 22, '1x', 15, 15};
             app.report_ControlsTab1Info.ColumnSpacing = 5;
             app.report_ControlsTab1Info.RowSpacing = 5;
             app.report_ControlsTab1Info.Padding = [0 0 0 0];
@@ -7711,23 +7565,33 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ProjectNameLabel.Layout.Column = 1;
             app.report_ProjectNameLabel.Text = 'ARQUIVO';
 
-            % Create report_ProjectNew
-            app.report_ProjectNew = uiimage(app.report_ControlsTab1Info);
-            app.report_ProjectNew.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
-            app.report_ProjectNew.Tooltip = {'Cria novo projeto'};
-            app.report_ProjectNew.Layout.Row = 1;
-            app.report_ProjectNew.Layout.Column = 4;
-            app.report_ProjectNew.VerticalAlignment = 'bottom';
-            app.report_ProjectNew.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'addFiles_32.png');
+            % Create report_ProjectWarnIcon
+            app.report_ProjectWarnIcon = uiimage(app.report_ControlsTab1Info);
+            app.report_ProjectWarnIcon.ScaleMethod = 'scaledown';
+            app.report_ProjectWarnIcon.Visible = 'off';
+            app.report_ProjectWarnIcon.Tooltip = {'Pendente salvar projeto'};
+            app.report_ProjectWarnIcon.Layout.Row = 1;
+            app.report_ProjectWarnIcon.Layout.Column = 4;
+            app.report_ProjectWarnIcon.VerticalAlignment = 'bottom';
+            app.report_ProjectWarnIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Warn_18.png');
 
             % Create report_ProjectSave
             app.report_ProjectSave = uiimage(app.report_ControlsTab1Info);
             app.report_ProjectSave.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
             app.report_ProjectSave.Tooltip = {'Salva projeto'};
             app.report_ProjectSave.Layout.Row = 1;
-            app.report_ProjectSave.Layout.Column = 3;
+            app.report_ProjectSave.Layout.Column = 5;
             app.report_ProjectSave.VerticalAlignment = 'bottom';
             app.report_ProjectSave.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'saveFile_32.png');
+
+            % Create report_ProjectNew
+            app.report_ProjectNew = uiimage(app.report_ControlsTab1Info);
+            app.report_ProjectNew.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
+            app.report_ProjectNew.Tooltip = {'Cria novo projeto'};
+            app.report_ProjectNew.Layout.Row = 1;
+            app.report_ProjectNew.Layout.Column = 6;
+            app.report_ProjectNew.VerticalAlignment = 'bottom';
+            app.report_ProjectNew.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'addFiles_32.png');
 
             % Create report_ProjectName
             app.report_ProjectName = uitextarea(app.report_ControlsTab1Info);
@@ -7735,32 +7599,61 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ProjectName.Editable = 'off';
             app.report_ProjectName.FontSize = 11;
             app.report_ProjectName.Layout.Row = 2;
-            app.report_ProjectName.Layout.Column = [1 4];
+            app.report_ProjectName.Layout.Column = [1 6];
 
             % Create report_DocumentPanelLabel
             app.report_DocumentPanelLabel = uilabel(app.report_ControlsTab1Info);
             app.report_DocumentPanelLabel.VerticalAlignment = 'bottom';
             app.report_DocumentPanelLabel.FontSize = 10;
             app.report_DocumentPanelLabel.Layout.Row = 3;
-            app.report_DocumentPanelLabel.Layout.Column = 1;
+            app.report_DocumentPanelLabel.Layout.Column = [1 6];
             app.report_DocumentPanelLabel.Text = 'ATIVIDADE DE INSPEÇÃO';
 
             % Create report_DocumentPanel
             app.report_DocumentPanel = uipanel(app.report_ControlsTab1Info);
             app.report_DocumentPanel.AutoResizeChildren = 'off';
             app.report_DocumentPanel.Layout.Row = 4;
-            app.report_DocumentPanel.Layout.Column = [1 4];
+            app.report_DocumentPanel.Layout.Column = [1 6];
 
-            % Create GridLayout4
-            app.GridLayout4 = uigridlayout(app.report_DocumentPanel);
-            app.GridLayout4.ColumnWidth = {90, '1x', 16, 64, 16};
-            app.GridLayout4.RowHeight = {17, 22, 17, 22};
-            app.GridLayout4.RowSpacing = 5;
-            app.GridLayout4.Padding = [10 10 10 5];
-            app.GridLayout4.BackgroundColor = [1 1 1];
+            % Create report_DocumentGrid
+            app.report_DocumentGrid = uigridlayout(app.report_DocumentPanel);
+            app.report_DocumentGrid.ColumnWidth = {90, '1x', 16, 64, 16};
+            app.report_DocumentGrid.RowHeight = {17, 22, 17, 22};
+            app.report_DocumentGrid.RowSpacing = 5;
+            app.report_DocumentGrid.Padding = [10 10 10 5];
+            app.report_DocumentGrid.BackgroundColor = [1 1 1];
+
+            % Create report_systemLabel
+            app.report_systemLabel = uilabel(app.report_DocumentGrid);
+            app.report_systemLabel.VerticalAlignment = 'bottom';
+            app.report_systemLabel.WordWrap = 'on';
+            app.report_systemLabel.FontSize = 10;
+            app.report_systemLabel.FontColor = [0.149 0.149 0.149];
+            app.report_systemLabel.Layout.Row = 1;
+            app.report_systemLabel.Layout.Column = [1 3];
+            app.report_systemLabel.Text = 'Sistema:';
+
+            % Create report_system
+            app.report_system = uidropdown(app.report_DocumentGrid);
+            app.report_system.Items = {'eFiscaliza', 'eFiscaliza DS', 'eFiscaliza HM'};
+            app.report_system.FontSize = 11;
+            app.report_system.BackgroundColor = [1 1 1];
+            app.report_system.Layout.Row = 2;
+            app.report_system.Layout.Column = [1 3];
+            app.report_system.Value = 'eFiscaliza';
+
+            % Create report_IssueLabel
+            app.report_IssueLabel = uilabel(app.report_DocumentGrid);
+            app.report_IssueLabel.VerticalAlignment = 'bottom';
+            app.report_IssueLabel.WordWrap = 'on';
+            app.report_IssueLabel.FontSize = 10;
+            app.report_IssueLabel.FontColor = [0.149 0.149 0.149];
+            app.report_IssueLabel.Layout.Row = 1;
+            app.report_IssueLabel.Layout.Column = 4;
+            app.report_IssueLabel.Text = 'Id:';
 
             % Create report_Issue
-            app.report_Issue = uieditfield(app.GridLayout4, 'numeric');
+            app.report_Issue = uieditfield(app.report_DocumentGrid, 'numeric');
             app.report_Issue.Limits = [-1 Inf];
             app.report_Issue.RoundFractionalValues = 'on';
             app.report_Issue.ValueDisplayFormat = '%d';
@@ -7772,18 +7665,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Issue.Layout.Column = [4 5];
             app.report_Issue.Value = -1;
 
-            % Create report_IssueLabel
-            app.report_IssueLabel = uilabel(app.GridLayout4);
-            app.report_IssueLabel.VerticalAlignment = 'bottom';
-            app.report_IssueLabel.WordWrap = 'on';
-            app.report_IssueLabel.FontSize = 10;
-            app.report_IssueLabel.FontColor = [0.149 0.149 0.149];
-            app.report_IssueLabel.Layout.Row = 1;
-            app.report_IssueLabel.Layout.Column = [1 3];
-            app.report_IssueLabel.Text = 'Sistema:';
-
             % Create report_ModelNameLabel
-            app.report_ModelNameLabel = uilabel(app.GridLayout4);
+            app.report_ModelNameLabel = uilabel(app.report_DocumentGrid);
             app.report_ModelNameLabel.VerticalAlignment = 'bottom';
             app.report_ModelNameLabel.FontSize = 10;
             app.report_ModelNameLabel.Layout.Row = 3;
@@ -7791,7 +7674,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ModelNameLabel.Text = 'Modelo do relatório:';
 
             % Create report_AddProjectAttachment
-            app.report_AddProjectAttachment = uiimage(app.GridLayout4);
+            app.report_AddProjectAttachment = uiimage(app.report_DocumentGrid);
             app.report_AddProjectAttachment.ImageClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
             app.report_AddProjectAttachment.Tooltip = {'Edita lista de arquivos externos '; 'relacionados ao projeto'};
             app.report_AddProjectAttachment.Layout.Row = 3;
@@ -7800,7 +7683,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_AddProjectAttachment.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'attach_32.png');
 
             % Create report_ModelName
-            app.report_ModelName = uidropdown(app.GridLayout4);
+            app.report_ModelName = uidropdown(app.report_DocumentGrid);
             app.report_ModelName.Items = {};
             app.report_ModelName.ValueChangedFcn = createCallbackFcn(app, @report_ModelOrVersionValueChanged, true);
             app.report_ModelName.Tag = 'documentModel';
@@ -7811,7 +7694,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_ModelName.Value = {};
 
             % Create report_VersionLabel
-            app.report_VersionLabel = uilabel(app.GridLayout4);
+            app.report_VersionLabel = uilabel(app.report_DocumentGrid);
             app.report_VersionLabel.VerticalAlignment = 'bottom';
             app.report_VersionLabel.FontSize = 10;
             app.report_VersionLabel.Layout.Row = 3;
@@ -7819,7 +7702,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_VersionLabel.Text = 'Versão:';
 
             % Create report_Version
-            app.report_Version = uidropdown(app.GridLayout4);
+            app.report_Version = uidropdown(app.report_DocumentGrid);
             app.report_Version.Items = {'Preliminar', 'Definitiva'};
             app.report_Version.ValueChangedFcn = createCallbackFcn(app, @report_ModelOrVersionValueChanged, true);
             app.report_Version.FontSize = 11;
@@ -7828,31 +7711,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Version.Layout.Column = [4 5];
             app.report_Version.Value = 'Preliminar';
 
-            % Create report_Version_2
-            app.report_Version_2 = uidropdown(app.GridLayout4);
-            app.report_Version_2.Items = {'eFiscaliza', 'eFiscaliza DS', 'eFiscaliza HM'};
-            app.report_Version_2.FontSize = 11;
-            app.report_Version_2.BackgroundColor = [1 1 1];
-            app.report_Version_2.Layout.Row = 2;
-            app.report_Version_2.Layout.Column = [1 3];
-            app.report_Version_2.Value = 'eFiscaliza';
-
-            % Create report_IssueLabel_2
-            app.report_IssueLabel_2 = uilabel(app.GridLayout4);
-            app.report_IssueLabel_2.VerticalAlignment = 'bottom';
-            app.report_IssueLabel_2.WordWrap = 'on';
-            app.report_IssueLabel_2.FontSize = 10;
-            app.report_IssueLabel_2.FontColor = [0.149 0.149 0.149];
-            app.report_IssueLabel_2.Layout.Row = 1;
-            app.report_IssueLabel_2.Layout.Column = 4;
-            app.report_IssueLabel_2.Text = 'Id:';
-
             % Create report_TreeLabel
             app.report_TreeLabel = uilabel(app.report_ControlsTab1Info);
             app.report_TreeLabel.VerticalAlignment = 'bottom';
             app.report_TreeLabel.FontSize = 10;
             app.report_TreeLabel.Layout.Row = [5 6];
-            app.report_TreeLabel.Layout.Column = 1;
+            app.report_TreeLabel.Layout.Column = [1 2];
             app.report_TreeLabel.Text = 'FLUXOS A PROCESSAR';
 
             % Create report_TreeAddImage
@@ -7860,25 +7724,76 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_TreeAddImage.ImageClickedFcn = createCallbackFcn(app, @report_TreeAddImagePushed, true);
             app.report_TreeAddImage.Tooltip = {''};
             app.report_TreeAddImage.Layout.Row = 6;
-            app.report_TreeAddImage.Layout.Column = 4;
+            app.report_TreeAddImage.Layout.Column = 6;
             app.report_TreeAddImage.VerticalAlignment = 'bottom';
             app.report_TreeAddImage.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'addSymbol_32.png');
 
             % Create report_Tree
             app.report_Tree = uitree(app.report_ControlsTab1Info);
+            app.report_Tree.Multiselect = 'on';
             app.report_Tree.FontSize = 10;
-            app.report_Tree.Layout.Row = [7 8];
-            app.report_Tree.Layout.Column = [1 4];
+            app.report_Tree.Layout.Row = 7;
+            app.report_Tree.Layout.Column = [1 6];
 
-            % Create report_ProjectWarnIcon
-            app.report_ProjectWarnIcon = uiimage(app.report_ControlsTab1Info);
-            app.report_ProjectWarnIcon.ScaleMethod = 'scaledown';
-            app.report_ProjectWarnIcon.Visible = 'off';
-            app.report_ProjectWarnIcon.Tooltip = {'Pendente salvar projeto'};
-            app.report_ProjectWarnIcon.Layout.Row = 1;
-            app.report_ProjectWarnIcon.Layout.Column = 2;
-            app.report_ProjectWarnIcon.VerticalAlignment = 'bottom';
-            app.report_ProjectWarnIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Warn_18.png');
+            % Create report_ThreadAlgorithmsLabel
+            app.report_ThreadAlgorithmsLabel = uilabel(app.report_ControlsTab1Info);
+            app.report_ThreadAlgorithmsLabel.VerticalAlignment = 'bottom';
+            app.report_ThreadAlgorithmsLabel.FontSize = 10;
+            app.report_ThreadAlgorithmsLabel.Layout.Row = 8;
+            app.report_ThreadAlgorithmsLabel.Layout.Column = [1 2];
+            app.report_ThreadAlgorithmsLabel.Text = 'ALGORITMOS';
+
+            % Create report_ThreadAlgorithmsImage
+            app.report_ThreadAlgorithmsImage = uiimage(app.report_ControlsTab1Info);
+            app.report_ThreadAlgorithmsImage.ScaleMethod = 'none';
+            app.report_ThreadAlgorithmsImage.Layout.Row = 9;
+            app.report_ThreadAlgorithmsImage.Layout.Column = [1 6];
+            app.report_ThreadAlgorithmsImage.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'warning.svg');
+
+            % Create report_ThreadAlgorithms
+            app.report_ThreadAlgorithms = uilabel(app.report_ControlsTab1Info);
+            app.report_ThreadAlgorithms.VerticalAlignment = 'top';
+            app.report_ThreadAlgorithms.WordWrap = 'on';
+            app.report_ThreadAlgorithms.FontSize = 11;
+            app.report_ThreadAlgorithms.Layout.Row = 9;
+            app.report_ThreadAlgorithms.Layout.Column = [1 6];
+            app.report_ThreadAlgorithms.Interpreter = 'html';
+            app.report_ThreadAlgorithms.Text = '';
+
+            % Create report_EditDetection
+            app.report_EditDetection = uihyperlink(app.report_ControlsTab1Info);
+            app.report_EditDetection.HyperlinkClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
+            app.report_EditDetection.VisitedColor = [0 0.4 0.8];
+            app.report_EditDetection.VerticalAlignment = 'top';
+            app.report_EditDetection.FontSize = 10;
+            app.report_EditDetection.FontColor = [0 0.4 0.8];
+            app.report_EditDetection.Enable = 'off';
+            app.report_EditDetection.Layout.Row = 10;
+            app.report_EditDetection.Layout.Column = 1;
+            app.report_EditDetection.Text = 'DETECÇÃO';
+
+            % Create report_EditClassification
+            app.report_EditClassification = uihyperlink(app.report_ControlsTab1Info);
+            app.report_EditClassification.HyperlinkClickedFcn = createCallbackFcn(app, @report_ThreadAlgorithmsRefreshImageClicked, true);
+            app.report_EditClassification.VisitedColor = [0 0.4 0.8];
+            app.report_EditClassification.HorizontalAlignment = 'right';
+            app.report_EditClassification.VerticalAlignment = 'top';
+            app.report_EditClassification.FontSize = 10;
+            app.report_EditClassification.FontColor = [0 0.4 0.8];
+            app.report_EditClassification.Enable = 'off';
+            app.report_EditClassification.Layout.Row = 10;
+            app.report_EditClassification.Layout.Column = [3 6];
+            app.report_EditClassification.Text = 'CLASSIFICAÇÃO';
+
+            % Create report_DetectionManualMode
+            app.report_DetectionManualMode = uicheckbox(app.report_ControlsTab1Info);
+            app.report_DetectionManualMode.ValueChangedFcn = createCallbackFcn(app, @report_DetectionManualModeValueChanged, true);
+            app.report_DetectionManualMode.Enable = 'off';
+            app.report_DetectionManualMode.Text = 'Restringir detecção de emissões ao PLAYBACK.';
+            app.report_DetectionManualMode.WordWrap = 'on';
+            app.report_DetectionManualMode.FontSize = 11;
+            app.report_DetectionManualMode.Layout.Row = 11;
+            app.report_DetectionManualMode.Layout.Column = [1 6];
 
             % Create misc_ControlsTab1Info
             app.misc_ControlsTab1Info = uigridlayout(app.play_ControlsGrid);
@@ -8243,7 +8158,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create submenu_Button4Icon
             app.submenu_Button4Icon = uiimage(app.submenu_Button4Grid);
             app.submenu_Button4Icon.ScaleMethod = 'none';
-            app.submenu_Button4Icon.ImageClickedFcn = createCallbackFcn(app, @play_submenuButtonPushed, true);
             app.submenu_Button4Icon.Tag = 'REPORT:GENERAL';
             app.submenu_Button4Icon.Layout.Row = 1;
             app.submenu_Button4Icon.Layout.Column = [1 2];
@@ -8279,12 +8193,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % Create play_toolGrid
             app.play_toolGrid = uigridlayout(app.play_Grid);
             app.play_toolGrid.ColumnWidth = {22, 22, 22, 248, '1x', 24, 24, 24, 24, 24, 24, '1x', 167, 22, 22, 22, 22, 22};
-            app.play_toolGrid.RowHeight = {4, 17, '1x'};
+            app.play_toolGrid.RowHeight = {4, 17, 3};
             app.play_toolGrid.ColumnSpacing = 5;
             app.play_toolGrid.RowSpacing = 0;
             app.play_toolGrid.Padding = [0 5 0 5];
-            app.play_toolGrid.Layout.Row = 3;
-            app.play_toolGrid.Layout.Column = [1 7];
+            app.play_toolGrid.Layout.Row = 13;
+            app.play_toolGrid.Layout.Column = [1 8];
 
             % Create tool_LayoutLeft
             app.tool_LayoutLeft = uiimage(app.play_toolGrid);
@@ -8352,6 +8266,75 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.tool_LayoutRight.Layout.Column = 18;
             app.tool_LayoutRight.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'ArrowRight_32.png');
 
+            % Create play_Metadata
+            app.play_Metadata = uilabel(app.play_Grid);
+            app.play_Metadata.VerticalAlignment = 'top';
+            app.play_Metadata.WordWrap = 'on';
+            app.play_Metadata.FontSize = 11;
+            app.play_Metadata.Layout.Row = 11;
+            app.play_Metadata.Layout.Column = 2;
+            app.play_Metadata.Interpreter = 'html';
+            app.play_Metadata.Text = '';
+
+            % Create play_MetadataLabel
+            app.play_MetadataLabel = uilabel(app.play_Grid);
+            app.play_MetadataLabel.VerticalAlignment = 'bottom';
+            app.play_MetadataLabel.FontSize = 10;
+            app.play_MetadataLabel.Layout.Row = 9;
+            app.play_MetadataLabel.Layout.Column = 2;
+            app.play_MetadataLabel.Text = 'METADADOS';
+
+            % Create play_Tree
+            app.play_Tree = uitree(app.play_Grid);
+            app.play_Tree.Multiselect = 'on';
+            app.play_Tree.SelectionChangedFcn = createCallbackFcn(app, @play_TreeSelectionChanged, true);
+            app.play_Tree.FontSize = 10;
+            app.play_Tree.FontColor = [0.651 0.651 0.651];
+            app.play_Tree.Layout.Row = [6 7];
+            app.play_Tree.Layout.Column = 2;
+
+            % Create play_TreeLabel
+            app.play_TreeLabel = uilabel(app.play_Grid);
+            app.play_TreeLabel.VerticalAlignment = 'bottom';
+            app.play_TreeLabel.FontSize = 10;
+            app.play_TreeLabel.Layout.Row = 4;
+            app.play_TreeLabel.Layout.Column = 2;
+            app.play_TreeLabel.Text = 'FLUXOS ESPECTRAIS';
+
+            % Create play_TreeTitleUnderline
+            app.play_TreeTitleUnderline = uiimage(app.play_Grid);
+            app.play_TreeTitleUnderline.ScaleMethod = 'none';
+            app.play_TreeTitleUnderline.Layout.Row = 2;
+            app.play_TreeTitleUnderline.Layout.Column = 2;
+            app.play_TreeTitleUnderline.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineH.svg');
+
+            % Create play_TreeTitleGrid
+            app.play_TreeTitleGrid = uigridlayout(app.play_Grid);
+            app.play_TreeTitleGrid.ColumnWidth = {18, '1x'};
+            app.play_TreeTitleGrid.RowHeight = {22};
+            app.play_TreeTitleGrid.ColumnSpacing = 3;
+            app.play_TreeTitleGrid.RowSpacing = 0;
+            app.play_TreeTitleGrid.Padding = [2 0 0 0];
+            app.play_TreeTitleGrid.Tag = 'COLORLOCKED';
+            app.play_TreeTitleGrid.Layout.Row = 1;
+            app.play_TreeTitleGrid.Layout.Column = 2;
+            app.play_TreeTitleGrid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create play_TreeTitleImage
+            app.play_TreeTitleImage = uiimage(app.play_TreeTitleGrid);
+            app.play_TreeTitleImage.ScaleMethod = 'none';
+            app.play_TreeTitleImage.Layout.Row = 1;
+            app.play_TreeTitleImage.Layout.Column = 1;
+            app.play_TreeTitleImage.HorizontalAlignment = 'left';
+            app.play_TreeTitleImage.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Classification_18.png');
+
+            % Create play_TreeTitle
+            app.play_TreeTitle = uilabel(app.play_TreeTitleGrid);
+            app.play_TreeTitle.FontSize = 11;
+            app.play_TreeTitle.Layout.Row = 1;
+            app.play_TreeTitle.Layout.Column = 2;
+            app.play_TreeTitle.Text = 'DADOS';
+
             % Create Tab3_DriveTest
             app.Tab3_DriveTest = uitab(app.TabGroup);
             app.Tab3_DriveTest.Title = 'DRIVE-TEST';
@@ -8370,8 +8353,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create menu_Grid
             app.menu_Grid = uigridlayout(app.GridLayout);
-            app.menu_Grid.ColumnWidth = {28, 5, 28, 28, 28, 5, 28, 28, 28, 28, '1x', 20, 20, 20, 0, 0};
-            app.menu_Grid.RowHeight = {7, '1x', 7};
+            app.menu_Grid.ColumnWidth = {28, 5, 28, 28, 28, 5, 28, 28, 28, 28, '1x', 20, 20, 20, 20, 0, 0};
+            app.menu_Grid.RowHeight = {7, 20, 7};
             app.menu_Grid.ColumnSpacing = 5;
             app.menu_Grid.RowSpacing = 0;
             app.menu_Grid.Padding = [5 5 5 5];
@@ -8396,11 +8379,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create menu_Separator1
             app.menu_Separator1 = uiimage(app.menu_Grid);
-            app.menu_Separator1.ScaleMethod = 'fill';
+            app.menu_Separator1.ScaleMethod = 'none';
             app.menu_Separator1.Enable = 'off';
             app.menu_Separator1.Layout.Row = [1 3];
             app.menu_Separator1.Layout.Column = 2;
-            app.menu_Separator1.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.png');
+            app.menu_Separator1.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.svg');
 
             % Create menu_Button2
             app.menu_Button2 = uibutton(app.menu_Grid, 'state');
@@ -8446,11 +8429,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create menu_Separator2
             app.menu_Separator2 = uiimage(app.menu_Grid);
-            app.menu_Separator2.ScaleMethod = 'fill';
+            app.menu_Separator2.ScaleMethod = 'none';
             app.menu_Separator2.Enable = 'off';
             app.menu_Separator2.Layout.Row = [1 3];
             app.menu_Separator2.Layout.Column = 6;
-            app.menu_Separator2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.png');
+            app.menu_Separator2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.svg');
 
             % Create menu_Button5
             app.menu_Button5 = uibutton(app.menu_Grid, 'state');
@@ -8517,7 +8500,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.FigurePosition.Visible = 'off';
             app.FigurePosition.Tooltip = {'Reposiciona janela'};
             app.FigurePosition.Layout.Row = 2;
-            app.FigurePosition.Layout.Column = 13;
+            app.FigurePosition.Layout.Column = 14;
             app.FigurePosition.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'layout1_32White.png');
 
             % Create AppInfo
@@ -8525,7 +8508,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @menu_ToolbarImageCliced, true);
             app.AppInfo.Tooltip = {'Informações gerais'};
             app.AppInfo.Layout.Row = 2;
-            app.AppInfo.Layout.Column = 14;
+            app.AppInfo.Layout.Column = 15;
             app.AppInfo.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Dots_32White.png');
 
             % Create dockModule_Undock
@@ -8535,7 +8518,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.dockModule_Undock.Tag = 'DRIVETEST';
             app.dockModule_Undock.Tooltip = {'Reabre módulo em outra janela'};
             app.dockModule_Undock.Layout.Row = 2;
-            app.dockModule_Undock.Layout.Column = 15;
+            app.dockModule_Undock.Layout.Column = 16;
             app.dockModule_Undock.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Undock_18White.png');
 
             % Create dockModule_Close
@@ -8545,8 +8528,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.dockModule_Close.Tag = 'DRIVETEST';
             app.dockModule_Close.Tooltip = {'Fecha módulo'};
             app.dockModule_Close.Layout.Row = 2;
-            app.dockModule_Close.Layout.Column = 16;
+            app.dockModule_Close.Layout.Column = 17;
             app.dockModule_Close.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Delete_12SVG_white.svg');
+
+            % Create DataHubLamp
+            app.DataHubLamp = uilamp(app.menu_Grid);
+            app.DataHubLamp.Enable = 'off';
+            app.DataHubLamp.Visible = 'off';
+            app.DataHubLamp.Tooltip = {'Pendente mapear pasta do Sharepoint'};
+            app.DataHubLamp.Layout.Row = 2;
+            app.DataHubLamp.Layout.Column = 13;
+            app.DataHubLamp.Color = [1 0 0];
 
             % Create popupContainerGrid
             app.popupContainerGrid = uigridlayout(app.GridLayout);

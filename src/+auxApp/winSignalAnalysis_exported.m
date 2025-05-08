@@ -7,7 +7,6 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         toolGrid                       matlab.ui.container.GridLayout
         CheckBox                       matlab.ui.control.CheckBox
         tool_ControlPanelVisibility    matlab.ui.control.Image
-        jsBackDoor                     matlab.ui.control.HTML
         tool_ExportJSONFile            matlab.ui.control.Image
         tool_ShowGlobalExceptionList   matlab.ui.control.Image
         ControlGrid                    matlab.ui.container.GridLayout
@@ -40,9 +39,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         RegulatoryLabel                matlab.ui.control.Label
         DelAnnotation                  matlab.ui.control.Image
         EditableParametersLabel        matlab.ui.control.Label
-        selectedEmissionPanel          matlab.ui.container.Panel
-        selectedEmissionGrid           matlab.ui.container.GridLayout
-        selectedEmissionInfo           matlab.ui.control.HTML
+        selectedEmissionInfo           matlab.ui.control.Label
         selectedEmissionLabel          matlab.ui.control.Label
         Document                       matlab.ui.container.GridLayout
         axesTool_Warning               matlab.ui.control.Image
@@ -78,6 +75,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         % componentes essenciais da GUI (especificados em "createComponents"), 
         % mostrando a GUI para o usuário o mais rápido possível.
         timerObj
+        jsBackDoor
 
         % Janela de progresso já criada no DOM. Dessa forma, controla-se 
         % apenas a sua visibilidade - e tornando desnecessário criá-la a
@@ -101,6 +99,21 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % IPC: COMUNICAÇÃO ENTRE PROCESSOS
         %-----------------------------------------------------------------%
+        function ipcSecundaryJSEventsHandler(app, event, varargin)
+            try
+                switch event.HTMLEventName
+                    case 'renderer'
+                        startup_Controller(app, varargin{:})
+                    otherwise
+                        error('UnexpectedEvent')
+                end
+
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+            end
+        end
+
+        %-----------------------------------------------------------------%
         function ipcSecundaryMatlabCallsHandler(app, callingApp, varargin)
             try
                 switch class(callingApp)
@@ -122,13 +135,10 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % JSBACKDOOR: CUSTOMIZAÇÃO GUI (ESTÉTICA/COMPORTAMENTAL)
         %-----------------------------------------------------------------%
-        function jsBackDoor_Initialization(app)
-            if app.isDocked
-                delete(app.jsBackDoor)
-                app.jsBackDoor = app.mainApp.jsBackDoor;
-            else
-                app.jsBackDoor.HTMLSource = appUtil.jsBackDoorHTMLSource();
-            end            
+        function jsBackDoor_Initialization(app, varargin)
+            app.jsBackDoor = uihtml(app.UIFigure, "HTMLSource",           appUtil.jsBackDoorHTMLSource(),                              ...
+                                                  "HTMLEventReceivedFcn", @(~, evt)ipcSecundaryJSEventsHandler(app, evt, varargin{:}), ...
+                                                  "Visible",              "off");
         end
 
         %-----------------------------------------------------------------%
@@ -136,15 +146,14 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             if app.isDocked
                 app.progressDialog = app.mainApp.progressDialog;
             else
-                app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
+                sendEventToHTMLSource(app.jsBackDoor, 'initializeStyle');
+                app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);                
+            end
 
-                sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
-                                                                                       'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
-                                                                                                           '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
-                                                                                                           '--mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);']));
-    
-                sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
-                                                                                       'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
+            elToModify = {app.selectedEmissionInfo};
+            elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
+            if ~isempty(elDataTag)    
+                ui.TextView.startup(app.jsBackDoor, elToModify{1});
             end
         end
     end
@@ -171,28 +180,19 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         function startup_timerFcn(app, selectedRow)
             if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
                 stop(app.timerObj)
-                delete(app.timerObj)     
+                delete(app.timerObj)
 
-                startup_Controller(app, selectedRow)
+                jsBackDoor_Initialization(app, selectedRow)
             end
         end
 
         %-----------------------------------------------------------------%
         function startup_Controller(app, selectedRow)
             drawnow
-
-            % Customiza as aspectos estéticos de alguns dos componentes da GUI 
-            % (diretamente em JS).
             jsBackDoor_Customizations(app)
-
-            % Define tamanho mínimo do app (não aplicável à versão webapp).
-            if ~strcmp(app.mainApp.executionMode, 'webApp') && ~app.isDocked
-                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-            end
 
             app.progressDialog.Visible = 'visible';
 
-            % Criação do eixo e leitura dos dados...
             startup_AppProperties(app)
             startup_GUIComponents(app)
             startup_Axes(app)
@@ -413,7 +413,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                  userDescription, ...
                  stationInfo]   = util.HtmlTextGenerator.Emission(app.specData, idxThread, idxEmission);
     
-                app.selectedEmissionInfo.HTMLSource = htmlContent;
+                ui.TextView.update(app.selectedEmissionInfo, htmlContent);
                 set(app.AdditionalDescription, 'Value', userDescription, 'UserData', userDescription) 
     
                 % TABLE CONTEXT MENU
@@ -451,7 +451,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 app.tool_ExportJSONFile.Enable = 1;
 
             else
-                app.selectedEmissionInfo.HTMLSource = ' ';
+                ui.TextView.update(app.selectedEmissionInfo, '');
                 cla(app.UIAxes1)
                 ysecondarylabel(app.UIAxes1, newline)
                 cla(app.UIAxes2)
@@ -667,10 +667,9 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.rootFolder  = mainApp.rootFolder;
             app.specData    = mainApp.specData;
 
-            jsBackDoor_Initialization(app)
-
             if app.isDocked
                 app.GridLayout.Padding(4) = 19;
+                app.jsBackDoor = mainApp.jsBackDoor;
                 startup_Controller(app, selectedRow)
             else
                 appUtil.winPosition(app.UIFigure)
@@ -690,8 +689,6 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
         % Image clicked function: tool_ControlPanelVisibility, 
         % ...and 2 other components
         function toolbarCallbacks(app, event)
-            
-            focus(app.jsBackDoor)
 
             switch event.Source
                 %---------------------------------------------------------%
@@ -874,7 +871,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                                                         'Description', stationInfo.Description,                  ...
                                                         'Distance',    sprintf('%.1f km', stationInfo.Distance)));
 
-                msgQuestion    = sprintf('%s<br><font style="font-size: 12px;">Confirma edição?<font>', textFormatGUI.struct2PrettyPrintList(dataStruct));
+                msgQuestion    = sprintf('%s<br><font style="font-size: 12px;">Confirma edição?<font>', textFormatGUI.struct2PrettyPrintList(dataStruct, "print -1", '', 'popup'));
                 userSelection  = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
                 switch userSelection
                     case 'Sim'
@@ -897,7 +894,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                 case 'Licenciada'
                     app.Regulatory.Value = event.PreviousValue;
     
-                    msgWarning = ['A alteração da situção de uma emissão para "Licenciada" deve ser feita diretamente no ' ...
+                    msgWarning = ['A alteração da situação de uma emissão para "Licenciada" deve ser feita diretamente no ' ...
                                   'campo "Estação / ID", inserindo o número da estação ou a ID do registro no RFDataHub. ' ...
                                   'O seu formato é numérico, com a ressalva de que quando inserido a ID do registro '      ...
                                   'deve ser colocado o caractere "#" à frente do número. Por exemplo: 123456 ou #123456.'];
@@ -910,7 +907,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
                         app.Regulatory.Value = event.PreviousValue;
     
                         msgWarning = ['O campo "Informações complementares" não pode ficar vazio para registros ' ...
-                                      'relacionados a uma estação "Licenciada UTE", "Não licenciada" ou "Não passível de licenciamento".'];
+                                      'relacionados a uma estação "Licenciada UTE", "Não licenciada" ou "Não passível de licenciamento".<br><br>' ...
+                                      'Edite o campo "Informações complementares" antes de alterar a "Situação".'];
                         appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                         return
                     end
@@ -921,8 +919,28 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             
         end
 
+        % Value changed function: EmissionType
+        function EmissionTypeValueChanged(app, event)
+            
+            regulatoryValue = app.Regulatory.Value;
+            userDescription = strtrim(app.AdditionalDescription.Value);
+
+            if ~strcmp(regulatoryValue, 'Licenciada') && isempty(userDescription)
+                app.EmissionType.Value = event.PreviousValue;
+
+                msgWarning = ['O campo "Informações complementares" não pode ficar vazio para registros ' ...
+                              'relacionados a uma estação "Licenciada UTE", "Não licenciada" ou "Não passível de licenciamento".<br><br>' ...
+                              'Edite o campo "Informações complementares" antes de alterar o "Tipo de emissão".'];
+                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                return
+            end
+
+            OthersParametersValueChanged(app, struct('Source', app.EmissionType))
+            
+        end
+
         % Callback function: AdditionalDescription, Compliance, 
-        % ...and 3 other components
+        % ...and 2 other components
         function OthersParametersValueChanged(app, event)
             
             switch event.Source
@@ -1108,24 +1126,15 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.selectedEmissionLabel.Layout.Column = 1;
             app.selectedEmissionLabel.Text = 'EMISSÃO SELECIONADA';
 
-            % Create selectedEmissionPanel
-            app.selectedEmissionPanel = uipanel(app.ControlGrid);
-            app.selectedEmissionPanel.AutoResizeChildren = 'off';
-            app.selectedEmissionPanel.Layout.Row = 2;
-            app.selectedEmissionPanel.Layout.Column = [1 2];
-
-            % Create selectedEmissionGrid
-            app.selectedEmissionGrid = uigridlayout(app.selectedEmissionPanel);
-            app.selectedEmissionGrid.ColumnWidth = {'1x'};
-            app.selectedEmissionGrid.RowHeight = {'1x'};
-            app.selectedEmissionGrid.Padding = [0 0 0 0];
-            app.selectedEmissionGrid.BackgroundColor = [1 1 1];
-
             % Create selectedEmissionInfo
-            app.selectedEmissionInfo = uihtml(app.selectedEmissionGrid);
-            app.selectedEmissionInfo.HTMLSource = ' ';
-            app.selectedEmissionInfo.Layout.Row = 1;
-            app.selectedEmissionInfo.Layout.Column = 1;
+            app.selectedEmissionInfo = uilabel(app.ControlGrid);
+            app.selectedEmissionInfo.VerticalAlignment = 'top';
+            app.selectedEmissionInfo.WordWrap = 'on';
+            app.selectedEmissionInfo.FontSize = 11;
+            app.selectedEmissionInfo.Layout.Row = 2;
+            app.selectedEmissionInfo.Layout.Column = [1 2];
+            app.selectedEmissionInfo.Interpreter = 'html';
+            app.selectedEmissionInfo.Text = '';
 
             % Create EditableParametersLabel
             app.EditableParametersLabel = uilabel(app.ControlGrid);
@@ -1210,7 +1219,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             % Create EmissionType
             app.EmissionType = uidropdown(app.EditableParametersGrid);
             app.EmissionType.Items = {'Fundamental', 'Harmônico de fundamental', 'Produto de intermodulação', 'Espúrio', 'Não identificado', 'Não se manifestou', 'Pendente identificação'};
-            app.EmissionType.ValueChangedFcn = createCallbackFcn(app, @OthersParametersValueChanged, true);
+            app.EmissionType.ValueChangedFcn = createCallbackFcn(app, @EmissionTypeValueChanged, true);
             app.EmissionType.FontSize = 11;
             app.EmissionType.BackgroundColor = [1 1 1];
             app.EmissionType.Layout.Row = 4;
@@ -1398,8 +1407,8 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
-            app.toolGrid.ColumnWidth = {'1x', 22, 22, 22, 22};
-            app.toolGrid.RowHeight = {4, 17, '1x'};
+            app.toolGrid.ColumnWidth = {'1x', 22, 22, 22};
+            app.toolGrid.RowHeight = {4, 17, 2};
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
             app.toolGrid.Padding = [5 5 0 5];
@@ -1412,7 +1421,7 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.tool_ShowGlobalExceptionList.ImageClickedFcn = createCallbackFcn(app, @toolbarCallbacks, true);
             app.tool_ShowGlobalExceptionList.Tooltip = {'Mostra lista global de exceções'; '(emissão não é considerada "Não licenciada")'};
             app.tool_ShowGlobalExceptionList.Layout.Row = 2;
-            app.tool_ShowGlobalExceptionList.Layout.Column = 4;
+            app.tool_ShowGlobalExceptionList.Layout.Column = 3;
             app.tool_ShowGlobalExceptionList.ImageSource = 'Info_32.png';
 
             % Create tool_ExportJSONFile
@@ -1421,19 +1430,14 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
             app.tool_ExportJSONFile.ImageClickedFcn = createCallbackFcn(app, @toolbarCallbacks, true);
             app.tool_ExportJSONFile.Tooltip = {'Exporta arquivo JSON com informações das emissões sob análise'};
             app.tool_ExportJSONFile.Layout.Row = 2;
-            app.tool_ExportJSONFile.Layout.Column = 3;
+            app.tool_ExportJSONFile.Layout.Column = 2;
             app.tool_ExportJSONFile.ImageSource = 'Export_16.png';
-
-            % Create jsBackDoor
-            app.jsBackDoor = uihtml(app.toolGrid);
-            app.jsBackDoor.Layout.Row = 2;
-            app.jsBackDoor.Layout.Column = 2;
 
             % Create tool_ControlPanelVisibility
             app.tool_ControlPanelVisibility = uiimage(app.toolGrid);
             app.tool_ControlPanelVisibility.ImageClickedFcn = createCallbackFcn(app, @toolbarCallbacks, true);
             app.tool_ControlPanelVisibility.Layout.Row = 2;
-            app.tool_ControlPanelVisibility.Layout.Column = 5;
+            app.tool_ControlPanelVisibility.Layout.Column = 4;
             app.tool_ControlPanelVisibility.ImageSource = 'ArrowRight_32.png';
 
             % Create CheckBox

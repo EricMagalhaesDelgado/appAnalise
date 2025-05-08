@@ -5,8 +5,9 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
         UIFigure              matlab.ui.Figure
         GridLayout            matlab.ui.container.GridLayout
         Document              matlab.ui.container.GridLayout
-        btnOK                 matlab.ui.control.Button
         filterAddImage        matlab.ui.control.Image
+        threadInfo            matlab.ui.control.Label
+        btnOK                 matlab.ui.control.Button
         filterTree            matlab.ui.container.Tree
         filterValuePanel      matlab.ui.container.Panel
         filterValueGrid       matlab.ui.container.GridLayout
@@ -29,11 +30,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
         filterType_Date       matlab.ui.control.RadioButton
         filterType_DateTime   matlab.ui.control.RadioButton
         filterTypePanelLabel  matlab.ui.control.Label
-        HTMLPanel             matlab.ui.container.Panel
-        HTMLGrid              matlab.ui.container.GridLayout
-        HTML                  matlab.ui.control.HTML
         HTMLLabel             matlab.ui.control.Label
-        jsBackDoor            matlab.ui.control.HTML
         btnClose              matlab.ui.control.Image
         ContextMenu           matlab.ui.container.ContextMenu
         btnDelete             matlab.ui.container.Menu
@@ -44,6 +41,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         Container
         isDocked      = true
+        jsBackDoor
 
         mainApp
         specData
@@ -59,9 +57,11 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
 
 
     methods
-        function ipcSecundaryJSEventsHandler(app, event)
+        function ipcSecundaryJSEventsHandler(app, event, varargin)
             try
                 switch event.HTMLEventName
+                    case 'renderer'
+                        startup_Controller(app, varargin{:})
                     case 'auxApp.dockTimeFiltering.filterTree'
                         btnDeleteSelected(app)
                     otherwise
@@ -79,30 +79,57 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % JSBACKDOOR
         %-----------------------------------------------------------------%
-        function jsBackDoor_Initialization(app)
-            if app.isDocked
-                delete(app.jsBackDoor)
-                app.jsBackDoor = app.mainApp.jsBackDoor;
-            else
-                app.jsBackDoor.HTMLSource = appUtil.jsBackDoorHTMLSource();
-                app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcSecundaryJSEventsHandler(app, evt);
-            end            
+        function jsBackDoor_Initialization(app, varargin)
+            app.jsBackDoor = uihtml(app.UIFigure, "HTMLSource",           appUtil.jsBackDoorHTMLSource(),                              ...
+                                                  "HTMLEventReceivedFcn", @(~, evt)ipcSecundaryJSEventsHandler(app, evt, varargin{:}), ...
+                                                  "Visible",              "off");
         end
 
         %-----------------------------------------------------------------%
         function jsBackDoor_Customizations(app)
-            app.filterTree.UserData = struct(app.filterTree).Controller.ViewModel.Id;
-            sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'auxApp.dockTimeFiltering.filterTree', 'componentDataTag', app.filterTree.UserData, 'keyEvents', "Delete"))
+            elToModify = {app.filterTree, app.threadInfo};
+            elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
+            if ~isempty(elDataTag)
+                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                         ...
+                    struct('dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.dockTimeFiltering.filterTree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
+                });
+
+                ui.TextView.startup(app.jsBackDoor, elToModify{2});
+            end            
         end
     end
 
-
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function initialValues(app, idxThreads)
-            % Drawnow antes das customizações, garantindo que elas terão
-            % efeito.
+        % INICIALIZAÇÃO
+        %-----------------------------------------------------------------%
+        function startup_timerCreation(app, idxThreads)            
+            % A criação desse timer tem como objetivo garantir uma renderização 
+            % mais rápida dos componentes principais da GUI, possibilitando a 
+            % visualização da sua tela inicialpelo usuário. Trata-se de aspecto 
+            % essencial quando o app é compilado como webapp.
+
+            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
+                                 "StartDelay",    1.5,            ...
+                                 "Period",        .1,             ...
+                                 "TimerFcn",      @(~,~)app.startup_timerFcn(idxThreads));
+            start(app.timerObj)
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_timerFcn(app, idxThreads)
+            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
+                stop(app.timerObj)
+                delete(app.timerObj)
+                
+                jsBackDoor_Initialization(app, idxThreads)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_Controller(app, idxThreads)
             drawnow
+            jsBackDoor_Customizations(app)
 
             observationStartDate = datetime.empty;
             observationStopDate  = datetime.empty;
@@ -119,11 +146,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             app.specificTime1_Date.Value  = app.specificTime1_Date.Limits(1);
             app.specificTime2_Date.Value  = app.specificTime2_Date.Limits(2);
 
-            app.HTML.HTMLSource = util.HtmlTextGenerator.ThreadsInfo(app.specData(idxThreads), app.filterSummary);
-
-            % Customiza as aspectos estéticos de alguns dos componentes da GUI 
-            % (diretamente em JS).
-            jsBackDoor_Customizations(app)
+            ui.TextView.update(app.threadInfo, util.HtmlTextGenerator.ThreadsInfo(app.specData(idxThreads), app.filterSummary));
         end
 
         %-----------------------------------------------------------------%
@@ -209,7 +232,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             end                
 
             idxThreads = app.filterSummary.idxThread;
-            app.HTML.HTMLSource = util.HtmlTextGenerator.ThreadsInfo(app.specData(idxThreads), app.filterSummary);
+            ui.TextView.update(app.threadInfo, util.HtmlTextGenerator.ThreadsInfo(app.specData(idxThreads), app.filterSummary));
         end
 
         %-----------------------------------------------------------------%
@@ -228,8 +251,12 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             app.mainApp  = mainApp;
             app.specData = mainApp.specData;
 
-            jsBackDoor_Initialization(app)
-            initialValues(app, idxThreads)
+            if app.isDocked
+                app.jsBackDoor = mainApp.jsBackDoor;
+                startup_Controller(app, idxThreads)
+            else
+                startup_timerCreation(app, idxThreads)
+            end
             
         end
 
@@ -435,7 +462,7 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {'1x', '1x', 63, 22};
+            app.Document.ColumnWidth = {'1x', '1x', 65, 20};
             app.Document.RowHeight = {17, 33, 72, 8, '1x', 22};
             app.Document.ColumnSpacing = 5;
             app.Document.RowSpacing = 5;
@@ -444,11 +471,6 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             app.Document.Layout.Column = [1 2];
             app.Document.BackgroundColor = [0.9804 0.9804 0.9804];
 
-            % Create jsBackDoor
-            app.jsBackDoor = uihtml(app.Document);
-            app.jsBackDoor.Layout.Row = 1;
-            app.jsBackDoor.Layout.Column = 4;
-
             % Create HTMLLabel
             app.HTMLLabel = uilabel(app.Document);
             app.HTMLLabel.VerticalAlignment = 'bottom';
@@ -456,23 +478,6 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             app.HTMLLabel.Layout.Row = 1;
             app.HTMLLabel.Layout.Column = 1;
             app.HTMLLabel.Text = 'FLUXOS A PROCESSAR';
-
-            % Create HTMLPanel
-            app.HTMLPanel = uipanel(app.Document);
-            app.HTMLPanel.Layout.Row = [2 5];
-            app.HTMLPanel.Layout.Column = 1;
-
-            % Create HTMLGrid
-            app.HTMLGrid = uigridlayout(app.HTMLPanel);
-            app.HTMLGrid.ColumnWidth = {'1x'};
-            app.HTMLGrid.RowHeight = {'1x'};
-            app.HTMLGrid.Padding = [0 0 0 0];
-            app.HTMLGrid.BackgroundColor = [0.9804 0.9804 0.9804];
-
-            % Create HTML
-            app.HTML = uihtml(app.HTMLGrid);
-            app.HTML.Layout.Row = 1;
-            app.HTML.Layout.Column = 1;
 
             % Create filterTypePanelLabel
             app.filterTypePanelLabel = uilabel(app.Document);
@@ -659,14 +664,6 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             app.filterTree.Layout.Row = 5;
             app.filterTree.Layout.Column = [2 4];
 
-            % Create filterAddImage
-            app.filterAddImage = uiimage(app.Document);
-            app.filterAddImage.ImageClickedFcn = createCallbackFcn(app, @filterAddImageClicked, true);
-            app.filterAddImage.Layout.Row = 4;
-            app.filterAddImage.Layout.Column = 4;
-            app.filterAddImage.HorizontalAlignment = 'right';
-            app.filterAddImage.ImageSource = 'addSymbol_32.png';
-
             % Create btnOK
             app.btnOK = uibutton(app.Document, 'push');
             app.btnOK.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
@@ -677,6 +674,25 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             app.btnOK.Layout.Row = 6;
             app.btnOK.Layout.Column = [3 4];
             app.btnOK.Text = 'OK';
+
+            % Create threadInfo
+            app.threadInfo = uilabel(app.Document);
+            app.threadInfo.VerticalAlignment = 'top';
+            app.threadInfo.WordWrap = 'on';
+            app.threadInfo.FontSize = 11;
+            app.threadInfo.Layout.Row = [2 5];
+            app.threadInfo.Layout.Column = 1;
+            app.threadInfo.Interpreter = 'html';
+            app.threadInfo.Text = '';
+
+            % Create filterAddImage
+            app.filterAddImage = uiimage(app.Document);
+            app.filterAddImage.ImageClickedFcn = createCallbackFcn(app, @filterAddImageClicked, true);
+            app.filterAddImage.Layout.Row = 4;
+            app.filterAddImage.Layout.Column = 4;
+            app.filterAddImage.HorizontalAlignment = 'right';
+            app.filterAddImage.VerticalAlignment = 'bottom';
+            app.filterAddImage.ImageSource = 'addSymbol_32.png';
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);

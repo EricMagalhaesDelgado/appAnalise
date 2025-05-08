@@ -7,7 +7,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         toolGrid                        matlab.ui.container.GridLayout
         filter_DataBinningExport        matlab.ui.control.Image
         filter_Summary                  matlab.ui.control.Image
-        jsBackDoor                      matlab.ui.control.HTML
         tool_TimestampLabel             matlab.ui.control.Label
         tool_TimestampSlider            matlab.ui.control.Slider
         tool_LoopControl                matlab.ui.control.Image
@@ -21,7 +20,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         axesTool_RegionZoom             matlab.ui.control.Image
         axesTool_RestoreView            matlab.ui.control.Image
         plotPanel                       matlab.ui.container.Panel
-        ControlTabGrid                  matlab.ui.container.GridLayout
         menu_MainGrid                   matlab.ui.container.GridLayout
         menu_Button4Grid                matlab.ui.container.GridLayout
         menu_Button4Icon                matlab.ui.control.Image
@@ -52,9 +50,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         channelEditMode                 matlab.ui.control.Image
         channelRefresh                  matlab.ui.control.Image
         channelLabel                    matlab.ui.control.Label
-        emissionInfoPanel               matlab.ui.container.Panel
-        emissionInfoGrid                matlab.ui.container.GridLayout
-        emissionInfo                    matlab.ui.control.HTML
+        emissionInfo                    matlab.ui.control.Label
         emissionList                    matlab.ui.control.DropDown
         emissionListLabel               matlab.ui.control.Label
         spectralThreadTree              matlab.ui.container.Tree
@@ -182,15 +178,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % componentes essenciais da GUI (especificados em "createComponents"), 
         % mostrando a GUI para o usuário o mais rápido possível.
         timerObj
-
-        % O MATLAB não renderiza alguns dos componentes de abas (do TabGroup) 
-        % não visíveis. E a customização de componentes, usando a lib ccTools, 
-        % somente é possível após a sua renderização. Controla-se a aplicação 
-        % da customizaçao por meio dessa propriedade jsBackDoorFlag.
-        jsBackDoorFlag = {true, ...
-                          true, ...
-                          true, ...
-                          true};
+        jsBackDoor
 
         % Janela de progresso já criada no DOM. Dessa forma, controla-se 
         % apenas a sua visibilidade - e tornando desnecessário criá-la a
@@ -233,9 +221,11 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % IPC: COMUNICAÇÃO ENTRE PROCESSOS
         %-----------------------------------------------------------------%
-        function ipcSecundaryJSEventsHandler(app, event)
+        function ipcSecundaryJSEventsHandler(app, event, varargin)
             try
                 switch event.HTMLEventName
+                    case 'renderer'
+                        startup_Controller(app, varargin{:})
                     case 'auxApp.winDriveTest.filter_Tree'
                         filter_delFilter(app, struct('Source', app.filter_delButton))
                     case 'auxApp.winDriveTest.points_Tree'
@@ -284,64 +274,69 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % JSBACKDOOR: CUSTOMIZAÇÃO GUI (ESTÉTICA/COMPORTAMENTAL)
         %-----------------------------------------------------------------%
-        function jsBackDoor_Initialization(app)
-            if app.isDocked
-                delete(app.jsBackDoor)
-                app.jsBackDoor = app.mainApp.jsBackDoor;
-            else
-                app.jsBackDoor.HTMLSource = appUtil.jsBackDoorHTMLSource();
-                app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcSecundaryJSEventsHandler(app, evt);
-            end            
+        function jsBackDoor_Initialization(app, varargin)
+            app.jsBackDoor = uihtml(app.UIFigure, "HTMLSource",           appUtil.jsBackDoorHTMLSource(),                              ...
+                                                  "HTMLEventReceivedFcn", @(~, evt)ipcSecundaryJSEventsHandler(app, evt, varargin{:}), ...
+                                                  "Visible",              "off");
         end
 
         %-------------------------------------------------------------------------%
         function jsBackDoor_Customizations(app, tabIndex)
-            % O menu gráfico controla, programaticamente, qual das abas de
-            % app.TabGroup estará visível. 
-
-            % Lembrando que o MATLAB renderiza em tela apenas as abas visíveis.
-            % Por isso as customizações de abas e suas subabas somente é possível 
-            % após a renderização da aba.
+            persistent customizationStatus
+            if isempty(customizationStatus)
+                customizationStatus = [false, false, false, false];
+            end
 
             switch tabIndex
                 case 0 % STARTUP
                     if app.isDocked
                         app.progressDialog = app.mainApp.progressDialog;
                     else
-                        app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
-
-                        sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-theme-light',                                                   ...
-                                                                                               'classAttributes', ['--mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); ' ...
-                                                                                                                   '--mw-backgroundColor-selected: rgb(180 222 255 / 45%); '            ...
-                                                                                                                   '--mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);']));
-            
-                        sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
-                                                                                               'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
+                        sendEventToHTMLSource(app.jsBackDoor, 'initializeStyle');
+                        app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);                        
                     end
-
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')                    
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
+                    customizationStatus = [false, false, false, false];
 
                 otherwise
-                    if any(app.jsBackDoorFlag{tabIndex})
-                        app.jsBackDoorFlag{tabIndex} = false;
-                    
-                        switch tabIndex
-                            case 1 % ASPECTOS GERAIS
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.ControlTabGroup, 'transparentHeader', 'transparent')
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.axesToolbarGrid, 'borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')
-                            
-                            case 2 % FILTRO
-                                filterTreeUUID = struct(app.filter_Tree).Controller.ViewModel.Id;
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'auxApp.winDriveTest.filter_Tree', 'componentDataTag', filterTreeUUID, 'keyEvents', "Delete"))
-                            
-                            case 3 % PONTOS DE INTERESSE
-                                pointsTreeUUID = struct(app.points_Tree).Controller.ViewModel.Id;
-                                sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'auxApp.winDriveTest.points_Tree', 'componentDataTag', pointsTreeUUID, 'keyEvents', "Delete"))
-                            
-                            case 4 % LAYOUT
-                                % ...
-                        end
+                    if customizationStatus(tabIndex)
+                        return
+                    end
+
+                    customizationStatus(tabIndex) = true;
+                    switch tabIndex
+                        case 1
+                            elToModify = {app.ControlTabGroup, app.axesToolbarGrid, app.reportFlag, app.emissionInfo};
+                            elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
+                            if ~isempty(elDataTag)
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                           ...
+                                    struct('dataTag', elDataTag{1}, 'generation', 0, 'style', struct('border', 'none', 'backgroundColor', 'transparent')),                ...
+                                    struct('dataTag', elDataTag{2}, 'generation', 0, 'style', struct('borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')), ...
+                                    struct('dataTag', elDataTag{3}, 'generation', 1, 'style', struct('textAlign', 'justify'))                                             ...
+                                });
+
+                                ui.TextView.startup(app.jsBackDoor, elToModify{4});
+                            end
+
+                        case 2
+                            elToModify = {app.filter_Tree};
+                            elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
+                            if ~isempty(elDataTag)
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                     ...
+                                    struct('dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.winDriveTest.filter_Tree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
+                                });
+                            end
+                        
+                        case 3
+                            elToModify = {app.points_Tree};
+                            elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
+                            if ~isempty(elDataTag)
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                     ...
+                                    struct('dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.winDriveTest.points_Tree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
+                                });
+                            end
+
+                        case 4
+                            % ...
                     end
             end
         end
@@ -353,15 +348,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
         % INICIALIZAÇÃO
         %-----------------------------------------------------------------%
         function startup_timerCreation(app, idxThread, idxEmission)
-            % A criação desse timer tem como objetivo garantir uma renderização 
-            % mais rápida dos componentes principais da GUI, possibilitando a 
-            % visualização da sua tela inicial pelo usuário. Trata-se de aspecto 
-            % essencial quando o app é compilado como webapp.
-
-            % Dessa forma, outras operações, como a leitura de um arquivo
-            % de configuração, por exemplo, são realizadas apenas após a
-            % renderização da página.
-
             app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
                                  "StartDelay",    1.5,            ...
                                  "Period",        .1,             ...
@@ -375,37 +361,25 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                 stop(app.timerObj)
                 delete(app.timerObj)
 
-                startup_Controller(app, idxThread, idxEmission)
+                drawnow
+                jsBackDoor_Initialization(app, idxThread, idxEmission)
             end
         end
 
         %-----------------------------------------------------------------%
         function startup_Controller(app, idxThread, idxEmission)
             drawnow
-
-            % Customiza aspectos estéticos de alguns dos componentes da GUI 
-            % (diretamente em JS).
             jsBackDoor_Customizations(app, 0)
-
-            % Define tamanho mínimo do app (não aplicável à versão webapp).
-            if ~strcmp(app.mainApp.executionMode, 'webApp') && ~app.isDocked
-                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-            end
+            jsBackDoor_Customizations(app, 1)
 
             app.progressDialog.Visible = 'visible';
 
-            % Criação do eixo, leitura dos dados e plot...
             startup_AppProperties(app)
             startup_AxesCreation(app)
             startup_GUIComponents(app, idxThread, idxEmission)
-            general_EmissionChanged(app, struct('updateType', 'AppStartup'))
+            general_EmissionChanged(app, struct('updateType', 'AppStartup'))            
 
             app.progressDialog.Visible = 'hidden';
-
-            % Customiza aspectos estéticos de componentes da GUI relacionados 
-            % à aba selecionada.
-            [~, idxSelectedTab] = ismember(app.ControlTabGroup.SelectedTab, app.ControlTabGroup.Children);
-            jsBackDoor_Customizations(app, idxSelectedTab)
         end
 
         %-----------------------------------------------------------------%
@@ -436,6 +410,10 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             
             geolimits(app.UIAxes1, 'auto')
             plot.axes.Colormap(app.UIAxes1, app.config_Colormap.Value)
+
+            if ismember(app.config_Basemap.Value, {'darkwater', 'none'})
+                app.UIAxes1.Grid = 'on';
+            end
 
             % Eixo cartesiano: ESPECTRO
             app.UIAxes2 = plot.axes.Creation(hParent, 'Cartesian', {'XColor', 'white', 'XGrid', 1, 'XMinorGrid', 0, 'XTick', {}, 'XTickLabel', {}, ...
@@ -1598,18 +1576,17 @@ classdef winDriveTest_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp, idxThread, idxEmission)
+        function startupFcn(app, mainApp, idxThread, idxEmission)
 
-            app.mainApp     = mainapp;
-            app.General     = mainapp.General;
-            app.General_I   = mainapp.General_I;
-            app.rootFolder  = mainapp.rootFolder;
-            app.specData    = mainapp.specData;
-
-            jsBackDoor_Initialization(app)
+            app.mainApp    = mainApp;
+            app.General    = mainApp.General;
+            app.General_I  = mainApp.General_I;
+            app.rootFolder = mainApp.rootFolder;
+            app.specData   = mainApp.specData;
 
             if app.isDocked
                 app.GridLayout.Padding(4) = 19;
+                app.jsBackDoor = mainApp.jsBackDoor;
                 startup_Controller(app, idxThread, idxEmission)
             else
                 appUtil.winPosition(app.UIFigure)
@@ -1650,7 +1627,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.ControlTabGroup.SelectedTab = app.ControlTabGroup.Children(idx);
 
             jsBackDoor_Customizations(app, idx)
-            focus(app.jsBackDoor)
 
         end
 
@@ -1711,8 +1687,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Inicialmente, a informação acerca do fluxo espectral e da emissão 
             % sob análise são salvas na propriedade "selectedEmission" do app.
-            [app.emissionInfo.HTMLSource, ...
-             app.selectedEmission] = util.HtmlTextGenerator.Emission_v2(app.specData, idxThread, idxEmission);
+            [htmlContent, app.selectedEmission] = util.HtmlTextGenerator.Emission_v2(app.specData, idxThread, idxEmission);
+            ui.TextView.update(app.emissionInfo, htmlContent);
 
             % Atualiza canal, bloqueando edição de informação do canal.
             checkChannelAssigned(app, idxThread, idxEmission)
@@ -1826,8 +1802,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
         % Image clicked function: tool_ControlPanelVisibility
         function tool_LeftPanelVisibilityImageClicked(app, event)
-            
-            focus(app.jsBackDoor)
 
             switch event.Source
                 %---------------------------------------------------------%
@@ -2736,28 +2710,17 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {5, 320, 10, 5, 366, '1x', 5};
-            app.GridLayout.RowHeight = {5, 24, '1x', 5, 34};
+            app.GridLayout.RowHeight = {5, 23, 3, 5, '1x', 5, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
             app.GridLayout.BackgroundColor = [1 1 1];
 
-            % Create ControlTabGrid
-            app.ControlTabGrid = uigridlayout(app.GridLayout);
-            app.ControlTabGrid.ColumnWidth = {'1x'};
-            app.ControlTabGrid.RowHeight = {2, 24, '1x'};
-            app.ControlTabGrid.ColumnSpacing = 5;
-            app.ControlTabGrid.RowSpacing = 0;
-            app.ControlTabGrid.Padding = [0 0 0 0];
-            app.ControlTabGrid.Layout.Row = [2 3];
-            app.ControlTabGrid.Layout.Column = 2;
-            app.ControlTabGrid.BackgroundColor = [1 1 1];
-
             % Create ControlTabGroup
-            app.ControlTabGroup = uitabgroup(app.ControlTabGrid);
+            app.ControlTabGroup = uitabgroup(app.GridLayout);
             app.ControlTabGroup.AutoResizeChildren = 'off';
-            app.ControlTabGroup.Layout.Row = [2 3];
-            app.ControlTabGroup.Layout.Column = 1;
+            app.ControlTabGroup.Layout.Row = [2 5];
+            app.ControlTabGroup.Layout.Column = 2;
 
             % Create Tab1_Emission
             app.Tab1_Emission = uitab(app.ControlTabGroup);
@@ -2769,7 +2732,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.Tab1_Grid.RowHeight = {22, 44, 0, 22, 22, '1x', 22, 69, 5, 24};
             app.Tab1_Grid.ColumnSpacing = 5;
             app.Tab1_Grid.RowSpacing = 5;
-            app.Tab1_Grid.Padding = [0 0 0 6];
+            app.Tab1_Grid.Padding = [0 0 0 8];
             app.Tab1_Grid.BackgroundColor = [1 1 1];
 
             % Create spectralThreadLabel
@@ -2863,23 +2826,15 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.emissionList.Layout.Column = [1 2];
             app.emissionList.Value = {};
 
-            % Create emissionInfoPanel
-            app.emissionInfoPanel = uipanel(app.Tab1_Grid);
-            app.emissionInfoPanel.Layout.Row = 6;
-            app.emissionInfoPanel.Layout.Column = [1 2];
-
-            % Create emissionInfoGrid
-            app.emissionInfoGrid = uigridlayout(app.emissionInfoPanel);
-            app.emissionInfoGrid.ColumnWidth = {'1x'};
-            app.emissionInfoGrid.RowHeight = {'1x'};
-            app.emissionInfoGrid.Padding = [0 0 0 0];
-            app.emissionInfoGrid.BackgroundColor = [1 1 1];
-
             % Create emissionInfo
-            app.emissionInfo = uihtml(app.emissionInfoGrid);
-            app.emissionInfo.HTMLSource = ' ';
-            app.emissionInfo.Layout.Row = 1;
-            app.emissionInfo.Layout.Column = 1;
+            app.emissionInfo = uilabel(app.Tab1_Grid);
+            app.emissionInfo.VerticalAlignment = 'top';
+            app.emissionInfo.WordWrap = 'on';
+            app.emissionInfo.FontSize = 11;
+            app.emissionInfo.Layout.Row = 6;
+            app.emissionInfo.Layout.Column = [1 2];
+            app.emissionInfo.Interpreter = 'html';
+            app.emissionInfo.Text = '';
 
             % Create channelLabel
             app.channelLabel = uilabel(app.Tab1_Grid);
@@ -3000,7 +2955,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.Tab2_Grid.RowHeight = {22, 96, 8, '1x', 54, 74};
             app.Tab2_Grid.ColumnSpacing = 5;
             app.Tab2_Grid.RowSpacing = 5;
-            app.Tab2_Grid.Padding = [0 0 0 6];
+            app.Tab2_Grid.Padding = [0 0 0 8];
             app.Tab2_Grid.BackgroundColor = [1 1 1];
 
             % Create filter_TreeLabel
@@ -3184,7 +3139,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.Tab3_Grid.RowHeight = {22, 92, 220, 8, '1x'};
             app.Tab3_Grid.ColumnSpacing = 5;
             app.Tab3_Grid.RowSpacing = 5;
-            app.Tab3_Grid.Padding = [0 0 0 6];
+            app.Tab3_Grid.Padding = [0 0 0 8];
             app.Tab3_Grid.BackgroundColor = [1 1 1];
 
             % Create points_TreeLabel
@@ -3360,7 +3315,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.Tab4_Grid.RowHeight = {27, 18, 184, 38, '1x'};
             app.Tab4_Grid.ColumnSpacing = 5;
             app.Tab4_Grid.RowSpacing = 5;
-            app.Tab4_Grid.Padding = [0 0 0 6];
+            app.Tab4_Grid.Padding = [0 0 0 8];
             app.Tab4_Grid.BackgroundColor = [1 1 1];
 
             % Create config_geoAxesLabel
@@ -3413,7 +3368,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create config_geoAxesSubGrid
             app.config_geoAxesSubGrid = uigridlayout(app.config_geoAxesSubPanel);
-            app.config_geoAxesSubGrid.ColumnWidth = {'1x', 93};
+            app.config_geoAxesSubGrid.ColumnWidth = {171, 93};
             app.config_geoAxesSubGrid.RowHeight = {17, 22};
             app.config_geoAxesSubGrid.RowSpacing = 5;
             app.config_geoAxesSubGrid.Padding = [10 10 10 5];
@@ -3790,14 +3745,14 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.config_BandGuardBWRelatedValue.Value = 6;
 
             % Create menu_MainGrid
-            app.menu_MainGrid = uigridlayout(app.ControlTabGrid);
+            app.menu_MainGrid = uigridlayout(app.GridLayout);
             app.menu_MainGrid.ColumnWidth = {'1x', 22, 22, 22};
             app.menu_MainGrid.RowHeight = {'1x', 3};
             app.menu_MainGrid.ColumnSpacing = 2;
             app.menu_MainGrid.RowSpacing = 0;
             app.menu_MainGrid.Padding = [0 0 0 0];
-            app.menu_MainGrid.Layout.Row = [1 2];
-            app.menu_MainGrid.Layout.Column = 1;
+            app.menu_MainGrid.Layout.Row = [2 3];
+            app.menu_MainGrid.Layout.Column = 2;
             app.menu_MainGrid.BackgroundColor = [1 1 1];
 
             % Create menuUnderline
@@ -3920,7 +3875,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.plotPanel.AutoResizeChildren = 'off';
             app.plotPanel.BorderType = 'none';
             app.plotPanel.BackgroundColor = [1 1 1];
-            app.plotPanel.Layout.Row = [2 3];
+            app.plotPanel.Layout.Row = [2 5];
             app.plotPanel.Layout.Column = [4 6];
 
             % Create axesToolbarGrid
@@ -3936,18 +3891,21 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create axesTool_RestoreView
             app.axesTool_RestoreView = uiimage(app.axesToolbarGrid);
+            app.axesTool_RestoreView.ScaleMethod = 'none';
             app.axesTool_RestoreView.ImageClickedFcn = createCallbackFcn(app, @axesTool_InteractionImageClicked, true);
             app.axesTool_RestoreView.Tooltip = {'RestoreView'};
-            app.axesTool_RestoreView.Layout.Row = 2;
+            app.axesTool_RestoreView.Layout.Row = [1 2];
             app.axesTool_RestoreView.Layout.Column = 1;
             app.axesTool_RestoreView.ImageSource = 'Home_18.png';
 
             % Create axesTool_RegionZoom
             app.axesTool_RegionZoom = uiimage(app.axesToolbarGrid);
+            app.axesTool_RegionZoom.ScaleMethod = 'none';
             app.axesTool_RegionZoom.ImageClickedFcn = createCallbackFcn(app, @axesTool_InteractionImageClicked, true);
             app.axesTool_RegionZoom.Tooltip = {'RegionZoom'};
-            app.axesTool_RegionZoom.Layout.Row = 2;
+            app.axesTool_RegionZoom.Layout.Row = [1 2];
             app.axesTool_RegionZoom.Layout.Column = 2;
+            app.axesTool_RegionZoom.VerticalAlignment = 'top';
             app.axesTool_RegionZoom.ImageSource = 'ZoomRegion_20.png';
 
             % Create axesTool_DistortionPlot
@@ -3990,12 +3948,12 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Create toolGrid
             app.toolGrid = uigridlayout(app.GridLayout);
-            app.toolGrid.ColumnWidth = {22, 22, 22, 248, 196, '1x', 22, 22, 22};
-            app.toolGrid.RowHeight = {4, 17, '1x'};
+            app.toolGrid.ColumnWidth = {22, 22, 22, 248, 196, '1x', 22, 22};
+            app.toolGrid.RowHeight = {4, 17, 2};
             app.toolGrid.ColumnSpacing = 5;
             app.toolGrid.RowSpacing = 0;
             app.toolGrid.Padding = [0 5 0 5];
-            app.toolGrid.Layout.Row = 5;
+            app.toolGrid.Layout.Row = 7;
             app.toolGrid.Layout.Column = [1 7];
             app.toolGrid.BackgroundColor = [0.9412 0.9412 0.9412];
 
@@ -4042,17 +4000,12 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.tool_TimestampLabel.Layout.Column = 5;
             app.tool_TimestampLabel.Text = {'0 de 0'; '00/00/0000 00:00:00'};
 
-            % Create jsBackDoor
-            app.jsBackDoor = uihtml(app.toolGrid);
-            app.jsBackDoor.Layout.Row = 2;
-            app.jsBackDoor.Layout.Column = 7;
-
             % Create filter_Summary
             app.filter_Summary = uiimage(app.toolGrid);
             app.filter_Summary.ImageClickedFcn = createCallbackFcn(app, @tool_SummaryImageClicked, true);
             app.filter_Summary.Tooltip = {'Informações acerca do processo de análise dos dados'};
             app.filter_Summary.Layout.Row = 2;
-            app.filter_Summary.Layout.Column = 9;
+            app.filter_Summary.Layout.Column = 8;
             app.filter_Summary.ImageSource = 'Info_32.png';
 
             % Create filter_DataBinningExport
@@ -4061,7 +4014,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.filter_DataBinningExport.ImageClickedFcn = createCallbackFcn(app, @tool_ExportFileButtonPushed, true);
             app.filter_DataBinningExport.Tooltip = {'Exporta análise em arquivos XLSX e KML'};
             app.filter_DataBinningExport.Layout.Row = 2;
-            app.filter_DataBinningExport.Layout.Column = 8;
+            app.filter_DataBinningExport.Layout.Column = 7;
             app.filter_DataBinningExport.ImageSource = 'Export_16.png';
 
             % Create filter_ContextMenu

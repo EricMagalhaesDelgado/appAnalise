@@ -463,18 +463,24 @@ classdef SpecData < model.SpecDataBase
                                 end
                             end
 
-                            if ~isempty(prjInfo.generatedFiles) && isfield(prjInfo.generatedFiles, 'lastZIPFullPath') && isfile(prjInfo.generatedFiles.lastZIPFullPath)
-                                unzipFiles = unzip(prjInfo.generatedFiles.lastZIPFullPath, callingApp.General.fileFolder.tempPath);
-                                for ll = 1:numel(unzipFiles)
-                                    [~, ~, unzipFileExt] = fileparts(unzipFiles{ll});
-                                    switch lower(unzipFileExt)
-                                        case '.html'
-                                            callingApp.projectData.generatedFiles.lastHTMLDocFullPath = unzipFiles{ll};
-                                        case '.json'
-                                            callingApp.projectData.generatedFiles.lastTableFullPath   = unzipFiles{ll};
-                                        case '.mat'
-                                            callingApp.projectData.generatedFiles.lastMATFullPath     = unzipFiles{ll};
+                            if ~isempty(prjInfo.generatedFiles)
+                                try
+                                    unzipFiles = unzip(prjInfo.generatedFiles, callingApp.General.fileFolder.tempPath);
+                                    for ll = 1:numel(unzipFiles)
+                                        [~, ~, unzipFileExt] = fileparts(unzipFiles{ll});
+    
+                                        switch lower(unzipFileExt)
+                                            case '.html'
+                                                callingApp.projectData.generatedFiles.lastHTMLDocFullPath = unzipFiles{ll};
+                                            case '.json'
+                                                callingApp.projectData.generatedFiles.lastTableFullPath   = unzipFiles{ll};
+                                            case '.mat'
+                                                callingApp.projectData.generatedFiles.lastMATFullPath     = unzipFiles{ll};
+                                        end
                                     end
+                                    
+                                    callingApp.projectData.generatedFiles.lastZIPFullPath = prjInfo.generatedFiles;
+                                catch 
                                 end
                             end
                         end

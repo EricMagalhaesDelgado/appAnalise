@@ -1,9 +1,14 @@
 {
-    "version": 0.97,
+    "version": 1.01,
     "operationMode": {
         "Debug": false,
-        "Dock": true,
-        "Simulation": false
+        "Dock": false,
+        "Simulation": false,
+        "DevTools": {
+            "login": "admin",
+            "password": "admin"
+        },
+        "FreeStorageThreshold": 4
     },
     "computerName": {
         "deskopApp": "",
@@ -243,7 +248,7 @@
         "legalBasisId": "33",
         "accessLevelId": "1",
         "description": "",
-        "note": "Documento gerado pelo appAnalise",
+        "note": "Documento gerado no appAnalise",
         "defaultValues": {
             "servicos_da_inspecao": {
                 "value": [

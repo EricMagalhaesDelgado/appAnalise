@@ -17,7 +17,6 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
         unitRaw            matlab.ui.control.EditField
         unitRawLabel       matlab.ui.control.Label
         kFactorPanelLabel  matlab.ui.control.Label
-        jsBackDoor         matlab.ui.control.HTML
         btnClose           matlab.ui.control.Image
         ContextMenu        matlab.ui.container.ContextMenu
         ContextMenu_del    matlab.ui.container.Menu
@@ -28,6 +27,7 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         Container
         isDocked = true
+        jsBackDoor
 
         mainApp
         rootFolder
@@ -37,9 +37,11 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
 
 
     methods
-        function ipcSecundaryJSEventsHandler(app, event)
+        function ipcSecundaryJSEventsHandler(app, event, varargin)
             try
                 switch event.HTMLEventName
+                    case 'renderer'
+                        startup_Controller(app, varargin{:})                        
                     case 'auxApp.dockAddKFactor.kFactorTree'
                         FieldValueChanged(app, struct('Source', app.ContextMenu_del))
                     otherwise
@@ -55,32 +57,57 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        % JSBACKDOOR
+        % JSBACKDOOR: CUSTOMIZAÇÃO GUI (ESTÉTICA/COMPORTAMENTAL)
         %-----------------------------------------------------------------%
-        function jsBackDoor_Initialization(app)
-            if app.isDocked
-                delete(app.jsBackDoor)
-                app.jsBackDoor = app.mainApp.jsBackDoor;
-            else
-                app.jsBackDoor.HTMLSource = appUtil.jsBackDoorHTMLSource();
-                app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcSecundaryJSEventsHandler(app, evt);
-            end            
+        function jsBackDoor_Initialization(app, varargin)
+            app.jsBackDoor = uihtml(app.UIFigure, "HTMLSource",           appUtil.jsBackDoorHTMLSource(),                              ...
+                                                  "HTMLEventReceivedFcn", @(~, evt)ipcSecundaryJSEventsHandler(app, evt, varargin{:}), ...
+                                                  "Visible",              "off");
         end
 
         %-----------------------------------------------------------------%
         function jsBackDoor_Customizations(app)
-            app.kFactorTree.UserData = struct(app.kFactorTree).Controller.ViewModel.Id;
-            sendEventToHTMLSource(app.jsBackDoor, 'addKeyDownListener', struct('componentName', 'auxApp.dockAddKFactor.kFactorTree', 'componentDataTag', app.kFactorTree.UserData, 'keyEvents', "Delete"))
+            elToModify = {app.kFactorTree};
+            elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
+            if ~isempty(elDataTag)
+                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                       ...
+                    struct('dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.dockAddKFactor.kFactorTree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
+                });
+            end
         end
     end
 
-
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function initialValues(app, idxThread)
-            % Drawnow antes das customizações, garantindo que elas terão
-            % efeito.
+        % INICIALIZAÇÃO
+        %-----------------------------------------------------------------%
+        function startup_timerCreation(app, idxThread)            
+            % A criação desse timer tem como objetivo garantir uma renderização 
+            % mais rápida dos componentes principais da GUI, possibilitando a 
+            % visualização da sua tela inicialpelo usuário. Trata-se de aspecto 
+            % essencial quando o app é compilado como webapp.
+
+            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
+                                 "StartDelay",    1.5,            ...
+                                 "Period",        .1,             ...
+                                 "TimerFcn",      @(~,~)app.startup_timerFcn(idxThread));
+            start(app.timerObj)
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_timerFcn(app, idxThread)
+            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
+                stop(app.timerObj)
+                delete(app.timerObj)
+
+                jsBackDoor_Initialization(app, idxThread)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function startup_Controller(app, idxThread)
             drawnow
+            jsBackDoor_Customizations(app)
 
             [projectFolder, ...
              programDataFolder] = appUtil.Path(class.Constants.appName, app.rootFolder);
@@ -95,13 +122,12 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
                                        'kFactorTable', kFactorTable);
             app.kFactor.Items = [{''}; {app.referenceData.kFactorTable.Name}'];
 
-            Layout(app)
-
-            % Customiza as aspectos estéticos de alguns dos componentes da GUI 
-            % (diretamente em JS).
-            jsBackDoor_Customizations(app)
+            Layout(app)            
         end
+    end
 
+
+    methods (Access = private)
         %-----------------------------------------------------------------%
         function editionFlag = checkEdition(app)
             idxThread = app.referenceData.idxThread;
@@ -168,14 +194,18 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp, idxThreads)
+        function startupFcn(app, mainApp, idxThreads)
             
-            app.mainApp    = mainapp;
-            app.rootFolder = mainapp.rootFolder;
-            app.specData   = mainapp.specData;
+            app.mainApp    = mainApp;
+            app.rootFolder = mainApp.rootFolder;
+            app.specData   = mainApp.specData;
 
-            jsBackDoor_Initialization(app)
-            initialValues(app, idxThreads)
+            if app.isDocked
+                app.jsBackDoor = mainApp.jsBackDoor;
+                startup_Controller(app, idxThreads)
+            else
+                startup_timerCreation(app, idxThreads)
+            end
             
         end
 
@@ -303,7 +333,7 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {16, '1x', 69, 16};
+            app.Document.ColumnWidth = {16, '1x', 90};
             app.Document.RowHeight = {22, '1x', 22};
             app.Document.ColumnSpacing = 5;
             app.Document.RowSpacing = 5;
@@ -311,11 +341,6 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
             app.Document.Layout.Row = 2;
             app.Document.Layout.Column = [1 2];
             app.Document.BackgroundColor = [0.9804 0.9804 0.9804];
-
-            % Create jsBackDoor
-            app.jsBackDoor = uihtml(app.Document);
-            app.jsBackDoor.Layout.Row = 1;
-            app.jsBackDoor.Layout.Column = 4;
 
             % Create kFactorPanelLabel
             app.kFactorPanelLabel = uilabel(app.Document);
@@ -329,7 +354,7 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
             app.kFactorPanel = uipanel(app.Document);
             app.kFactorPanel.AutoResizeChildren = 'off';
             app.kFactorPanel.Layout.Row = 2;
-            app.kFactorPanel.Layout.Column = [1 4];
+            app.kFactorPanel.Layout.Column = [1 3];
 
             % Create kFactorGrid
             app.kFactorGrid = uigridlayout(app.kFactorPanel);
@@ -417,7 +442,7 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
             app.btnOK.BackgroundColor = [0.9804 0.9804 0.9804];
             app.btnOK.Enable = 'off';
             app.btnOK.Layout.Row = 3;
-            app.btnOK.Layout.Column = [3 4];
+            app.btnOK.Layout.Column = 3;
             app.btnOK.Text = 'OK';
 
             % Create ContextMenu

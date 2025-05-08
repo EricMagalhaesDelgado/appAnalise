@@ -82,41 +82,132 @@ function emissionsTable = createEmissionsTable(specData, idxThreads, operationTy
         end
     
         emissionsTable = sortrows(vertcat(emissionsTempTableCellArray{:}), {'Frequency', 'BW_kHz'});
-    
-        % Mesclar descrição obtida do RFDataHub com a inserida pelo usuário.
-        switch operationType
-            case {'SIGNALANALYSIS: JSONFile', 'REPORT: JSONFile'}
-                emissionsTable.MergedDescriptions = emissionsTable.RFDataHubDescription;
-    
-                idxUserDescription = find(emissionsTable.Description ~= "" & ~ismissing(emissionsTable.Description));
-                if ~isempty(idxUserDescription)
-                    emissionsTable.MergedDescriptions(idxUserDescription) = strcat(emissionsTable.RFDataHubDescription(idxUserDescription), ' (',  cellstr(emissionsTable.Description(idxUserDescription)), ')');
-                end
-    
-            case {'REPORT: HTMLFile'}
-                emissionsTable.Distance_auto    = replace(arrayfun(@(x) sprintf('%.1f', x), emissionsTable.Distance_auto, 'UniformOutput', false), '-1.0', '-');
-                emissionsTable.Distance         = replace(arrayfun(@(x) sprintf('%.1f', x), emissionsTable.Distance,      'UniformOutput', false), '-1.0', '-');
-    
-                emissionsTable.MergedDescriptions = emissionsTable.RFDataHubDescription;
-    
-                idxClassification  = find(cellfun(@(x,y) ~isequal(x,y), emissionsTable.RFDataHubDescription_auto, emissionsTable.RFDataHubDescription));
-                for jj = idxClassification'
-                    if emissionsTable.RFDataHubDescription_auto{jj} == "-"
-                        Description = sprintf('<font style="color: #ff0000;">%s</font>', emissionsTable.RFDataHubDescription{jj});
-                        Distance    = sprintf('<font style="color: #ff0000;">%s</font>', emissionsTable.Distance{jj});
-                    else
-                        Description = sprintf('<del>%s</del></p> <p class="Tabela_Texto_8" contenteditable="false" style="color: #ff0000;">%s', emissionsTable.RFDataHubDescription_auto{jj}, emissionsTable.RFDataHubDescription{jj});
-                        Distance    = sprintf('<del>%s</del></p> <p class="Tabela_Texto_8" contenteditable="false" style="color: #ff0000;">%s', emissionsTable.Distance_auto{jj},             emissionsTable.Distance{jj});
-                    end
-    
-                    emissionsTable.MergedDescriptions{jj} = Description;
-                    emissionsTable.Distance{jj}           = Distance;
-                end
-    
-                idxUserDescription = find(emissionsTable.Description ~= "" & ~ismissing(emissionsTable.Description));
-                for kk = idxUserDescription'
-                    emissionsTable.MergedDescriptions{kk} = sprintf('%s</p> <p class="Tabela_Texto_8" contenteditable="false" style="color: #0000ff;">(%s)', emissionsTable.MergedDescriptions{kk}, emissionsTable.Description(kk));
-                end
+        
+        if ismember(operationType, {'SIGNALANALYSIS: JSONFile', 'REPORT: JSONFile', 'REPORT: HTMLFile'})
+            for jj = 1:height(emissionsTable)
+                emissionsTable.MergedDescriptions{jj} = mergeDescriptions(emissionsTable, jj, operationType);
+            end
+
+            if strcmp(operationType, 'REPORT: HTMLFile')
+                emissionsTable.Distance_auto = replace(arrayfun(@(x) sprintf('%.1f', x), emissionsTable.Distance_auto, 'UniformOutput', false), '-1.0', '-');
+                emissionsTable.Distance      = replace(arrayfun(@(x) sprintf('%.1f', x), emissionsTable.Distance,      'UniformOutput', false), '-1.0', '-');
+            end
         end
+    end
+end
+
+
+%-------------------------------------------------------------------------%
+function description = mergeDescriptions(emissionTable, idx, operationType)
+    arguments
+        emissionTable
+        idx
+        operationType {mustBeMember(operationType, {'SIGNALANALYSIS: JSONFile', 'REPORT: JSONFile', 'REPORT: HTMLFile'})}
+    end
+
+    % emissiontTable possui três campos de descrição:
+    % (a) Descrição livre - DESCRIÇÃO_LIVRE
+    %     • "emissionsTable.Description(idx)"
+    %     • "string" (tipo de dado), "" (valor inicial) e editável    
+    %     • Campo obrigatório, caso classificação automática não identifique como provável emissor estação na base do RFDataHub.
+    %
+    % (b) Descrição relacionada à classificação automática - DESCRIÇÃO_CLASSIFICAÇÃO_AUTOMÁTICA
+    %     • "emissionsTable.Classification(idx).autoSuggested.Description"
+    %     • "char" (tipo de dado), '-' (valor inicial) e NÃO editável
+    %     • Descrição extraída da base do RFDataHub, caso classificação automática sugira estação que consta na base.
+    %
+    % (c) Descrição relacionada à classificação manual - DESCRIÇÃO_CLASSIFICAÇÃO_MANUAL
+    %     • "emissionsTable.Classification(idx).userModified.Description"
+    %     • "char" (tipo de dado), "emissionsTable.Classification(idx).autoSuggested.Description" (valor inicial) e editável
+    %     • Descrição extraída da base do RFDataHub, caso classificação manual sugira estação que consta na base; ou '[EXC]', caso outra fonte.
+    %     • Outra informação útil, caso preenchida, é a Latitude/Longitude de uma estação que não consta na base.
+
+    % O formato de saída muda ligeiramente, a depender se a saída é um documento JSON ou HTML.
+
+    % Descrições primárias:
+    autoDescription = emissionTable.Classification(idx).autoSuggested.Description; % Valor: RFDataHub.Description | '-' (char)
+    userDescription = emissionTable.Classification(idx).userModified.Description;  % Valor inicial: autoDescription     (char)
+    freeDescription = emissionTable.Description(idx);                              % Valor inicial: ""                  (string)
+    
+    % Descrições secundárias:
+    userLatitude    = emissionTable.Classification(idx).userModified.Latitude;     % Valor inicial: -1
+    userLongitude   = emissionTable.Classification(idx).userModified.Longitude;    % Valor inicial: -1
+
+    userCoords      = '';
+    if strcmp(userDescription, '[EXC]') && any([userLatitude, userLongitude] ~= -1)
+        userCoords  = sprintf(' (Latitude=%.6fº, Longitude=%.6fº)', userLatitude, userLongitude);
+    end
+
+    freeDescriptionComment  = '';
+    if isstring(freeDescription) && ~isempty(freeDescription.strlength) && freeDescription.strlength
+        freeDescriptionComment = sprintf(' (%s)', freeDescription);
+    end
+
+    switch autoDescription
+        case '-'
+            if ismember(userDescription, {'-', '[EXC]'})
+                description = sprintf('[EXC] %s%s', freeDescription, userCoords);
+
+                if strcmp(operationType, 'REPORT: HTMLFile')
+                    description = addHTMLTag(description, '#FF0000');
+                end
+
+            else
+                switch operationType
+                    case {'SIGNALANALYSIS: JSONFile', 'REPORT: JSONFile'}
+                         description = sprintf('%s%s', userDescription, freeDescriptionComment);
+
+                    case 'REPORT: HTMLFile'
+                        description = addHTMLTag(userDescription, '#FF0000');
+                        description = addFreeDescriptionComment(description, freeDescriptionComment);
+                end
+            end
+
+        otherwise
+            if isequal(autoDescription, userDescription)
+                switch operationType
+                    case {'SIGNALANALYSIS: JSONFile', 'REPORT: JSONFile'}
+                         description = sprintf('%s%s', autoDescription, freeDescriptionComment);
+
+                    case 'REPORT: HTMLFile'
+                        description = autoDescription;
+                        description = addFreeDescriptionComment(description, freeDescriptionComment);
+                end
+    
+            else
+                switch userDescription
+                    case {'-', '[EXC]'}
+                        description = sprintf('[EXC] %s%s', freeDescription, userCoords);
+
+                        if strcmp(operationType, 'REPORT: HTMLFile')
+                            description = addHTMLTag(description, '#FF0000');
+                            description = sprintf('<del>%s</del><br>%s', autoDescription, description);
+                        end
+
+                    otherwise
+                        switch operationType
+                            case {'SIGNALANALYSIS: JSONFile', 'REPORT: JSONFile'}
+                                description = sprintf('%s%s', userDescription, freeDescriptionComment);
+        
+                            case 'REPORT: HTMLFile'
+                                description = sprintf('<del>%s</del><br><font style="color: #FF0000;">%s</font>', autoDescription, userDescription);
+                                description = addFreeDescriptionComment(description, freeDescriptionComment);
+                        end
+                end
+            end
+    end
+end
+
+
+%-------------------------------------------------------------------------%
+function description = addHTMLTag(description, color)
+    description = sprintf('<font style="color: %s;">%s</font>', color, description);
+end
+
+
+%-------------------------------------------------------------------------%
+function description = addFreeDescriptionComment(description, userFreeDescriptionComment)
+    if ~isempty(userFreeDescriptionComment)
+        description = sprintf('%s<br><font style="color: #0000FF;">%s</font>', description, strtrim(userFreeDescriptionComment));
     end
 end

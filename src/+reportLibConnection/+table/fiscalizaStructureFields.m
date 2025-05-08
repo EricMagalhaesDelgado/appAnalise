@@ -1,4 +1,11 @@
-function [ReportProject, emissionFiscalizaTable] = fiscalizaStructureFields(app, idxThreads, reportInfo)
+function [ReportProject, emissionFiscalizaTable] = fiscalizaStructureFields(app, idxThreads, reportInfo, outputFinality)
+
+    arguments
+        app
+        idxThreads
+        reportInfo
+        outputFinality  char {mustBeMember(outputFinality, {'REPORT: JSONFile', 'REPORT: HTMLFile'})} = 'REPORT: HTMLFile'
+    end
 
     % Variável que possibilitará o preenchimento dos campos
     % estruturados da inspeção (no Fiscaliza).
@@ -42,7 +49,7 @@ function [ReportProject, emissionFiscalizaTable] = fiscalizaStructureFields(app,
     % Juntar numa mesma variável a informação gerada pelo algoritmo
     % embarcado no appAnálise (app.peaksTable) com a informação
     % gerada pelo fiscal (app.exceptionList).
-    [emissionTable, emissionSummaryTable] = reportLibConnection.table.Summary(app.specData, idxThreads, 'REPORT', 'EditedEmissionsTable+TotalSummaryTable');
+    [emissionTable, emissionSummaryTable] = reportLibConnection.table.Summary(app.specData, idxThreads, 'REPORT', 'EditedEmissionsTable+TotalSummaryTable', outputFinality);
 
     ReportProject.emissionsValue1 = sum(emissionSummaryTable{:,2:4}, 'all');                               % Qtd. emissões
     ReportProject.emissionsValue2 = sum(emissionSummaryTable{:,2});                                        % Qtd. emissões licenciadas

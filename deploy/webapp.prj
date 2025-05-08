@@ -25,7 +25,6 @@
     <fileset.resources>
       <file>D:\InovaFiscaliza\appAnalise\src\+auxApp</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+class</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+fiscalizaLibConnection</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+model</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+plot</file>
       <file>D:\InovaFiscaliza\appAnalise\src\+report</file>

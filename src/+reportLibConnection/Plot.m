@@ -132,6 +132,7 @@ classdef (Abstract) Plot
                 end
                 tiledPos = tiledPos+tiledSpan(ii);
             end
+            drawnow
 
             % Espera renderizar e salva a imagem...
             defaultFilename = appUtil.DefaultFileName(reportInfo.General.TempPath, sprintf('Image_ID%d', specData(idxThread).RelatedFiles.ID(1)), -1);
@@ -141,10 +142,10 @@ classdef (Abstract) Plot
             end
             
             exportgraphics(hContainer, imgFileName, 'ContentType', 'image', 'Resolution', reportInfo.General.Image.Resolution)
-            drawnow nocallbacks
             
             while true
                 pause(1)
+                isfile(imgFileName)
                 if isfile(imgFileName)
                     break
                 end

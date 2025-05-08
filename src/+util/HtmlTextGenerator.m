@@ -17,7 +17,14 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         % APPANALISE:INFO
         %-----------------------------------------------------------------%
-        function htmlContent = AppInfo(appGeneral, rootFolder, executionMode)
+        function htmlContent = AppInfo(appGeneral, rootFolder, executionMode, outputFormat)
+            arguments
+                appGeneral 
+                rootFolder 
+                executionMode 
+                outputFormat char {mustBeMember(outputFormat, {'popup', 'textview'})} = 'textview'
+            end
+
             global RFDataHub
             global RFDataHub_info
         
@@ -42,9 +49,8 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct(3) = struct('group', 'RFDataHub',  'value', struct('releasedDate', RFDataHub_info.ReleaseDate, 'numberOfRows', height(RFDataHub), 'numberOfUniqueStations', numel(unique(RFDataHub.("Station")))));
             dataStruct(4) = struct('group', 'MATLAB',     'value', appVersion.matlab);
         
-            htmlContent   = sprintf(['<p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; text-align:justify; margin: 10px;">O repositório das '   ...
-                                    'ferramentas desenvolvidas no Escritório de inovação da SFI pode ser ' ...
-                                    'acessado <a href="%s">aqui</a>.\n\n</p>%s'], appURL.Sharepoint, textFormatGUI.struct2PrettyPrintList(dataStruct));
+            freeInitialText = sprintf('<font style="font-size: 12px;">O repositório das ferramentas desenvolvidas no Escritório de inovação da SFI pode ser acessado <a href="%s" target="_blank">aqui</a>.</font>\n\n', appURL.Sharepoint);
+            htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'print -1', freeInitialText, outputFormat);
         end
 
 
@@ -69,12 +75,6 @@ classdef (Abstract) HtmlTextGenerator
                 
                 receiverList = arrayfun(@(x) x.Receiver, dataSource(idxFile).Data(idxThread), "UniformOutput", false);
                 receiverList = strjoin(unique(receiverList), '<br>');
-
-                % receiverList = {};
-                % for ii = idxFile
-                %     receiverList = [receiverList, {dataSource(ii).Data.Receiver}];
-                % end
-                % receiverList = strjoin(unique(receiverList), '<br>');
 
                 dataStruct(end+1) = struct('group', 'RECEPTOR',  'value', receiverList);
         
@@ -140,9 +140,8 @@ classdef (Abstract) HtmlTextGenerator
                 threadTag = strjoin(arrayfun(@(x) sprintf('%.3f - %.3f MHz', x.MetaData.FreqStart/1e+6, x.MetaData.FreqStop/1e+6), specData, "UniformOutput", false), '<br>');
             end
         
-            htmlContent = {sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 16px; margin: 10px;"><b>%s</b></p>', threadTag), ...
-                           textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')};
-            htmlContent = strjoin(htmlContent);
+            freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font><br><br>', threadTag);
+            htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete', freeInitialText);
         end
 
 
@@ -236,10 +235,13 @@ classdef (Abstract) HtmlTextGenerator
                 dataStruct(4).value.userDescription = sprintf('<font style="color: blue;">%s</font>', userDescription);
             end
         
-            htmlContent    = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 15px; margin: 10px;"><b>%s</b></p>', emissionTag) ...
-                              textFormatGUI.struct2PrettyPrintList(dataStruct(1:4)), ...
-                              '<p style="font-family: Helvetica, Arial, sans-serif; color: gray; font-size: 10px; text-align: justify; line-height: 10px; margin: 10px;">&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;____________________<br>&thinsp;̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ <br>A seguir são apresentadas informações acerca do método de aferição da ocupação e dos algoritmos de detecção e classificação da emissão.</p>' ...
-                              textFormatGUI.struct2PrettyPrintList(dataStruct(5), 'delete')];
+            freeInitialText1 = sprintf('<font style="font-size: 16px;"><b>%s</b></font><br><br>', emissionTag);
+            htmlContent1     = textFormatGUI.struct2PrettyPrintList(dataStruct(1:4), 'print -1', freeInitialText1);
+
+            freeInitialText2 = '<font style="color: gray; font-size: 10px;">&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;&thinsp;____________________<br>&thinsp;̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ ̅ <br></font>';
+            htmlContent2     = textFormatGUI.struct2PrettyPrintList(dataStruct(5),   'delete',   freeInitialText2);
+
+            htmlContent      = strjoin({htmlContent1, htmlContent2}, '');
         end
 
 
@@ -251,44 +253,44 @@ classdef (Abstract) HtmlTextGenerator
             % virtual", que corresponde à toda a faixa de frequência
             % monitorada.
             if isempty(idxEmission) % Emissão virtual
-                FreqCenter = (specData(idxThread).MetaData.FreqStart + specData(idxThread).MetaData.FreqStop) / 2e6; % MHz
-                BW_kHz     = (specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / 1e3; % kHz
+                FreqCenter  = (specData(idxThread).MetaData.FreqStart + specData(idxThread).MetaData.FreqStop) / 2e6; % MHz
+                BW_kHz      = (specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart) / 1e3; % kHz
             
             else % Emissão real
                 FreqCenter  = specData(idxThread).UserData.Emissions.Frequency(idxEmission);
                 BW_kHz      = specData(idxThread).UserData.Emissions.BW_kHz(idxEmission);
             end
         
-            emissionTag    = sprintf('%.3f MHz ⌂ %.1f kHz', FreqCenter, BW_kHz);
+            emissionTag     = sprintf('%.3f MHz ⌂ %.1f kHz', FreqCenter, BW_kHz);
         
-            bandFreqStart  = sprintf('%.3f MHz', specData(idxThread).MetaData.FreqStart/1e+6);
-            bandFreqStop   = sprintf('%.3f MHz', specData(idxThread).MetaData.FreqStop/1e+6);
-            bandStepWidth  = sprintf('%.1f kHz', (specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart)/(1000*(specData(idxThread).MetaData.DataPoints-1)));
-            bandResolution = sprintf('%.1f kHz', specData(idxThread).MetaData.Resolution/1000);
+            bandFreqStart   = sprintf('%.3f MHz', specData(idxThread).MetaData.FreqStart/1e+6);
+            bandFreqStop    = sprintf('%.3f MHz', specData(idxThread).MetaData.FreqStop/1e+6);
+            bandStepWidth   = sprintf('%.1f kHz', (specData(idxThread).MetaData.FreqStop - specData(idxThread).MetaData.FreqStart)/(1000*(specData(idxThread).MetaData.DataPoints-1)));
+            bandResolution  = sprintf('%.1f kHz', specData(idxThread).MetaData.Resolution/1000);
         
-            metaData       = struct('FreqStart',        bandFreqStart,                           ...
-                                    'FreqStop',         bandFreqStop,                            ...
-                                    'DataPoints',       specData(idxThread).MetaData.DataPoints,       ...
-                                    'StepWidth',        bandStepWidth,                           ...
-                                    'Resolution',       bandResolution,                          ...
-                                    'TraceMode',        specData(idxThread).MetaData.TraceMode,        ...
-                                    'TraceIntegration', specData(idxThread).MetaData.TraceIntegration, ...
-                                    'Detector',         specData(idxThread).MetaData.Detector,         ...
-                                    'LevelUnit',        specData(idxThread).MetaData.LevelUnit);
+            metaData        = struct('FreqStart',        bandFreqStart,                           ...
+                                     'FreqStop',         bandFreqStop,                            ...
+                                     'DataPoints',       specData(idxThread).MetaData.DataPoints,       ...
+                                     'StepWidth',        bandStepWidth,                           ...
+                                     'Resolution',       bandResolution,                          ...
+                                     'TraceMode',        specData(idxThread).MetaData.TraceMode,        ...
+                                     'TraceIntegration', specData(idxThread).MetaData.TraceIntegration, ...
+                                     'Detector',         specData(idxThread).MetaData.Detector,         ...
+                                     'LevelUnit',        specData(idxThread).MetaData.LevelUnit);
         
-            dataStruct(1)  = struct('group', 'RECEPTOR',            'value', specData(idxThread).Receiver);
-            dataStruct(2)  = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData(idxThread).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(idxThread).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));
-            dataStruct(3)  = struct('group', 'METADADOS',           'value', metaData);
+            dataStruct(1)   = struct('group', 'RECEPTOR',            'value', specData(idxThread).Receiver);
+            dataStruct(2)   = struct('group', 'TEMPO DE OBSERVAÇÃO', 'value', sprintf('%s - %s', datestr(specData(idxThread).Data{1}(1),   'dd/mm/yyyy HH:MM:SS'), datestr(specData(idxThread).Data{1}(end), 'dd/mm/yyyy HH:MM:SS')));
+            dataStruct(3)   = struct('group', 'METADADOS',           'value', metaData);
         
-            htmlContent    = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 16px; margin: 10px;"><b>%s</b></p>', emissionTag) ...
-                              textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')];
+            freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font>\n\n', emissionTag);
+            htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete', freeInitialText);
         
-            emissionID     = struct('Thread',   struct('Index',     idxThread,                                ...
-                                                       'UUID',      {specData(idxThread).RelatedFiles.uuid}), ...
-                                    'Emission', struct('Index',     idxEmission,                              ...
-                                                       'Frequency', FreqCenter,                               ...
-                                                       'BW_kHz',    BW_kHz,                                   ...
-                                                       'Tag',       emissionTag));
+            emissionID      = struct('Thread',   struct('Index',     idxThread,                                ...
+                                                        'UUID',      {specData(idxThread).RelatedFiles.uuid}), ...
+                                     'Emission', struct('Index',     idxEmission,                              ...
+                                                        'Frequency', FreqCenter,                               ...
+                                                        'BW_kHz',    BW_kHz,                                   ...
+                                                        'Tag',       emissionTag));
         end
 
 
@@ -317,8 +319,8 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct(end+1) = struct('group', 'CLASSIFICAÇÃO', 'value', struct('Algorithm',  specData.UserData.reportAlgorithms.Classification.Algorithm, ...
                                                                                  'Parameters', specData.UserData.reportAlgorithms.Classification.Parameters));
             
-            htmlContent = [sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; line-height: 16px; margin: 10px;"><b>%s</b></p>', threadTag), ...
-                           textFormatGUI.struct2PrettyPrintList(dataStruct)];
+            freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font>\n\n', threadTag);
+            htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, "print -1", freeInitialText);
         end
 
 
@@ -344,7 +346,7 @@ classdef (Abstract) HtmlTextGenerator
                 
                 % Validação:
                 if isequal(presentVersion, stableVersion)
-                    msgWarning   = 'O appAnalise e o seu módulo - RFDataHub - estão atualizados.';
+                    msgWarning   = 'O appAnalise está atualizado.';
                     
                 else
                     updatedModule    = {};
@@ -365,7 +367,7 @@ classdef (Abstract) HtmlTextGenerator
                     dataStruct(2) = struct('group', 'VERSÃO ESTÁVEL',   'value', stableVersion);
                     dataStruct(3) = struct('group', 'SITUAÇÃO',         'value', struct('updated', strjoin(updatedModule, ', '), 'nonupdated', strjoin(nonUpdatedModule, ', ')));
         
-                    msgWarning = textFormatGUI.struct2PrettyPrintList(dataStruct);
+                    msgWarning    = textFormatGUI.struct2PrettyPrintList(dataStruct, "print -1", '', 'popup');
                 end
                 
             catch ME
@@ -459,10 +461,10 @@ classdef (Abstract) HtmlTextGenerator
             catch
             end
         
-            htmlContent   = [sprintf('<div style="margin-left: 10px;"><p style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px;">%s</p><span style="font-family: Helvetica, Arial, sans-serif; font-size: 10px; display: inline-block; vertical-align: sub; margin-left: 5px;">ID %s</span></div>', stationInfo.Source, stationInfo.ID) ...
-                             sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 16px; text-align: justify; margin: 10px;"><b>%s</b></p>', stationTag)                             ...
-                             sprintf('<p style="font-family: Helvetica, Arial, sans-serif; font-size: 11px; text-align: justify; margin: 10px; padding-bottom: 10px;">%s</p>', stationInfo.Description) ...
-                             textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete')];
+            freeInitialText = [sprintf('<font style="font-size: 10px; color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px;">%s</font><span style="font-size: 10px; display: inline-block; vertical-align: sub; margin-left: 5px;">  ID %s</span><br><br>', stationInfo.Source, stationInfo.ID) ...
+                               sprintf('<font style="font-size: 16px;"><b>%s</b></font><br>', stationTag)                                                                                                                                                                                                                                                     ...
+                               sprintf('<font style="font-size: 11px;">%s</font><br><br>', stationInfo.Description)];
+            htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete', freeInitialText);
         end
 
 
@@ -471,18 +473,17 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         function htmlContent = ReleaseNotes(MFilePath)
             releaseNotes = readtable(fullfile(MFilePath, 'resources', 'ReleaseNotes.txt'), 'Delimiter', '\t');
-            releaseNotes = sortrows(releaseNotes, 'Version', 'descend');    
             [Release, ~, idxRelease] = unique(releaseNotes.Release, 'stable');
         
-            htmlContent  = {'<div style="color: gray; font-family: Helvetica, Arial, sans-serif; font-size: 11px; text-align: justify; margin: 10px;">'};
+            htmlContent  = {'<div style="color: black; font-family: Helvetica, Arial, sans-serif; font-size: 11px; text-align: justify; margin: 3px 10px 10px 10px;">'};
             for ii = 1:numel(Release)
                 idxReleaseTable = find(idxRelease==ii);
                 [Version, ~, idxVersion] = unique(releaseNotes.Version(idxReleaseTable), 'stable');
-                htmlContent{end+1} = sprintf('<p style="color: white; background-color: red; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 10px; margin: 5px;">%s</p>', Release{ii});
+                htmlContent{end+1} = sprintf('<p style="color: white; background-color: red; display: inline-block; vertical-align: top; padding: 5px; border-radius: 5px; font-size: 10px;">%s</p><br>', Release{ii});
         
                 for jj = 1:numel(Version)
                     idxVersionTable = find(idxVersion==jj);
-                    htmlContent{end+1} = sprintf('<span style="color: black; font-size: 10px; display: inline-block; vertical-align: sub;">v. %.2f (%s)</span>', Version(jj), releaseNotes.Date(idxReleaseTable(jj)));
+                    htmlContent{end+1} = sprintf('<span style="color: gray; font-size: 10px; display: inline-block; vertical-align: sub;">v. %.2f (%s)</span>', Version(jj), releaseNotes.Date(idxReleaseTable(jj)));
         
                     for kk = idxVersionTable'
                         htmlContent{end+1} = sprintf('<p>•&thinsp;%s</p>', releaseNotes.Description{idxReleaseTable(kk)});
