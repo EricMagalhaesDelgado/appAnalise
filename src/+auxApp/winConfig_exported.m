@@ -139,7 +139,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             if app.isDocked
                 app.progressDialog = app.mainApp.progressDialog;
             else
-                sendEventToHTMLSource(app.jsBackDoor, 'initializeStyle');
+                sendEventToHTMLSource(app.jsBackDoor, 'startup', app.mainApp.executionMode);
                 app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
             end
 

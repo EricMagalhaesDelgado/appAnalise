@@ -434,9 +434,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         function ipcMainJSEventsHandler(app, event)
             try
                 switch event.HTMLEventName
-                    % RENDERIZAÇÃO
+                    % JS
                     case 'renderer'
                         startup_Controller(app)
+                    case 'beforeonload'
+                        closeFcn(app)
 
                     % MAINAPP
                     case 'mainApp.file_Tree'
@@ -577,9 +579,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         % WELCOMEPAGE (continuação)
                         % 6/7: Executa callback, a depender da escolha do usuário.
                         app.General.operationMode.Simulation = simulationFlag;
-                        if simulationFlag
-                            app.report_system.Value = app.report_system.Items{end};
-                        end
 
                         switch pushedButtonTag
                             case 'Open'
@@ -681,7 +680,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             switch tabIndex
                 case 0
-                    sendEventToHTMLSource(app.jsBackDoor, 'initializeStyle');
+                    sendEventToHTMLSource(app.jsBackDoor, 'startup', app.executionMode);
                     app.progressDialog  = ccTools.ProgressDialog(app.jsBackDoor);
                     customizationStatus = [false, false, false, false, false, false];
 
@@ -722,6 +721,31 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                                 ui.TextView.startup(app.jsBackDoor, elToModify{8}, 'SELECIONE UM DOS FLUXOS ESPECTRAIS<br>INSERIDOS NA LISTA DE FLUXOS A PROCESSAR');
                             end
 
+                            % <EXPERIMENTO_ELIMINAR_ERROS_CONSOLE>
+                            channelList = {};
+                            for ii = 1:numel(app.channelObj.Channel)
+                                channelList{end+1} = sprintf('%d: %.3f - %.3f MHz (%s)', ii, app.channelObj.Channel(ii).Band(1), ...
+                                                                                             app.channelObj.Channel(ii).Band(2),     ...
+                                                                                             app.channelObj.Channel(ii).Name);
+                            end
+                            app.play_Channel_List.Items = channelList;
+                            play_Channel_RadioGroupSelectionChanged(app)
+                            
+                            app.play_FindPeaks_Class.Items = app.channelObj.FindPeaks.Name;
+                            play_FindPeaks_ClassValueChanged(app)
+                
+                            play_FindPeaks_RadioGroupSelectionChanged(app)
+                
+                            app.play_FindPeaks_Algorithm.Value = 'FindPeaks+OCC';
+                            play_FindPeaks_AlgorithmValueChanged(app)
+                
+                            app.report_ModelName.Items = [{''}; app.General.Models.Name];
+                            app.report_system.Items    = {'eFiscaliza', 'eFiscaliza DS', 'eFiscaliza HM'};
+                            if app.General.operationMode.Simulation
+                                app.report_system.Value = app.report_system.Items{end};
+                            end
+                            % </EXPERIMENTO_ELIMINAR_ERROS_CONSOLE>
+
                         otherwise
                             % Customização dos módulos que são renderizados
                             % nesta figura são controladas pelos próprios
@@ -756,9 +780,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_Controller(app)
-            drawnow            
-            jsBackDoor_Customizations(app, 0)
-            jsBackDoor_Customizations(app, 1)
+            drawnow
             
             % Essa propriedade registra o tipo de execução da aplicação, podendo
             % ser: 'built-in', 'desktopApp' ou 'webApp'.
@@ -773,6 +795,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             % versão executável (neste caso, o ctfroot indicará o local do .MLAPP).
             MFilePath = fileparts(mfilename('fullpath'));
             app.rootFolder = appUtil.RootFolder(class.Constants.appName, MFilePath);
+
+            % Customizações...
+            jsBackDoor_Customizations(app, 0)
+            jsBackDoor_Customizations(app, 1)
 
             % Inicia operações de gerar tela inicial, customizar componentes e
             % de ler informações constantes em arquivos externos, aplicando-as.
@@ -964,27 +990,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.play_Waterfall_cLim2.Value            = app.General.Plot.Waterfall.LevelLimits(2);
 
             % Painel "PLAYBACK > CANAIS"
-            channelList = {};
-            for ii = 1:numel(app.channelObj.Channel)
-                channelList{end+1} = sprintf('%d: %.3f - %.3f MHz (%s)', ii, app.channelObj.Channel(ii).Band(1), ...
-                                                                             app.channelObj.Channel(ii).Band(2),     ...
-                                                                             app.channelObj.Channel(ii).Name);
-            end
-            app.play_Channel_List.Items = channelList;
-            play_Channel_RadioGroupSelectionChanged(app)
-            
-            % Painel "PLAYBACK > EMISSÕES"
-            app.play_FindPeaks_Class.Items = app.channelObj.FindPeaks.Name;
-            play_FindPeaks_ClassValueChanged(app)
-
-            play_FindPeaks_RadioGroupSelectionChanged(app)
-
-            app.play_FindPeaks_Algorithm.Value = 'FindPeaks+OCC';
-            play_FindPeaks_AlgorithmValueChanged(app)
-
-            % Painel "REPORT >> PROJECT"
-            app.report_ModelName.Items = [{''}; app.General.Models.Name];
             app.report_ThreadAlgorithms.UserData = struct('idxThread', [], 'id', '');
+
             DataHubWarningLamp(app)
         end
 
@@ -1225,6 +1232,11 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             elseif app.menu_Button3.Value
                 app.play_Tree.Multiselect = "on";
                 play_submenuButtonPushed(app, struct('Source', app.submenu_Button4Icon))
+
+                if isempty(app.report_ThreadAlgorithms.UserData.idxThread) || ~isequal(app.report_ThreadAlgorithms.UserData.idxThread, app.play_PlotPanel.UserData)
+                    app.report_Tree.SelectedNodes = [];
+                    report_Algorithms(app, app.play_PlotPanel.UserData.NodeData)
+                end
 
             elseif app.menu_Button4.Value
                 app.play_Tree.Multiselect = "on";
@@ -3312,11 +3324,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 return
             end
 
-            % Limpa eventuais informações de um projeto antigo, no modo REPORT. 
-            % Essas informações serão preenchidas, caso esteja sendo lido um arquivo 
-            % MAT (de projeto) no método "read" da classe "model.SpecData".
-            app.report_ProjectName.Value = '';
-
             % Reinicia a variável, caso não vazia...
             if ~isempty(app.specData)
                 delete(app.specData)
@@ -3477,7 +3484,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
             end
 
-            idxTable = sortrows(idxTable, 'idx1');
+            idxTable = sortrows(idxTable, 'idx1')
+
             for kk = height(idxTable):-1:1
                 idx1 = idxTable.idx1(kk);
                 idx2 = idxTable.idx2{kk};
@@ -3644,9 +3652,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Aspectos relacionados a modos auxiliares - inicialmente, necessário 
             % apenas p/ modo REPORT (app.menu_Button3).
-            if app.menu_Button3.Value || ...
-                    (any(arrayfun(@(x) x.UserData.reportFlag, app.specData)) && isempty(app.report_Tree.Children))
-
+            if app.menu_Button3.Value
                 app.report_Tree.SelectedNodes = [];
                 report_Algorithms(app, app.play_PlotPanel.UserData.NodeData)
             end
@@ -7635,12 +7641,12 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create report_system
             app.report_system = uidropdown(app.report_DocumentGrid);
-            app.report_system.Items = {'eFiscaliza', 'eFiscaliza DS', 'eFiscaliza HM'};
+            app.report_system.Items = {};
             app.report_system.FontSize = 11;
             app.report_system.BackgroundColor = [1 1 1];
             app.report_system.Layout.Row = 2;
             app.report_system.Layout.Column = [1 3];
-            app.report_system.Value = 'eFiscaliza';
+            app.report_system.Value = {};
 
             % Create report_IssueLabel
             app.report_IssueLabel = uilabel(app.report_DocumentGrid);
