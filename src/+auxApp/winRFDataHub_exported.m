@@ -245,6 +245,8 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                         return
                     end
 
+                    appName = class(app);
+
                     customizationStatus(tabIndex) = true;
                     switch tabIndex
                         case 1 % RFDATAHUB
@@ -252,12 +254,12 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                             if ~isempty(elDataTag)
                                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                          ...
-                                    struct('dataTag', elDataTag{1}, 'generation', 0, 'style', struct('border', 'none', 'backgroundColor', 'transparent')),               ...
-                                    struct('dataTag', elDataTag{2}, 'generation', 0, 'style', struct('borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')) ...
+                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'generation', 0, 'style', struct('border', 'none', 'backgroundColor', 'transparent')),               ...
+                                    struct('appName', appName, 'dataTag', elDataTag{2}, 'generation', 0, 'style', struct('borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')) ...
                                 });
 
-                                ui.TextView.startup(app.jsBackDoor, elToModify{3});
-                                ui.TextView.startup(app.jsBackDoor, elToModify{4}, 'NÃO HÁ REGISTRO QUE ATENDA<br>AOS CRITÉRIOS DE FILTRAGEM');
+                                ui.TextView.startup(app.jsBackDoor, elToModify{3}, appName);
+                                ui.TextView.startup(app.jsBackDoor, elToModify{4}, appName, 'NÃO HÁ REGISTRO QUE ATENDA<br>AOS CRITÉRIOS DE FILTRAGEM');
                             end
 
                         case 2 % FILTRAGEM
@@ -265,9 +267,11 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
                             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                             if ~isempty(elDataTag)
                                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                          ...
-                                    struct('dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.winRFDataHub.filter_Tree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
+                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.winRFDataHub.filter_Tree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
                                 });
                             end
+
+                            filter_TreeBuilding(app)
                             
                         case 3 % CONFIGURAÇÕES GERAIS
                             % ...
@@ -723,15 +727,9 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             end
 
             if ~refRXFlag
-                if ~isempty(app.General.RFDataHub.lastSearch)
-                    rxLatitude  = app.General.RFDataHub.lastSearch.RX.Latitude;
-                    rxLongitude = app.General.RFDataHub.lastSearch.RX.Longitude;
-                    rxHeight    = app.General.RFDataHub.lastSearch.RX.Height;    
-                else
-                    rxLatitude  = app.General.RFDataHub.DefaultRX.Latitude;
-                    rxLongitude = app.General.RFDataHub.DefaultRX.Longitude;
-                    rxHeight    = app.General.RFDataHub.DefaultRX.Height;
-                end
+                rxLatitude  = app.General.RFDataHub.DefaultRX.Latitude;
+                rxLongitude = app.General.RFDataHub.DefaultRX.Longitude;
+                rxHeight    = app.General.RFDataHub.DefaultRX.Height;
             end
 
             rxSite = struct('Name',          'RX',        ...
@@ -830,17 +828,12 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
         % FILTRAGEM
         %-----------------------------------------------------------------%
         function filter_getReferenceSearch(app)
+            % Inicialização do filtro, evitando carregar todas as estações
+            % da base no plot.
             if isempty(app.filterTable)
-                if ~isempty(app.General.RFDataHub.lastSearch)
-                    filterType      = app.General.RFDataHub.lastSearch.Filter.ColumnLabel;
-                    filterValue     = app.General.RFDataHub.lastSearch.Filter.Value;
-                    filterOperation = app.General.RFDataHub.lastSearch.Filter.Operation;
-    
-                else
-                    filterType      = app.General.RFDataHub.DefaultFilter.ColumnLabel;
-                    filterValue     = app.General.RFDataHub.DefaultFilter.Value;
-                    filterOperation = app.General.RFDataHub.DefaultFilter.Operation;
-                end
+                filterType          = app.General.RFDataHub.DefaultFilter.ColumnLabel;
+                filterValue         = app.General.RFDataHub.DefaultFilter.Value;
+                filterOperation     = app.General.RFDataHub.DefaultFilter.Operation;
     
                 hFilterNames        = findobj(app.filter_SecondaryTypePanel.Children,  'Type', 'uiradiobutton');
                 hFilterOperations   = findobj(app.filter_SecondaryValuePanel.Children, 'Type', 'uitogglebutton');
@@ -875,8 +868,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
     
                 filter_addNewFilter(app, newFilter)
             end
-            
-            filter_TreeBuilding(app)
         end
 
         %-----------------------------------------------------------------%
@@ -2400,7 +2391,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_SecondaryType1.Text = 'Fonte';
             app.filter_SecondaryType1.FontSize = 10.5;
             app.filter_SecondaryType1.Position = [10 89 49 22];
-            app.filter_SecondaryType1.Value = true;
 
             % Create filter_SecondaryType2
             app.filter_SecondaryType2 = uiradiobutton(app.filter_SecondaryTypePanel);
@@ -2471,6 +2461,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_SecondaryType11.Text = 'Distância';
             app.filter_SecondaryType11.FontSize = 10.5;
             app.filter_SecondaryType11.Position = [231 47 65 22];
+            app.filter_SecondaryType11.Value = true;
 
             % Create filter_SecondaryType12
             app.filter_SecondaryType12 = uiradiobutton(app.filter_SecondaryTypePanel);
@@ -2501,7 +2492,6 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_SecondaryOperation1.Text = '=';
             app.filter_SecondaryOperation1.BackgroundColor = [1 1 1];
             app.filter_SecondaryOperation1.Position = [10 101 24 22];
-            app.filter_SecondaryOperation1.Value = true;
 
             % Create filter_SecondaryOperation2
             app.filter_SecondaryOperation2 = uitogglebutton(app.filter_SecondaryValuePanel);
@@ -2514,6 +2504,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % Create filter_SecondaryOperation3
             app.filter_SecondaryOperation3 = uitogglebutton(app.filter_SecondaryValuePanel);
             app.filter_SecondaryOperation3.Tag = 'ROI+textFree+textList1';
+            app.filter_SecondaryOperation3.Enable = 'off';
             app.filter_SecondaryOperation3.Tooltip = {'Contém'};
             app.filter_SecondaryOperation3.Text = '⊃';
             app.filter_SecondaryOperation3.BackgroundColor = [1 1 1];
@@ -2522,6 +2513,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             % Create filter_SecondaryOperation4
             app.filter_SecondaryOperation4 = uitogglebutton(app.filter_SecondaryValuePanel);
             app.filter_SecondaryOperation4.Tag = 'textFree+textList1';
+            app.filter_SecondaryOperation4.Enable = 'off';
             app.filter_SecondaryOperation4.Tooltip = {'Não contém'};
             app.filter_SecondaryOperation4.Text = '⊅';
             app.filter_SecondaryOperation4.BackgroundColor = [1 1 1];
@@ -2543,6 +2535,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_SecondaryOperation6.Text = '≤';
             app.filter_SecondaryOperation6.BackgroundColor = [1 1 1];
             app.filter_SecondaryOperation6.Position = [166 101 24 22];
+            app.filter_SecondaryOperation6.Value = true;
 
             % Create filter_SecondaryOperation7
             app.filter_SecondaryOperation7 = uitogglebutton(app.filter_SecondaryValuePanel);
@@ -2600,7 +2593,7 @@ classdef winRFDataHub_exported < matlab.apps.AppBase
             app.filter_SecondaryNumValue1.Visible = 'off';
             app.filter_SecondaryNumValue1.Layout.Row = 1;
             app.filter_SecondaryNumValue1.Layout.Column = 1;
-            app.filter_SecondaryNumValue1.Value = -1;
+            app.filter_SecondaryNumValue1.Value = 30;
 
             % Create filter_SecondaryNumSeparator
             app.filter_SecondaryNumSeparator = uilabel(app.filter_SecondaryValueGrid);

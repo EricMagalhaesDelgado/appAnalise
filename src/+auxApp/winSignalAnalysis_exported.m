@@ -152,8 +152,9 @@ classdef winSignalAnalysis_exported < matlab.apps.AppBase
 
             elToModify = {app.selectedEmissionInfo};
             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
-            if ~isempty(elDataTag)    
-                ui.TextView.startup(app.jsBackDoor, elToModify{1});
+            if ~isempty(elDataTag)
+                appName = class(app);
+                ui.TextView.startup(app.jsBackDoor, elToModify{1}, appName);
             end
         end
     end

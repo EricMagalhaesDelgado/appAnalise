@@ -437,7 +437,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                     % JS
                     case 'renderer'
                         startup_Controller(app)
-                    case 'beforeonload'
+                    case 'unload'
                         closeFcn(app)
 
                     % MAINAPP
@@ -689,39 +689,58 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         return
                     end
 
+                    appName = class(app);
+
                     customizationStatus(tabIndex) = true;
                     switch tabIndex
                         case 1 % FILE
-                            elToModify = {app.popupContainerGrid, app.file_Tree, app.file_FilteringTree, app.file_Metadata};
+                            elToModify = {app.popupContainerGrid, ...
+                                          app.popupContainer,     ...        % <div> principal
+                                          app.popupContainer,     ...        % <div> filho
+                                          app.file_Tree,          ...
+                                          app.file_FilteringTree, ...
+                                          app.file_Metadata};                % ui.TextView
+
                             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                             if ~isempty(elDataTag)
-                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                   ...
-                                    struct('dataTag', elDataTag{1}, 'style',    struct('backgroundColor', 'rgba(255,255,255,0.65)')),                                             ...
-                                    struct('dataTag', elDataTag{2}, 'listener', struct('componentName', 'mainApp.file_Tree',            'keyEvents', {{'Delete', 'Backspace'}})), ...
-                                    struct('dataTag', elDataTag{3}, 'listener', struct('componentName', 'mainApp.file_FilteringTree',   'keyEvents', {{'Delete', 'Backspace'}}))  ...
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                                       ...
+                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'style',    struct('backgroundColor', 'rgba(255,255,255,0.65)')),                                             ...
+                                    struct('appName', appName, 'dataTag', elDataTag{2}, 'style',    struct('borderRadius', '5px', 'boxShadow', '0 2px 5px 1px #a6a6a6')),                             ...
+                                    struct('appName', appName, 'dataTag', elDataTag{3}, 'style',    struct('backgroundColor', 'rgba(255,255,255,0.65)')),                                             ...
+                                    struct('appName', appName, 'dataTag', elDataTag{4}, 'listener', struct('componentName', 'mainApp.file_Tree',            'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                    struct('appName', appName, 'dataTag', elDataTag{5}, 'listener', struct('componentName', 'mainApp.file_FilteringTree',   'keyEvents', {{'Delete', 'Backspace'}}))  ...
                                 });
 
-                                ui.TextView.startup(app.jsBackDoor, elToModify{4});
+                                ui.TextView.startup(app.jsBackDoor, elToModify{6}, appName);
                             end
         
                         case 2 % PLAYBACK-REPORT-MISC
-                            elToModify = {app.play_axesToolbar, app.play_Channel_Tree, app.play_BandLimits_Tree, app.play_FindPeaks_Tree, app.report_Tree, app.play_Metadata, app.report_ThreadAlgorithms, app.report_ThreadAlgorithmsImage};
+                            elToModify = {app.play_axesToolbar,        ...
+                                          app.play_Channel_Tree,       ...
+                                          app.play_BandLimits_Tree,    ...
+                                          app.play_FindPeaks_Tree,     ...
+                                          app.report_Tree,             ...
+                                          app.play_Metadata,           ...   % ui.TextView
+                                          app.report_ThreadAlgorithms, ...   % ui.TextView
+                                          app.report_ThreadAlgorithmsImage}; % ui.TextView
+
                             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                             if ~isempty(elDataTag)
-                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                   ...
-                                    struct('dataTag', elDataTag{1}, 'style',    struct('borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')),                       ...
-                                    struct('dataTag', elDataTag{2}, 'listener', struct('componentName', 'mainApp.play_Channel_Tree',    'keyEvents', {{'Delete', 'Backspace'}})), ...
-                                    struct('dataTag', elDataTag{3}, 'listener', struct('componentName', 'mainApp.play_BandLimits_Tree', 'keyEvents', {{'Delete', 'Backspace'}})), ...
-                                    struct('dataTag', elDataTag{4}, 'listener', struct('componentName', 'mainApp.play_FindPeaks_Tree',  'keyEvents', {{'Delete', 'Backspace'}})), ...
-                                    struct('dataTag', elDataTag{5}, 'listener', struct('componentName', 'mainApp.report_Tree',          'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                                       ...
+                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'style',    struct('borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')),                       ...
+                                    struct('appName', appName, 'dataTag', elDataTag{2}, 'listener', struct('componentName', 'mainApp.play_Channel_Tree',    'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                    struct('appName', appName, 'dataTag', elDataTag{3}, 'listener', struct('componentName', 'mainApp.play_BandLimits_Tree', 'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                    struct('appName', appName, 'dataTag', elDataTag{4}, 'listener', struct('componentName', 'mainApp.play_FindPeaks_Tree',  'keyEvents', {{'Delete', 'Backspace'}})), ...
+                                    struct('appName', appName, 'dataTag', elDataTag{5}, 'listener', struct('componentName', 'mainApp.report_Tree',          'keyEvents', {{'Delete', 'Backspace'}})), ...
                                 });
 
-                                ui.TextView.startup(app.jsBackDoor, elToModify{6});
-                                ui.TextView.startup(app.jsBackDoor, elToModify{7});
-                                ui.TextView.startup(app.jsBackDoor, elToModify{8}, 'SELECIONE UM DOS FLUXOS ESPECTRAIS<br>INSERIDOS NA LISTA DE FLUXOS A PROCESSAR');
+                                ui.TextView.startup(app.jsBackDoor, elToModify{6}, appName);
+                                ui.TextView.startup(app.jsBackDoor, elToModify{7}, appName);
+                                ui.TextView.startup(app.jsBackDoor, elToModify{8}, appName, 'SELECIONE UM DOS FLUXOS ESPECTRAIS<br>INSERIDOS NA LISTA DE FLUXOS A PROCESSAR');
                             end
 
-                            % <EXPERIMENTO_ELIMINAR_ERROS_CONSOLE>
+                            % Inicialização de componentes que não são renderizados 
+                            % inicialmente por estarem em aba invisível.
                             channelList = {};
                             for ii = 1:numel(app.channelObj.Channel)
                                 channelList{end+1} = sprintf('%d: %.3f - %.3f MHz (%s)', ii, app.channelObj.Channel(ii).Band(1), ...
@@ -744,7 +763,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             if app.General.operationMode.Simulation
                                 app.report_system.Value = app.report_system.Items{end};
                             end
-                            % </EXPERIMENTO_ELIMINAR_ERROS_CONSOLE>
 
                         otherwise
                             % Customização dos módulos que são renderizados
@@ -802,7 +820,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Inicia operações de gerar tela inicial, customizar componentes e
             % de ler informações constantes em arquivos externos, aplicando-as.
-            sendEventToHTMLSource(app.jsBackDoor, "panelDialog", struct('componentDataTag', struct(app.popupContainer).Controller.ViewModel.Id)) 
             menu_LayoutPopupApp(app, 'WelcomePage', MFilePath)
 
             startup_ConfigFileRead(app, MFilePath)
@@ -837,7 +854,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             switch app.executionMode
                 case 'webApp'
-                    % Força a exclusão do SplashScreen do MATLAB WebDesigner.
+                    % Força a exclusão do SplashScreen do MATLAB Web Server.
                     sendEventToHTMLSource(app.jsBackDoor, "delProgressDialog");
 
                     % Webapp também não suporta outras janelas, de forma que os 
@@ -3180,18 +3197,19 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            % Mensagem de confirmação:
-            projectName = char(app.report_ProjectName.Value);
-            if ~isempty(projectName) && app.report_ProjectWarnIcon.Visible
-                msgQuestion = sprintf(['O projeto aberto - registrado no arquivo <b>"%s"</b> - foi alterado.\n\n' ...
-                                       'Deseja descartar essas alterações? Caso não, favor salvá-las no modo RELATÓRIO.'], projectName);
-            else
-                msgQuestion = 'Deseja fechar o aplicativo?';
-            end
-
-            userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-            if userSelection == "Não"
-                return
+            if ~strcmp(app.executionMode, 'webApp')
+                projectName = char(app.report_ProjectName.Value);
+                if ~isempty(projectName) && app.report_ProjectWarnIcon.Visible
+                    msgQuestion = sprintf(['O projeto aberto - registrado no arquivo <b>"%s"</b> - foi alterado.\n\n' ...
+                                           'Deseja descartar essas alterações? Caso não, favor salvá-las no modo RELATÓRIO.'], projectName);
+                else
+                    msgQuestion = 'Deseja fechar o aplicativo?';
+                end
+    
+                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                if userSelection == "Não"
+                    return
+                end
             end
 
             % Aspectos gerais (comum em todos os apps):

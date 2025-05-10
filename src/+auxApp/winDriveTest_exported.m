@@ -302,6 +302,8 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                         return
                     end
 
+                    appName = class(app);
+
                     customizationStatus(tabIndex) = true;
                     switch tabIndex
                         case 1
@@ -309,12 +311,12 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                             if ~isempty(elDataTag)
                                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                           ...
-                                    struct('dataTag', elDataTag{1}, 'generation', 0, 'style', struct('border', 'none', 'backgroundColor', 'transparent')),                ...
-                                    struct('dataTag', elDataTag{2}, 'generation', 0, 'style', struct('borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')), ...
-                                    struct('dataTag', elDataTag{3}, 'generation', 1, 'style', struct('textAlign', 'justify'))                                             ...
+                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'generation', 0, 'style', struct('border', 'none', 'backgroundColor', 'transparent')),                ...
+                                    struct('appName', appName, 'dataTag', elDataTag{2}, 'generation', 0, 'style', struct('borderBottomLeftRadius', '5px', 'borderBottomRightRadius', '5px')), ...
+                                    struct('appName', appName, 'dataTag', elDataTag{3}, 'generation', 1, 'style', struct('textAlign', 'justify'))                                             ...
                                 });
 
-                                ui.TextView.startup(app.jsBackDoor, elToModify{4});
+                                ui.TextView.startup(app.jsBackDoor, elToModify{4}, appName);
                             end
 
                         case 2
@@ -322,7 +324,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                             if ~isempty(elDataTag)
                                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                     ...
-                                    struct('dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.winDriveTest.filter_Tree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
+                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.winDriveTest.filter_Tree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
                                 });
                             end
                         
@@ -331,12 +333,15 @@ classdef winDriveTest_exported < matlab.apps.AppBase
                             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                             if ~isempty(elDataTag)
                                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                     ...
-                                    struct('dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.winDriveTest.points_Tree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
+                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.winDriveTest.points_Tree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
                                 });
                             end
 
                         case 4
-                            % ...
+                            app.config_chROIColor.Value     = app.General.Plot.ChannelROI.Color;
+                            app.config_chROIEdgeAlpha.Value = app.General.Plot.ChannelROI.EdgeAlpha;
+                            app.config_chROIFaceAlpha.Value = app.General.Plot.ChannelROI.FaceAlpha;
+                            app.config_chPowerColor.Value   = app.UIAxes3.Colormap(end,:);
                     end
             end
         end
@@ -464,15 +469,6 @@ classdef winDriveTest_exported < matlab.apps.AppBase
 
             % Lista as emissões:
             layout_ThreadTreeBuilding(app, idxThread, idxEmission)
-            
-            % Painel de pontos de interesse:
-            app.Tab3_Grid.RowHeight{3} = 118;
-            points_RadioGroupSelectionChanged(app)
-
-            % Configurações:
-            app.config_chROIColor.Value       = app.General.Plot.ChannelROI.Color;
-            app.config_chROIEdgeAlpha.Value   = app.General.Plot.ChannelROI.EdgeAlpha;
-            app.config_chROIFaceAlpha.Value   = app.General.Plot.ChannelROI.FaceAlpha;
         end
     end
 
@@ -1627,6 +1623,10 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             app.ControlTabGroup.SelectedTab = app.ControlTabGroup.Children(idx);
 
             jsBackDoor_Customizations(app, idx)
+
+            if idx == 4
+                app.config_chPowerColor.Value = app.UIAxes3.Colormap(end,:);
+            end
 
         end
 
@@ -3136,7 +3136,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             % Create Tab3_Grid
             app.Tab3_Grid = uigridlayout(app.Tab3_Points);
             app.Tab3_Grid.ColumnWidth = {'1x', 16};
-            app.Tab3_Grid.RowHeight = {22, 92, 220, 8, '1x'};
+            app.Tab3_Grid.RowHeight = {22, 92, 118, 8, '1x'};
             app.Tab3_Grid.ColumnSpacing = 5;
             app.Tab3_Grid.RowSpacing = 5;
             app.Tab3_Grid.Padding = [0 0 0 8];
@@ -3185,7 +3185,7 @@ classdef winDriveTest_exported < matlab.apps.AppBase
             % Create points_AddValueGrid
             app.points_AddValueGrid = uigridlayout(app.points_AddValuePanel);
             app.points_AddValueGrid.ColumnWidth = {'1x', '1x', '1x'};
-            app.points_AddValueGrid.RowHeight = {17, 22, 22, 22, 17, 22, 22, 22};
+            app.points_AddValueGrid.RowHeight = {17, 22, 22, 22, 0, 0, 0, 0};
             app.points_AddValueGrid.RowSpacing = 5;
             app.points_AddValueGrid.Padding = [10 10 10 5];
             app.points_AddValueGrid.BackgroundColor = [1 1 1];

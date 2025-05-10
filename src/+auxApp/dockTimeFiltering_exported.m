@@ -90,11 +90,13 @@ classdef dockTimeFiltering_exported < matlab.apps.AppBase
             elToModify = {app.filterTree, app.threadInfo};
             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
             if ~isempty(elDataTag)
-                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                         ...
-                    struct('dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.dockTimeFiltering.filterTree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
+                appName = class(app);
+
+                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                                             ...
+                    struct('appName', appName, 'dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.dockTimeFiltering.filterTree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
                 });
 
-                ui.TextView.startup(app.jsBackDoor, elToModify{2});
+                ui.TextView.startup(app.jsBackDoor, elToModify{2}, appName);
             end            
         end
     end

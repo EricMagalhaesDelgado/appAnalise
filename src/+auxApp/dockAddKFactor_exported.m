@@ -70,8 +70,10 @@ classdef dockAddKFactor_exported < matlab.apps.AppBase
             elToModify = {app.kFactorTree};
             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
             if ~isempty(elDataTag)
+                appName = class(app);
+                
                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                       ...
-                    struct('dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.dockAddKFactor.kFactorTree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
+                    struct('appName', appName, 'dataTag', elDataTag{1}, 'listener', struct('componentName', 'auxApp.dockAddKFactor.kFactorTree', 'keyEvents', {{'Delete', 'Backspace'}})) ...
                 });
             end
         end
