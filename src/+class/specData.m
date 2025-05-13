@@ -147,16 +147,22 @@ classdef specData < handle
                                 if exceptionList.Station(idxException) ~= -1
                                     receiverLatitude  = specData(ii).GPS.Latitude;
                                     receiverLongitude = specData(ii).GPS.Longitude;
-                                    stationInfo       = model.RFDataHub.query(RFDataHub, string(exceptionList.Station(idxException)), receiverLatitude, receiverLongitude);
-    
-                                    specData(ii).UserData.Emissions.Classification(jj).userModified.Service       = stationInfo.Service;
-                                    specData(ii).UserData.Emissions.Classification(jj).userModified.Station       = stationInfo.Station;
-                                    specData(ii).UserData.Emissions.Classification(jj).userModified.Latitude      = stationInfo.Latitude;
-                                    specData(ii).UserData.Emissions.Classification(jj).userModified.Longitude     = stationInfo.Longitude;
-                                    specData(ii).UserData.Emissions.Classification(jj).userModified.AntennaHeight = stationInfo.AntennaHeight;
-                                    specData(ii).UserData.Emissions.Classification(jj).userModified.Description   = stationInfo.Description;
-                                    specData(ii).UserData.Emissions.Classification(jj).userModified.Details       = stationInfo.Details;
-                                    specData(ii).UserData.Emissions.Classification(jj).userModified.Distance      = stationInfo.Distance;
+
+                                    % Se o registro não compor mais a base do RFDataHub, 
+                                    % a edição do usuário será desfeita.
+                                    try
+                                        stationInfo = model.RFDataHub.query(RFDataHub, string(exceptionList.Station(idxException)), receiverLatitude, receiverLongitude);
+        
+                                        specData(ii).UserData.Emissions.Classification(jj).userModified.Service       = stationInfo.Service;
+                                        specData(ii).UserData.Emissions.Classification(jj).userModified.Station       = stationInfo.Station;
+                                        specData(ii).UserData.Emissions.Classification(jj).userModified.Latitude      = stationInfo.Latitude;
+                                        specData(ii).UserData.Emissions.Classification(jj).userModified.Longitude     = stationInfo.Longitude;
+                                        specData(ii).UserData.Emissions.Classification(jj).userModified.AntennaHeight = stationInfo.AntennaHeight;
+                                        specData(ii).UserData.Emissions.Classification(jj).userModified.Description   = stationInfo.Description;
+                                        specData(ii).UserData.Emissions.Classification(jj).userModified.Details       = stationInfo.Details;
+                                        specData(ii).UserData.Emissions.Classification(jj).userModified.Distance      = stationInfo.Distance;
+                                    catch
+                                    end
                                 end
     
                                 specData(ii).UserData.Emissions.Classification(jj).userModified.Regulatory    = exceptionList.Regulatory{idxException};

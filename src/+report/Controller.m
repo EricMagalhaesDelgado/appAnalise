@@ -81,7 +81,6 @@ function Controller(app, operationType)
         end
         
     catch ME
-        struct2table(ME.stack)
         appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
     end
 
