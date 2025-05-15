@@ -145,7 +145,6 @@ classdef (Abstract) Plot
             
             while true
                 pause(1)
-                isfile(imgFileName)
                 if isfile(imgFileName)
                     break
                 end
@@ -337,7 +336,7 @@ classdef (Abstract) Plot
                                                          LineWidth=1,               ...
                                                          PickableParts='none',        ...
                                                          Tag='FilterROI');
-                            otherwise
+                            case {'Circle', 'Rectangle', 'Polygon'}
                                 switch FilterSubtype
                                     case 'Circle';     roiFcn = 'images.roi.Circle';
                                     case 'Rectangle';  roiFcn = 'images.roi.Rectangle';
