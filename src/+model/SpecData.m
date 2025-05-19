@@ -10,8 +10,17 @@ classdef SpecData < model.SpecDataBase
 
     methods
         %-----------------------------------------------------------------%
-        % ToDo: Migrar toda e qualquer atualização do objeto model.SpecData
-        % para esse método.
+        % ToDo: 
+        % - Migrar toda e qualquer atualização do objeto model.SpecData
+        %   para esse método.
+        %
+        % - Organizar as varreduras de forma georeferenciada, evitando
+        %   mesclagens de vários arquivos e a possível perda do mapeamento
+        %   entre as coordenadas registradas em um arquivo e as suas
+        %   respectivas varreduras. (IMPORTANTE!)
+        %
+        % - Eliminar as propriedades "sortType" e "callingApp" quando for 
+        %   realizar uma nova refatoração, gerando a v. 2 do app.
         %-----------------------------------------------------------------%
         function update(obj, propertyName, updateType, varargin)
             arguments
@@ -532,6 +541,10 @@ classdef SpecData < model.SpecDataBase
                 error(ErrorMessage(obj, 'merge'))
             end
 
+            if any(mergeTable.nCoordinates == 0)
+                error(ErrorMessage(obj, 'merge:noCoordinates'))
+            end
+
             resolutionList = unique(mergeTable.Resolution);
             stepWidthList  = unique(mergeTable.StepWidth);
 
@@ -575,6 +588,10 @@ classdef SpecData < model.SpecDataBase
                     if ~issorted(timeArray)
                         [timeArray, idxSort] = sort(timeArray);
                         dataMatrix           = dataMatrix(:,idxSort);
+                    end
+
+                    if ~issorted(relatedFiles.BeginTime)
+                        relatedFiles = sortrows(relatedFiles, 'BeginTime');
                     end
     
                     obj(idxThreads(1)).GPS = rmfield(gpsLib.summary(cell2mat(relatedFiles.GPS)), 'Matrix');
@@ -765,9 +782,9 @@ classdef SpecData < model.SpecDataBase
         %-----------------------------------------------------------------%
         function [sortTable, sortIndex] = createSortableTable(obj, idxThreads, columnNames)
             NN = numel(idxThreads);
-            sortTable = table('Size',          [NN, 11],                                                                                                   ...
-                              'VariableTypes', {'double', 'cell', 'double', 'double', 'double', 'double', 'cell', 'double', 'double', 'double', 'double'}, ...
-                              'VariableNames', {'idx', 'Receiver', 'ID', 'DataType', 'FreqStart', 'FreqStop', 'LevelUnit', 'DataPoints', 'StepWidth', 'Resolution', 'nSweeps'});
+            sortTable = table('Size',          [NN, 12],                                                                                                             ...
+                              'VariableTypes', {'double', 'cell', 'double', 'double', 'double', 'double', 'cell', 'double', 'double', 'double', 'double', 'double'}, ...
+                              'VariableNames', {'idx', 'Receiver', 'ID', 'DataType', 'FreqStart', 'FreqStop', 'LevelUnit', 'DataPoints', 'StepWidth', 'Resolution', 'nSweeps', 'nCoordinates'});
 
             for ii = 1:NN
                 idx = idxThreads(ii);
@@ -781,7 +798,8 @@ classdef SpecData < model.SpecDataBase
                                    obj(idx).MetaData.DataPoints, ...
                                    (obj(idx).MetaData.FreqStop - obj(idx).MetaData.FreqStart) / (obj(idx).MetaData.DataPoints - 1), ...
                                    obj(idx).MetaData.Resolution, ...
-                                   numel(obj(idx).Data{1})};
+                                   numel(obj(idx).Data{1}),      ...
+                                   obj(idx).GPS.Count};
             end
             
             sortTable = sortrows(sortTable, columnNames);
@@ -914,6 +932,11 @@ classdef SpecData < model.SpecDataBase
                     [obj(ii).Data{1}, idx2] = sort(obj(ii).Data{1});
                     obj(ii).Data{2}         = obj(ii).Data{2}(:,idx2);
                 end
+
+                % Ordenando os arquivos...
+                if ~issorted(obj(ii).RelatedFiles.BeginTime)
+                    obj(ii).RelatedFiles = sortrows(obj(ii).RelatedFiles, 'BeginTime');
+                end
         
                 % GPS
                 if height(obj(ii).RelatedFiles) > 1
@@ -965,6 +988,8 @@ classdef SpecData < model.SpecDataBase
                     errorMessage = sprintf(['Os fluxos espectrais a mesclar não atendem aos requisitos dos dois tipos de mesclagem implantados no <i>app</i>, quais sejam:\n\n'    ...
                                            '• Tipo "co-channel": os fluxos devem possuir os campos "FreqStart", "FreqStop", "LevelUnit", "DataPoints" e "DataType" idênticos;\n\n' ...
                                            '• Tipo "adjacent-channel": os fluxos devem estar relacionados a faixas de frequências adjacentes, podendo ter sobreposição espectral entre fluxos, além de possuírem os campos "LevelUnit", "nSweeps" e "DataType" idênticos.']);
+                case 'merge:noCoordinates'
+                    errorMessage = sprintf('Ao menos um dos fluxos espectrais selecionados não pode ser mesclado por ser desconhecido o seu local da monitoração.');
                 otherwise
                     errorMessage = 'Unknown error';
             end
