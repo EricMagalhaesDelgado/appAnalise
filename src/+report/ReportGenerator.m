@@ -507,17 +507,13 @@ function Table = Fcn_Table(specData, idxThreads, idx, tempBandObj, reportInfo, R
                         Table.Properties.VariableNames = replace(Table.Properties.VariableNames, '%LevelUnit%', specData(idxThreads(idx)).MetaData.LevelUnit);
                     end
         
-                case 'Summary'        
-                    if ~isempty(specData(idxThreads(idx)).UserData.Emissions)
-                        Table = reportLibConnection.table.Summary(specData, idxThreads, 'REPORT', 'TotalSummaryTable');
-                        Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
-                    end
+                case 'Summary'
+                    Table = reportLibConnection.table.Summary(specData, idxThreads, 'REPORT', 'TotalSummaryTable');
+                    Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
 
                 case 'Irregular'
-                    if ~isempty(specData(idxThreads(idx)).UserData.Emissions)
-                        Table = reportLibConnection.table.Summary(specData, idxThreads, 'REPORT', 'IrregularTable');
-                        Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
-                    end
+                    Table = reportLibConnection.table.Summary(specData, idxThreads, 'REPORT', 'IrregularTable');
+                    Table = Fcn_Table_PreProcess(Table, reportInfo, Children);
         
                 case 'Custom'
                     NN = numel(Children.Data.Settings);
