@@ -5259,7 +5259,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             return
                         end
         
-                        msgQuestion   = sprintf('Confirma que se trata de monitoração relacionada à Inspeção nº %.0f?', app.report_Issue.Value);
+                        msgQuestion   = sprintf('Confirma que se trata de monitoração relacionada à Atividade de Inspeção nº %.0f?', app.report_Issue.Value);
                         userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
                         if userSelection == "Não"
                             return
