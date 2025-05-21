@@ -575,6 +575,7 @@ classdef SpecData < model.SpecDataBase
 
             switch mergeType
                 case 'co-channel'
+                    refIndex     = 1;
                     timeArray    = [];
                     dataMatrix   = [];
                     relatedFiles = [];
@@ -594,14 +595,13 @@ classdef SpecData < model.SpecDataBase
                         relatedFiles = sortrows(relatedFiles, 'BeginTime');
                     end
     
-                    obj(idxThreads(1)).GPS = rmfield(gpsLib.summary(cell2mat(relatedFiles.GPS)), 'Matrix');
-                    obj(idxThreads(1)).RelatedFiles = relatedFiles;
+                    obj(idxThreads(refIndex)).Data{1}      = timeArray;
+                    obj(idxThreads(refIndex)).GPS          = rmfield(gpsLib.summary(cell2mat(relatedFiles.GPS)), 'Matrix');
+                    obj(idxThreads(refIndex)).RelatedFiles = relatedFiles;
 
                 case {'adjacent-channel', 'gap-adjacent-channel'}
                     stepWidthRef = mode(mergeTable.StepWidth);
-                    [nSweepsRef, nSweepsRefIndex] = min(mergeTable.nSweeps);
-
-                    timeArray    = obj(idxThreads(nSweepsRefIndex)).Data{1};
+                    [refNumSweeps, refIndex] = min(mergeTable.nSweeps);
                     dataMatrix   = [];
 
                     for ii = 1:nThreads
@@ -620,11 +620,11 @@ classdef SpecData < model.SpecDataBase
                         end
 
                         if isequal(x, xq)
-                            newDataMatrix = obj(idxThreads(ii)).Data{2}(:, 1:nSweepsRef);
+                            newDataMatrix = obj(idxThreads(ii)).Data{2}(:, 1:refNumSweeps);
                         else
-                            newDataMatrix = zeros(newDataPoints, nSweepsRef, 'single');
+                            newDataMatrix = zeros(newDataPoints, refNumSweeps, 'single');
 
-                            for jj = 1:nSweepsRef
+                            for jj = 1:refNumSweeps
                                 refMinValue = min(obj(idxThreads(ii)).Data{2}(:, jj));
                                 newDataMatrix(:,jj) = interp1(x, obj(idxThreads(ii)).Data{2}(:, jj), xq, "linear", refMinValue);
                             end
@@ -640,17 +640,18 @@ classdef SpecData < model.SpecDataBase
                         dataMatrix = [dataMatrix; newDataMatrix];
                     end
 
-                    obj(idxThreads(1)).MetaData.DataPoints = height(dataMatrix);
-                    obj(idxThreads(1)).MetaData.FreqStop   = mergeTable.FreqStop(end);
+                    obj(idxThreads(refIndex)).MetaData.DataPoints = height(dataMatrix);
+                    obj(idxThreads(refIndex)).MetaData.FreqStart  = min(mergeTable.FreqStart);
+                    obj(idxThreads(refIndex)).MetaData.FreqStop   = max(mergeTable.FreqStop);
             end
 
-            obj(idxThreads(1)).MetaData.Resolution = max(resolutionList);
-            obj(idxThreads(1)).Data{1}  = timeArray;
-            obj(idxThreads(1)).Data{2}  = dataMatrix;
-            basicStats(obj(idxThreads(1)))
+            obj(idxThreads(refIndex)).MetaData.Resolution = max(resolutionList);
+            obj(idxThreads(refIndex)).Data{2}  = dataMatrix;
+            basicStats(obj(idxThreads(refIndex)))
 
-            delete(obj(idxThreads(2:nThreads)))
-            obj(idxThreads(2:nThreads)) = [];
+            othersIndex = setdiff(1:nThreads, refIndex);
+            delete(obj(idxThreads(othersIndex)))
+            obj(idxThreads(othersIndex)) = [];
 
             occupancyMapping(obj)
             % </PROCESS>
