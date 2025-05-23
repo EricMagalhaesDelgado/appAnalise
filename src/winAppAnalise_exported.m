@@ -1319,8 +1319,10 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function DeleteProject(app, operationType)
             Restart(app.projectData)
-            app.report_ProjectName.Value = '';
-            app.report_Issue.Value       = -1;       
+
+            app.report_ProjectName.Value       = app.projectData.file;
+            app.report_Issue.Value             = app.projectData.issue;
+            app.report_ModelName.Value         = app.projectData.documentModel;
             app.report_ProjectWarnIcon.Visible = 0;
 
             switch operationType
@@ -2978,13 +2980,6 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end            
         end
 
-        %-----------------------------------------------------------------%
-        function report_ProjectDataGUI(app)
-            app.report_ProjectName.Value  = app.projectData.file;
-            app.report_Issue.Value        = app.projectData.issue;
-            app.report_ModelName.Value    = app.projectData.documentModel;
-        end
-
 
         %-----------------------------------------------------------------%
         % MISCELÂNEAS
@@ -3169,7 +3164,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             end
             misc_updateLastVisitedFolder(app, fileFolder)
             
-            util.importAnalysis(app, app.specData(idx), fileFullPath)
+            util.importAnalysis(app, app.specData(idx), fileFullPath);
         end
     end
     
@@ -6869,6 +6864,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create play_Channel_ListUpdate
             app.play_Channel_ListUpdate = uiimage(app.play_Channel_Grid);
+            app.play_Channel_ListUpdate.ScaleMethod = 'none';
             app.play_Channel_ListUpdate.ImageClickedFcn = createCallbackFcn(app, @play_Channel_AutomaticChannelListUpdate, true);
             app.play_Channel_ListUpdate.Tooltip = {'Retorna à configuração padrão'};
             app.play_Channel_ListUpdate.Layout.Row = 1;
