@@ -465,6 +465,12 @@ classdef SpecData < model.SpecDataBase
                             callingApp.report_ProjectName.Value  = fullfile(fileparts(metaData(ii).File), prjInfo.Name);
                             callingApp.report_Issue.Value        = prjInfo.reportInfo.Issue;
 
+                            if isfield(prjInfo.reportInfo, 'Unit')
+                                if ismember(prjInfo.reportInfo.Unit, callingApp.report_Unit.Items)
+                                    callingApp.report_Unit.Value = prjInfo.reportInfo.Unit;
+                                end
+                            end
+
                             if isfield(prjInfo.reportInfo, 'Model')
                                 prjModelIndex = find(strcmp(callingApp.report_ModelName.Items, prjInfo.reportInfo.Model.Name), 1);
                                 if ~isempty(prjModelIndex)

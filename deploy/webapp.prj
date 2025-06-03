@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.webdeploy" plugin-version="1.0">
-  <configuration file="D:\InovaFiscaliza\appAnalise\deploy\webapp.prj" location="D:\InovaFiscaliza\appAnalise\deploy" name="webapp" target="target.webdeploy" target-name="Web App Compiler">
+  <configuration file="C:\InovaFiscaliza\appAnalise\deploy\webapp.prj" location="C:\InovaFiscaliza\appAnalise\deploy" name="webapp" target="target.webdeploy" target-name="Web App Compiler">
     <param.appname>appAnalise</param.appname>
     <param.intermediate>${PROJECT_ROOT}\webapp</param.intermediate>
     <param.files.only>${PROJECT_ROOT}\webapp</param.files.only>
@@ -20,27 +20,26 @@
       <param.support.packages />
     </unset>
     <fileset.web.main>
-      <file>D:\InovaFiscaliza\appAnalise\src\winAppAnalise.mlapp</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\winAppAnalise.mlapp</file>
     </fileset.web.main>
     <fileset.resources>
-      <file>D:\InovaFiscaliza\appAnalise\src\+auxApp</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+class</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+model</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+plot</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+report</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+reportLibConnection</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+util</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\config</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\resources</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\winAppAnalise.mlapp</file>
-      <file>D:\SupportPackages\src\Anatel</file>
-      <file>D:\SupportPackages\src\General</file>
-      <file>D:\SupportPackages\src\Spectrum</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+auxApp</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+class</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+model</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+plot</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+report</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+reportLibConnection</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+util</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\config</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\resources</file>
+      <file>C:\SupportPackages\src\Anatel</file>
+      <file>C:\SupportPackages\src\General</file>
+      <file>C:\SupportPackages\src\Spectrum</file>
     </fileset.resources>
     <fileset.depfun />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\webapp" name="appAnalise.ctf" optional="false">D:\InovaFiscaliza\appAnalise\deploy\webapp\appAnalise.ctf</file>
+      <file location="${PROJECT_ROOT}\webapp" name="appAnalise.ctf" optional="false">C:\InovaFiscaliza\appAnalise\deploy\webapp\appAnalise.ctf</file>
     </build-deliverables>
     <workflow />
     <matlab>

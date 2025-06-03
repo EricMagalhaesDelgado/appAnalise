@@ -1,5 +1,5 @@
 {
-    "version": 1.01,
+    "version": 1.02,
     "operationMode": {
         "Debug": false,
         "Dock": false,
@@ -235,6 +235,41 @@
     "Detection": {
         "ManualMode": false,
         "InitialBW_kHz": 0
+    },
+    "ui": {
+        "unit": {
+            "default": "",
+            "options": [
+                "",
+                "GR01", "GR01FI1", "GR01FI2", "GR01FI3",
+                "GR02", "GR02FI1", "GR02FI2", "GR02FI3",
+                "GR03", "GR03FI1", "GR03FI2",
+                "GR04", "GR04FI1", "GR04FI2", "GR04FI3",
+                "GR05", "GR05FI1", "GR05FI2",
+                "GR06", "GR06FI1", "GR06FI2",
+                "GR07", "GR07FI1", "GR07FI2",
+                "GR08", "GR08FI1", "GR08FI2",
+                "GR09", "GR09FI1", "GR09FI2",
+                "GR10", "GR10FI1", "GR10FI2",
+                "GR11", "GR11FI1", "GR11FI2",
+                "UO001",
+                "UO021", "UO021FI",
+                "UO031", "UO031FI",
+                "UO061",
+                "UO062",
+                "UO071",
+                "UO072", "UO072FI",
+                "UO073",
+                "UO081",
+                "UO091",
+                "UO092",
+                "UO101",
+                "UO102",
+                "UO111",
+                "UO112",
+                "UO113"
+            ]
+        }
     },
     "eFiscaliza": {
         "internal": {

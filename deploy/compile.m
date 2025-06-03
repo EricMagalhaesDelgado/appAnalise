@@ -10,7 +10,7 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
 
     arguments
         compilationType         char {mustBeMember(compilationType, {'Desktop+WebApp', 'Desktop', 'WebApp'})} = 'Desktop+WebApp'
-        rootCompiledFolder      char    = 'D:\_ANATEL - AppsDeployVersions'
+        rootCompiledFolder      char    = 'C:\InovaFiscaliza (AppsDeployVersions)'
         matlabRuntimeFolder     char    = 'E:\MATLAB Runtime\MATLAB Runtime (Custom)\R2024a'
         showConsoleInDesktopBuild  (1,1) logical = false % versão desktop apresenta console
         createGitHubReleaseForDesktopBuild (1,1) logical = true
@@ -206,8 +206,11 @@ function desktopPostCompilation(finalFolder, matlabRuntimeFolder, githubReleaseF
     
         if isfolder(desktopFinalFolder)
             rmdir(desktopFinalFolder, 's')
-        end    
-        delete(fullfile(finalFolder, sprintf('%s_Installer.zip', appName)))        
+        end
+
+        if isfile(fullfile(finalFolder, sprintf('%s_Installer.zip', appName)))
+            delete(fullfile(finalFolder, sprintf('%s_Installer.zip', appName)))
+        end
         
         copyfile(deploySplash, desktopFinalFolder, 'f')
         copyfile(deployApp, fullfile(desktopFinalFolder, 'application'), 'f')

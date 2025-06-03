@@ -128,6 +128,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         report_ModelName                matlab.ui.control.DropDown
         report_AddProjectAttachment     matlab.ui.control.Image
         report_ModelNameLabel           matlab.ui.control.Label
+        report_UnitLabel                matlab.ui.control.Label
+        report_Unit                     matlab.ui.control.DropDown
         report_Issue                    matlab.ui.control.NumericEditField
         report_IssueLabel               matlab.ui.control.Label
         report_system                   matlab.ui.control.DropDown
@@ -762,8 +764,9 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             app.play_FindPeaks_Algorithm.Value = 'FindPeaks+OCC';
                             play_FindPeaks_AlgorithmValueChanged(app)
                 
+                            app.report_Unit.Items      = app.General.ui.unit.options;
                             app.report_ModelName.Items = [{''}; app.General.Models.Name];
-                            app.report_system.Items    = {'eFiscaliza', 'eFiscaliza DS', 'eFiscaliza HM'};
+                            
                             if app.General.operationMode.Simulation
                                 app.report_system.Value = app.report_system.Items{end};
                             end
@@ -1171,7 +1174,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function report_uploadInfoController(app, credentials, operation)
             communicationStatus = report_sendHTMLDocToSEIviaEFiscaliza(app, credentials, operation);
-            if communicationStatus
+            if communicationStatus && strcmp(app.report_system.Value, 'eFiscaliza')
                 report_sendJSONFileToSharepoint(app)
             end
         end
@@ -1196,12 +1199,13 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                         end
 
                         issue    = struct('type', 'ATIVIDADE DE INSPEÇÃO', 'id', app.report_Issue.Value);
+                        unit     = app.report_Unit.Value;
                         fileName = app.projectData.generatedFiles.lastHTMLDocFullPath;
                         docSpec  = app.General.eFiscaliza;
                         docSpec.originId = docSpec.internal.originId;
                         docSpec.typeId   = docSpec.internal.typeId;
 
-                        [status, msg] = run(app.eFiscalizaObj, env, operation, issue, docSpec, fileName);
+                        msg = run(app.eFiscalizaObj, env, operation, issue, unit, docSpec, fileName);
         
                     otherwise
                         error('Unexpected call')
@@ -1212,7 +1216,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 end
 
                 modalWindowIcon     = 'success';
-                modalWindowMessage  = sprintf('<b>%s</b>\n%s', status, msg);
+                modalWindowMessage  = msg;
                 communicationStatus = true;
 
             catch ME
@@ -1322,6 +1326,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             app.report_ProjectName.Value       = app.projectData.file;
             app.report_Issue.Value             = app.projectData.issue;
+            app.report_Unit.Value              = app.projectData.unit;
             app.report_ModelName.Value         = app.projectData.documentModel;
             app.report_ProjectWarnIcon.Visible = 0;
 
@@ -5292,6 +5297,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                 msg = 'É necessário incluir pelo menos um fluxo espectral na lista de fluxos a processar.';
             elseif ~report_checkEFiscalizaIssueId(app)
                 msg = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
+            elseif isempty(app.report_Unit.Value)
+                msg = 'Unidade geradora do documento precisa ser selecionada.';
             elseif isempty(app.projectData.generatedFiles) || isempty(app.projectData.generatedFiles.lastHTMLDocFullPath)
                 msg = 'A versão definitiva do relatório ainda não foi gerada.';
             elseif ~isfile(app.projectData.generatedFiles.lastHTMLDocFullPath)
@@ -7642,7 +7649,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
 
             % Create report_DocumentGrid
             app.report_DocumentGrid = uigridlayout(app.report_DocumentPanel);
-            app.report_DocumentGrid.ColumnWidth = {90, '1x', 16, 64, 16};
+            app.report_DocumentGrid.ColumnWidth = {'1x', 58, 16, 84};
             app.report_DocumentGrid.RowHeight = {17, 22, 17, 22};
             app.report_DocumentGrid.RowSpacing = 5;
             app.report_DocumentGrid.Padding = [10 10 10 5];
@@ -7655,17 +7662,17 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_systemLabel.FontSize = 10;
             app.report_systemLabel.FontColor = [0.149 0.149 0.149];
             app.report_systemLabel.Layout.Row = 1;
-            app.report_systemLabel.Layout.Column = [1 3];
+            app.report_systemLabel.Layout.Column = 1;
             app.report_systemLabel.Text = 'Sistema:';
 
             % Create report_system
             app.report_system = uidropdown(app.report_DocumentGrid);
-            app.report_system.Items = {};
+            app.report_system.Items = {'eFiscaliza', 'eFiscaliza DS', 'eFiscaliza HM'};
             app.report_system.FontSize = 11;
             app.report_system.BackgroundColor = [1 1 1];
             app.report_system.Layout.Row = 2;
-            app.report_system.Layout.Column = [1 3];
-            app.report_system.Value = {};
+            app.report_system.Layout.Column = 1;
+            app.report_system.Value = 'eFiscaliza';
 
             % Create report_IssueLabel
             app.report_IssueLabel = uilabel(app.report_DocumentGrid);
@@ -7674,8 +7681,8 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_IssueLabel.FontSize = 10;
             app.report_IssueLabel.FontColor = [0.149 0.149 0.149];
             app.report_IssueLabel.Layout.Row = 1;
-            app.report_IssueLabel.Layout.Column = 4;
-            app.report_IssueLabel.Text = 'Id:';
+            app.report_IssueLabel.Layout.Column = 2;
+            app.report_IssueLabel.Text = '# Id:';
 
             % Create report_Issue
             app.report_Issue = uieditfield(app.report_DocumentGrid, 'numeric');
@@ -7687,8 +7694,26 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Issue.FontSize = 11;
             app.report_Issue.FontColor = [0.149 0.149 0.149];
             app.report_Issue.Layout.Row = 2;
-            app.report_Issue.Layout.Column = [4 5];
+            app.report_Issue.Layout.Column = [2 3];
             app.report_Issue.Value = -1;
+
+            % Create report_Unit
+            app.report_Unit = uidropdown(app.report_DocumentGrid);
+            app.report_Unit.Items = {};
+            app.report_Unit.FontSize = 11;
+            app.report_Unit.BackgroundColor = [1 1 1];
+            app.report_Unit.Layout.Row = 2;
+            app.report_Unit.Layout.Column = 4;
+            app.report_Unit.Value = {};
+
+            % Create report_UnitLabel
+            app.report_UnitLabel = uilabel(app.report_DocumentGrid);
+            app.report_UnitLabel.VerticalAlignment = 'bottom';
+            app.report_UnitLabel.WordWrap = 'on';
+            app.report_UnitLabel.FontSize = 10;
+            app.report_UnitLabel.Layout.Row = 1;
+            app.report_UnitLabel.Layout.Column = 4;
+            app.report_UnitLabel.Text = 'Unidade:';
 
             % Create report_ModelNameLabel
             app.report_ModelNameLabel = uilabel(app.report_DocumentGrid);
@@ -7733,7 +7758,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
             app.report_Version.FontSize = 11;
             app.report_Version.BackgroundColor = [1 1 1];
             app.report_Version.Layout.Row = 4;
-            app.report_Version.Layout.Column = [4 5];
+            app.report_Version.Layout.Column = 4;
             app.report_Version.Value = 'Preliminar';
 
             % Create report_TreeLabel

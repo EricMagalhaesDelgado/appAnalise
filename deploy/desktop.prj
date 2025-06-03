@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="1278032751" file="D:\InovaFiscaliza\appAnalise\deploy\desktop.prj" location="D:\InovaFiscaliza\appAnalise\deploy" name="desktop" preferred-package-location="D:\appAnalise\deploy\desktop\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration build-checksum="1278032751" file="C:\InovaFiscaliza\appAnalise\deploy\desktop.prj" location="C:\InovaFiscaliza\appAnalise\deploy" name="desktop" preferred-package-location="D:\appAnalise\deploy\desktop\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>appAnalise</param.appname>
     <param.icon>${PROJECT_ROOT}\desktop_resources\icon.ico</param.icon>
     <param.icons>
@@ -8,7 +8,7 @@
       <file>${PROJECT_ROOT}\desktop_resources\icon_24.png</file>
       <file>${PROJECT_ROOT}\desktop_resources\icon_16.png</file>
     </param.icons>
-    <param.version>1.87.0</param.version>
+    <param.version>1.87.10</param.version>
     <param.authnamewatermark>Escritório de inovação da SFI</param.authnamewatermark>
     <param.email />
     <param.company>ANATEL</param.company>
@@ -76,29 +76,29 @@
       <param.example />
     </unset>
     <fileset.main>
-      <file>D:\InovaFiscaliza\appAnalise\src\winAppAnalise.mlapp</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\winAppAnalise.mlapp</file>
     </fileset.main>
     <fileset.resources>
-      <file>D:\InovaFiscaliza\appAnalise\src\+auxApp</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+class</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+model</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+plot</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+report</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+reportLibConnection</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\+util</file>
-      <file>D:\InovaFiscaliza\appAnalise\src\resources</file>
-      <file>D:\SupportPackages\src\Anatel</file>
-      <file>D:\SupportPackages\src\General</file>
-      <file>D:\SupportPackages\src\Spectrum</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+auxApp</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+class</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+model</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+plot</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+report</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+reportLibConnection</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\+util</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\resources</file>
+      <file>C:\SupportPackages\src\Anatel</file>
+      <file>C:\SupportPackages\src\General</file>
+      <file>C:\SupportPackages\src\Spectrum</file>
     </fileset.resources>
     <fileset.package>
-      <file>D:\InovaFiscaliza\appAnalise\src\config</file>
+      <file>C:\InovaFiscaliza\appAnalise\src\config</file>
     </fileset.package>
     <fileset.depfun />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\desktop\for_testing" name="readme.txt" optional="true">D:\InovaFiscaliza\appAnalise\deploy\desktop\for_testing\readme.txt</file>
-      <file location="${PROJECT_ROOT}\desktop\for_testing" name="splash.png" optional="false">D:\InovaFiscaliza\appAnalise\deploy\desktop\for_testing\splash.png</file>
-      <file location="${PROJECT_ROOT}\desktop\for_testing" name="appAnalise.exe" optional="false">D:\InovaFiscaliza\appAnalise\deploy\desktop\for_testing\appAnalise.exe</file>
+      <file location="${PROJECT_ROOT}\desktop\for_testing" name="readme.txt" optional="true">C:\InovaFiscaliza\appAnalise\deploy\desktop\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\desktop\for_testing" name="splash.png" optional="false">C:\InovaFiscaliza\appAnalise\deploy\desktop\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\desktop\for_testing" name="appAnalise.exe" optional="false">C:\InovaFiscaliza\appAnalise\deploy\desktop\for_testing\appAnalise.exe</file>
     </build-deliverables>
     <workflow />
     <matlab>
