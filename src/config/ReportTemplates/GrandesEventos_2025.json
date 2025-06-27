@@ -189,7 +189,7 @@
                     "Data": {
                         "Origin": "Internal",
                         "Source": "Band",
-                        "Plot": "Persistance:Waterfall",
+                        "Plot": "Persistance+Emission:Waterfall",
                         "Layout": "1:2",
                         "Caption": "Representação gráfica da faixa de frequência sob análise.",
                         "Settings": {
