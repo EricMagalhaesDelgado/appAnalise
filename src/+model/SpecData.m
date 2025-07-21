@@ -176,8 +176,14 @@ classdef SpecData < model.SpecDataBase
                                 obj.UserData.Emissions(idxEmission, 1:4) = table(idxFreq(ii), FreqCenter(ii), BandWidth(ii), true);
 
                                 defaultChannelEmission  = model.UserData.getFieldTemplate('ChannelAssigned', obj, 1, idxEmission, channelObj);
-                                hasMatchingChannel      = any(arrayfun(@(x) isequal(x, defaultChannelEmission.autoSuggested), arrayfun(@(x) x.userModified, obj.UserData.Emissions.ChannelAssigned(1:end-1))));
-                                if hasMatchingChannel
+
+                                % Ideia abaixo é eliminar as emissões com características
+                                % muito parecidas com a de outras emissões já inclusas.
+                                hasMatchingFrequency    = abs(obj.UserData.Emissions.Frequency(1:end-1) - obj.UserData.Emissions.Frequency(end)) <= .015; % 15kHz
+                                hasMatchingBandWidth    = abs(obj.UserData.Emissions.BW_kHz(1:end-1)    - obj.UserData.Emissions.BW_kHz(end))    <= 30;   % 30kHz
+                                hasMatchingChannel      = arrayfun(@(x) isequal(x, defaultChannelEmission.autoSuggested), arrayfun(@(x) x.userModified, obj.UserData.Emissions.ChannelAssigned(1:end-1)));
+                                
+                                if any(hasMatchingFrequency & hasMatchingBandWidth & hasMatchingChannel)
                                     obj.UserData.Emissions(idxEmission, :) = [];
                                     continue
                                 end

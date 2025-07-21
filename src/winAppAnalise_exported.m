@@ -4611,7 +4611,7 @@ classdef winAppAnalise_exported < matlab.apps.AppBase
                             otherwise
                                 switch app.play_FindPeaks_ExternalFile.Value
                                     case 'Generic (csv, txt, json, xls, xlsx)'
-                                        rawTable = readtable(fileFullPath);
+                                        rawTable = readtable(fileFullPath, "VariableNamingRule", "preserve");
                                     case 'Romes (csv)'
                                         rawTable = util.readFileGeneratedByRomes(fileFullPath);
                                 end
